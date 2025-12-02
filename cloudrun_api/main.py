@@ -75,7 +75,12 @@ async def load_data(subject: str) -> Dict[str, Any]:
     try:
         async with aiofiles.open(path, 'r', encoding='utf-8') as f:
             content = await f.read()
-            return json.loads(content)
+            data = json.loads(content)
+            # --- Robustness check: Convert old list format to new dict format ---
+            if isinstance(data, list):
+                print(f"Warning: Old data format detected for {subject}. Converting to new dictionary format.")
+                return {"problems": data, "summary": {}} # Wrap the list in the new format
+            return data
     except (json.JSONDecodeError, FileNotFoundError):
         print(f"Error or file not found for {path}. Returning empty structure.")
         return {"problems": [], "summary": {}}

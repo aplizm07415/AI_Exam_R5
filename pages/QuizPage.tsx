@@ -31,7 +31,7 @@ export default function QuizPage({ subjects }: QuizPageProps) {
   const [quizMode, setQuizMode] = useState<QuizMode>('random');
   const [numQuestions, setNumQuestions] = useState<number>(10);
   const [quizState, setQuizState] = useState<'setup' | 'active' | 'finished'>('setup');
-  
+
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [explanationMap, setExplanationMap] = useState<Record<string, string>>({});
 
@@ -61,11 +61,15 @@ export default function QuizPage({ subjects }: QuizPageProps) {
       }
 
       setQuestions(data.quiz_set);
+      console.log("Received quiz_set:", data.quiz_set);
+      console.log("Questions length:", data.quiz_set.length);
+
       setExplanationMap(data.explanations);
-      
+
       setCurrentQuestionIndex(0);
       setScore(0);
       setQuizState('active');
+      console.log("Quiz state set to 'active'");
       resetQuestionState();
 
     } catch (e: any) {
@@ -93,6 +97,7 @@ export default function QuizPage({ subjects }: QuizPageProps) {
     }
 
     try {
+      /*
       await fetch(`${API_BASE_URL}/history`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -103,6 +108,7 @@ export default function QuizPage({ subjects }: QuizPageProps) {
           is_correct: isCorrect,
         }),
       });
+      */
     } catch (e) {
       console.error("Failed to submit history:", e);
     }
@@ -112,17 +118,22 @@ export default function QuizPage({ subjects }: QuizPageProps) {
   };
 
   const handleNextQuestion = () => {
+    console.log("handleNextQuestion called. currentQuestionIndex:", currentQuestionIndex, "questions.length:",
+      questions.length);
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
       resetQuestionState();
     } else {
       setQuizState('finished');
+      console.log("Quiz state set to 'finished'");
     }
   };
 
   const currentQuestion = useMemo(() => questions[currentQuestionIndex], [questions, currentQuestionIndex]);
 
-  const isAnalysisComplete = selectedSubject?.analysisStatus === 'complete';
+  const isAnalysisComplete = useMemo(() => {
+    return selectedSubject?.analysisStatus === 'complete';
+  }, [selectedSubject]);
 
   if (subjects.length === 0) {
     return (
@@ -144,8 +155,8 @@ export default function QuizPage({ subjects }: QuizPageProps) {
               {subjects.map(s => (
                 <option key={s.name} value={s.name}>
                   {s.name} {s.analysisStatus === 'complete' && ' (分析済)'}
-                           {s.analysisStatus === 'in_progress' && ' (分析中)'}
-                           {s.analysisStatus === 'error' && ' (分析エラー)'}
+                  {s.analysisStatus === 'in_progress' && ' (分析中)'}
+                  {s.analysisStatus === 'error' && ' (分析エラー)'}
                 </option>
               ))}
             </select>
@@ -180,7 +191,7 @@ export default function QuizPage({ subjects }: QuizPageProps) {
           <p className="text-lg text-gray-300">あなたのスコア：</p>
           <p className="text-6xl font-bold text-indigo-400 my-4">{questions.length > 0 ? Math.round((score / questions.length) * 100) : 0}%</p>
           <p className="text-gray-400">{questions.length}問中{score}問正解しました。</p>
-          <button onClick={() => setQuizState('setup')} className="mt-8 w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500">
+          <button onClick={() => { console.log("Quiz state set to 'setup'"); setQuizState('setup'); }} className="mt-8 ...">
             もう一度挑戦する
           </button>
         </div>
@@ -252,7 +263,7 @@ export default function QuizPage({ subjects }: QuizPageProps) {
           </div>
           <h4 className="text-lg font-semibold text-indigo-400 mb-2">解説</h4>
           <div className="prose prose-invert prose-sm md:prose-base max-w-none text-gray-300">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{feedback?.explanation || ''}</ReactMarkdown>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{feedback?.explanation || ''}</ReactMarkdown>
           </div>
         </div>
       )}
