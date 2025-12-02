@@ -164,16 +164,16 @@ export default function QuizPage({ subjects }: QuizPageProps) {
           <div>
             <label className="block text-sm font-medium text-gray-300">モード</label>
             <div className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <button onClick={() => setQuizMode('random')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'random' ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}>ランダム</button>
-              <button onClick={() => setQuizMode('high_freq')} disabled={!isAnalysisComplete} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'high_freq' ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'} ${!isAnalysisComplete ? 'opacity-50 cursor-not-allowed' : ''}`}>高頻出</button>
-              <button onClick={() => setQuizMode('weak_area')} disabled={!isAnalysisComplete} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'weak_area' ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'} ${!isAnalysisComplete ? 'opacity-50 cursor-not-allowed' : ''}`}>苦手分野</button>
+              <button type="button" onClick={() => setQuizMode('random')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'random' ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}>ランダム</button>
+              <button type="button" onClick={() => setQuizMode('high_freq')} disabled={!isAnalysisComplete} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'high_freq' ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'} ${!isAnalysisComplete ? 'opacity-50 cursor-not-allowed' : ''}`}>高頻出</button>
+              <button type="button" onClick={() => setQuizMode('weak_area')} disabled={!isAnalysisComplete} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'weak_area' ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'} ${!isAnalysisComplete ? 'opacity-50 cursor-not-allowed' : ''}`}>苦手分野</button>
             </div>
           </div>
           <div>
             <label htmlFor="num-questions" className="block text-sm font-medium text-gray-300">問題数</label>
             <input type="number" id="num-questions" value={numQuestions} onChange={e => setNumQuestions(Math.max(1, parseInt(e.target.value) || 1))} className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
           </div>
-          <button onClick={startQuiz} disabled={isLoading} className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500">
+          <button type="button" onClick={startQuiz} disabled={isLoading} className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500">
             {isLoading ? <LoaderIcon className="w-5 h-5" /> : null}
             {isLoading ? 'クイズ準備中...' : '演習開始'}
           </button>
@@ -191,7 +191,7 @@ export default function QuizPage({ subjects }: QuizPageProps) {
           <p className="text-lg text-gray-300">あなたのスコア：</p>
           <p className="text-6xl font-bold text-indigo-400 my-4">{questions.length > 0 ? Math.round((score / questions.length) * 100) : 0}%</p>
           <p className="text-gray-400">{questions.length}問中{score}問正解しました。</p>
-          <button onClick={() => { console.log("Quiz state set to 'setup'"); setQuizState('setup'); }} className="mt-8 ...">
+          <button type="button" onClick={() => { console.log("Quiz state set to 'setup'"); setQuizState('setup'); }} className="mt-8 px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700">
             もう一度挑戦する
           </button>
         </div>
@@ -233,6 +233,7 @@ export default function QuizPage({ subjects }: QuizPageProps) {
             }
             return (
               <button
+                type="button"
                 key={index}
                 onClick={() => !isAnswered && setSelectedAnswer(option)}
                 disabled={isAnswered}
@@ -245,11 +246,11 @@ export default function QuizPage({ subjects }: QuizPageProps) {
         </div>
         <div className="mt-6 text-center">
           {!isAnswered ? (
-            <button onClick={handleAnswerSubmit} disabled={selectedAnswer === null} className="px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 disabled:cursor-not-allowed">
+            <button type="button" onClick={handleAnswerSubmit} disabled={selectedAnswer === null} className="px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 disabled:cursor-not-allowed">
               解答する
             </button>
           ) : (
-            <button onClick={handleNextQuestion} className="px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-gray-600 hover:bg-gray-500">
+            <button type="button" onClick={handleNextQuestion} className="px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-gray-600 hover:bg-gray-500">
               {currentQuestionIndex < questions.length - 1 ? '次の問題へ' : 'クイズを終了'}
             </button>
           )}
