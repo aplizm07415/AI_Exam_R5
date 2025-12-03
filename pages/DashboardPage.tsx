@@ -19,6 +19,7 @@ interface AnalyticsData {
   frequently_missed_categories: Record<string, number>;
   ai_top_keywords: string[];
   total_problems_in_subject: number;
+  unanswered_problems_count: number;
 }
 
 interface Keyword {
@@ -152,7 +153,7 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
           <div className="lg:col-span-1 space-y-8">
             <div className="bg-gray-800 rounded-xl shadow-lg p-6">
               <h3 className="text-lg font-semibold text-gray-200 mb-4">総合パフォーマンス</h3>
-              <div className="grid grid-cols-2 gap-4 text-center">
+              <div className="grid grid-cols-3 gap-4 text-center">
                 <div>
                   <p className="text-3xl font-bold text-indigo-400">{analytics.overall_correct_rate.toFixed(1)}%</p>
                   <p className="text-sm text-gray-400">全体正答率</p>
@@ -161,6 +162,10 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
                   <p className="text-3xl font-bold text-indigo-400">{analytics.total_runs}</p>
                   <p className="text-sm text-gray-400">総解答数</p>
                 </div>
+                <div>
+                  <p className="text-3xl font-bold text-green-400">{analytics.unanswered_problems_count}</p>
+                  <p className="text-sm text-gray-400">未回答問題</p>
+                </div>
               </div>
             </div>
 
@@ -168,11 +173,11 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
                 <h3 className="text-lg font-semibold text-gray-200 mb-4">正答率の推移</h3>
                 <div className="h-40 pr-4 pt-2">
                     {trendData.length > 1 ? (
-                        <div className="w-full h-full flex items-end justify-around gap-2">
+                        <div className="w-full h-full flex justify-around gap-2">
                             {trendData.map((d, i) => (
-                                <div key={i} className="flex-1 flex flex-col items-center gap-1 group">
+                                <div key={i} className="flex-1 h-full flex flex-col justify-end items-center group">
                                     <div className="text-xs font-bold text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">{d.rate.toFixed(0)}%</div>
-                                    <div className="w-full bg-indigo-500/50 hover:bg-indigo-400 transition-colors duration-200 rounded-t" style={{ height: `${d.rate}%` }}></div>
+                                    <div className="w-full bg-indigo-500/50 hover:bg-indigo-400 transition-colors duration-200 rounded-t min-h-[2px]" style={{ height: `${d.rate}%` }}></div>
                                     <div className="text-xs text-gray-500 -rotate-45">{d.date.substring(5)}</div>
                                 </div>
                             ))}

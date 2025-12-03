@@ -309,6 +309,11 @@ async def get_analytics(subject: str):
     correct_count = sum(h['is_correct'] for h in subject_history)
     overall_correct_rate = (correct_count / total_runs) * 100 if total_runs > 0 else 0
     
+    # 未回答問題数の計算
+    answered_problem_ids = {h['problem_id'] for h in subject_history}
+    total_problem_count = len(subject_problems)
+    unanswered_problems_count = total_problem_count - len(answered_problem_ids)
+
     daily_stats = {}
     for h in subject_history:
         date = h.get('timestamp', '').split('T')[0]
@@ -334,7 +339,8 @@ async def get_analytics(subject: str):
         "daily_correct_rate_trend": daily_rates,
         "frequently_missed_categories": dict(sorted(category_errors.items(), key=lambda item: item[1], reverse=True)),
         "ai_top_keywords": top_keywords,
-        "total_problems_in_subject": len(subject_problems)
+        "total_problems_in_subject": len(subject_problems),
+        "unanswered_problems_count": unanswered_problems_count,
     }
 
 # --- FastAPI ルーターの適用 ---
