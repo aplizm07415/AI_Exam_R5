@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
-import { LoaderIcon, CheckCircleIcon, XCircleIcon } from '../components/icons.tsx';
+import { LoaderIcon, CheckCircleIcon, XCircleIcon } from '../components/icons';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -12,19 +11,18 @@ interface QuizQuestion {
   choices: string[];
   answer: string;
   subject: string;
+  explanation: string;
 }
 
-type SubjectPersistentStatus = 'pending' | 'in_progress' | 'complete' | 'error';
-interface SubjectWithStatus {
+interface Subject {
   name: string;
-  analysisStatus: SubjectPersistentStatus;
 }
 
 interface QuizPageProps {
-  subjects: SubjectWithStatus[];
+  subjects: Subject[];
 }
 
-type QuizMode = 'random' | 'high_freq' | 'weak_area';
+type QuizMode = 'random' | 'weak_area';
 
 export default function QuizPage({ subjects }: QuizPageProps) {
   const [selectedSubjectName, setSelectedSubjectName] = useState<string>('');
@@ -33,7 +31,6 @@ export default function QuizPage({ subjects }: QuizPageProps) {
   const [quizState, setQuizState] = useState<'setup' | 'active' | 'finished'>('setup');
 
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
-  const [explanationMap, setExplanationMap] = useState<Record<string, string>>({});
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -44,12 +41,22 @@ export default function QuizPage({ subjects }: QuizPageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // 選択中の科目の情報を subjects から取得
-  const selectedSubject = useMemo(() => {
-    return subjects.find(s => s.name === selectedSubjectName);
+  useEffect(() => {
+    if (subjects.length > 0 && !selectedSubjectName) {
+      const firstSubject = subjects[0];
+      if (firstSubject) {
+        setSelectedSubjectName(firstSubject.name);
+      }
+    } else if (subjects.length === 0) {
+      setSelectedSubjectName('');
+    }
   }, [subjects, selectedSubjectName]);
 
   const startQuiz = async () => {
+    if (!selectedSubjectName) {
+      setError('科目を選択してください。');
+      return;
+    }
     setIsLoading(true);
     setError('');
     try {
@@ -61,15 +68,9 @@ export default function QuizPage({ subjects }: QuizPageProps) {
       }
 
       setQuestions(data.quiz_set);
-      console.log("Received quiz_set:", data.quiz_set);
-      console.log("Questions length:", data.quiz_set.length);
-
-      setExplanationMap(data.explanations);
-
       setCurrentQuestionIndex(0);
       setScore(0);
       setQuizState('active');
-      console.log("Quiz state set to 'active'");
       resetQuestionState();
 
     } catch (e: any) {
@@ -90,6 +91,7 @@ export default function QuizPage({ subjects }: QuizPageProps) {
 
     setIsAnswered(true);
     const currentQuestion = questions[currentQuestionIndex];
+    if (!currentQuestion) return;
     const isCorrect = selectedAnswer === currentQuestion.answer;
 
     if (isCorrect) {
@@ -97,7 +99,6 @@ export default function QuizPage({ subjects }: QuizPageProps) {
     }
 
     try {
-      /*
       await fetch(`${API_BASE_URL}/history`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -108,38 +109,30 @@ export default function QuizPage({ subjects }: QuizPageProps) {
           is_correct: isCorrect,
         }),
       });
-      */
     } catch (e) {
       console.error("Failed to submit history:", e);
     }
-
-    const explanation = explanationMap[currentQuestion.id] || "この問題の解説はありません。";
+    
+    const explanation = currentQuestion.explanation || "この問題の解説はありません。";
     setFeedback({ correct: isCorrect, explanation });
   };
 
   const handleNextQuestion = () => {
-    console.log("handleNextQuestion called. currentQuestionIndex:", currentQuestionIndex, "questions.length:",
-      questions.length);
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
       resetQuestionState();
     } else {
       setQuizState('finished');
-      console.log("Quiz state set to 'finished'");
     }
   };
 
   const currentQuestion = useMemo(() => questions[currentQuestionIndex], [questions, currentQuestionIndex]);
 
-  const isAnalysisComplete = useMemo(() => {
-    return selectedSubject?.analysisStatus === 'complete';
-  }, [selectedSubject]);
-
   if (subjects.length === 0) {
     return (
       <div className="text-center text-gray-400">
         <h2 className="text-2xl font-bold mb-4">練習問題</h2>
-        <p>科目がありません。「データ管理」ページで問題データをアップロードし、AI分析を実行してください。</p>
+        <p>科目がありません。「データ管理」ページで問題データをアップロードしてください。</p>
       </div>
     );
   }
@@ -152,28 +145,24 @@ export default function QuizPage({ subjects }: QuizPageProps) {
           <div>
             <label htmlFor="subject" className="block text-sm font-medium text-gray-300">科目</label>
             <select id="subject" value={selectedSubjectName} onChange={e => setSelectedSubjectName(e.target.value)} className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+              <option value="" disabled>科目を選択...</option>
               {subjects.map(s => (
-                <option key={s.name} value={s.name}>
-                  {s.name} {s.analysisStatus === 'complete' && ' (分析済)'}
-                  {s.analysisStatus === 'in_progress' && ' (分析中)'}
-                  {s.analysisStatus === 'error' && ' (分析エラー)'}
-                </option>
+                <option key={s.name} value={s.name}>{s.name}</option>
               ))}
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-300">モード</label>
-            <div className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button type="button" onClick={() => setQuizMode('random')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'random' ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}>ランダム</button>
-              <button type="button" onClick={() => setQuizMode('high_freq')} disabled={!isAnalysisComplete} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'high_freq' ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'} ${!isAnalysisComplete ? 'opacity-50 cursor-not-allowed' : ''}`}>高頻出</button>
-              <button type="button" onClick={() => setQuizMode('weak_area')} disabled={!isAnalysisComplete} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'weak_area' ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'} ${!isAnalysisComplete ? 'opacity-50 cursor-not-allowed' : ''}`}>苦手分野</button>
+              <button type="button" onClick={() => setQuizMode('weak_area')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'weak_area' ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}>苦手分野</button>
             </div>
           </div>
           <div>
             <label htmlFor="num-questions" className="block text-sm font-medium text-gray-300">問題数</label>
             <input type="number" id="num-questions" value={numQuestions} onChange={e => setNumQuestions(Math.max(1, parseInt(e.target.value) || 1))} className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
           </div>
-          <button type="button" onClick={startQuiz} disabled={isLoading} className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500">
+          <button type="button" onClick={startQuiz} disabled={isLoading || !selectedSubjectName} className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500">
             {isLoading ? <LoaderIcon className="w-5 h-5" /> : null}
             {isLoading ? 'クイズ準備中...' : '演習開始'}
           </button>
@@ -191,7 +180,7 @@ export default function QuizPage({ subjects }: QuizPageProps) {
           <p className="text-lg text-gray-300">あなたのスコア：</p>
           <p className="text-6xl font-bold text-indigo-400 my-4">{questions.length > 0 ? Math.round((score / questions.length) * 100) : 0}%</p>
           <p className="text-gray-400">{questions.length}問中{score}問正解しました。</p>
-          <button type="button" onClick={() => { console.log("Quiz state set to 'setup'"); setQuizState('setup'); }} className="mt-8 px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+          <button type="button" onClick={() => setQuizState('setup')} className="mt-8 px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700">
             もう一度挑戦する
           </button>
         </div>

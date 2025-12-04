@@ -2,14 +2,12 @@ import React, { useState, useEffect, useMemo } from 'react';
 
 const API_BASE_URL = "http://127.0.0.1:8000/api";
 
-type SubjectPersistentStatus = 'pending' | 'in_progress' | 'complete' | 'error';
-interface SubjectWithStatus {
+interface Subject {
   name: string;
-  analysisStatus: SubjectPersistentStatus;
 }
 
 interface DashboardPageProps {
-  subjects: SubjectWithStatus[];
+  subjects: Subject[];
 }
 
 interface AnalyticsData {
@@ -17,40 +15,31 @@ interface AnalyticsData {
   total_runs: number;
   daily_correct_rate_trend: Record<string, number>;
   frequently_missed_categories: Record<string, number>;
-  ai_top_keywords: string[];
   total_problems_in_subject: number;
   unanswered_problems_count: number;
-}
-
-interface Keyword {
-  term: string;
-  likelihood: string;
-  description: string;
 }
 
 export default function DashboardPage({ subjects }: DashboardPageProps) {
   const [selectedSubjectName, setSelectedSubjectName] = useState<string>('');
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
-  const [keywords, setKeywords] = useState<Keyword[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const selectedSubject = useMemo(() => {
-    return subjects.find(s => s.name === selectedSubjectName);
-  }, [subjects, selectedSubjectName]);
-
   useEffect(() => {
     if (subjects.length > 0 && !selectedSubjectName) {
-      setSelectedSubjectName(subjects[0].name);
+      const firstSubject = subjects[0];
+      if (firstSubject) {
+        setSelectedSubjectName(firstSubject.name);
+      }
     } else if (subjects.length === 0) {
       setSelectedSubjectName('');
+      setAnalytics(null);
     }
   }, [subjects, selectedSubjectName]);
 
   useEffect(() => {
     if (!selectedSubjectName) {
       setAnalytics(null);
-      setKeywords([]);
       return;
     }
 
@@ -65,25 +54,9 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
         }
         const data: AnalyticsData = await response.json();
         setAnalytics(data);
-
-        if (data.ai_top_keywords) {
-          const parsedKeywords = data.ai_top_keywords.map(kw_str => {
-            const parts = kw_str.split(' | ');
-            return {
-              term: parts[0] || '',
-              likelihood: parts[1] || '情報なし',
-              description: parts[2] || '',
-            };
-          });
-          setKeywords(parsedKeywords);
-        } else {
-          setKeywords([]);
-        }
-
       } catch (e: any) {
         setError(e.message);
         setAnalytics(null);
-        setKeywords([]);
       } finally {
         setIsLoading(false);
       }
@@ -107,8 +80,6 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [analytics]);
 
-  const isAnalysisCompleteForSelectedSubject = selectedSubject?.analysisStatus === 'complete';
-
   if (subjects.length === 0) {
     return (
       <div className="text-center text-gray-400">
@@ -130,9 +101,7 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
             className="block w-full bg-gray-800 border border-gray-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
           >
             {subjects.map(s => <option key={s.name} value={s.name}>
-              {s.name} {s.analysisStatus === 'complete' && ' (分析済)'}
-                       {s.analysisStatus === 'in_progress' && ' (分析中)'}
-                       {s.analysisStatus === 'error' && ' (分析エラー)'}
+              {s.name}
             </option>)}
           </select>
         </div>
@@ -148,9 +117,8 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
           <p className="mt-2">クイズを完了すると、ダッシュボードが表示されます。</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column */}
-          <div className="lg:col-span-1 space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="space-y-8">
             <div className="bg-gray-800 rounded-xl shadow-lg p-6">
               <h3 className="text-lg font-semibold text-gray-200 mb-4">総合パフォーマンス</h3>
               <div className="grid grid-cols-3 gap-4 text-center">
@@ -167,23 +135,6 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
                   <p className="text-sm text-gray-400">未回答問題</p>
                 </div>
               </div>
-            </div>
-
-            <div className="bg-gray-800 rounded-xl shadow-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-200 mb-4">正答率の推移</h3>
-                <div className="h-40 pr-4 pt-2">
-                    {trendData.length > 1 ? (
-                        <div className="w-full h-full flex justify-around gap-2">
-                            {trendData.map((d, i) => (
-                                <div key={i} className="flex-1 h-full flex flex-col justify-end items-center group">
-                                    <div className="text-xs font-bold text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">{d.rate.toFixed(0)}%</div>
-                                    <div className="w-full bg-indigo-500/50 hover:bg-indigo-400 transition-colors duration-200 rounded-t min-h-[2px]" style={{ height: `${d.rate}%` }}></div>
-                                    <div className="text-xs text-gray-500 -rotate-45">{d.date.substring(5)}</div>
-                                </div>
-                            ))}
-                        </div>
-                    ) : <p className="text-sm text-gray-500 text-center pt-8">グラフを表示するには2日以上の履歴が必要です。</p>}
-                </div>
             </div>
 
             <div className="bg-gray-800 rounded-xl shadow-lg p-6">
@@ -204,44 +155,20 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
               )}
             </div>
           </div>
-
-          {/* Right Column */}
-          <div className="lg:col-span-2">
-            <div className="bg-gray-800 rounded-xl shadow-lg">
-              <div className="p-6 border-b border-gray-700">
-                <h3 className="text-lg font-semibold text-gray-200">AIによるキーワード抽出</h3>
-                <p className="text-sm text-gray-400 mt-1">AIが抽出した重要トピック（出題可能性順）</p>
-              </div>
-              {isAnalysisCompleteForSelectedSubject && keywords.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-left text-gray-300">
-                    <thead className="text-xs text-gray-400 uppercase bg-gray-700/50">
-                      <tr>
-                        <th scope="col" className="px-6 py-3">キーワード</th>
-                        <th scope="col" className="px-6 py-3">説明</th>
-                        <th scope="col" className="px-6 py-3 text-right">出題可能性</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {keywords.map((kw, index) => (
-                        <tr key={index} className="border-b border-gray-700 hover:bg-gray-700/50">
-                          <th scope="row" className="px-6 py-4 font-medium text-white whitespace-nowrap">{kw.term}</th>
-                          <td className="px-6 py-4">{kw.description}</td>
-                          <td className="px-6 py-4 text-right">
-                            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                                kw.likelihood.includes('高') ? 'bg-green-800 text-green-300' :
-                                kw.likelihood.includes('中') ? 'bg-yellow-800 text-yellow-300' :
-                                'bg-gray-600 text-gray-300'
-                            }`}>{kw.likelihood}</span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <p className="text-sm text-gray-500 p-6">AI分析が見つかりません。「データ管理」ページで分析を実行してください。</p>
-              )}
+          <div className="bg-gray-800 rounded-xl shadow-lg p-6">
+            <h3 className="text-lg font-semibold text-gray-200 mb-4">正答率の推移</h3>
+            <div className="h-64 pr-4 pt-2">
+                {trendData.length > 1 ? (
+                    <div className="w-full h-full flex justify-around gap-2 items-end">
+                        {trendData.map((d, i) => (
+                            <div key={i} className="flex-1 h-full flex flex-col justify-end items-center group">
+                                <div className="text-xs font-bold text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">{d.rate.toFixed(0)}%</div>
+                                <div className="w-full bg-indigo-500/50 hover:bg-indigo-400 transition-colors duration-200 rounded-t min-h-[2px]" style={{ height: `${d.rate}%` }}></div>
+                                <div className="text-xs text-gray-500 mt-1">{d.date.substring(5)}</div>
+                            </div>
+                        ))}
+                    </div>
+                ) : <p className="text-sm text-gray-500 text-center pt-8">グラフを表示するには2日以上の履歴が必要です。</p>}
             </div>
           </div>
         </div>

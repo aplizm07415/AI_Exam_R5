@@ -13,17 +13,6 @@ export interface SubjectData {
   questions: Question[];
 }
 
-export interface Keyword {
-  keyword: string;
-  importance: number;
-  description: string;
-}
-
-export interface AnalysisResult {
-  subject: string;
-  keywords: Keyword[];
-}
-
 export interface QuizAttempt {
   questionId: string;
   isCorrect: boolean;
