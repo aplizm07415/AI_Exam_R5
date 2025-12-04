@@ -50,7 +50,7 @@ export default function QuizPage({ subjects }: QuizPageProps) {
     } else if (subjects.length === 0) {
       setSelectedSubjectName('');
     }
-  }, [subjects, selectedSubjectName]);
+  }, [subjects]);
 
   const startQuiz = async () => {
     if (!selectedSubjectName) {
@@ -98,20 +98,20 @@ export default function QuizPage({ subjects }: QuizPageProps) {
       setScore(prev => prev + 1);
     }
 
-    try {
-      await fetch(`${API_BASE_URL}/history`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          problem_id: currentQuestion.id,
-          subject: selectedSubjectName,
-          selected_answer: selectedAnswer,
-          is_correct: isCorrect,
-        }),
-      });
-    } catch (e) {
-      console.error("Failed to submit history:", e);
-    }
+    // try {
+    //   await fetch(`${API_BASE_URL}/history`, {
+    //     method: 'POST',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify({
+    //       problem_id: currentQuestion.id,
+    //       subject: selectedSubjectName,
+    //       selected_answer: selectedAnswer,
+    //       is_correct: isCorrect,
+    //     }),
+    //   });
+    // } catch (e) {
+    //   console.error("Failed to submit history:", e);
+    // }
     
     const explanation = currentQuestion.explanation || "この問題の解説はありません。";
     setFeedback({ correct: isCorrect, explanation });
@@ -141,31 +141,35 @@ export default function QuizPage({ subjects }: QuizPageProps) {
     return (
       <div className="max-w-lg mx-auto">
         <h2 className="text-3xl font-bold text-white text-center mb-8">クイズの設定</h2>
-        <div className="bg-gray-800 rounded-xl shadow-lg p-8 space-y-6">
-          <div>
-            <label htmlFor="subject" className="block text-sm font-medium text-gray-300">科目</label>
-            <select id="subject" value={selectedSubjectName} onChange={e => setSelectedSubjectName(e.target.value)} className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-              <option value="" disabled>科目を選択...</option>
-              {subjects.map(s => (
-                <option key={s.name} value={s.name}>{s.name}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-300">モード</label>
-            <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <button type="button" onClick={() => setQuizMode('random')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'random' ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}>ランダム</button>
-              <button type="button" onClick={() => setQuizMode('weak_area')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'weak_area' ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}>苦手分野</button>
+        <div className="bg-gray-800 rounded-xl shadow-lg p-8">
+          <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
+            <div>
+              <label htmlFor="subject" className="block text-sm font-medium text-gray-300">科目</label>
+              <select id="subject" value={selectedSubjectName} onChange={e => setSelectedSubjectName(e.target.value)} className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                <option value="" disabled>科目を選択...</option>
+                {subjects.map(s => (
+                  <option key={s.name} value={s.name}>{s.name}</option>
+                ))}
+              </select>
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300">モード</label>
+              <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button type="button" onClick={() => setQuizMode('random')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'random' ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}>ランダム</button>
+                <button type="button" onClick={() => setQuizMode('weak_area')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'weak_area' ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}>苦手分野</button>
+              </div>
+            </div>
+            <div>
+              <label htmlFor="num-questions" className="block text-sm font-medium text-gray-300">問題数</label>
+              <input type="number" id="num-questions" value={numQuestions} onChange={e => setNumQuestions(Math.max(1, parseInt(e.target.value) || 1))} className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
+            </div>
+          </form>
+          <div className="mt-6">
+            <button type="button" onClick={startQuiz} disabled={isLoading || !selectedSubjectName} className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500">
+              {isLoading ? <LoaderIcon className="w-5 h-5" /> : null}
+              {isLoading ? 'クイズ準備中...' : '演習開始'}
+            </button>
           </div>
-          <div>
-            <label htmlFor="num-questions" className="block text-sm font-medium text-gray-300">問題数</label>
-            <input type="number" id="num-questions" value={numQuestions} onChange={e => setNumQuestions(Math.max(1, parseInt(e.target.value) || 1))} className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
-          </div>
-          <button type="button" onClick={startQuiz} disabled={isLoading || !selectedSubjectName} className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500">
-            {isLoading ? <LoaderIcon className="w-5 h-5" /> : null}
-            {isLoading ? 'クイズ準備中...' : '演習開始'}
-          </button>
           {error && <p className="text-red-400 text-sm mt-2 text-center">{error}</p>}
         </div>
       </div>

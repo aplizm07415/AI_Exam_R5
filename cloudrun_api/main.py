@@ -28,10 +28,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- ファイルパスとデータディレクトリの設定 ---
+# --- データストレージの設定 ---
 DATA_DIR = "data"
-HISTORY_FILE = os.path.join(DATA_DIR, "history.json")
 os.makedirs(DATA_DIR, exist_ok=True)
+
+# !!! リロード問題対策: 解答履歴をファイルではなくメモリ上に保存する ---
+history_data: List[Dict[str, Any]] = []
 
 # --- ヘルパー関数: JSONファイルの読み書き ---
 
@@ -55,20 +57,14 @@ async def save_data(subject: str, data: Dict[str, Any]):
         await f.write(json.dumps(data, ensure_ascii=False, indent=2))
 
 async def load_history() -> List[Dict[str, Any]]:
-    if not os.path.exists(HISTORY_FILE):
-        return []
-    try:
-        async with aiofiles.open(HISTORY_FILE, 'r', encoding='utf-8') as f:
-            content = await f.read()
-            return json.loads(content)
-    except (json.JSONDecodeError, FileNotFoundError):
-        return []
+    """メモリ上の履歴データを返す"""
+    global history_data
+    return history_data
 
 async def append_history(record: Dict[str, Any]):
-    history = await load_history()
-    history.append(record)
-    async with aiofiles.open(HISTORY_FILE, 'w', encoding='utf-8') as f:
-        await f.write(json.dumps(history, ensure_ascii=False, indent=2))
+    """メモリ上の履歴データに追記する"""
+    global history_data
+    history_data.append(record)
 
 # --- スキーマ定義 ---
 class HistoryRecord(BaseModel):
