@@ -160,8 +160,29 @@ export default function QuizPage({ subjects }: QuizPageProps) {
               </div>
             </div>
             <div>
-              <label htmlFor="num-questions" className="block text-sm font-medium text-gray-300">問題数</label>
-              <input type="number" id="num-questions" value={numQuestions} onChange={e => setNumQuestions(Math.max(1, parseInt(e.target.value) || 1))} className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
+              <label className="block text-sm font-medium text-gray-300">問題数</label>
+              <div className="mt-2 grid grid-cols-5 gap-3">
+                {[
+                  { label: '10', value: 10 },
+                  { label: '20', value: 20 },
+                  { label: '30', value: 30 },
+                  { label: '50', value: 50 },
+                  { label: 'MAX', value: 1000 },
+                ].map((option) => (
+                  <button
+                    key={option.label}
+                    type="button"
+                    onClick={() => setNumQuestions(option.value)}
+                    className={`px-2 py-2 rounded-md text-sm font-medium transition-colors ${
+                      numQuestions === option.value
+                        ? 'bg-indigo-600 text-white'
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </form>
           <div className="mt-6">

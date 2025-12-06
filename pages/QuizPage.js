@@ -70,21 +70,20 @@ export default function QuizPage({ subjects }) {
         if (isCorrect) {
             setScore(prev => prev + 1);
         }
-        try {
-            await fetch(`${API_BASE_URL}/history`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    problem_id: currentQuestion.id,
-                    subject: selectedSubjectName,
-                    selected_answer: selectedAnswer,
-                    is_correct: isCorrect,
-                }),
-            });
-        }
-        catch (e) {
-            console.error("Failed to submit history:", e);
-        }
+        // try {
+        //   await fetch(`${API_BASE_URL}/history`, {
+        //     method: 'POST',
+        //     headers: { 'Content-Type': 'application/json' },
+        //     body: JSON.stringify({
+        //       problem_id: currentQuestion.id,
+        //       subject: selectedSubjectName,
+        //       selected_answer: selectedAnswer,
+        //       is_correct: isCorrect,
+        //     }),
+        //   });
+        // } catch (e) {
+        //   console.error("Failed to submit history:", e);
+        // }
         const explanation = currentQuestion.explanation || "この問題の解説はありません。";
         setFeedback({ correct: isCorrect, explanation });
     };
@@ -102,7 +101,15 @@ export default function QuizPage({ subjects }) {
         return (_jsxs("div", { className: "text-center text-gray-400", children: [_jsx("h2", { className: "text-2xl font-bold mb-4", children: "\u7DF4\u7FD2\u554F\u984C" }), _jsx("p", { children: "\u79D1\u76EE\u304C\u3042\u308A\u307E\u305B\u3093\u3002\u300C\u30C7\u30FC\u30BF\u7BA1\u7406\u300D\u30DA\u30FC\u30B8\u3067\u554F\u984C\u30C7\u30FC\u30BF\u3092\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9\u3057\u3066\u304F\u3060\u3055\u3044\u3002" })] }));
     }
     if (quizState === 'setup') {
-        return (_jsxs("div", { className: "max-w-lg mx-auto", children: [_jsx("h2", { className: "text-3xl font-bold text-white text-center mb-8", children: "\u30AF\u30A4\u30BA\u306E\u8A2D\u5B9A" }), _jsxs("div", { className: "bg-gray-800 rounded-xl shadow-lg p-8", children: [_jsxs("form", { onSubmit: (e) => e.preventDefault(), className: "space-y-6", children: [_jsxs("div", { children: [_jsx("label", { htmlFor: "subject", className: "block text-sm font-medium text-gray-300", children: "\u79D1\u76EE" }), _jsxs("select", { id: "subject", value: selectedSubjectName, onChange: e => setSelectedSubjectName(e.target.value), className: "mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500", children: [_jsx("option", { value: "", disabled: true, children: "\u79D1\u76EE\u3092\u9078\u629E..." }), subjects.map(s => (_jsx("option", { value: s.name, children: s.name }, s.name)))] })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-300", children: "\u30E2\u30FC\u30C9" }), _jsxs("div", { className: "mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3", children: [_jsx("button", { type: "button", onClick: () => setQuizMode('random'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'random' ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`, children: "\u30E9\u30F3\u30C0\u30E0" }), _jsx("button", { type: "button", onClick: () => setQuizMode('weak_area'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'weak_area' ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`, children: "\u82E6\u624B\u5206\u91CE" })] })] }), _jsxs("div", { children: [_jsx("label", { htmlFor: "num-questions", className: "block text-sm font-medium text-gray-300", children: "\u554F\u984C\u6570" }), _jsx("input", { type: "number", id: "num-questions", value: numQuestions, onChange: e => setNumQuestions(Math.max(1, parseInt(e.target.value) || 1)), className: "mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" })] })] }), _jsx("div", { className: "mt-6", children: _jsxs("button", { type: "button", onClick: startQuiz, disabled: isLoading || !selectedSubjectName, className: "w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500", children: [isLoading ? _jsx(LoaderIcon, { className: "w-5 h-5" }) : null, isLoading ? 'クイズ準備中...' : '演習開始'] }) }), error && _jsx("p", { className: "text-red-400 text-sm mt-2 text-center", children: error })] })] }));
+        return (_jsxs("div", { className: "max-w-lg mx-auto", children: [_jsx("h2", { className: "text-3xl font-bold text-white text-center mb-8", children: "\u30AF\u30A4\u30BA\u306E\u8A2D\u5B9A" }), _jsxs("div", { className: "bg-gray-800 rounded-xl shadow-lg p-8", children: [_jsxs("form", { onSubmit: (e) => e.preventDefault(), className: "space-y-6", children: [_jsxs("div", { children: [_jsx("label", { htmlFor: "subject", className: "block text-sm font-medium text-gray-300", children: "\u79D1\u76EE" }), _jsxs("select", { id: "subject", value: selectedSubjectName, onChange: e => setSelectedSubjectName(e.target.value), className: "mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500", children: [_jsx("option", { value: "", disabled: true, children: "\u79D1\u76EE\u3092\u9078\u629E..." }), subjects.map(s => (_jsx("option", { value: s.name, children: s.name }, s.name)))] })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-300", children: "\u30E2\u30FC\u30C9" }), _jsxs("div", { className: "mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3", children: [_jsx("button", { type: "button", onClick: () => setQuizMode('random'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'random' ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`, children: "\u30E9\u30F3\u30C0\u30E0" }), _jsx("button", { type: "button", onClick: () => setQuizMode('weak_area'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'weak_area' ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`, children: "\u82E6\u624B\u5206\u91CE" })] })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-300", children: "\u554F\u984C\u6570" }), _jsx("div", { className: "mt-2 grid grid-cols-5 gap-3", children: [
+                                                { label: '10', value: 10 },
+                                                { label: '20', value: 20 },
+                                                { label: '30', value: 30 },
+                                                { label: '50', value: 50 },
+                                                { label: 'MAX', value: 1000 },
+                                            ].map((option) => (_jsx("button", { type: "button", onClick: () => setNumQuestions(option.value), className: `px-2 py-2 rounded-md text-sm font-medium transition-colors ${numQuestions === option.value
+                                                    ? 'bg-indigo-600 text-white'
+                                                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`, children: option.label }, option.label))) })] })] }), _jsx("div", { className: "mt-6", children: _jsxs("button", { type: "button", onClick: startQuiz, disabled: isLoading || !selectedSubjectName, className: "w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500", children: [isLoading ? _jsx(LoaderIcon, { className: "w-5 h-5" }) : null, isLoading ? 'クイズ準備中...' : '演習開始'] }) }), error && _jsx("p", { className: "text-red-400 text-sm mt-2 text-center", children: error })] })] }));
     }
     if (quizState === 'finished') {
         return (_jsxs("div", { className: "text-center max-w-lg mx-auto", children: [_jsx("h2", { className: "text-3xl font-bold text-white mb-4", children: "\u30AF\u30A4\u30BA\u5B8C\u4E86\uFF01" }), _jsxs("div", { className: "bg-gray-800 rounded-xl p-8", children: [_jsx("p", { className: "text-lg text-gray-300", children: "\u3042\u306A\u305F\u306E\u30B9\u30B3\u30A2\uFF1A" }), _jsxs("p", { className: "text-6xl font-bold text-indigo-400 my-4", children: [questions.length > 0 ? Math.round((score / questions.length) * 100) : 0, "%"] }), _jsxs("p", { className: "text-gray-400", children: [questions.length, "\u554F\u4E2D", score, "\u554F\u6B63\u89E3\u3057\u307E\u3057\u305F\u3002"] }), _jsx("button", { type: "button", onClick: () => setQuizState('setup'), className: "mt-8 px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700", children: "\u3082\u3046\u4E00\u5EA6\u6311\u6226\u3059\u308B" })] })] }));
