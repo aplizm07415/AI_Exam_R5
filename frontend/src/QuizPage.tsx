@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { LoaderIcon, CheckCircleIcon, XCircleIcon } from '../components/icons';
+import { LoaderIcon, CheckCircleIcon, XCircleIcon } from './components/icons';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-const API_BASE_URL = "http://127.0.0.1:8000/api";
+const API_BASE_URL = "/api";
 
 interface QuizQuestion {
   id: string;

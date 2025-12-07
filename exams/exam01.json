@@ -1,0 +1,15 @@
+[
+  {
+    "id": "q1",
+    "question_text": "DockerコンテナでFastAPIとReactを連携させる場合、FastAPIからReactの静的ファイルを配信するために使用するFastAPIのクラスは何ですか？",
+    "choices": [
+      "FileResponse",
+      "StaticFiles",
+      "HTMLResponse",
+      "RedirectResponse"
+    ],
+    "answer": "StaticFiles",
+    "subject": "exam01",
+    "explanation": "StaticFilesクラスは、指定されたディレクトリ（例：Reactのビルド出力であるdist/assets）内の静的ファイルを特定のURLパス（例：/assets）で提供するために使用されます。"
+  }
+]

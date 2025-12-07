@@ -1,7 +1,7 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import React, { useState } from 'react';
-import { FileUpIcon, LoaderIcon, CheckCircleIcon } from '../components/icons';
-const API_BASE_URL = "http://127.0.0.1:8000/api";
+import { FileUpIcon, LoaderIcon, CheckCircleIcon } from './components/icons';
+const API_BASE_URL = "/api";
 export default function UploadPage({ onUploadSuccess }) {
     const [file, setFile] = useState(null);
     const [subjectName, setSubjectName] = useState('');

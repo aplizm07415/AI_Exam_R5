@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { FileUpIcon, LoaderIcon, CheckCircleIcon } from '../components/icons';
+import { FileUpIcon, LoaderIcon, CheckCircleIcon } from './components/icons';
 
-const API_BASE_URL = "http://127.0.0.1:8000/api";
+const API_BASE_URL = "/api";
 
 interface UploadPageProps {
   onUploadSuccess: () => void;

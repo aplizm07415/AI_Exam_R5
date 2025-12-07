@@ -1,6 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import React, { useState, useEffect, useMemo } from 'react';
-const API_BASE_URL = "http://127.0.0.1:8000/api";
+const API_BASE_URL = "/api";
 export default function DashboardPage({ subjects }) {
     const [selectedSubjectName, setSelectedSubjectName] = useState('');
     const [analytics, setAnalytics] = useState(null);

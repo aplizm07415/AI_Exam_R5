@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import UploadPage from './pages/UploadPage';
-import QuizPage from './pages/QuizPage';
-import DashboardPage from './pages/DashboardPage';
+import UploadPage from './UploadPage';
+import QuizPage from './QuizPage';
+import DashboardPage from './DashboardPage';
 import { FileUpIcon, LayoutDashboardIcon, FileTextIcon } from './components/icons';
 
 type Page = 'upload' | 'quiz' | 'dashboard';
@@ -10,7 +10,7 @@ interface Subject {
   name: string;
 }
 
-const API_BASE_URL = "http://127.0.0.1:8000/api";
+const API_BASE_URL = "/api";
 
 export default function App() {
   const [activePage, setActivePage] = useState<Page>('upload');
