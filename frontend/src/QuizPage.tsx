@@ -5,10 +5,15 @@ import remarkGfm from 'remark-gfm';
 
 const API_BASE_URL = "/api";
 
+interface Choice {
+  label: string;
+  text: string;
+}
+
 interface QuizQuestion {
   id: string;
   question_text: string;
-  choices: string[];
+  choices: Choice[];
   answer: string;
   subject: string;
   explanation: string;
@@ -98,20 +103,20 @@ export default function QuizPage({ subjects }: QuizPageProps) {
       setScore(prev => prev + 1);
     }
 
-    // try {
-    //   await fetch(`${API_BASE_URL}/history`, {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify({
-    //       problem_id: currentQuestion.id,
-    //       subject: selectedSubjectName,
-    //       selected_answer: selectedAnswer,
-    //       is_correct: isCorrect,
-    //     }),
-    //   });
-    // } catch (e) {
-    //   console.error("Failed to submit history:", e);
-    // }
+    try {
+      await fetch(`${API_BASE_URL}/history`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          problem_id: currentQuestion.id,
+          subject: selectedSubjectName,
+          selected_answer: selectedAnswer,
+          is_correct: isCorrect,
+        }),
+      });
+    } catch (e) {
+      console.error("Failed to submit history:", e);
+    }
     
     const explanation = currentQuestion.explanation || "この問題の解説はありません。";
     setFeedback({ correct: isCorrect, explanation });
@@ -230,9 +235,9 @@ export default function QuizPage({ subjects }: QuizPageProps) {
       <div className="bg-gray-800 rounded-xl shadow-lg p-6 md:p-8">
         <p className="text-lg font-semibold text-gray-200 mb-6">{currentQuestion.question_text}</p>
         <div className="space-y-3">
-          {currentQuestion.choices.map((option, index) => {
-            const isCorrectAnswer = option === currentQuestion.answer;
-            const isSelectedAnswer = option === selectedAnswer;
+          {currentQuestion && Array.isArray(currentQuestion.choices) && currentQuestion.choices.map((option, index) => {
+            const isCorrectAnswer = option.label === currentQuestion.answer;
+            const isSelectedAnswer = option.label === selectedAnswer;
             let buttonClass = 'bg-gray-700 hover:bg-gray-600';
             if (isAnswered) {
               if (isCorrectAnswer) {
@@ -249,11 +254,12 @@ export default function QuizPage({ subjects }: QuizPageProps) {
               <button
                 type="button"
                 key={index}
-                onClick={() => !isAnswered && setSelectedAnswer(option)}
+                onClick={() => !isAnswered && setSelectedAnswer(option.label)}
                 disabled={isAnswered}
                 className={`w-full text-left p-4 rounded-lg border border-transparent transition-all duration-200 ${buttonClass}`}
               >
-                {option}
+                <span className="font-bold mr-2">{option.label}.</span>
+                <span>{option.text}</span>
               </button>
             );
           })}

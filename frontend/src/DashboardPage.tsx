@@ -35,7 +35,7 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
       setSelectedSubjectName('');
       setAnalytics(null);
     }
-  }, [subjects, selectedSubjectName]);
+  }, [subjects]);
 
   useEffect(() => {
     if (!selectedSubjectName) {
