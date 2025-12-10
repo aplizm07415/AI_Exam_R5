@@ -23,7 +23,16 @@ def normalize_question(question: dict) -> dict | None:
     elif isinstance(choices, list):
         # 既に配列だが、中身が不正なケースを考慮（例：文字列のリスト）
         # より堅牢にする場合は、ここでも各要素の型チェックを行う
-        pass
+        valid_choices = []
+        for choice in choices:
+            if isinstance(choice, dict) and "label" in choice and "text" in choice:
+                valid_choices.append(choice)
+            else:
+                logger.warning(f"Invalid choice format in list for question: {question}. Skipping this choice: {choice}")
+        if not valid_choices:
+            logger.warning(f"No valid choices found in list for question: {question}. Skipping question.")
+            return None
+        question["choices"] = valid_choices
     else:
         # choicesが辞書でも配列でもない場合、この質問は不正とみなす
         logger.warning(f"Skipping question due to invalid 'choices' format: {question}")

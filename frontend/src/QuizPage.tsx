@@ -17,6 +17,7 @@ interface QuizQuestion {
   answer: string;
   subject: string;
   explanation: string;
+  category?: string;
 }
 
 interface Subject {
@@ -112,6 +113,7 @@ export default function QuizPage({ subjects }: QuizPageProps) {
           subject: selectedSubjectName,
           selected_answer: selectedAnswer,
           is_correct: isCorrect,
+          category: currentQuestion.category,
         }),
       });
     } catch (e) {
@@ -145,12 +147,12 @@ export default function QuizPage({ subjects }: QuizPageProps) {
   if (quizState === 'setup') {
     return (
       <div className="max-w-lg mx-auto">
-        <h2 className="text-3xl font-bold text-white text-center mb-8">クイズの設定</h2>
-        <div className="bg-gray-800 rounded-xl shadow-lg p-8">
+        <h2 className="text-3xl font-bold text-dark text-center mb-8">クイズの設定</h2>
+        <div className="bg-white rounded-xl shadow p-8">
           <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
             <div>
-              <label htmlFor="subject" className="block text-sm font-medium text-gray-300">科目</label>
-              <select id="subject" value={selectedSubjectName} onChange={e => setSelectedSubjectName(e.target.value)} className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+              <label htmlFor="subject" className="block text-sm font-medium text-gray-700">科目</label>
+              <select id="subject" value={selectedSubjectName} onChange={e => setSelectedSubjectName(e.target.value)} className="mt-1 block w-full bg-gray-100 border border-gray-300 rounded-md shadow-sm py-2 px-3 text-gray-700 focus:outline-none focus:ring-primary-new focus:border-primary-new">
                 <option value="" disabled>科目を選択...</option>
                 {subjects.map(s => (
                   <option key={s.name} value={s.name}>{s.name}</option>
@@ -158,14 +160,14 @@ export default function QuizPage({ subjects }: QuizPageProps) {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-300">モード</label>
+              <label className="block text-sm font-medium text-gray-700">モード</label>
               <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <button type="button" onClick={() => setQuizMode('random')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'random' ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}>ランダム</button>
-                <button type="button" onClick={() => setQuizMode('weak_area')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'weak_area' ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}>苦手分野</button>
+                <button type="button" onClick={() => setQuizMode('random')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'random' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>ランダム</button>
+                <button type="button" onClick={() => setQuizMode('weak_area')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'weak_area' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>苦手分野</button>
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-300">問題数</label>
+              <label className="block text-sm font-medium text-gray-700">問題数</label>
               <div className="mt-2 grid grid-cols-5 gap-3">
                 {[
                   { label: '10', value: 10 },
@@ -180,8 +182,8 @@ export default function QuizPage({ subjects }: QuizPageProps) {
                     onClick={() => setNumQuestions(option.value)}
                     className={`px-2 py-2 rounded-md text-sm font-medium transition-colors ${
                       numQuestions === option.value
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        ? 'bg-primary-new text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                     }`}
                   >
                     {option.label}
@@ -191,12 +193,12 @@ export default function QuizPage({ subjects }: QuizPageProps) {
             </div>
           </form>
           <div className="mt-6">
-            <button type="button" onClick={startQuiz} disabled={isLoading || !selectedSubjectName} className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500">
+            <button type="button" onClick={startQuiz} disabled={isLoading || !selectedSubjectName} className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-primary-new">
               {isLoading ? <LoaderIcon className="w-5 h-5" /> : null}
               {isLoading ? 'クイズ準備中...' : '演習開始'}
             </button>
           </div>
-          {error && <p className="text-red-400 text-sm mt-2 text-center">{error}</p>}
+          {error && <p className="text-danger text-sm mt-2 text-center">{error}</p>}
         </div>
       </div>
     );
@@ -205,12 +207,12 @@ export default function QuizPage({ subjects }: QuizPageProps) {
   if (quizState === 'finished') {
     return (
       <div className="text-center max-w-lg mx-auto">
-        <h2 className="text-3xl font-bold text-white mb-4">クイズ完了！</h2>
-        <div className="bg-gray-800 rounded-xl p-8">
-          <p className="text-lg text-gray-300">あなたのスコア：</p>
-          <p className="text-6xl font-bold text-indigo-400 my-4">{questions.length > 0 ? Math.round((score / questions.length) * 100) : 0}%</p>
-          <p className="text-gray-400">{questions.length}問中{score}問正解しました。</p>
-          <button type="button" onClick={() => setQuizState('setup')} className="mt-8 px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+        <h2 className="text-3xl font-bold text-dark mb-4">クイズ完了！</h2>
+        <div className="bg-white rounded-xl shadow p-8">
+          <p className="text-lg text-gray-700">あなたのスコア：</p>
+          <p className="text-6xl font-bold text-primary-new my-4">{questions.length > 0 ? Math.round((score / questions.length) * 100) : 0}%</p>
+          <p className="text-gray-500">{questions.length}問中{score}問正解しました。</p>
+          <button type="button" onClick={() => setQuizState('setup')} className="mt-8 px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700">
             もう一度挑戦する
           </button>
         </div>
@@ -229,26 +231,26 @@ export default function QuizPage({ subjects }: QuizPageProps) {
   return (
     <div className="max-w-3xl mx-auto">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold text-white">{selectedSubjectName}</h2>
-        <p className="text-gray-400">問題 {currentQuestionIndex + 1} / {questions.length}</p>
+        <h2 className="text-xl font-bold text-dark">{selectedSubjectName}</h2>
+        <p className="text-gray-500">問題 {currentQuestionIndex + 1} / {questions.length}</p>
       </div>
-      <div className="bg-gray-800 rounded-xl shadow-lg p-6 md:p-8">
-        <p className="text-lg font-semibold text-gray-200 mb-6">{currentQuestion.question_text}</p>
+      <div className="bg-white rounded-xl shadow p-6 md:p-8">
+        <p className="text-lg font-semibold text-gray-700 mb-6">{currentQuestion.question_text}</p>
         <div className="space-y-3">
           {currentQuestion && Array.isArray(currentQuestion.choices) && currentQuestion.choices.map((option, index) => {
             const isCorrectAnswer = option.label === currentQuestion.answer;
             const isSelectedAnswer = option.label === selectedAnswer;
-            let buttonClass = 'bg-gray-700 hover:bg-gray-600';
+            let buttonClass = 'bg-gray-100 hover:bg-gray-200';
             if (isAnswered) {
               if (isCorrectAnswer) {
-                buttonClass = 'bg-green-500/50 border-green-500';
+                buttonClass = 'bg-success/50 border-success';
               } else if (isSelectedAnswer) {
-                buttonClass = 'bg-red-500/50 border-red-500';
+                buttonClass = 'bg-danger/50 border-danger';
               } else {
-                buttonClass = 'bg-gray-700 opacity-60';
+                buttonClass = 'bg-gray-100 opacity-60';
               }
             } else if (isSelectedAnswer) {
-              buttonClass = 'bg-indigo-600';
+              buttonClass = 'bg-primary-new';
             }
             return (
               <button
@@ -266,24 +268,24 @@ export default function QuizPage({ subjects }: QuizPageProps) {
         </div>
         <div className="mt-6 text-center">
           {!isAnswered ? (
-            <button type="button" onClick={handleAnswerSubmit} disabled={selectedAnswer === null} className="px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 disabled:cursor-not-allowed">
+            <button type="button" onClick={handleAnswerSubmit} disabled={selectedAnswer === null} className="px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed">
               解答する
             </button>
           ) : (
-            <button type="button" onClick={handleNextQuestion} className="px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-gray-600 hover:bg-gray-500">
+            <button type="button" onClick={handleNextQuestion} className="px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-dark bg-gray-200 hover:bg-gray-300">
               {currentQuestionIndex < questions.length - 1 ? '次の問題へ' : 'クイズを終了'}
             </button>
           )}
         </div>
       </div>
       {isAnswered && (
-        <div className="mt-6 bg-gray-800 rounded-xl shadow-lg p-6 md:p-8 fade-in">
+        <div className="mt-6 bg-white rounded-xl shadow p-6 md:p-8 fade-in">
           <div className="flex items-center gap-3 mb-4">
-            {feedback?.correct ? <CheckCircleIcon className="w-8 h-8 text-green-400" /> : <XCircleIcon className="w-8 h-8 text-red-400" />}
+            {feedback?.correct ? <CheckCircleIcon className="w-8 h-8 text-green-600" /> : <XCircleIcon className="w-8 h-8 text-red-600" />}
             <h3 className="text-2xl font-bold">{feedback?.correct ? '正解！' : '不正解'}</h3>
           </div>
-          <h4 className="text-lg font-semibold text-indigo-400 mb-2">解説</h4>
-          <div className="prose prose-invert prose-sm md:prose-base max-w-none text-gray-300">
+          <h4 className="text-lg font-semibold text-primary-new mb-2">解説</h4>
+          <div className="prose prose-sm md:prose-base max-w-none text-gray-700">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{feedback?.explanation || ''}</ReactMarkdown>
           </div>
         </div>

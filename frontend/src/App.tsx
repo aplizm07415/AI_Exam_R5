@@ -58,25 +58,25 @@ export default function App() {
   ], []);
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col">
-      <header className="bg-gray-900/80 backdrop-blur-sm border-b border-gray-700 sticky top-0 z-20">
+    <div className="min-h-screen bg-gray-100 text-gray-800 flex flex-col">
+      <header className="bg-white/90 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-3">
-              <div className="bg-indigo-500 p-2 rounded-lg">
+              <div className="bg-primary-new p-2 rounded-lg">
                 <FileTextIcon className="w-6 h-6 text-white" />
               </div>
-              <h1 className="text-xl font-bold text-white">試験対策キット</h1>
+              <h1 className="text-xl font-bold text-dark">試験対策キット</h1>
             </div>
-            <nav className="hidden md:flex space-x-2 bg-gray-800 p-1 rounded-lg">
+            <nav className="hidden md:flex space-x-2 bg-gray-200 p-1 rounded-lg">
               {navItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => setActivePage(item.id as Page)}
                   className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
                     activePage === item.id
-                      ? 'bg-indigo-500 text-white'
-                      : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                      ? 'bg-primary-new text-white'
+                      : 'text-gray-600 hover:bg-blue-100 hover:text-primary-new'
                   }`}
                 >
                   {item.icon}
@@ -92,13 +92,13 @@ export default function App() {
         <div className="fade-in">{renderPage()}</div>
       </main>
       
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 flex justify-around p-2">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around p-2">
         {navItems.map((item) => (
           <button
             key={item.id}
             onClick={() => setActivePage(item.id as Page)}
             className={`flex flex-col items-center w-full py-1 rounded-md transition-colors duration-200 ${
-              activePage === item.id ? 'text-indigo-400' : 'text-gray-400 hover:bg-gray-700'
+              activePage === item.id ? 'text-primary-new' : 'text-gray-500 hover:bg-gray-100'
             }`}
           >
             {item.icon}
