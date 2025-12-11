@@ -202,10 +202,14 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
             <div className="space-y-8">
               <div className="bg-white rounded-xl shadow p-6">
                 <h3 className="text-lg font-semibold text-gray-700 mb-4">総合パフォーマンス</h3>
-                <div className="grid grid-cols-3 gap-4 text-center">
+                <div className="grid grid-cols-4 gap-4 text-center">
                   <div>
                     <p className="text-3xl font-bold text-primary-new">{analytics.overall_correct_rate.toFixed(1)}%</p>
                     <p className="text-sm text-gray-500">全体正答率</p>
+                  </div>
+                  <div>
+                    <p className="text-3xl font-bold text-primary-new">{analytics.total_problems_in_subject}</p>
+                    <p className="text-sm text-gray-500">問題総数</p>
                   </div>
                   <div>
                     <p className="text-3xl font-bold text-primary-new">{analytics.total_runs}</p>
