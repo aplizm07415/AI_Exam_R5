@@ -37,6 +37,9 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
   const [dailySummary, setDailySummary] = useState<DailySummaryItem[]>([]);
   const [isDailySummaryLoading, setIsDailySummaryLoading] = useState(false);
   const [dailySummaryError, setDailySummaryError] = useState('');
+  
+  // エクスポート機能のための新規ステート
+  const [isExporting, setIsExporting] = useState(false);
 
 
   useEffect(() => {
@@ -125,6 +128,38 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [analytics]);
 
+  const handleExportMissedProblems = async () => {
+    if (!selectedSubjectName) {
+      alert("科目を選択してください。");
+      return;
+    }
+    setIsExporting(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/analytics/${selectedSubjectName}/missed-problems`);
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.detail || '不正解問題リストの取得に失敗しました。');
+      }
+      const data = await response.json();
+      
+      const jsonString = JSON.stringify(data, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `missed_problems_${selectedSubjectName}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+    } catch (e: any) {
+      alert(`エクスポートに失敗しました: ${e.message}`);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   if (subjects.length === 0) {
     return (
       <div className="text-center text-gray-400">
@@ -184,7 +219,18 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
               </div>
 
               <div className="bg-white rounded-xl shadow p-6">
-                <h3 className="text-lg font-semibold text-gray-700 mb-4">主な苦手分野 (エラー数順)</h3>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold text-gray-700">主な苦手分野 (エラー数順)</h3>
+                  {missedCategories.length > 0 && (
+                    <button
+                      onClick={handleExportMissedProblems}
+                      disabled={isExporting}
+                      className="px-3 py-1 bg-primary-new text-white text-xs font-medium rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                    >
+                      {isExporting ? 'エクスポート中...' : 'エクスポート'}
+                    </button>
+                  )}
+                </div>
                 {missedCategories.length > 0 ? (
                   <ul className="space-y-3">
                     {missedCategories.map(area => (

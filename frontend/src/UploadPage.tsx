@@ -55,10 +55,7 @@ export default function UploadPage({ onUploadSuccess }: UploadPageProps) {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-white">データ管理</h2>
-        <p className="text-gray-400 mt-2">問題データをアップロードし、科目ごとに統合します。</p>
-      </div>
+
 
       <div className="bg-gray-800 rounded-xl shadow-lg p-6 md:p-8 space-y-6">
         <div className="space-y-4">

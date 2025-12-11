@@ -147,7 +147,6 @@ export default function QuizPage({ subjects }: QuizPageProps) {
   if (quizState === 'setup') {
     return (
       <div className="max-w-lg mx-auto">
-        <h2 className="text-3xl font-bold text-dark text-center mb-8">クイズの設定</h2>
         <div className="bg-white rounded-xl shadow p-8">
           <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
             <div>
