@@ -33,18 +33,19 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // 新規追加: 日別集計のステート
   const [dailySummary, setDailySummary] = useState<DailySummaryItem[]>([]);
   const [isDailySummaryLoading, setIsDailySummaryLoading] = useState(false);
   const [dailySummaryError, setDailySummaryError] = useState('');
   
-  // エクスポート機能のための新規ステート
   const [isExporting, setIsExporting] = useState(false);
 
+  // ステートを統合ボードモーダル用に追加
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [consolidatedData, setConsolidatedData] = useState<DailySummaryItem[]>([]);
+  const [isConsolidatedLoading, setIsConsolidatedLoading] = useState(false);
+  const [consolidatedError, setConsolidatedError] = useState('');
 
   useEffect(() => {
-    // 最初の科目を自動選択するロジック
-    // 依存配列から selectedSubjectName を削除し、ユーザーの選択が上書きされないように修正
     if (subjects.length > 0 && !selectedSubjectName) {
       const firstSubject = subjects[0];
       if (firstSubject) {
@@ -54,14 +55,13 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
       setSelectedSubjectName('');
       setAnalytics(null);
     }
-  }, [subjects]); // subjects のみに依存
+  }, [subjects]);
 
   useEffect(() => {
     if (!selectedSubjectName) {
       setAnalytics(null);
       return;
     }
-
     const fetchAnalytics = async () => {
       setIsLoading(true);
       setError('');
@@ -80,17 +80,14 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
         setIsLoading(false);
       }
     };
-
     fetchAnalytics();
-  }, [selectedSubjectName]); // selectedSubjectName が変わるたびに実行
+  }, [selectedSubjectName]);
 
-  // 新規追加: 日別集計データの取得
   useEffect(() => {
     if (!selectedSubjectName) {
       setDailySummary([]);
       return;
     }
-
     const fetchDailySummary = async () => {
       setIsDailySummaryLoading(true);
       setDailySummaryError('');
@@ -109,9 +106,33 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
         setIsDailySummaryLoading(false);
       }
     };
-
     fetchDailySummary();
   }, [selectedSubjectName]);
+
+  // 統合ボードのデータを取得する関数
+  const fetchConsolidatedData = async () => {
+    setIsConsolidatedLoading(true);
+    setConsolidatedError('');
+    try {
+      const response = await fetch(`${API_BASE_URL}/history/daily-summary/all`);
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.detail || '統合履歴の取得に失敗しました。');
+      }
+      const data: DailySummaryItem[] = await response.json();
+      setConsolidatedData(data);
+    } catch (e: any) {
+      setConsolidatedError(e.message);
+      setConsolidatedData([]);
+    } finally {
+      setIsConsolidatedLoading(false);
+    }
+  };
+
+  const openConsolidatedModal = () => {
+    setIsModalOpen(true);
+    fetchConsolidatedData();
+  };
   
   const missedCategories = useMemo(() => {
     if (!analytics?.frequently_missed_categories) return [];
@@ -171,8 +192,62 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
 
   return (
     <div className="max-w-7xl mx-auto">
+      {/* モーダルウィンドウ */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex justify-center items-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="text-xl font-bold text-gray-800">統合日別履歴 (全科目)</h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto">
+              {isConsolidatedLoading ? (
+                <p className="text-center text-gray-500">読み込み中...</p>
+              ) : consolidatedError ? (
+                <p className="text-danger text-sm text-center">{consolidatedError}</p>
+              ) : consolidatedData.length === 0 ? (
+                <p className="text-sm text-gray-500 text-center">履歴がありません。</p>
+              ) : (
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">日付</th>
+                      <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">総実施数</th>
+                      <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">総正答数</th>
+                      <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">全体正答率</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {consolidatedData.map((item) => (
+                      <tr key={item.date} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-800">{item.date}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{item.total_questions}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{item.correct_count}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 font-medium">{(item.accuracy * 100).toFixed(1)}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+            <div className="flex justify-end p-4 border-t">
+              <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-gray-200 text-gray-800 text-sm font-medium rounded-md hover:bg-gray-300">
+                閉じる
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-8 gap-4">
-        <h2 className="text-3xl font-bold text-dark">分析ダッシュボード</h2>
+        <div className="flex items-center gap-4">
+          <h2 className="text-3xl font-bold text-dark">分析ダッシュボード</h2>
+          <button onClick={openConsolidatedModal} className="px-4 py-2 bg-white border border-gray-300 text-primary-new text-sm font-semibold rounded-lg shadow-sm hover:bg-gray-50">
+            統合ボード
+          </button>
+        </div>
         <div className="w-full sm:w-64">
           <select
             id="subject"
@@ -187,8 +262,8 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8"> {/* グリッドレイアウト変更 */}
-        <div className="lg:col-span-2"> {/* 既存の分析を広めに */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2">
           {isLoading ? (
             <div className="text-center text-gray-500 p-12"><p>分析データを読み込み中...</p></div>
           ) : error ? (
@@ -271,7 +346,6 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
           )}
         </div>
 
-        {/* 新規追加: 日別実施履歴セクション */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-xl shadow p-6">
             <h3 className="text-lg font-semibold text-gray-700 mb-4">日別実施履歴</h3>

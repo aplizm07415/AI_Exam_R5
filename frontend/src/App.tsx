@@ -1,10 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import UploadPage from './UploadPage';
 import QuizPage from './QuizPage';
 import DashboardPage from './DashboardPage';
-import { FileUpIcon, LayoutDashboardIcon, FileTextIcon } from './components/icons';
+import { LayoutDashboardIcon, FileTextIcon } from './components/icons';
 
-type Page = 'upload' | 'quiz' | 'dashboard';
+type Page = 'quiz' | 'dashboard';
 
 interface Subject {
   name: string;
@@ -34,25 +33,18 @@ export default function App() {
     fetchSubjects();
   }, []);
 
-  const handleUploadSuccess = () => {
-    fetchSubjects();
-  };
-
   const renderPage = () => {
     switch (activePage) {
-      case 'upload':
-        return <UploadPage onUploadSuccess={handleUploadSuccess} />;
       case 'quiz':
         return <QuizPage subjects={subjects} />;
       case 'dashboard':
         return <DashboardPage subjects={subjects} key={subjects.map(s => s.name).join(',')} />;
       default:
-        return <QuizPage subjects={subjects} />; // Changed default to QuizPage
+        return <QuizPage subjects={subjects} />;
     }
   };
 
   const navItems = useMemo(() => [
-    { id: 'upload', label: 'データ管理', icon: <FileUpIcon className="w-5 h-5" /> },
     { id: 'quiz', label: '問題演習', icon: <FileTextIcon className="w-5 h-5" /> },
     { id: 'dashboard', label: 'ダッシュボード', icon: <LayoutDashboardIcon className="w-5 h-5" /> },
   ], []);

@@ -18,6 +18,7 @@ interface QuizQuestion {
   subject: string;
   explanation: string;
   category?: string;
+  image_url?: string;
 }
 
 interface Subject {
@@ -31,7 +32,7 @@ interface QuizPageProps {
 type QuizMode = 'random' | 'weak_area' | 'unanswered';
 
 export default function QuizPage({ subjects }: QuizPageProps) {
-  const [selectedSubjectName, setSelectedSubjectName] = useState<string>('');
+  const [selectedSubjectNames, setSelectedSubjectNames] = useState<string[]>([]);
   const [quizMode, setQuizMode] = useState<QuizMode>('random');
   const [numQuestions, setNumQuestions] = useState<number>(10);
   const [quizState, setQuizState] = useState<'setup' | 'active' | 'finished'>('setup');
@@ -47,30 +48,42 @@ export default function QuizPage({ subjects }: QuizPageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (subjects.length > 0 && !selectedSubjectName) {
-      const firstSubject = subjects[0];
-      if (firstSubject) {
-        setSelectedSubjectName(firstSubject.name);
-      }
-    } else if (subjects.length === 0) {
-      setSelectedSubjectName('');
-    }
-  }, [subjects]);
+  const handleSubjectSelection = (subjectName: string) => {
+    setSelectedSubjectNames(prev => 
+      prev.includes(subjectName) 
+        ? prev.filter(s => s !== subjectName)
+        : [...prev, subjectName]
+    );
+  };
 
   const startQuiz = async () => {
-    if (!selectedSubjectName) {
-      setError('科目を選択してください。');
+    if (selectedSubjectNames.length === 0) {
+      setError('科目を1つ以上選択してください。');
       return;
     }
     setIsLoading(true);
     setError('');
     try {
-      const response = await fetch(`${API_BASE_URL}/quiz/start/${selectedSubjectName}?mode=${quizMode}&count=${numQuestions}`);
+      const subjectParams = selectedSubjectNames.map(s => `subjects=${encodeURIComponent(s)}`).join('&');
+      const response = await fetch(`${API_BASE_URL}/quiz/start?${subjectParams}&mode=${quizMode}&count=${numQuestions}`);
       const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data.detail || 'クイズの開始に失敗しました。');
+      }
+
+      if (data.quiz_set.length === 0) {
+        if (quizMode === 'unanswered') {
+          setError('未解答の問題はありません。設定画面に戻ります。');
+          setTimeout(() => {
+            setQuizState('setup');
+            setError('');
+          }, 2000);
+        } else {
+          setError('出題できる問題がありません。');
+        }
+        setIsLoading(false);
+        return;
       }
 
       setQuestions(data.quiz_set);
@@ -109,7 +122,7 @@ export default function QuizPage({ subjects }: QuizPageProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           problem_id: currentQuestion.id,
-          subject: selectedSubjectName,
+          subject: currentQuestion.subject, // Use subject from the question object
           selected_answer: selectedAnswer,
           is_correct: isCorrect,
           category: currentQuestion.category,
@@ -133,7 +146,17 @@ export default function QuizPage({ subjects }: QuizPageProps) {
     }
   };
 
+  const handleTryAgain = () => {
+    if (quizMode === 'unanswered') {
+      setQuizState('setup');
+    } else {
+      startQuiz();
+    }
+  };
+
   const currentQuestion = useMemo(() => questions[currentQuestionIndex], [questions, currentQuestionIndex]);
+
+
 
   if (subjects.length === 0) {
     return (
@@ -146,17 +169,27 @@ export default function QuizPage({ subjects }: QuizPageProps) {
 
   if (quizState === 'setup') {
     return (
-      <div className="max-w-lg mx-auto">
+      <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-xl shadow p-8">
           <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
             <div>
-              <label htmlFor="subject" className="block text-sm font-medium text-gray-700">科目</label>
-              <select id="subject" value={selectedSubjectName} onChange={e => setSelectedSubjectName(e.target.value)} className="mt-1 block w-full bg-gray-100 border border-gray-300 rounded-md shadow-sm py-2 px-3 text-gray-700 focus:outline-none focus:ring-primary-new focus:border-primary-new">
-                <option value="" disabled>科目を選択...</option>
+              <label className="block text-sm font-medium text-gray-700 mb-2">科目 (複数選択可)</label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {subjects.map(s => (
-                  <option key={s.name} value={s.name}>{s.name}</option>
+                  <button
+                    key={s.name}
+                    type="button"
+                    onClick={() => handleSubjectSelection(s.name)}
+                    className={`px-3 py-2 rounded-md text-sm font-medium text-left truncate ${
+                      selectedSubjectNames.includes(s.name)
+                        ? 'bg-primary-new text-white shadow-sm'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    {s.name}
+                  </button>
                 ))}
-              </select>
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">モード</label>
@@ -193,7 +226,7 @@ export default function QuizPage({ subjects }: QuizPageProps) {
             </div>
           </form>
           <div className="mt-6">
-            <button type="button" onClick={startQuiz} disabled={isLoading || !selectedSubjectName} className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-primary-new">
+            <button type="button" onClick={startQuiz} disabled={isLoading || selectedSubjectNames.length === 0} className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-primary-new">
               {isLoading ? <LoaderIcon className="w-5 h-5" /> : null}
               {isLoading ? 'クイズ準備中...' : '演習開始'}
             </button>
@@ -212,9 +245,14 @@ export default function QuizPage({ subjects }: QuizPageProps) {
           <p className="text-lg text-gray-700">あなたのスコア：</p>
           <p className="text-6xl font-bold text-primary-new my-4">{questions.length > 0 ? Math.round((score / questions.length) * 100) : 0}%</p>
           <p className="text-gray-500">{questions.length}問中{score}問正解しました。</p>
-          <button type="button" onClick={() => setQuizState('setup')} className="mt-8 px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700">
-            もう一度挑戦する
-          </button>
+          <div className="flex justify-center gap-4 mt-8">
+            <button type="button" onClick={() => setQuizState('setup')} className="px-6 py-3 border border-gray-300 rounded-md shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50">
+              科目選択へ
+            </button>
+            <button type="button" onClick={handleTryAgain} className="px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700">
+              もう一度挑戦する
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -231,11 +269,16 @@ export default function QuizPage({ subjects }: QuizPageProps) {
   return (
     <div className="max-w-3xl mx-auto">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold text-dark">{selectedSubjectName}</h2>
+        <h2 className="text-xl font-bold text-dark truncate" title={selectedSubjectNames.join(', ')}>{selectedSubjectNames.join(', ')}</h2>
         <p className="text-gray-500">問題 {currentQuestionIndex + 1} / {questions.length}</p>
       </div>
       <div className="bg-white rounded-xl shadow p-6 md:p-8">
         <p className="text-lg font-semibold text-gray-700 mb-6">{currentQuestion.question_text}</p>
+        {currentQuestion.image_url && (
+          <div className="my-4">
+            <img src={currentQuestion.image_url} alt="Question image" className="max-w-full h-auto mx-auto rounded-lg shadow-md" />
+          </div>
+        )}
         <div className="space-y-3">
           {currentQuestion && Array.isArray(currentQuestion.choices) && currentQuestion.choices.map((option, index) => {
             const isCorrectAnswer = option.label === currentQuestion.answer;
