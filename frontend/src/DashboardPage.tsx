@@ -44,6 +44,7 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
   const [consolidatedData, setConsolidatedData] = useState<DailySummaryItem[]>([]);
   const [isConsolidatedLoading, setIsConsolidatedLoading] = useState(false);
   const [consolidatedError, setConsolidatedError] = useState('');
+  const [threshold, setThreshold] = useState<number>(0);
 
   useEffect(() => {
     if (subjects.length > 0 && !selectedSubjectName) {
@@ -327,19 +328,59 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
               </div>
 
               <div className="bg-white rounded-xl shadow p-6">
-                <h3 className="text-lg font-semibold text-gray-700 mb-4">正答率の推移</h3>
-                <div className="h-64 pr-4 pt-2">
-                    {trendData.length > 1 ? (
-                        <div className="w-full h-full flex justify-around gap-2 items-end">
-                            {trendData.map((d, i) => (
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold text-gray-700">正答率の推移</h3>
+                  <select 
+                    onChange={(e) => setThreshold(Number(e.target.value))}
+                    value={threshold}
+                    className="text-xs border border-gray-300 rounded-md py-1 px-2"
+                  >
+                    <option value={0}>閾値なし</option>
+                    <option value={60}>60%</option>
+                    <option value={70}>70%</option>
+                    <option value={80}>80%</option>
+                    <option value={90}>90%</option>
+                  </select>
+                </div>
+                <div className="h-64 flex items-stretch">
+                  <div className="flex-shrink-0 flex flex-col justify-between text-xs text-gray-500 pr-2">
+                    <span>100%</span>
+                    <span>90%</span>
+                    <span>80%</span>
+                    <span>70%</span>
+                    <span>60%</span>
+                    <span>50%</span>
+                  </div>
+
+                  <div className="relative flex-grow overflow-x-auto">
+                    <div className="relative h-full" style={{ minWidth: trendData.length > 21 ? `${trendData.length * 25}px` : '100%'}}>
+                      
+                      {/* Background Grid lines */}
+                      <div className="absolute inset-0">
+                        {[100, 90, 80, 70, 60, 50].map(p => {
+                          const topPosition = 100 - p;
+                          return <div key={p} className="absolute w-full border-t border-gray-200 border-dashed" style={{ top: `${topPosition}%` }} />;
+                        })}
+                      </div>
+
+                      {/* Bars */}
+                      {trendData.length > 1 ? (
+                        <div className="relative w-full h-full flex justify-around gap-2 items-end px-1">
+                          {trendData.map((d, i) => {
+                              const isAboveThreshold = threshold > 0 && d.rate >= threshold;
+                              const barColor = isAboveThreshold ? 'bg-orange-300 hover:bg-orange-400' : 'bg-blue-200 hover:bg-blue-300';
+                              return (
                                 <div key={i} className="flex-1 h-full flex flex-col justify-end items-center group">
                                     <div className="text-xs font-bold text-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-200">{d.rate.toFixed(0)}%</div>
-                                    <div className="w-full bg-blue-200 hover:bg-blue-300 transition-colors duration-200 rounded-t min-h-[2px]" style={{ height: `${d.rate}%` }}></div>
+                                    <div className={`w-full ${barColor} transition-colors duration-200 rounded-t min-h-[2px]`} style={{ height: `${d.rate}%` }}></div>
                                     <div className="text-xs text-gray-500 mt-1">{d.date.substring(5)}</div>
                                 </div>
-                            ))}
+                              )
+                          })}
                         </div>
-                    ) : <p className="text-sm text-gray-500 text-center pt-8">グラフを表示するには2日以上の履歴が必要です。</p>}
+                      ) : <p className="absolute inset-0 flex items-center justify-center text-sm text-gray-500">グラフを表示するには2日以上の履歴が必要です。</p>}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

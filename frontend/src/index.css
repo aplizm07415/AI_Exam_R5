@@ -1,3 +1,40 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  .feedback-overlay {
+    @apply fixed inset-0 z-50 flex items-center justify-center pointer-events-none;
+  }
+
+  .feedback-icon {
+    @apply text-9xl font-bold text-white;
+    text-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+  }
+  
+  .feedback-icon.correct {
+    @apply text-blue-400;
+  }
+  
+  .feedback-icon.incorrect {
+    @apply text-red-400;
+  }
+
+  .feedback-effect-animation {
+    animation: feedback-effect 1s linear forwards;
+  }}
+
+@keyframes feedback-effect {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4.05);
+    opacity: 0;
+  }
+}
