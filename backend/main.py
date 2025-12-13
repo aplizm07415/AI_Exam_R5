@@ -229,6 +229,14 @@ def start_quiz(subject_name: str, count: int = 10, mode: str = Query("random")):
         
         selected_questions = list(selected_questions_dict.values())
 
+    elif mode == "unanswered":
+        history_items = _get_history_items_for_subject(subject_name)
+        answered_problem_ids = {item.problem_id for item in history_items}
+        
+        unanswered_questions = [q for q in all_questions if q.get("id") not in answered_problem_ids]
+        random.shuffle(unanswered_questions)
+        selected_questions = unanswered_questions
+    
     else: # Default to random mode
         selected_questions = random.sample(all_questions, num_to_select)
     

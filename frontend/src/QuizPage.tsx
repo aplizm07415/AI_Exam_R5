@@ -28,7 +28,7 @@ interface QuizPageProps {
   subjects: Subject[];
 }
 
-type QuizMode = 'random' | 'weak_area';
+type QuizMode = 'random' | 'weak_area' | 'unanswered';
 
 export default function QuizPage({ subjects }: QuizPageProps) {
   const [selectedSubjectName, setSelectedSubjectName] = useState<string>('');
@@ -95,7 +95,6 @@ export default function QuizPage({ subjects }: QuizPageProps) {
   const handleAnswerSubmit = async () => {
     if (selectedAnswer === null) return;
 
-    setIsAnswered(true);
     const currentQuestion = questions[currentQuestionIndex];
     if (!currentQuestion) return;
     const isCorrect = selectedAnswer === currentQuestion.answer;
@@ -122,6 +121,7 @@ export default function QuizPage({ subjects }: QuizPageProps) {
     
     const explanation = currentQuestion.explanation || "この問題の解説はありません。";
     setFeedback({ correct: isCorrect, explanation });
+    setIsAnswered(true);
   };
 
   const handleNextQuestion = () => {
@@ -138,7 +138,7 @@ export default function QuizPage({ subjects }: QuizPageProps) {
   if (subjects.length === 0) {
     return (
       <div className="text-center text-gray-400">
-        <h2 className="text-2xl font-bold mb-4">練習問題</h2>
+        <h2 className="text-2xl font-bold mb-4">問題演習</h2>
         <p>科目がありません。「データ管理」ページで問題データをアップロードしてください。</p>
       </div>
     );
@@ -160,12 +160,13 @@ export default function QuizPage({ subjects }: QuizPageProps) {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">モード</label>
-              <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <button type="button" onClick={() => setQuizMode('random')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'random' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>ランダム</button>
                 <button type="button" onClick={() => setQuizMode('weak_area')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'weak_area' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>苦手分野</button>
+                <button type="button" onClick={() => setQuizMode('unanswered')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'unanswered' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>未解答問題</button>
               </div>
             </div>
-            <div>
+            <div style={{ display: quizMode === 'unanswered' ? 'none' : 'block' }}>
               <label className="block text-sm font-medium text-gray-700">問題数</label>
               <div className="mt-2 grid grid-cols-5 gap-3">
                 {[

@@ -53,7 +53,7 @@ export default function App() {
 
   const navItems = useMemo(() => [
     { id: 'upload', label: 'データ管理', icon: <FileUpIcon className="w-5 h-5" /> },
-    { id: 'quiz', label: '練習問題', icon: <FileTextIcon className="w-5 h-5" /> },
+    { id: 'quiz', label: '問題演習', icon: <FileTextIcon className="w-5 h-5" /> },
     { id: 'dashboard', label: 'ダッシュボード', icon: <LayoutDashboardIcon className="w-5 h-5" /> },
   ], []);
 
