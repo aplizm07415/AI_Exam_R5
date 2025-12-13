@@ -1,0 +1,28 @@
+
+コマンド＋オプション＋Cでそのファイルのディレクトリがわかるから、
+cd パス　でそこに入る
+cd /Users/developer/AI_Exam_Prep_Kit_R2_onAzure
+
+＜gitコミット＞
+    git add .
+    git commit -m "コミットコメント"
+    git push origin main
+
+    →aplizm075のgithubアカウントでコミットされているか確認。
+
+＜docker build＞ローカル検証
+    docker build -t quiz-app:v41 .
+    を実行。バージョンはインクリメントした方がいい。
+
+    docker stop quiz-app-container || true && docker rm quiz-app-container || true && docker run -d -p 8000:8000 -e AZURE_STORAGE_CONNECTION_STRING="REDACTED_CREDENTIAL" -e QUIZ_BLOB_CONTAINER="exam-json" --name quiz-app-container quiz-app:v41
+    を実行。バージョンはインクリメントした方がいい。
+
+    →http://localhost:8000/
+    で検証。
+
+＜デプロイ＞本番環境にデプロイ　Container Apps
+    az acr login --name quizregistry7648
+
+    docker buildx build --platform linux/amd64 -t quizregistry7648.azurecr.io/quiz-app:v41 --push .
+
+
