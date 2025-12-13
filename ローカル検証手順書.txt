@@ -8,7 +8,8 @@ cd /Users/developer/AI_Exam_Prep_Kit_R2_onAzure
     git commit -m "コミットコメント"
     git push origin main
 
-    →aplizm075のgithubアカウントでコミットされているか確認。
+    →aplizm07415のgithubアカウントでコミットされているか確認。
+　　　https://github.com/aplizm07415/AI_Exam_Prep_Kit_R2_onAzure/commits/main/
 
 ＜docker build＞ローカル検証
     docker build -t quiz-app:v41 .
