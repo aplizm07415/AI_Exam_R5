@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { LoaderIcon, CheckCircleIcon, XCircleIcon } from './components/icons';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import LoadingSpinner from './components/LoadingSpinner';
 
 const API_BASE_URL = "/api";
 
@@ -171,71 +172,75 @@ export default function QuizPage({ subjects }: QuizPageProps) {
       )}
       <div className="max-w-3xl mx-auto">
         {quizState === 'setup' && (
-          <div className="max-w-2xl mx-auto">
-            <div className="bg-white rounded-xl shadow p-8">
-              <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">科目 (複数選択可)</label>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                    {subjects.map(s => (
-                      <button
-                        key={s.name}
-                        type="button"
-                        onClick={() => handleSubjectSelection(s.name)}
-                        className={`px-3 py-2 rounded-md text-sm font-medium text-left truncate ${
-                          selectedSubjectNames.includes(s.name)
-                            ? 'bg-primary-new text-white shadow-sm'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        }`}
-                      >
-                        {s.name}
-                      </button>
-                    ))}
+          isLoading ? (
+            <LoadingSpinner />
+          ) : (
+            <div className="max-w-2xl mx-auto">
+              <div className="bg-white rounded-xl shadow p-8">
+                <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">科目 (複数選択可)</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                      {subjects.map(s => (
+                        <button
+                          key={s.name}
+                          type="button"
+                          onClick={() => handleSubjectSelection(s.name)}
+                          className={`px-3 py-2 rounded-md text-sm font-medium text-left truncate ${
+                            selectedSubjectNames.includes(s.name)
+                              ? 'bg-primary-new text-white shadow-sm'
+                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          }`}
+                        >
+                          {s.name}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">モード</label>
-                  <div className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <button type="button" onClick={() => setQuizMode('random')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'random' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>ランダム</button>
-                    <button type="button" onClick={() => setQuizMode('weak_area')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'weak_area' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>苦手分野</button>
-                    <button type="button" onClick={() => setQuizMode('unanswered')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'unanswered' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>未回答問題</button>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">モード</label>
+                    <div className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <button type="button" onClick={() => setQuizMode('random')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'random' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>ランダム</button>
+                      <button type="button" onClick={() => setQuizMode('weak_area')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'weak_area' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>苦手分野</button>
+                      <button type="button" onClick={() => setQuizMode('unanswered')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'unanswered' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>未回答問題</button>
+                    </div>
                   </div>
-                </div>
-                <div style={{ display: quizMode === 'unanswered' ? 'none' : 'block' }}>
-                  <label className="block text-sm font-medium text-gray-700">問題数</label>
-                  <div className="mt-2 grid grid-cols-5 gap-3">
-                    {[
-                      { label: '10', value: 10 },
-                      { label: '20', value: 20 },
-                      { label: '30', value: 30 },
-                      { label: '50', value: 50 },
-                      { label: 'MAX', value: 1000 },
-                    ].map((option) => (
-                      <button
-                        key={option.label}
-                        type="button"
-                        onClick={() => setNumQuestions(option.value)}
-                        className={`px-2 py-2 rounded-md text-sm font-medium transition-colors ${
-                          numQuestions === option.value
-                            ? 'bg-primary-new text-white'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
+                  <div style={{ display: quizMode === 'unanswered' ? 'none' : 'block' }}>
+                    <label className="block text-sm font-medium text-gray-700">問題数</label>
+                    <div className="mt-2 grid grid-cols-5 gap-3">
+                      {[
+                        { label: '10', value: 10 },
+                        { label: '20', value: 20 },
+                        { label: '30', value: 30 },
+                        { label: '50', value: 50 },
+                        { label: 'MAX', value: 1000 },
+                      ].map((option) => (
+                        <button
+                          key={option.label}
+                          type="button"
+                          onClick={() => setNumQuestions(option.value)}
+                          className={`px-2 py-2 rounded-md text-sm font-medium transition-colors ${
+                            numQuestions === option.value
+                              ? 'bg-primary-new text-white'
+                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
+                </form>
+                <div className="mt-6">
+                  <button type="button" onClick={startQuiz} disabled={isLoading || selectedSubjectNames.length === 0} className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-primary-new">
+                    {isLoading ? <LoaderIcon className="w-5 h-5" /> : null}
+                    {isLoading ? 'クイズ準備中...' : 'Start'}
+                  </button>
                 </div>
-              </form>
-              <div className="mt-6">
-                <button type="button" onClick={startQuiz} disabled={isLoading || selectedSubjectNames.length === 0} className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-primary-new">
-                  {isLoading ? <LoaderIcon className="w-5 h-5" /> : null}
-                  {isLoading ? 'クイズ準備中...' : 'Start'}
-                </button>
+                {error && <p className="text-danger text-sm mt-2 text-center">{error}</p>}
               </div>
-              {error && <p className="text-danger text-sm mt-2 text-center">{error}</p>}
             </div>
-          </div>
+          )
         )}
         
         {quizState === 'finished' && (

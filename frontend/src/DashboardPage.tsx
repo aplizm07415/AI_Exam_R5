@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import LoadingSpinner from './components/LoadingSpinner';
 
 const API_BASE_URL = "/api";
 
@@ -205,7 +206,7 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
             </div>
             <div className="p-6 overflow-y-auto">
               {isConsolidatedLoading ? (
-                <p className="text-center text-gray-500">読み込み中...</p>
+                <LoadingSpinner />
               ) : consolidatedError ? (
                 <p className="text-danger text-sm text-center">{consolidatedError}</p>
               ) : consolidatedData.length === 0 ? (
@@ -266,7 +267,7 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           {isLoading ? (
-            <div className="text-center text-gray-500 p-12"><p>分析データを読み込み中...</p></div>
+            <div className="text-center text-gray-500 p-12"><LoadingSpinner /></div>
           ) : error ? (
             <div className="text-center text-danger bg-danger/10 rounded-xl p-12"><p>{error}</p></div>
           ) : !analytics || analytics.total_runs === 0 ? (
@@ -391,7 +392,7 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
           <div className="bg-white rounded-xl shadow p-6">
             <h3 className="text-lg font-semibold text-gray-700 mb-4">日別実施履歴</h3>
             {isDailySummaryLoading ? (
-              <p className="text-center text-gray-500">読み込み中...</p>
+              <LoadingSpinner />
             ) : dailySummaryError ? (
               <p className="text-danger text-sm text-center">履歴が取得できませんでした。</p>
             ) : dailySummary.length === 0 ? (
