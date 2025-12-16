@@ -1,7 +1,7 @@
 
 コマンド＋オプション＋Cでそのファイルのディレクトリがわかるから、
 cd パス　でそこに入る
-cd /Users/developer/AI_Exam_Prep_Kit_R2_onAzure
+cd /Users/developer/AI_Exam_Prep_Kit_R3_onAzure
 
 ＜gitコミット＞
     git add .
@@ -11,15 +11,22 @@ cd /Users/developer/AI_Exam_Prep_Kit_R2_onAzure
     →aplizm07415のgithubアカウントでコミットされているか確認。
 　　　https://github.com/aplizm07415/AI_Exam_Prep_Kit_R2_onAzure/commits/main/
 
+※※ R3として、ブランチを切って実装を行う。 ※※
+
 ＜docker build＞ローカル検証
-    docker build -t quiz-app:v44 .
+    docker build -t quiz-app:v1 .
     を実行。バージョンはインクリメントした方がいい。
 
-    docker stop quiz-app-container || true && docker rm quiz-app-container || true && docker run -d -p 8000:8000 -e AZURE_STORAGE_CONNECTION_STRING="REDACTED_CREDENTIAL" -e QUIZ_BLOB_CONTAINER="exam-json" --name quiz-app-container quiz-app:v44
+    docker stop quiz-app-container || true && docker rm quiz-app-container || true && docker run -d -p 8000:8000 -e AZURE_STORAGE_CONNECTION_STRING="REDACTED_CREDENTIAL" -e QUIZ_BLOB_CONTAINER="exam-json" --name quiz-app-container quiz-app:v1
     を実行。バージョンはインクリメントした方がいい。
 
     →http://localhost:8000/
     で検証。
+
+※※ R3として、記述採点機能の実装検討を行う。 ※※
+
+
+
 
 ＜デプロイ＞本番環境にデプロイ　Container Apps
 Azureログイン
