@@ -148,6 +148,42 @@ def get_image(image_name: str):
         print(f"Error streaming image: {e}")
         raise HTTPException(status_code=500, detail="Failed to stream image from blob storage.")
 
+@api_router.get("/quiz/unanswered-count")
+def get_unanswered_count(subjects: list[str] = Query(...)):
+    """指定された科目セットに対する未回答の問題数を計算して返す"""
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+    if not subjects:
+        return {"unanswered_count": 0}
+
+    all_questions = []
+    try:
+        for subject_name in subjects:
+            blob_client = container_client.get_blob_client(subject_name)
+            if not blob_client.exists():
+                continue
+            
+            raw_content = blob_client.download_blob().readall()
+            data = json.loads(raw_content)
+            questions_in_file = data.get("questions", []) if isinstance(data, dict) else data if isinstance(data, list) else []
+            
+            for q in questions_in_file:
+                normalized_q = normalize_question(q)
+                if normalized_q:
+                    all_questions.append(normalized_q)
+    except Exception as e:
+        print(f"Error reading quiz data for unanswered count: {e}")
+        raise HTTPException(status_code=500, detail="Failed to read questions from blob storage for count.")
+
+    history_items = []
+    for subject_name in subjects:
+        history_items.extend(_get_history_items_for_subject(subject_name))
+    
+    answered_problem_ids = {item.problem_id for item in history_items}
+    count = sum(1 for q in all_questions if q.get("id") not in answered_problem_ids)
+    
+    return {"unanswered_count": count}
+
 @api_router.get("/quiz/start")
 def start_quiz(subjects: list[str] = Query(...), count: int = 10, mode: str = Query("random")):
     """指定された複数の科目からクイズを開始する"""
@@ -456,4 +492,14 @@ def get_daily_summary(subject_name: str):
 
 # --- Final App Setup ---
 app.include_router(api_router)
+
+# Explicitly handle SPA routes to avoid "Not Found" on reload
+@app.get("/portal", response_class=FileResponse)
+async def serve_portal_route():
+    return FileResponse(DIST_DIR / "index.html")
+
+@app.get("/dashboard", response_class=FileResponse)
+async def serve_dashboard_route():
+    return FileResponse(DIST_DIR / "index.html")
+
 app.mount("/", StaticFiles(directory=DIST_DIR, html=True), name="static")
