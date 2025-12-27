@@ -19,7 +19,7 @@ interface QuizQuestion {
   subject: string;
   explanation: string;
   category?: string;
-  image_url?: string;
+  image_urls?: string[];
 }
 
 interface Subject {
@@ -45,6 +45,7 @@ export default function QuizPage({ subjects }: QuizPageProps) {
   const [isAnswered, setIsAnswered] = useState(false);
   const [feedback, setFeedback] = useState<{ correct: boolean; explanation: string } | null>(null);
   const [score, setScore] = useState(0);
+  const [scratchpadText, setScratchpadText] = useState('');
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -135,6 +136,7 @@ export default function QuizPage({ subjects }: QuizPageProps) {
     setSelectedAnswer(null);
     setIsAnswered(false);
     setFeedback(null);
+    setScratchpadText('');
   };
 
   const handleAnswerSubmit = async () => {
@@ -309,9 +311,11 @@ export default function QuizPage({ subjects }: QuizPageProps) {
             </div>
             <div className="bg-white rounded-xl shadow p-6 md:p-8">
               <p className="text-lg font-semibold text-gray-700 mb-6">{currentQuestion.question_text}</p>
-              {currentQuestion.image_url && (
-                <div className="my-4">
-                  <img src={currentQuestion.image_url} alt="Question image" className="max-w-full h-auto mx-auto rounded-lg shadow-md" />
+              {(currentQuestion.image_urls && currentQuestion.image_urls.length > 0) && (
+                <div className="my-4 grid grid-cols-1 gap-4">
+                  {currentQuestion.image_urls.map((url, index) => (
+                    <img key={index} src={url} alt={`Question image ${index + 1}`} className="max-w-full h-auto mx-auto rounded-lg shadow-md" />
+                  ))}
                 </div>
               )}
               <div className="space-y-3">
@@ -344,6 +348,18 @@ export default function QuizPage({ subjects }: QuizPageProps) {
                   );
                 })}
               </div>
+              <div className="mt-6">
+                <label htmlFor="scratchpad" className="block text-sm font-medium text-gray-700 mb-2">メモ帳</label>
+                <textarea
+                  id="scratchpad"
+                  value={scratchpadText}
+                  onChange={(e) => setScratchpadText(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-new focus:border-primary-new"
+                  rows={3}
+                  placeholder="計算やメモにご利用ください..."
+                />
+              </div>
+
               <div className="mt-6 text-center">
                 {!isAnswered ? (
                   <button type="button" onClick={handleAnswerSubmit} disabled={selectedAnswer === null} className="px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed">

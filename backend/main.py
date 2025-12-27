@@ -248,8 +248,17 @@ def start_quiz(subjects: list[str] = Query(...), count: int = 10, mode: str = Qu
     
     # 最終処理: 選択された問題リストに画像URLを付与
     for q in selected_questions:
-        if q.get("image"):
-            q["image_url"] = f"/api/images/{q['image']}"
+        # 'image' (str) を 'images' (list[str]) に統合
+        if 'image' in q and q['image']:
+            if 'images' not in q:
+                q['images'] = []
+            if isinstance(q['image'], str) and q['image'] not in q['images']:
+                 q['images'].insert(0, q['image'])
+            # del q['image'] # 元の'image'キーは削除しないでおく
+
+        # 'images'リストから'image_urls'を生成
+        if 'images' in q and isinstance(q['images'], list):
+            q['image_urls'] = [f"/api/images/{img_name}" for img_name in q['images']]
 
     return {"quiz_set": selected_questions}
 

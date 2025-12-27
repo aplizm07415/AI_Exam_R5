@@ -11,7 +11,15 @@ cd /Users/developer/AI_Exam_Prep_Kit_R3_onAzure
     →aplizm07415のgithubアカウントでコミットされているか確認。
 　　　https://github.com/aplizm07415/AI_Exam_Prep_Kit_R2_onAzure/commits/main/
 
-※※ R3として、ブランチを切って実装を行う。 ※※
+※※ R3として、ブランチを切って実装を行っている。 ※※
+git checkout R3
+git branch
+
+ここから手順
+git add -A
+git status
+git commit -m "コミットコメント"
+git push
 
 ＜docker build＞ローカル検証
     docker build -t quiz-app:v1 .
