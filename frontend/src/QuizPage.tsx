@@ -193,6 +193,43 @@ export default function QuizPage({ subjects }: QuizPageProps) {
 
   const currentQuestion = useMemo(() => questions[currentQuestionIndex], [questions, currentQuestionIndex]);
 
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (quizState !== 'active' || (event.target instanceof HTMLTextAreaElement)) {
+        return;
+      }
+
+      // Handle number keys for selecting choices
+      if (event.key >= '1' && event.key <= '9') {
+        if (!isAnswered) {
+          const choiceIndex = parseInt(event.key) - 1;
+          if (currentQuestion && currentQuestion.choices && currentQuestion.choices[choiceIndex]) {
+            setSelectedAnswer(currentQuestion.choices[choiceIndex].label);
+          }
+        }
+      }
+
+      // Handle Enter key for submitting or moving to the next question
+      if (event.key === 'Enter') {
+        // 「解答する」ボタンと「次の問題へ」ボタンの要素をidで取得
+        const submitButton = document.getElementById('submit-answer-button');
+        const nextButton = document.getElementById('next-question-button');
+
+        if (!isAnswered && submitButton) {
+          submitButton.click();
+        } else if (isAnswered && nextButton) {
+          nextButton.click();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [quizState, isAnswered, currentQuestion, handleAnswerSubmit, handleNextQuestion]);
+
   return (
     <>
       {effectStatus && (
@@ -362,11 +399,11 @@ export default function QuizPage({ subjects }: QuizPageProps) {
 
               <div className="mt-6 text-center">
                 {!isAnswered ? (
-                  <button type="button" onClick={handleAnswerSubmit} disabled={selectedAnswer === null} className="px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed">
+                  <button id="submit-answer-button" type="button" onClick={handleAnswerSubmit} disabled={selectedAnswer === null} className="px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed">
                     解答する
                   </button>
                 ) : (
-                  <button type="button" onClick={handleNextQuestion} className="px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-dark bg-gray-200 hover:bg-gray-300">
+                  <button id="next-question-button" type="button" onClick={handleNextQuestion} className="px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-dark bg-gray-200 hover:bg-gray-300">
                     {currentQuestionIndex < questions.length - 1 ? '次の問題へ' : 'クイズを終了'}
                   </button>
                 )}

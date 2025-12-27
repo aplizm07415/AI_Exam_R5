@@ -22,10 +22,10 @@ git commit -m "コミットコメント"
 git push
 
 ＜docker build＞ローカル検証
-    docker build -t quiz-app:v1 .
+    docker build -t quiz-app:v4 .
     を実行。バージョンはインクリメントした方がいい。
 
-    docker stop quiz-app-container || true && docker rm quiz-app-container || true && docker run -d -p 8000:8000 -e AZURE_STORAGE_CONNECTION_STRING="REDACTED_CREDENTIAL" -e QUIZ_BLOB_CONTAINER="exam-json" --name quiz-app-container quiz-app:v1
+    docker stop quiz-app-container || true && docker rm quiz-app-container || true && docker run -d -p 8000:8000 -e AZURE_STORAGE_CONNECTION_STRING="REDACTED_CREDENTIAL" -e QUIZ_BLOB_CONTAINER="exam-json" --name quiz-app-container quiz-app:v4
     を実行。バージョンはインクリメントした方がいい。
 
     →http://localhost:8000/
