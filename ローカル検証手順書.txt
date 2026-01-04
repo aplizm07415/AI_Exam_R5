@@ -15,8 +15,10 @@ cd /Users/developer/AI_Exam_Prep_Kit_R3_onAzure
 git checkout R3
 git branch
 
+
 ここから手順
 git add -A
+
 git status
 git commit -m "コミットコメント"
 git push
