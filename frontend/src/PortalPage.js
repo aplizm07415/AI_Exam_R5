@@ -1,0 +1,7 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import React from 'react';
+import { Link } from 'react-router-dom';
+export default function PortalPage() {
+    return (_jsx("div", { className: "flex flex-col items-center justify-center min-h-[calc(100vh-200px)]", children: _jsxs("div", { className: "grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl", children: [_jsx(Link, { to: "/", className: "bg-green-500 hover:bg-green-600 text-white font-bold py-10 px-4 rounded-lg shadow-lg text-center text-2xl transition duration-300 ease-in-out transform hover:-translate-y-1", children: "Web\u30A2\u30D7\u30EA" }), _jsx("a", { href: "https://kakomonn.com/account/login", target: "_blank", rel: "noopener noreferrer", className: "bg-green-500 hover:bg-green-600 text-white font-bold py-10 px-4 rounded-lg shadow-lg text-center text-2xl transition duration-300 ease-in-out transform hover:-translate-y-1", children: "\u8A3A\u65AD\u58EB\u4E00\u6B21" }), _jsx("a", { href: "https://www.ap-siken.com/apkakomon.php", target: "_blank", rel: "noopener noreferrer", className: "bg-green-500 hover:bg-green-600 text-white font-bold py-10 px-4 rounded-lg shadow-lg text-center text-2xl transition duration-300 ease-in-out transform hover:-translate-y-1", children: "\u5FDC\u7528\u60C5\u5831" })] }) }));
+}
+//# sourceMappingURL=PortalPage.js.map

@@ -3,6 +3,7 @@ import { LoaderIcon, CheckCircleIcon, XCircleIcon } from './components/icons';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import LoadingSpinner from './components/LoadingSpinner';
+import SubjectVisibilityModal from './components/SubjectVisibilityModal';
 
 const API_BASE_URL = "/api";
 
@@ -32,7 +33,7 @@ interface QuizPageProps {
 
 type QuizMode = 'random' | 'weak_area' | 'unanswered';
 
-export default function QuizPage({ subjects }: QuizPageProps) {
+export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   const [selectedSubjectNames, setSelectedSubjectNames] = useState<string[]>([]);
   const [quizMode, setQuizMode] = useState<QuizMode>('random');
   const [numQuestions, setNumQuestions] = useState<number>(10);
@@ -53,6 +54,30 @@ export default function QuizPage({ subjects }: QuizPageProps) {
 
   const [unansweredCount, setUnansweredCount] = useState<number | null>(null);
   const [isCountLoading, setIsCountLoading] = useState(false);
+
+  // 科目表示制御
+  const [hiddenSubjects, setHiddenSubjects] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('hiddenSubjects');
+      return saved ? JSON.parse(saved) : [];
+    } catch (error) {
+      console.error('Failed to parse hiddenSubjects from localStorage', error);
+      return [];
+    }
+  });
+  const [isVisibilityModalOpen, setIsVisibilityModalOpen] = useState(false);
+
+  const visibleSubjects = useMemo(() => {
+    return allSubjects.filter(s => !hiddenSubjects.includes(s.name));
+  }, [allSubjects, hiddenSubjects]);
+
+  const handleHiddenSubjectsChange = (newHiddenSubjects: string[]) => {
+    setHiddenSubjects(newHiddenSubjects);
+    localStorage.setItem('hiddenSubjects', JSON.stringify(newHiddenSubjects));
+
+    // 非表示になった科目を、現在選択されている科目リストから除外する
+    setSelectedSubjectNames(prev => prev.filter(name => !newHiddenSubjects.includes(name)));
+  };
 
   useEffect(() => {
     const fetchUnansweredCount = async () => {
@@ -232,6 +257,13 @@ export default function QuizPage({ subjects }: QuizPageProps) {
 
   return (
     <>
+      <SubjectVisibilityModal
+        isOpen={isVisibilityModalOpen}
+        onClose={() => setIsVisibilityModalOpen(false)}
+        subjects={allSubjects}
+        hiddenSubjects={hiddenSubjects}
+        onHiddenSubjectsChange={handleHiddenSubjectsChange}
+      />
       {effectStatus && (
         <div className="feedback-overlay">
           <div className={`feedback-icon ${effectStatus} feedback-effect-animation`}>
@@ -248,9 +280,17 @@ export default function QuizPage({ subjects }: QuizPageProps) {
               <div className="bg-white rounded-xl shadow p-8">
                 <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">科目 (複数選択可)</label>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-medium text-gray-700">科目 (複数選択可)</label>
+                      <button onClick={() => setIsVisibilityModalOpen(true)} className="p-1 rounded-md hover:bg-gray-200" title="表示科目の制御">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.096 2.572-1.065z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      </button>
+                    </div>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                      {subjects.map(s => (
+                      {visibleSubjects.map(s => (
                         <button
                           key={s.name}
                           type="button"
