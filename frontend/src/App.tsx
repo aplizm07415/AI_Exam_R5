@@ -3,7 +3,8 @@ import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import QuizPage from './QuizPage';
 import DashboardPage from './DashboardPage';
 import PortalPage from './PortalPage';
-import { LayoutDashboardIcon, FileTextIcon, HomeIcon } from './components/icons';
+import CountdownPage from './CountdownPage';
+import { LayoutDashboardIcon, FileTextIcon, HomeIcon, CalendarDaysIcon } from './components/icons';
 import LoadingSpinner from './components/LoadingSpinner';
 
 interface Subject {
@@ -41,6 +42,7 @@ export default function App() {
   const navItems = useMemo(() => [
     { id: 'quiz', path: '/', label: '問題演習', icon: <FileTextIcon className="w-5 h-5" /> },
     { id: 'dashboard', path: '/dashboard', label: 'ダッシュボード', icon: <LayoutDashboardIcon className="w-5 h-5" /> },
+    { id: 'countdown', path: '/countdown', label: '試験日', icon: <CalendarDaysIcon className="w-5 h-5" /> },
     { id: 'portal', path: '/portal', label: 'ポータル', icon: <HomeIcon className="w-5 h-5" /> },
   ], []);
 
@@ -83,6 +85,7 @@ export default function App() {
           <div className="fade-in">
             <Routes>
               <Route path="/portal" element={<PortalPage />} />
+              <Route path="/countdown" element={<CountdownPage />} />
               <Route path="/" element={<QuizPage subjects={subjects} />} />
               <Route path="/dashboard" element={<DashboardPage subjects={subjects} key={subjects.map(s => s.name).join(',')} />} />
             </Routes>

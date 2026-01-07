@@ -4,6 +4,6 @@ interface Subject {
 interface DashboardPageProps {
     subjects: Subject[];
 }
-export default function DashboardPage({ subjects: allSubjects }: DashboardPageProps): import("react/jsx-runtime").JSX.Element;
+export default function DashboardPage({ subjects }: DashboardPageProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=DashboardPage.d.ts.map

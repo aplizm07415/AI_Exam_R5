@@ -4,8 +4,9 @@ import { LoaderIcon, CheckCircleIcon, XCircleIcon } from './components/icons';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import LoadingSpinner from './components/LoadingSpinner';
+import SubjectVisibilityModal from './components/SubjectVisibilityModal';
 const API_BASE_URL = "/api";
-export default function QuizPage({ subjects }) {
+export default function QuizPage({ subjects: allSubjects }) {
     const [selectedSubjectNames, setSelectedSubjectNames] = useState([]);
     const [quizMode, setQuizMode] = useState('random');
     const [numQuestions, setNumQuestions] = useState(10);
@@ -22,6 +23,27 @@ export default function QuizPage({ subjects }) {
     const [effectStatus, setEffectStatus] = useState(null);
     const [unansweredCount, setUnansweredCount] = useState(null);
     const [isCountLoading, setIsCountLoading] = useState(false);
+    // 科目表示制御
+    const [hiddenSubjects, setHiddenSubjects] = useState(() => {
+        try {
+            const saved = localStorage.getItem('hiddenSubjects');
+            return saved ? JSON.parse(saved) : [];
+        }
+        catch (error) {
+            console.error('Failed to parse hiddenSubjects from localStorage', error);
+            return [];
+        }
+    });
+    const [isVisibilityModalOpen, setIsVisibilityModalOpen] = useState(false);
+    const visibleSubjects = useMemo(() => {
+        return allSubjects.filter(s => !hiddenSubjects.includes(s.name));
+    }, [allSubjects, hiddenSubjects]);
+    const handleHiddenSubjectsChange = (newHiddenSubjects) => {
+        setHiddenSubjects(newHiddenSubjects);
+        localStorage.setItem('hiddenSubjects', JSON.stringify(newHiddenSubjects));
+        // 非表示になった科目を、現在選択されている科目リストから除外する
+        setSelectedSubjectNames(prev => prev.filter(name => !newHiddenSubjects.includes(name)));
+    };
     useEffect(() => {
         const fetchUnansweredCount = async () => {
             if (quizMode === 'unanswered' && selectedSubjectNames.length > 0) {
@@ -184,7 +206,7 @@ export default function QuizPage({ subjects }) {
             window.removeEventListener('keydown', handleKeyPress);
         };
     }, [quizState, isAnswered, currentQuestion, handleAnswerSubmit, handleNextQuestion]);
-    return (_jsxs(_Fragment, { children: [effectStatus && (_jsx("div", { className: "feedback-overlay", children: _jsx("div", { className: `feedback-icon ${effectStatus} feedback-effect-animation`, children: effectStatus === 'correct' ? '○' : '×' }) })), _jsxs("div", { className: "max-w-3xl mx-auto", children: [quizState === 'setup' && (isLoading ? (_jsx(LoadingSpinner, {})) : (_jsx("div", { className: "max-w-2xl mx-auto", children: _jsxs("div", { className: "bg-white rounded-xl shadow p-8", children: [_jsxs("form", { onSubmit: (e) => e.preventDefault(), className: "space-y-6", children: [_jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-2", children: "\u79D1\u76EE (\u8907\u6570\u9078\u629E\u53EF)" }), _jsx("div", { className: "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3", children: subjects.map(s => (_jsx("button", { type: "button", onClick: () => handleSubjectSelection(s.name), className: `px-3 py-2 rounded-md text-sm font-medium text-left truncate ${selectedSubjectNames.includes(s.name)
+    return (_jsxs(_Fragment, { children: [_jsx(SubjectVisibilityModal, { isOpen: isVisibilityModalOpen, onClose: () => setIsVisibilityModalOpen(false), subjects: allSubjects, hiddenSubjects: hiddenSubjects, onHiddenSubjectsChange: handleHiddenSubjectsChange }), effectStatus && (_jsx("div", { className: "feedback-overlay", children: _jsx("div", { className: `feedback-icon ${effectStatus} feedback-effect-animation`, children: effectStatus === 'correct' ? '○' : '×' }) })), _jsxs("div", { className: "max-w-3xl mx-auto", children: [quizState === 'setup' && (isLoading ? (_jsx(LoadingSpinner, {})) : (_jsx("div", { className: "max-w-2xl mx-auto", children: _jsxs("div", { className: "bg-white rounded-xl shadow p-8", children: [_jsxs("form", { onSubmit: (e) => e.preventDefault(), className: "space-y-6", children: [_jsxs("div", { children: [_jsxs("div", { className: "flex items-center justify-between mb-2", children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u79D1\u76EE (\u8907\u6570\u9078\u629E\u53EF)" }), _jsx("button", { onClick: () => setIsVisibilityModalOpen(true), className: "p-1 rounded-md hover:bg-gray-200", title: "\u8868\u793A\u79D1\u76EE\u306E\u5236\u5FA1", children: _jsxs("svg", { xmlns: "http://www.w3.org/2000/svg", className: "h-5 w-5 text-gray-600", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor", children: [_jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.096 2.572-1.065z" }), _jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M15 12a3 3 0 11-6 0 3 3 0 016 0z" })] }) })] }), _jsx("div", { className: "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3", children: visibleSubjects.map(s => (_jsx("button", { type: "button", onClick: () => handleSubjectSelection(s.name), className: `px-3 py-2 rounded-md text-sm font-medium text-left truncate ${selectedSubjectNames.includes(s.name)
                                                             ? 'bg-primary-new text-white shadow-sm'
                                                             : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: s.name }, s.name))) })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u30E2\u30FC\u30C9" }), _jsxs("div", { className: "mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3", children: [_jsx("button", { type: "button", onClick: () => setQuizMode('random'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'random' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u30E9\u30F3\u30C0\u30E0" }), _jsx("button", { type: "button", onClick: () => setQuizMode('weak_area'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'weak_area' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u82E6\u624B\u5206\u91CE" }), _jsx("button", { type: "button", onClick: () => setQuizMode('unanswered'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'unanswered' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u672A\u56DE\u7B54\u554F\u984C" })] })] }), quizMode === 'unanswered' ? (_jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u5B9F\u65BD\u4E88\u5B9A\u554F\u984C\u6570" }), _jsx("div", { className: "mt-2 text-lg font-bold text-primary-new p-2 bg-gray-100 rounded-md text-center", children: isCountLoading ? '計算中...' : unansweredCount !== null ? `${unansweredCount} 問` : '...' })] })) : (_jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u554F\u984C\u6570" }), _jsx("div", { className: "mt-2 grid grid-cols-5 gap-3", children: [
                                                         { label: '10', value: 10 },
