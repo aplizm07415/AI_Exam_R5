@@ -4,6 +4,9 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import LoadingSpinner from './components/LoadingSpinner';
 import SubjectVisibilityModal from './components/SubjectVisibilityModal';
+import { usePlans } from './hooks/usePlans';
+import type { Plan } from './types/plan.d';
+import { isHoliday } from './utils/date';
 
 const API_BASE_URL = "/api";
 
@@ -31,11 +34,20 @@ interface QuizPageProps {
   subjects: Subject[];
 }
 
-type QuizMode = 'random' | 'weak_area' | 'unanswered';
+interface DailySummaryItem {
+  date: string;
+  total_questions: number;
+  correct_count: number;
+  accuracy: number;
+}
+
+type QuizMode = 'random' | 'weak_area' | 'unanswered' | 'today_remaining';
 
 export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
+  const { plans } = usePlans();
+  const [dailySummaryAll, setDailySummaryAll] = useState<DailySummaryItem[]>([]);
   const [selectedSubjectNames, setSelectedSubjectNames] = useState<string[]>([]);
-  const [quizMode, setQuizMode] = useState<QuizMode>('random');
+  const [quizMode, setQuizMode] = useState<QuizMode>('today_remaining');
   const [numQuestions, setNumQuestions] = useState<number>(10);
   const [quizState, setQuizState] = useState<'setup' | 'active' | 'finished'>('setup');
 
@@ -55,6 +67,63 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   const [unansweredCount, setUnansweredCount] = useState<number | null>(null);
   const [isCountLoading, setIsCountLoading] = useState(false);
 
+  useEffect(() => {
+    const fetchDailySummaryAll = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/history/daily-summary/all`);
+        if (response.ok) {
+          const data = await response.json();
+          setDailySummaryAll(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch all daily summary:", error);
+      }
+    };
+    fetchDailySummaryAll();
+  }, []);
+  
+  const todayRemaining = useMemo(() => {
+    const todayStr = new Date().toISOString().split('T')[0]!;
+    const today = new Date(todayStr);
+    
+    let dailyPlan = 0;
+    const targetSubjects = new Set<string>();
+
+    plans.filter((p: Plan) => p.enabled).forEach((plan: Plan) => {
+      // 厳密な型チェックを追加
+      const fromDateStr = plan.period?.from;
+      const toDateStr = plan.period?.to;
+
+      if (fromDateStr && toDateStr && typeof fromDateStr === 'string' && typeof toDateStr === 'string') {
+        const from = new Date(fromDateStr);
+        const to = new Date(toDateStr);
+        if (today >= from && today <= to) {
+          const holiday = isHoliday(today);
+          if (plan.applyDays === 'all' || (plan.applyDays === 'holiday' && holiday) || (plan.applyDays === 'weekday' && !holiday)) {
+            dailyPlan += holiday ? plan.dailyGoal.holiday : plan.dailyGoal.weekday;
+            plan.subjectNames.forEach((name: string) => targetSubjects.add(name));
+          }
+        }
+      }
+    });
+
+    const dailyActual = dailySummaryAll.find(d => d.date === todayStr)?.total_questions ?? 0;
+    const remaining = Math.max(0, dailyPlan - dailyActual);
+
+    return {
+      count: remaining,
+      subjects: Array.from(targetSubjects),
+      plan: dailyPlan,
+      actual: dailyActual
+    };
+  }, [plans, dailySummaryAll]);
+
+  useEffect(() => {
+    if (quizMode === 'today_remaining') {
+      setSelectedSubjectNames(todayRemaining.subjects);
+    }
+  }, [quizMode, todayRemaining]);
+
   // 科目表示制御
   const [hiddenSubjects, setHiddenSubjects] = useState<string[]>(() => {
     try {
@@ -68,15 +137,13 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   const [isVisibilityModalOpen, setIsVisibilityModalOpen] = useState(false);
 
   const visibleSubjects = useMemo(() => {
-    return allSubjects.filter(s => !hiddenSubjects.includes(s.name));
+    return allSubjects.filter((s: Subject) => !hiddenSubjects.includes(s.name));
   }, [allSubjects, hiddenSubjects]);
 
   const handleHiddenSubjectsChange = (newHiddenSubjects: string[]) => {
     setHiddenSubjects(newHiddenSubjects);
     localStorage.setItem('hiddenSubjects', JSON.stringify(newHiddenSubjects));
-
-    // 非表示になった科目を、現在選択されている科目リストから除外する
-    setSelectedSubjectNames(prev => prev.filter(name => !newHiddenSubjects.includes(name)));
+    setSelectedSubjectNames((prev: string[]) => prev.filter((name: string) => !newHiddenSubjects.includes(name)));
   };
 
   useEffect(() => {
@@ -85,7 +152,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
         setIsCountLoading(true);
         setUnansweredCount(null);
         try {
-          const subjectParams = selectedSubjectNames.map(s => `subjects=${encodeURIComponent(s)}`).join('&');
+          const subjectParams = selectedSubjectNames.map((s: string) => `subjects=${encodeURIComponent(s)}`).join('&');
           const response = await fetch(`${API_BASE_URL}/quiz/unanswered-count?${subjectParams}`);
           if (!response.ok) {
             throw new Error('Failed to fetch unanswered count.');
@@ -94,7 +161,6 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
           setUnansweredCount(data.unanswered_count);
         } catch (error) {
           console.error(error);
-          // You might want to set an error state here to inform the user
         } finally {
           setIsCountLoading(false);
         }
@@ -107,9 +173,9 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   }, [quizMode, selectedSubjectNames]);
 
   const handleSubjectSelection = (subjectName: string) => {
-    setSelectedSubjectNames(prev => 
+    setSelectedSubjectNames((prev: string[]) => 
       prev.includes(subjectName) 
-        ? prev.filter(s => s !== subjectName)
+        ? prev.filter((s: string) => s !== subjectName)
         : [...prev, subjectName]
     );
   };
@@ -119,11 +185,34 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       setError('科目を1つ以上選択してください。');
       return;
     }
+
+    let questionsToFetch = numQuestions;
+    if (quizMode === 'today_remaining') {
+      if (todayRemaining.count === 0) {
+        setError('今日の予定は完了しています！');
+        return;
+      }
+      questionsToFetch = Math.min(numQuestions, todayRemaining.count);
+    } else if (quizMode === 'unanswered') {
+      if (unansweredCount === null || unansweredCount === 0) {
+        setError('未回答の問題はありません。');
+        return;
+      }
+      questionsToFetch = Math.min(numQuestions, unansweredCount);
+    }
+    
+    if (questionsToFetch <= 0) {
+      setError('出題する問題数が0以下です。');
+      return;
+    }
+
     setIsLoading(true);
     setError('');
     try {
-      const subjectParams = selectedSubjectNames.map(s => `subjects=${encodeURIComponent(s)}`).join('&');
-      const response = await fetch(`${API_BASE_URL}/quiz/start?${subjectParams}&mode=${quizMode}&count=${numQuestions}`);
+      const subjectParams = selectedSubjectNames.map((s: string) => `subjects=${encodeURIComponent(s)}`).join('&');
+      const apiMode = quizMode === 'today_remaining' ? 'unanswered' : quizMode;
+      
+      const response = await fetch(`${API_BASE_URL}/quiz/start?${subjectParams}&mode=${apiMode}&count=${questionsToFetch}`);
       const data = await response.json();
 
       if (!response.ok) {
@@ -184,7 +273,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           problem_id: currentQuestion.id,
-          subject: currentQuestion.subject, // Use subject from the question object
+          subject: currentQuestion.subject,
           selected_answer: selectedAnswer,
           is_correct: isCorrect,
           category: currentQuestion.category,
@@ -224,7 +313,6 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
         return;
       }
 
-      // Handle number keys for selecting choices
       if (event.key >= '1' && event.key <= '9') {
         if (!isAnswered) {
           const choiceIndex = parseInt(event.key) - 1;
@@ -234,9 +322,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
         }
       }
 
-      // Handle Enter key for submitting or moving to the next question
       if (event.key === 'Enter') {
-        // 「解答する」ボタンと「次の問題へ」ボタンの要素をidで取得
         const submitButton = document.getElementById('submit-answer-button');
         const nextButton = document.getElementById('next-question-button');
 
@@ -290,7 +376,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                       </button>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                      {visibleSubjects.map(s => (
+                      {visibleSubjects.map((s: Subject) => (
                         <button
                           key={s.name}
                           type="button"
@@ -308,46 +394,62 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">モード</label>
-                    <div className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <button type="button" onClick={() => setQuizMode('today_remaining')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'today_remaining' ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>今日の残り</button>
                       <button type="button" onClick={() => setQuizMode('random')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'random' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>ランダム</button>
                       <button type="button" onClick={() => setQuizMode('weak_area')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'weak_area' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>苦手分野</button>
                       <button type="button" onClick={() => setQuizMode('unanswered')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'unanswered' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>未回答問題</button>
                     </div>
                   </div>
-                  {quizMode === 'unanswered' ? (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">実施予定問題数</label>
-                      <div className="mt-2 text-lg font-bold text-primary-new p-2 bg-gray-100 rounded-md text-center">
-                        {isCountLoading ? '計算中...' : unansweredCount !== null ? `${unansweredCount} 問` : '...'}
-                      </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">問題数</label>
+                    <div className="mt-2 text-sm text-gray-500 mb-2">
+                      {quizMode === 'today_remaining' && `(今日の残り: ${todayRemaining.count} 問 (予定:${todayRemaining.plan} / 実績:${todayRemaining.actual}))`}
+                      {quizMode === 'unanswered' && unansweredCount !== null && `(未回答: ${unansweredCount} 問)`}
                     </div>
-                  ) : (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">問題数</label>
-                      <div className="mt-2 grid grid-cols-5 gap-3">
-                        {[
-                          { label: '10', value: 10 },
-                          { label: '20', value: 20 },
-                          { label: '30', value: 30 },
-                          { label: '50', value: 50 },
-                          { label: 'MAX', value: 1000 },
-                        ].map((option) => (
+                    <div className="mt-2 grid grid-cols-5 gap-3">
+                      {[
+                        { label: '10', value: 10 },
+                        { label: '20', value: 20 },
+                        { label: '30', value: 30 },
+                        { label: '50', value: 50 },
+                        { label: 'MAX', value: 1000 }, // Default MAX is 1000
+                      ].map((option) => {
+                        let actualButtonValue = option.value;
+                        let displayButtonLabel = option.label;
+
+                        if (option.label === 'MAX') {
+                          if (quizMode === 'today_remaining') {
+                            actualButtonValue = todayRemaining.count;
+                            displayButtonLabel = `MAX (${todayRemaining.count})`;
+                          } else if (quizMode === 'unanswered' && unansweredCount !== null) {
+                            actualButtonValue = unansweredCount;
+                            displayButtonLabel = `MAX (${unansweredCount})`;
+                          }
+                        }
+
+                        const isDisabled = (quizMode === 'today_remaining' && actualButtonValue > todayRemaining.count) ||
+                                           (quizMode === 'unanswered' && unansweredCount !== null && actualButtonValue > unansweredCount) ||
+                                           actualButtonValue <= 0; // Disable if value is 0 or less
+
+                        return (
                           <button
                             key={option.label}
                             type="button"
-                            onClick={() => setNumQuestions(option.value)}
+                            onClick={() => setNumQuestions(actualButtonValue)}
+                            disabled={isDisabled}
                             className={`px-2 py-2 rounded-md text-sm font-medium transition-colors ${
-                              numQuestions === option.value
+                              numQuestions === actualButtonValue && !isDisabled
                                 ? 'bg-primary-new text-white'
-                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed'
                             }`}
                           >
-                            {option.label}
+                            {displayButtonLabel}
                           </button>
-                        ))}
-                      </div>
+                        );
+                      })}
                     </div>
-                  )}
+                  </div>
                 </form>
                 <div className="mt-6">
                   <button type="button" onClick={startQuiz} disabled={isLoading || selectedSubjectNames.length === 0} className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-primary-new">
@@ -390,13 +492,13 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
               <p className="text-lg font-semibold text-gray-700 mb-6">{currentQuestion.question_text}</p>
               {(currentQuestion.image_urls && currentQuestion.image_urls.length > 0) && (
                 <div className="my-4 grid grid-cols-1 gap-4">
-                  {currentQuestion.image_urls.map((url, index) => (
+                  {currentQuestion.image_urls.map((url: string, index: number) => (
                     <img key={index} src={url} alt={`Question image ${index + 1}`} className="max-w-full h-auto mx-auto rounded-lg shadow-md" />
                   ))}
                 </div>
               )}
               <div className="space-y-3">
-                {currentQuestion.choices.map((option, index) => {
+                {currentQuestion.choices.map((option: Choice, index: number) => {
                   const isCorrectAnswer = option.label === currentQuestion.answer;
                   const isSelectedAnswer = option.label === selectedAnswer;
                   let buttonClass = 'bg-gray-100 hover:bg-gray-200';
