@@ -1,0 +1,85 @@
+[
+  {
+    "id": "q1",
+    "question_text": "DockerコンテナでFastAPIとReactを連携させる場合、FastAPIからReactの静的ファイルを配信するために使用するFastAPIのクラスは何ですか？",
+    "images": [
+      "販売士2_経営_q1_ig_1.jpg"
+    ],
+    "choices": [
+      "FileResponse",
+      "StaticFiles",
+      "HTMLResponse",
+      "RedirectResponse"
+    ],
+    "answer": "StaticFiles",
+    "subject": "exam01",
+    "explanation": {
+      "text": "StaticFilesクラスは、指定されたディレクトリ（例：Reactのビルド出力であるdist/assets）内の静的ファイルを特定のURLパス（例：/assets）で提供するために使用されます。",
+      "images": [
+        "販売士2_経営_q1_ig_1.jpg"
+      ]
+    }
+  },
+  {
+    "id": "q2",
+    "question_text": "これは2問目の問題文です。2枚の画像が表示されるはずです。",
+    "images": [
+      "販売士2_経営_q1_ig_1.jpg",
+      "販売士2_経営_q1_ig_1.jpg"
+    ],
+    "choices": [
+      {
+        "label": "A",
+        "text": "選択肢A"
+      },
+      {
+        "label": "B",
+        "text": "選択肢B"
+      },
+      {
+        "label": "C",
+        "text": "選択肢C"
+      }
+    ],
+    "answer": "B",
+    "subject": "exam01",
+    "explanation": {
+      "text": "これは2問目の解説文です。こちらにも2枚の画像が表示されます。",
+      "images": [
+        "販売士2_経営_q1_ig_1.jpg",
+        "販売士2_経営_q1_ig_1.jpg"
+      ]
+    }
+  },
+  {
+    "id": "q2",
+    "question_text": "これは3問目の問題文です。2枚の画像が表示されるはずです。",
+    "images": [
+      "販売士2_経営_q1_ig_1.jpg",
+      "販売士2_経営_q1_ig_1.jpg"
+    ],
+    "choices": [
+      {
+        "label": "A",
+        "text": "選択肢A"
+      },
+      {
+        "label": "B",
+        "text": "選択肢B"
+      },
+      {
+        "label": "C",
+        "text": "選択肢C"
+      }
+    ],
+    "answer": "B",
+    "subject": "exam01",
+    "explanation": {
+      "text": "これは3問目の解説文です。こちらにも2枚の画像が表示されます。",
+      "images": [
+        "販売士2_経営_q1_ig_1.jpg",
+        "販売士2_経営_q1_ig_1.jpg"
+      ]
+    }
+  }
+]

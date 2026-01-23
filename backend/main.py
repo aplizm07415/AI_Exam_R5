@@ -316,6 +316,10 @@ def start_quiz(subjects: list[str] = Query(...), count: int = 10, mode: str = Qu
         if 'images' in q and isinstance(q['images'], list):
             q['image_urls'] = [f"/api/images/{img_name}" for img_name in q['images']]
 
+        # 'explanation.images'リストから'explanation_image_urls'を生成
+        if 'explanation' in q and isinstance(q['explanation'], dict) and 'images' in q['explanation'] and isinstance(q['explanation']['images'], list):
+            q['explanation_image_urls'] = [f"/api/images/{img_name}" for img_name in q['explanation']['images']]
+
     return {"quiz_set": selected_questions}
 
 @api_router.post("/history")

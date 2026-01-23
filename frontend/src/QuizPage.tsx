@@ -15,13 +15,17 @@ interface Choice {
   text: string;
 }
 
+interface Explanation {
+  text: string;
+}
+
 interface QuizQuestion {
   id: string;
   question_text: string;
   choices: Choice[];
   answer: string;
   subject: string;
-  explanation: string;
+  explanation: Explanation;
   category?: string;
   image_urls?: string[];
   explanation_image_urls?: string[];
@@ -57,7 +61,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
-  const [feedback, setFeedback] = useState<{ correct: boolean; explanation: string } | null>(null);
+  const [feedback, setFeedback] = useState<{ correct: boolean; explanation: Explanation } | null>(null);
   const [score, setScore] = useState(0);
   const [scratchpadText, setScratchpadText] = useState('');
 
@@ -286,7 +290,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       console.error("Failed to submit history:", e);
     }
     
-    const explanation = currentQuestion.explanation || "この問題の解説はありません。";
+    const explanation = currentQuestion.explanation || { text: "この問題の解説はありません。" };
     setFeedback({ correct: isCorrect, explanation });
     setIsAnswered(true);
   };
@@ -591,7 +595,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                   </div>
                 )}
                 <div className="prose prose-sm md:prose-base max-w-none text-gray-700">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{feedback?.explanation || ''}</ReactMarkdown>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{feedback?.explanation?.text || ''}</ReactMarkdown>
                 </div>
               </div>
             )}
