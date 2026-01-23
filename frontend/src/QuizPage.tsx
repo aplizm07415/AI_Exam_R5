@@ -24,6 +24,7 @@ interface QuizQuestion {
   explanation: string;
   category?: string;
   image_urls?: string[];
+  explanation_image_urls?: string[];
 }
 
 interface Subject {
@@ -44,7 +45,7 @@ interface DailySummaryItem {
 type QuizMode = 'random' | 'weak_area' | 'unanswered' | 'today_remaining';
 
 export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
-  const { plans } = usePlans();
+  const { plans, isLoading: isPlansLoading, error: plansError } = usePlans();
   const [dailySummaryAll, setDailySummaryAll] = useState<DailySummaryItem[]>([]);
   const [selectedSubjectNames, setSelectedSubjectNames] = useState<string[]>([]);
   const [quizMode, setQuizMode] = useState<QuizMode>('today_remaining');
@@ -83,6 +84,8 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   }, []);
   
   const todayRemaining = useMemo(() => {
+    if (isPlansLoading) return { count: 0, subjects: [], plan: 0, actual: 0 };
+
     const todayStr = new Date().toISOString().split('T')[0]!;
     const today = new Date(todayStr);
     
@@ -116,7 +119,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       plan: dailyPlan,
       actual: dailyActual
     };
-  }, [plans, dailySummaryAll]);
+  }, [plans, dailySummaryAll, isPlansLoading]);
 
   useEffect(() => {
     if (quizMode === 'today_remaining') {
@@ -359,7 +362,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       )}
       <div className="max-w-3xl mx-auto">
         {quizState === 'setup' && (
-          isLoading ? (
+          (isLoading || isPlansLoading) ? (
             <LoadingSpinner />
           ) : (
             <div className="max-w-2xl mx-auto">
@@ -376,20 +379,42 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                       </button>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                      {visibleSubjects.map((s: Subject) => (
-                        <button
-                          key={s.name}
-                          type="button"
-                          onClick={() => handleSubjectSelection(s.name)}
-                          className={`px-3 py-2 rounded-md text-sm font-medium text-left truncate ${
-                            selectedSubjectNames.includes(s.name)
-                              ? 'bg-primary-new text-white shadow-sm'
-                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                          }`}
-                        >
-                          {s.name}
-                        </button>
-                      ))}
+                      {visibleSubjects.map((s: Subject) => {
+                        const isSelected = selectedSubjectNames.includes(s.name);
+                        const isTodayMode = quizMode === 'today_remaining';
+                        
+                        let buttonClass = 'px-3 py-2 rounded-md text-sm font-medium text-left truncate transition-colors ';
+
+                        if (isTodayMode) {
+                          if (isSelected) {
+                            // 予定に含まれる科目: 少し薄く
+                            buttonClass += 'bg-primary-new text-white shadow-sm opacity-75 cursor-not-allowed';
+                          } else {
+                            // 予定に含まれない科目: グレーアウト
+                            buttonClass += 'bg-gray-100 text-gray-400 cursor-not-allowed';
+                          }
+                        } else {
+                          if (isSelected) {
+                            // 通常選択時のスタイル
+                            buttonClass += 'bg-primary-new text-white shadow-sm';
+                          } else {
+                            // 通常非選択時のスタイル
+                            buttonClass += 'bg-gray-200 text-gray-700 hover:bg-gray-300';
+                          }
+                        }
+
+                        return (
+                          <button
+                            key={s.name}
+                            type="button"
+                            onClick={() => handleSubjectSelection(s.name)}
+                            disabled={isTodayMode}
+                            className={buttonClass}
+                          >
+                            {s.name}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                   <div>
@@ -457,7 +482,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                     {isLoading ? 'クイズ準備中...' : 'Start'}
                   </button>
                 </div>
-                {error && <p className="text-danger text-sm mt-2 text-center">{error}</p>}
+                {(error || plansError) && <p className="text-danger text-sm mt-2 text-center">{error || plansError}</p>}
               </div>
             </div>
           )
@@ -558,6 +583,13 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                   <h3 className="text-2xl font-bold">{feedback?.correct ? '正解！' : '不正解'}</h3>
                 </div>
                 <h4 className="text-lg font-semibold text-primary-new mb-2">解説</h4>
+                {(currentQuestion.explanation_image_urls && currentQuestion.explanation_image_urls.length > 0) && (
+                  <div className="my-4 grid grid-cols-1 gap-4">
+                    {currentQuestion.explanation_image_urls.map((url: string, index: number) => (
+                      <img key={index} src={url} alt={`Explanation image ${index + 1}`} className="max-w-full h-auto mx-auto rounded-lg shadow-md" />
+                    ))}
+                  </div>
+                )}
                 <div className="prose prose-sm md:prose-base max-w-none text-gray-700">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{feedback?.explanation || ''}</ReactMarkdown>
                 </div>

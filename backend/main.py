@@ -4,7 +4,8 @@ import random
 import datetime
 from pathlib import Path
 from fastapi import FastAPI, APIRouter, HTTPException, Query # Queryをインポート
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from typing import Literal
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import mimetypes
@@ -40,6 +41,23 @@ class MissedProblemDetail(BaseModel):
     explanation: str | None = None
     miss_count: int
     correct_answer: str | None = None
+
+class Period(BaseModel):
+    from_field: str = Field(alias='from')
+    to: str
+
+class DailyGoal(BaseModel):
+    weekday: int
+    holiday: int
+
+class Plan(BaseModel):
+    id: str
+    title: str
+    subjectNames: list[str]
+    period: Period
+    dailyGoal: DailyGoal
+    applyDays: Literal['all', 'weekday', 'holiday']
+    enabled: bool
 
 # --- 定数とセットアップ ---
 BLOB_CONN_STR = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
@@ -110,6 +128,44 @@ def _get_all_questions_for_subject(subject_name: str) -> dict[str, dict]:
 @api_router.get("/health")
 def health():
     return {"status": "ok"}
+
+PLANS_BLOB_NAME = "plans.json"
+
+@api_router.get("/plans", response_model=list[Plan])
+def get_plans():
+    """Azure Blob Storageから学習計画を取得する"""
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+    
+    blob_client = container_client.get_blob_client(PLANS_BLOB_NAME)
+    if not blob_client.exists():
+        return []
+    
+    try:
+        downloader = blob_client.download_blob()
+        data = downloader.readall()
+        # Check if data is empty before parsing
+        if not data:
+            return []
+        return json.loads(data)
+    except Exception as e:
+        print(f"Error reading plans from blob: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to read plans from blob storage: {e}")
+
+@api_router.post("/plans", status_code=204)
+def save_plans(plans: list[Plan]):
+    """学習計画をAzure Blob Storageに保存する"""
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+        
+    try:
+        blob_client = container_client.get_blob_client(PLANS_BLOB_NAME)
+        plans_data = [p.model_dump(by_alias=True) for p in plans]
+        blob_client.upload_blob(json.dumps(plans_data, indent=2), overwrite=True)
+    except Exception as e:
+        print(f"Error saving plans to blob: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to save plans to blob storage: {e}")
+
 
 @api_router.get("/subjects")
 def get_subjects():

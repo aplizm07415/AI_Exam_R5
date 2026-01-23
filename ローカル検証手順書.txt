@@ -24,10 +24,10 @@ git commit -m "コミットコメント"
 git push
 
 ＜docker build＞ローカル検証
-    docker build -t quiz-app:v8 .
+    docker build -t quiz-app:v17 .
     を実行。バージョンはインクリメントした方がいい。
 
-    docker stop quiz-app-container || true && docker rm quiz-app-container || true && docker run -d -p 8000:8000 -e AZURE_STORAGE_CONNECTION_STRING="REDACTED_CREDENTIAL" -e QUIZ_BLOB_CONTAINER="exam-json" --name quiz-app-container quiz-app:v8
+    docker stop quiz-app-container || true && docker rm quiz-app-container || true && docker run -d -p 8000:8000 -e AZURE_STORAGE_CONNECTION_STRING="REDACTED_CREDENTIAL" -e QUIZ_BLOB_CONTAINER="exam-json" --name quiz-app-container quiz-app:v17
     を実行。バージョンはインクリメントした方がいい。
 
     →http://localhost:8000/
@@ -43,9 +43,9 @@ Azureログイン
     az acr login --name quizregistry7648
 
 dockerイメージビルド
-    docker buildx build --platform linux/amd64 -t quizregistry7648.azurecr.io/quiz-app:v8 --push .
+    docker buildx build --platform linux/amd64 -t quizregistry7648.azurecr.io/quiz-app:v17 --push .
 
 本番環境にデプロイ
-    az containerapp update --name quiz-app --resource-group example-resource --image quizregistry7648.azurecr.io/quiz-app:v8
+    az containerapp update --name quiz-app --resource-group example-resource --image quizregistry7648.azurecr.io/quiz-app:v17
 
 

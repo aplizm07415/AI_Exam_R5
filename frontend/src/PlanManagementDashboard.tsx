@@ -3,6 +3,7 @@ import { usePlans } from './hooks/usePlans';
 import type { Plan } from './types/plan.d';
 import { isHoliday } from './utils/date';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import LoadingSpinner from './components/LoadingSpinner';
 
 const TrashIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}>
@@ -34,7 +35,7 @@ interface ProgressDataRow {
 }
 
 export default function PlanManagementDashboard({ subjects, dailySummaryAll }: PlanManagementDashboardProps) {
-  const { plans, addPlan, updatePlan, deletePlan } = usePlans();
+  const { plans, addPlan, updatePlan, deletePlan, isLoading, error } = usePlans();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
 
@@ -245,6 +246,18 @@ export default function PlanManagementDashboard({ subjects, dailySummaryAll }: P
       '実績': d.actual.cumulative,
     })).sort((a, b) => a.date.localeCompare(b.date));
   }, [progressData]);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center p-8">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className="text-red-500 p-4">エラー: {error}</div>;
+  }
 
   return (
     <div className="bg-white rounded-xl shadow p-6">
