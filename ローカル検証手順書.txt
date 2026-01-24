@@ -23,14 +23,30 @@ git status
 git commit -m "コミットコメント"
 git push
 
+
+<致命的なバグ修正のため、push済みに戻す方法>
+これで差分のファイルがでる。
+git diff --name-status コミットID
+
+全部戻すには、
+git reset --hard b330d33
+
+例えばこの3ファイルだけ、元の状態に戻すには？
+M       backend/main.py
+M       backend/utils.py
+M       frontend/src/QuizPage.tsx
+→git checkout コミットID -- backend/main.py backend/utils.py frontend/src/QuizPage.tsx
+
 ＜docker build＞ローカル検証
-    docker build -t quiz-app:v17 .
+行番号クリックで、一行選択できる
+    docker build -t quiz-app:v30 .
     を実行。バージョンはインクリメントした方がいい。
 
-    docker stop quiz-app-container || true && docker rm quiz-app-container || true && docker run -d -p 8000:8000 -e AZURE_STORAGE_CONNECTION_STRING="REDACTED_CREDENTIAL" -e QUIZ_BLOB_CONTAINER="exam-json" --name quiz-app-container quiz-app:v17
+    docker stop quiz-app-container || true && docker rm quiz-app-container || true && docker run -d -p 8000:8000 -e AZURE_STORAGE_CONNECTION_STRING="REDACTED_CREDENTIAL" -e QUIZ_BLOB_CONTAINER="exam-json" --name quiz-app-container quiz-app:v30
+    
     を実行。バージョンはインクリメントした方がいい。
 
-    →http://localhost:8000/
+    http://localhost:8000/
     で検証。
 
 ※※ R3として、記述採点機能の実装検討を行う。 ※※
