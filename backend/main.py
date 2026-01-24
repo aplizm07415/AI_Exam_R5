@@ -3,28 +3,19 @@ import json
 import random
 import datetime
 from pathlib import Path
-from fastapi import FastAPI, APIRouter, HTTPException, Query # Queryをインポート
-from pydantic import BaseModel, Field
+from fastapi import FastAPI, APIRouter, HTTPException, Query
+from pydantic import BaseModel, Field # BaseModelをインポート
 from typing import Literal
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import mimetypes
 from fastapi.responses import StreamingResponse
 from azure.storage.blob import BlobServiceClient
-import pytz # 新規追加: タイムゾーン処理のため
-from collections import Counter # Counterをインポート
+import pytz
+from collections import Counter
 
 # --- ローカルユーティリティ ---
-from .utils import normalize_question
-
-# --- Pydanticモデル定義 ---
-class HistoryItem(BaseModel):
-    problem_id: str
-    subject: str
-    selected_answer: str
-    is_correct: bool
-    answered_at: datetime.datetime = datetime.datetime.now(datetime.timezone.utc)
-    category: str | None = None
+from .utils import normalize_question, HistoryItem, ProblemStudyStatus, get_problem_study_statuses, calculate_review_priority
 
 # 新規追加: 日別集計の戻り値用モデル
 class DailySummaryItem(BaseModel):
@@ -97,6 +88,9 @@ def _get_history_items_for_subject(subject_name: str) -> list[HistoryItem]:
     try:
         history_content = history_blob_client.download_blob().readall().decode('utf-8')
         history_lines = history_content.strip().split('\n')
+        # ここでdatetime.datetime.now(datetime.timezone.utc) のデフォルト値の問題がないか確認
+        # HistoryItem.model_validate_json はanswered_atがJSONにない場合、Noneを許容するようになっているはず。
+        # answered_atは保存時に設定されるので、読み込み時はJSONに存在すると仮定。
         return [HistoryItem.model_validate_json(line) for line in history_lines if line]
     except Exception as e:
         print(f"Error reading history for weak area mode: {e}")
@@ -173,7 +167,7 @@ def get_subjects():
     if container_client is None: return ["（Blob Storage未接続）"]
     try:
         # 'history/' フォルダにあるファイルは科目リストから除外する
-        return [blob.name for blob in container_client.list_blobs() if blob.name.endswith('.json') and not blob.name.startswith('history/')] 
+        return [blob.name for blob in container_client.list_blobs() if blob.name.endswith('.json') and not blob.name.startswith('history/')]
     except Exception as e:
         print(f"Error fetching subjects: {e}")
         return [f"（Blob接続エラー: {e}）"]
@@ -280,13 +274,25 @@ def start_quiz(subjects: list[str] = Query(...), count: int = 10, mode: str = Qu
         for subject_name in subjects:
             history_items.extend(_get_history_items_for_subject(subject_name))
         
-        missed_problem_counts = Counter(item.problem_id for item in history_items if not item.is_correct)
+        # missed_problem_counts = Counter(item.problem_id for item in history_items if not item.is_correct) # 元々あった行をコメントアウト
         
         # 苦手な問題を優先的に選択
-        # ... (simplified logic for brevity, you may want to expand this)
-        # For now, just shuffle all questions and pick
-        random.shuffle(all_questions)
-        selected_questions = all_questions[:num_to_select]
+        problem_statuses = get_problem_study_statuses(history_items)
+        
+        # すべての問題に優先度スコアを割り当てる
+        problems_with_priority = []
+        current_time = datetime.datetime.now(datetime.timezone.utc) # 現在時刻をUTCで取得
+        for q in all_questions:
+            problem_id = q.get("id")
+            status = problem_statuses.get(problem_id, ProblemStudyStatus(problem_id=problem_id))
+            priority = calculate_review_priority(status, current_time)
+            problems_with_priority.append((q, priority))
+            
+        # 優先度の高い順にソート（降順）
+        problems_with_priority.sort(key=lambda x: x[1], reverse=True)
+        
+        # 指定された数だけ問題を選択
+        selected_questions = [q for q, _ in problems_with_priority[:num_to_select]]
 
     elif mode == "unanswered":
         history_items = []
@@ -473,7 +479,7 @@ def get_all_daily_summaries():
         item_date = item.answered_at.astimezone(TOKYO_TZ).date()
         
         if item_date >= start_date:
-            date_str = item_date.strftime("%Y-%m-%d")
+            date_str = item.answered_at.astimezone(TOKYO_TZ).strftime("%Y-%m-%d")
             if date_str not in daily_summary_map:
                 daily_summary_map[date_str] = {"total_questions": 0, "correct_count": 0}
             
