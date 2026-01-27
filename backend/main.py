@@ -50,6 +50,14 @@ class Plan(BaseModel):
     applyDays: Literal['all', 'weekday', 'holiday']
     enabled: bool
 
+class ProblemHistoryStatsRequest(BaseModel):
+    problem_ids: list[str]
+    subjects: list[str]
+
+class AnswerStat(BaseModel):
+    total: int
+    correct: int
+
 # --- 定数とセットアップ ---
 BLOB_CONN_STR = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
 BLOB_CONTAINER_NAME = os.getenv("QUIZ_BLOB_CONTAINER", "exam-json")
@@ -327,6 +335,38 @@ def start_quiz(subjects: list[str] = Query(...), count: int = 10, mode: str = Qu
             q['explanation_image_urls'] = [f"/api/images/{img_name}" for img_name in q['explanation']['images']]
 
     return {"quiz_set": selected_questions}
+
+@api_router.post("/quiz/bulk-history-stats", response_model=dict[str, AnswerStat])
+def get_bulk_history_stats(request: ProblemHistoryStatsRequest):
+    """
+    For a given list of problem IDs and subjects, returns the recent answer history for each problem.
+    """
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+
+    all_history_items = []
+    for subject_name in request.subjects:
+        all_history_items.extend(_get_history_items_for_subject(subject_name))
+
+    # Group history by problem_id
+    history_by_problem = {}
+    for item in all_history_items:
+        if item.problem_id in request.problem_ids:
+            if item.problem_id not in history_by_problem:
+                history_by_problem[item.problem_id] = []
+            history_by_problem[item.problem_id].append(item)
+
+    # Sort and slice for each problem
+    stats = {}
+    for problem_id, items in history_by_problem.items():
+        # Sort by answered_at descending to get the most recent first
+        items.sort(key=lambda x: x.answered_at, reverse=True)
+        recent_items = items[:3]
+        correct_count = sum(1 for item in recent_items if item.is_correct)
+        stats[problem_id] = AnswerStat(total=len(recent_items), correct=correct_count)
+
+    return stats
+
 
 @api_router.post("/history")
 def save_history(item: HistoryItem):

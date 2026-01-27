@@ -46,6 +46,11 @@ interface DailySummaryItem {
   accuracy: number;
 }
 
+interface HistoryStat {
+  total: number;
+  correct: number;
+}
+
 type QuizMode = 'random' | 'weak_area' | 'unanswered' | 'today_remaining';
 
 export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
@@ -57,6 +62,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   const [quizState, setQuizState] = useState<'setup' | 'active' | 'finished'>('setup');
 
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
+  const [historyStats, setHistoryStats] = useState<Record<string, HistoryStat>>({});
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -179,9 +185,35 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     fetchUnansweredCount();
   }, [quizMode, selectedSubjectNames]);
 
+  useEffect(() => {
+    const fetchHistoryStats = async () => {
+      if (questions.length > 0) {
+        try {
+          const problemIds = questions.map((q) => q.id);
+          const response = await fetch(`${API_BASE_URL}/quiz/bulk-history-stats`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              problem_ids: problemIds,
+              subjects: selectedSubjectNames,
+            }),
+          });
+          if (response.ok) {
+            const data = await response.json();
+            setHistoryStats(data);
+          }
+        } catch (error) {
+          console.error("Failed to fetch history stats:", error);
+        }
+      }
+    };
+
+    fetchHistoryStats();
+  }, [questions, selectedSubjectNames]);
+
   const handleSubjectSelection = (subjectName: string) => {
-    setSelectedSubjectNames((prev: string[]) => 
-      prev.includes(subjectName) 
+    setSelectedSubjectNames((prev: string[]) =>
+      prev.includes(subjectName)
         ? prev.filter((s: string) => s !== subjectName)
         : [...prev, subjectName]
     );
@@ -513,9 +545,25 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
         {(quizState === 'active' && currentQuestion) && (
           <>
-            <div className="flex justify-between items-center mb-4">
+          <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-dark truncate" title={selectedSubjectNames.join(', ')}>{selectedSubjectNames.join(', ')}</h2>
-              <p className="text-gray-500">問題 {currentQuestionIndex + 1} / {questions.length}</p>
+              <div className="flex items-center gap-4">
+                {(() => {
+                  const stats = historyStats[currentQuestion.id];
+                  if (stats && stats.total > 0) {
+                    return (
+                      <div className="text-sm text-gray-500 whitespace-nowrap">
+                        直近{stats.total}回 正答率: {Math.round((stats.correct / stats.total) * 100)}% ({stats.correct}/{stats.total})
+                      </div>
+                    );
+                  }
+                  if (Object.keys(historyStats).length > 0) { // データ取得後で履歴がない場合
+                    return <div className="text-sm text-gray-500 whitespace-nowrap">初挑戦</div>;
+                  }
+                  return null; // データ取得前は何も表示しない
+                })()}
+                <p className="text-gray-500">問題 {currentQuestionIndex + 1} / {questions.length}</p>
+              </div>
             </div>
             <div className="bg-white rounded-xl shadow p-6 md:p-8">
               <p className="text-lg font-semibold text-gray-700 mb-6">{currentQuestion.question_text}</p>
