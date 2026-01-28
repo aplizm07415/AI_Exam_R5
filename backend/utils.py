@@ -2,6 +2,8 @@ import logging
 from datetime import datetime
 from typing import Dict, List, Optional
 from pydantic import BaseModel
+import hashlib # 追加
+import json # 追加
 
 # ロガーの設定
 logging.basicConfig(level=logging.INFO)
@@ -81,9 +83,16 @@ def normalize_question(question: dict) -> dict | None:
         if "images" not in explanation:
             explanation["images"] = []
         
-    # 'id'キーが存在しない場合に備える
+    # 'id'キーが存在しない場合に備え、ハッシュで生成
     if "id" not in question:
-        question["id"] = "unknown"
+        # 質問のコンテンツから一意なIDを生成
+        content_for_hash = {
+            "question_text": question.get("question_text"),
+            "choices": question.get("choices"),
+            "answer": question.get("answer")
+        }
+        canonical_string = json.dumps(content_for_hash, sort_keys=True, ensure_ascii=False)
+        question["id"] = hashlib.sha256(canonical_string.encode('utf-8')).hexdigest()
 
     return question
 

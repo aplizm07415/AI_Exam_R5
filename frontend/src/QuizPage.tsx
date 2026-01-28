@@ -29,6 +29,7 @@ interface QuizQuestion {
   category?: string;
   image_urls?: string[];
   explanation_image_urls?: string[];
+  custom_explanation?: string;
 }
 
 interface Subject {
@@ -70,6 +71,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   const [feedback, setFeedback] = useState<{ correct: boolean; explanation: Explanation } | null>(null);
   const [score, setScore] = useState(0);
   const [scratchpadText, setScratchpadText] = useState('');
+  const [customExplanationText, setCustomExplanationText] = useState('');
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -290,6 +292,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     setIsAnswered(false);
     setFeedback(null);
     setScratchpadText('');
+    setCustomExplanationText('');
   };
 
   const handleAnswerSubmit = async () => {
@@ -327,7 +330,13 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     setIsAnswered(true);
   };
 
-  const handleNextQuestion = () => {
+  const handleNextQuestion = async () => {
+    // メモが変更されていたら保存する
+    const originalText = currentQuestion?.custom_explanation || '';
+    if (customExplanationText.trim() !== originalText.trim()) {
+      await handleSaveCustomExplanation();
+    }
+
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
       resetQuestionState();
@@ -344,7 +353,39 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     }
   };
 
+  const handleSaveCustomExplanation = async () => {
+    if (!currentQuestion) return;
+    try {
+      const response = await fetch(`${API_BASE_URL}/problems/${currentQuestion.id}/custom-explanation`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: customExplanationText }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save custom explanation');
+      }
+
+      // Update the question in the main questions array to persist state during the session
+      const updatedQuestions = questions.map((q) =>
+        q.id === currentQuestion.id
+          ? { ...q, custom_explanation: customExplanationText }
+          : q
+      );
+      setQuestions(updatedQuestions);
+    } catch (error) {
+      console.error("Failed to save custom explanation:", error);
+      // Optionally: show an error message to the user
+    }
+  };
+
   const currentQuestion = useMemo(() => questions[currentQuestionIndex], [questions, currentQuestionIndex]);
+
+  useEffect(() => {
+    if (currentQuestion) {
+      setCustomExplanationText(currentQuestion.custom_explanation || '');
+    }
+  }, [currentQuestion]);
 
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
@@ -644,6 +685,16 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                 )}
                 <div className="prose prose-sm md:prose-base max-w-none text-gray-700">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{feedback?.explanation?.text || ''}</ReactMarkdown>
+                </div>
+                <div className="mt-6">
+                  <h4 className="text-lg font-semibold text-primary-new mb-2">My Memo</h4>
+                  <textarea
+                    value={customExplanationText}
+                    onChange={(e) => setCustomExplanationText(e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-new focus:border-primary-new"
+                    rows={4}
+                    placeholder="この問題に関する自分なりの解説やメモを書き込もう"
+                  />
                 </div>
               </div>
             )}

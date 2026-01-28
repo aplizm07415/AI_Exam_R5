@@ -58,9 +58,13 @@ class AnswerStat(BaseModel):
     total: int
     correct: int
 
+class CustomExplanation(BaseModel):
+    text: str
+
 # --- 定数とセットアップ ---
 BLOB_CONN_STR = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
 BLOB_CONTAINER_NAME = os.getenv("QUIZ_BLOB_CONTAINER", "exam-json")
+CUSTOM_EXPLANATIONS_DIR = "custom-explanations"
 
 # タイムゾーンの設定 (東京)
 TOKYO_TZ = pytz.timezone("Asia/Tokyo")
@@ -310,7 +314,7 @@ def start_quiz(subjects: list[str] = Query(...), count: int = 10, mode: str = Qu
         answered_problem_ids = {item.problem_id for item in history_items}
         unanswered_questions = [q for q in all_questions if q.get("id") not in answered_problem_ids]
         random.shuffle(unanswered_questions)
-        selected_questions = unanswered_questions
+        selected_questions = unanswered_questions[:num_to_select]
     
     else:  # Default to random mode
         random.shuffle(all_questions)
@@ -333,6 +337,21 @@ def start_quiz(subjects: list[str] = Query(...), count: int = 10, mode: str = Qu
         # 'explanation.images'リストから'explanation_image_urls'を生成
         if 'explanation' in q and isinstance(q['explanation'], dict) and 'images' in q['explanation'] and isinstance(q['explanation']['images'], list):
             q['explanation_image_urls'] = [f"/api/images/{img_name}" for img_name in q['explanation']['images']]
+
+        # Add a default key and then try to load the custom explanation
+        q['custom_explanation'] = '' 
+        try:
+            problem_id = q.get("id")
+            if problem_id and container_client:
+                explanation_blob_name = f"{CUSTOM_EXPLANATIONS_DIR}/{problem_id}.json"
+                explanation_blob_client = container_client.get_blob_client(explanation_blob_name)
+                if explanation_blob_client.exists():
+                    content = explanation_blob_client.download_blob().readall()
+                    explanation_data = json.loads(content)
+                    q['custom_explanation'] = explanation_data.get('text', '')
+        except Exception as e:
+            problem_id_for_log = q.get('id', 'UNKNOWN')
+            print(f"Error fetching custom explanation for problem {problem_id_for_log}: {e}")
 
     return {"quiz_set": selected_questions}
 
@@ -478,6 +497,20 @@ def get_missed_problems(subject_name: str):
             ))
     
     return missed_problems_details
+
+@api_router.post("/problems/{problem_id}/custom-explanation", status_code=204)
+def save_custom_explanation(problem_id: str, explanation: CustomExplanation):
+    """Saves a user's custom explanation for a problem."""
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+        
+    try:
+        blob_name = f"{CUSTOM_EXPLANATIONS_DIR}/{problem_id}.json"
+        blob_client = container_client.get_blob_client(blob_name)
+        blob_client.upload_blob(explanation.model_dump_json(), overwrite=True)
+    except Exception as e:
+        print(f"Error saving custom explanation to blob: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to save custom explanation to blob storage: {e}")
 
 # --- 新規追加: 日別集計API ---
 @api_router.get("/history/daily-summary/all", response_model=list[DailySummaryItem])
