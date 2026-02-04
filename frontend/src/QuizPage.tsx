@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import LoadingSpinner from './components/LoadingSpinner';
 import SubjectVisibilityModal from './components/SubjectVisibilityModal';
+import SubjectProgress from './components/SubjectProgress';
 import { usePlans } from './hooks/usePlans';
 import type { Plan } from './types/plan.d';
 import { isHoliday } from './utils/date';
@@ -77,8 +78,22 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   const [error, setError] = useState('');
   const [effectStatus, setEffectStatus] = useState<'correct' | 'incorrect' | null>(null);
 
+  const [subjectWeights, setSubjectWeights] = useState<{ [key: string]: 'light' | 'normal' | 'heavy' }>(() => {
+    try {
+      const saved = localStorage.getItem('subjectWeights');
+      return saved ? JSON.parse(saved) : {};
+    } catch (error) {
+      console.error('Failed to parse subjectWeights from localStorage', error);
+      return {};
+    }
+  });
+
   const [unansweredCount, setUnansweredCount] = useState<number | null>(null);
   const [isCountLoading, setIsCountLoading] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('subjectWeights', JSON.stringify(subjectWeights));
+  }, [subjectWeights]);
 
   useEffect(() => {
     const fetchDailySummaryAll = async () => {
@@ -250,10 +265,27 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     setIsLoading(true);
     setError('');
     try {
-      const subjectParams = selectedSubjectNames.map((s: string) => `subjects=${encodeURIComponent(s)}`).join('&');
       const apiMode = quizMode === 'today_remaining' ? 'unanswered' : quizMode;
       
-      const response = await fetch(`${API_BASE_URL}/quiz/start?${subjectParams}&mode=${apiMode}&count=${questionsToFetch}`);
+      let response;
+      if (quizMode === 'random') {
+        response = await fetch(`${API_BASE_URL}/quiz/start`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            subjects: selectedSubjectNames,
+            mode: apiMode,
+            count: questionsToFetch,
+            weights: subjectWeights,
+          }),
+        });
+      } else {
+        const subjectParams = selectedSubjectNames.map((s: string) => `subjects=${encodeURIComponent(s)}`).join('&');
+        response = await fetch(`${API_BASE_URL}/quiz/start?${subjectParams}&mode=${apiMode}&count=${questionsToFetch}`);
+      }
+      
       const data = await response.json();
 
       if (!response.ok) {
@@ -429,6 +461,9 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
         subjects={allSubjects}
         hiddenSubjects={hiddenSubjects}
         onHiddenSubjectsChange={handleHiddenSubjectsChange}
+        quizMode={quizMode}
+        subjectWeights={subjectWeights}
+        onSubjectWeightsChange={setSubjectWeights}
       />
       {effectStatus && (
         <div className="feedback-overlay">
@@ -443,6 +478,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
             <LoadingSpinner />
           ) : (
             <div className="max-w-2xl mx-auto">
+              <SubjectProgress selectedSubjectNames={selectedSubjectNames} quizMode={quizMode} />
               <div className="bg-white rounded-xl shadow p-8">
                 <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
                   <div>

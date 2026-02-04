@@ -10,6 +10,9 @@ interface SubjectVisibilityModalProps {
   subjects: Subject[];
   hiddenSubjects: string[];
   onHiddenSubjectsChange: (newHiddenSubjects: string[]) => void;
+  subjectWeights: { [key: string]: 'light' | 'normal' | 'heavy' };
+  onSubjectWeightsChange: (newWeights: { [key: string]: 'light' | 'normal' | 'heavy' }) => void;
+  quizMode: 'random' | 'weak_area' | 'unanswered' | 'today_remaining';
 }
 
 export default function SubjectVisibilityModal({
@@ -18,12 +21,17 @@ export default function SubjectVisibilityModal({
   subjects,
   hiddenSubjects,
   onHiddenSubjectsChange,
+  subjectWeights,
+  onSubjectWeightsChange,
+  quizMode,
 }: SubjectVisibilityModalProps) {
   const [tempHiddenSubjects, setTempHiddenSubjects] = useState<string[]>(hiddenSubjects);
+  const [tempSubjectWeights, setTempSubjectWeights] = useState<{ [key: string]: 'light' | 'normal' | 'heavy' }>(subjectWeights);
 
   useEffect(() => {
     setTempHiddenSubjects(hiddenSubjects);
-  }, [hiddenSubjects, isOpen]);
+    setTempSubjectWeights(subjectWeights);
+  }, [hiddenSubjects, subjectWeights, isOpen]);
 
   const handleCheckboxChange = (subjectName: string, isHidden: boolean) => {
     if (isHidden) {
@@ -33,13 +41,19 @@ export default function SubjectVisibilityModal({
     }
   };
 
+  const handleWeightChange = (subjectName: string, weight: 'light' | 'normal' | 'heavy') => {
+    setTempSubjectWeights(prev => ({ ...prev, [subjectName]: weight }));
+  };
+
   const handleSave = () => {
     onHiddenSubjectsChange(tempHiddenSubjects);
+    onSubjectWeightsChange(tempSubjectWeights);
     onClose();
   };
 
   const handleCancel = () => {
     setTempHiddenSubjects(hiddenSubjects); // 変更をリセット
+    setTempSubjectWeights(subjectWeights); // 重みの変更もリセット
     onClose();
   };
 
@@ -61,18 +75,33 @@ export default function SubjectVisibilityModal({
         <div className="p-6 overflow-y-auto">
           <p className="text-sm text-gray-600 mb-4">
             ドロップダウンリストに表示する科目を選択してください。チェックを外した科目は非表示になります。
+            {quizMode === 'random' && '「ランダム」モードでは、科目ごとの出題比率を調整できます。'}
           </p>
           <div className="space-y-3">
             {subjects.map(subject => (
-              <label key={subject.name} className="flex items-center p-3 rounded-lg hover:bg-gray-100 transition-colors duration-200">
-                <input
-                  type="checkbox"
-                  className="h-5 w-5 rounded text-primary-new focus:ring-primary-new border-gray-300"
-                  checked={!tempHiddenSubjects.includes(subject.name)}
-                  onChange={e => handleCheckboxChange(subject.name, !e.target.checked)}
-                />
-                <span className="ml-4 text-md font-medium text-gray-800">{subject.name}</span>
-              </label>
+              <div key={subject.name} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    className="h-5 w-5 rounded text-primary-new focus:ring-primary-new border-gray-300"
+                    checked={!tempHiddenSubjects.includes(subject.name)}
+                    onChange={e => handleCheckboxChange(subject.name, !e.target.checked)}
+                  />
+                  <span className="ml-4 text-md font-medium text-gray-800">{subject.name}</span>
+                </label>
+                {quizMode === 'random' && (
+                  <select
+                    value={tempSubjectWeights[subject.name] || 'normal'}
+                    onChange={e => handleWeightChange(subject.name, e.target.value as 'light' | 'normal' | 'heavy')}
+                    disabled={tempHiddenSubjects.includes(subject.name)}
+                    className="ml-4 rounded-md border-gray-300 shadow-sm focus:border-primary-new focus:ring-primary-new text-sm disabled:opacity-50"
+                  >
+                    <option value="light">軽め</option>
+                    <option value="normal">普通</option>
+                    <option value="heavy">重め</option>
+                  </select>
+                )}
+              </div>
             ))}
           </div>
         </div>

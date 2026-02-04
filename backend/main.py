@@ -61,6 +61,12 @@ class AnswerStat(BaseModel):
 class CustomExplanation(BaseModel):
     text: str
 
+class QuizStartRequest(BaseModel):
+    subjects: list[str]
+    count: int = 10
+    mode: str = "random"
+    weights: dict[str, str] | None = None
+
 # --- 定数とセットアップ ---
 BLOB_CONN_STR = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
 BLOB_CONTAINER_NAME = os.getenv("QUIZ_BLOB_CONTAINER", "exam-json")
@@ -246,17 +252,17 @@ def get_unanswered_count(subjects: list[str] = Query(...)):
     
     return {"unanswered_count": count}
 
-@api_router.get("/quiz/start")
-def start_quiz(subjects: list[str] = Query(...), count: int = 10, mode: str = Query("random")):
+@api_router.post("/quiz/start")
+def start_quiz(request: QuizStartRequest):
     """指定された複数の科目からクイズを開始する"""
     if container_client is None:
         raise HTTPException(status_code=500, detail="Azure Blob Storage は設定されていません。")
-    if not subjects:
+    if not request.subjects:
         raise HTTPException(status_code=400, detail="科目が選択されていません。")
 
     all_questions = []
     try:
-        for subject_name in subjects:
+        for subject_name in request.subjects:
             blob_client = container_client.get_blob_client(subject_name)
             if not blob_client.exists():
                 print(f"科目 '{subject_name}' が見つかりません。スキップします。")
@@ -278,43 +284,76 @@ def start_quiz(subjects: list[str] = Query(...), count: int = 10, mode: str = Qu
     if not all_questions:
         raise HTTPException(status_code=404, detail="有効な質問がありません。")
 
-    num_to_select = min(count, len(all_questions))
+    num_to_select = min(request.count, len(all_questions))
     selected_questions = []
 
-    if mode == "weak_area":
+    if request.mode == "weak_area":
         history_items = []
-        for subject_name in subjects:
+        for subject_name in request.subjects:
             history_items.extend(_get_history_items_for_subject(subject_name))
         
-        # missed_problem_counts = Counter(item.problem_id for item in history_items if not item.is_correct) # 元々あった行をコメントアウト
-        
-        # 苦手な問題を優先的に選択
         problem_statuses = get_problem_study_statuses(history_items)
         
-        # すべての問題に優先度スコアを割り当てる
         problems_with_priority = []
-        current_time = datetime.datetime.now(datetime.timezone.utc) # 現在時刻をUTCで取得
+        current_time = datetime.datetime.now(datetime.timezone.utc)
         for q in all_questions:
             problem_id = q.get("id")
             status = problem_statuses.get(problem_id, ProblemStudyStatus(problem_id=problem_id))
             priority = calculate_review_priority(status, current_time)
             problems_with_priority.append((q, priority))
             
-        # 優先度の高い順にソート（降順）
         problems_with_priority.sort(key=lambda x: x[1], reverse=True)
         
-        # 指定された数だけ問題を選択
         selected_questions = [q for q, _ in problems_with_priority[:num_to_select]]
 
-    elif mode == "unanswered":
+    elif request.mode == "unanswered":
         history_items = []
-        for subject_name in subjects:
+        for subject_name in request.subjects:
             history_items.extend(_get_history_items_for_subject(subject_name))
         
         answered_problem_ids = {item.problem_id for item in history_items}
         unanswered_questions = [q for q in all_questions if q.get("id") not in answered_problem_ids]
         random.shuffle(unanswered_questions)
         selected_questions = unanswered_questions[:num_to_select]
+    
+    elif request.mode == "random" and request.weights:
+        weight_map = {
+            'light': 1,
+            'normal': 3,
+            'heavy': 9
+        }
+        
+        question_weights = [weight_map.get(request.weights.get(q['subject'], 'normal'), 3) for q in all_questions]
+        
+        # 重複を許さずに重み付きランダムサンプリングを行う
+        # まずインデックスと重みのペアを作成
+        indexed_weights = list(zip(range(len(all_questions)), question_weights))
+        
+        selected_indices = []
+        if len(all_questions) > 0 and sum(question_weights) > 0:
+            # selected_indices = random.choices(range(len(all_questions)), weights=question_weights, k=num_to_select)
+             # 重み付きサンプリング（重複なし）
+            population = list(range(len(all_questions)))
+            weights = question_weights
+            
+            # サンプリングする個数が母集団より大きい場合は、母集団全体を返す
+            if num_to_select >= len(population):
+                selected_indices = population
+            else:
+                while len(selected_indices) < num_to_select and len(population) > 0:
+                    # random.choicesはリストを返すので、最初の要素を取得
+                    chosen_index_in_pop = random.choices(range(len(population)), weights=weights, k=1)[0]
+                    
+                    # 実際のall_questionsでのインデックスを取得
+                    original_index = population[chosen_index_in_pop]
+                    selected_indices.append(original_index)
+                    
+                    # 選ばれた要素を次のサンプリングから除外
+                    population.pop(chosen_index_in_pop)
+                    weights.pop(chosen_index_in_pop)
+
+        selected_questions = [all_questions[i] for i in selected_indices]
+        random.shuffle(selected_questions) # 最終的な出題順はシャッフルする
     
     else:  # Default to random mode
         random.shuffle(all_questions)
@@ -511,6 +550,68 @@ def save_custom_explanation(problem_id: str, explanation: CustomExplanation):
     except Exception as e:
         print(f"Error saving custom explanation to blob: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to save custom explanation to blob storage: {e}")
+
+
+class SubjectProgress(BaseModel):
+    total_problems: int
+    answered_problems: int
+    correctly_answered_once: int
+    unanswered_problems: int
+
+@api_router.get("/progress/subjects", response_model=dict[str, SubjectProgress])
+def get_subjects_progress(subject_names: list[str] = Query(...)):
+    """指定された複数の科目の進捗状況（解答済み、未解答など）を返す"""
+    if not container_client:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+    if not subject_names:
+        return {}
+
+    progress_data = {}
+
+    for subject_name in subject_names:
+        try:
+            # 1. 科目の全問題を取得
+            all_questions = _get_all_questions_for_subject(subject_name)
+            total_problems = len(all_questions)
+            all_problem_ids = set(all_questions.keys())
+
+            if total_problems == 0:
+                progress_data[subject_name] = SubjectProgress(
+                    total_problems=0,
+                    answered_problems=0,
+                    correctly_answered_once=0,
+                    unanswered_problems=0
+                )
+                continue
+
+            # 2. 科目の回答履歴を取得
+            history_items = _get_history_items_for_subject(subject_name)
+
+            answered_problem_ids = set()
+            correctly_answered_ids = set()
+
+            for item in history_items:
+                if item.problem_id in all_problem_ids:
+                    answered_problem_ids.add(item.problem_id)
+                    if item.is_correct:
+                        correctly_answered_ids.add(item.problem_id)
+            
+            unanswered_problems = total_problems - len(answered_problem_ids)
+
+            progress_data[subject_name] = SubjectProgress(
+                total_problems=total_problems,
+                answered_problems=len(answered_problem_ids),
+                correctly_answered_once=len(correctly_answered_ids),
+                unanswered_problems=unanswered_problems
+            )
+
+        except Exception as e:
+            print(f"Error processing progress for subject {subject_name}: {e}")
+            # エラーが発生した科目はスキップするか、エラー情報を返すか
+            # ここでは簡単のためスキップ
+            continue
+            
+    return progress_data
 
 # --- 新規追加: 日別集計API ---
 @api_router.get("/history/daily-summary/all", response_model=list[DailySummaryItem])
