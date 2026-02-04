@@ -183,11 +183,7 @@ export default function PlanManagementDashboard({ subjects, dailySummaryAll }: P
             current.setDate(current.getDate() + 1);
         }
     });
-    dailySummaryAll.forEach(item => {
-      if (item.date) {
-        allDates.add(item.date);
-      }
-    });
+
     
     if (allDates.size === 0) return [];
 
