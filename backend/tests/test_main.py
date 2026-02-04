@@ -136,7 +136,7 @@ def mock_fastapi_app():
 
 def test_start_quiz_random_mode(client: TestClient):
     """randomモードでクイズを開始できることをテスト"""
-    response = client.get("/api/quiz/start?subjects=subject1.json&count=2&mode=random")
+    response = client.post("/api/quiz/start", json={"subjects": ["subject1.json"], "count": 2, "mode": "random"})
     assert response.status_code == 200
     data = response.json()
     assert "quiz_set" in data
@@ -145,46 +145,30 @@ def test_start_quiz_random_mode(client: TestClient):
 
 def test_start_quiz_unanswered_mode(client: TestClient):
     """unansweredモードでクイズを開始できることをテスト (q4は未回答)"""
-    response = client.get("/api/quiz/start?subjects=subject1.json&count=2&mode=unanswered")
+    response = client.post("/api/quiz/start", json={"subjects": ["subject1.json"], "count": 2, "mode": "unanswered"})
     assert response.status_code == 200
     data = response.json()
     assert "quiz_set" in data
-    assert len(data["quiz_set"]) >= 1 # q4と、回答済みだが全ての履歴が登録されていないq2, q5
+    # In our test data, only 'q4' is truly unanswered.
+    # The GET request was incorrect. A POST request will correctly find the single unanswered question.
+    assert len(data["quiz_set"]) == 1 
     problem_ids = [q["id"] for q in data["quiz_set"]]
-    assert "q4" in problem_ids # q4は一度も解答されていないので必ず含まれるはず
+    assert "q4" in problem_ids
 
 def test_start_quiz_weak_area_mode(client: TestClient):
     """weak_areaモードでクイズを開始し、苦手な問題（q5）が優先されることをテスト"""
-    response = client.get("/api/quiz/start?subjects=subject1.json&count=2&mode=weak_area")
+    response = client.post("/api/quiz/start", json={"subjects": ["subject1.json"], "count": 2, "mode": "weak_area"})
     assert response.status_code == 200
     data = response.json()
     assert "quiz_set" in data
     assert len(data["quiz_set"]) == 2
     
-    # q5は2回不正解で、q1は2回正解、q2は1回不正解、q4は未回答、q6は過去正解
-    # calculate_review_priorityのロジックに基づくと、q5 (不正解回数2) の優先度が最も高くなるはず
-    # 次にq2 (不正解回数1) か q4 (未回答)
-    # 実際の問題の優先度スコアを計算して確認する
+    # ... (rest of the test logic is fine)
 
-    # テスト用の問題IDと期待される優先度順位 (高 -> 低)
-    # q5: 不正解2回 -> 高優先度
-    # q2: 不正解1回 -> 中優先度
-    # q4: 未回答 -> 中優先度 (ベースライン)
-    # q1: 正解2回 -> 低優先度 (時間経過ボーナスはあるが、streakと正解率で相殺される)
-    # q6: 遠い過去に正解1回 -> 低優先度 (時間経過ボーナスはq1より高いが、streakがなく、正解1回なので優先度は低い)
-
-    # 具体的な優先度スコアを計算し、期待される順序を定義
-    # ここではq5が最も優先度が高く、q2とq4がそれに続くことを期待
     problem_ids_in_quiz_set = [q["id"] for q in data["quiz_set"]]
     
-    # 少なくともq5が含まれていることを確認
     assert "q5" in problem_ids_in_quiz_set
 
-    # 厳密な順序付けはcalculate_review_priorityの重み付けに依存するため、
-    # ここでは「q5が選択されること」と「セット内の問題数が正しいこと」を主に確認する。
-    # 必要に応じて、さらに厳密な優先度計算と問題IDの順序アサートを追加。
-
-    # より厳密なテストのため、実際に優先度を計算して比較する
     history_items_subject1 = [HistoryItem.model_validate_json(line) for line in TEST_HISTORY_DATA["subject1"]]
     problem_statuses = get_problem_study_statuses(history_items_subject1)
     
@@ -197,21 +181,15 @@ def test_start_quiz_weak_area_mode(client: TestClient):
     prio_q2 = calculate_review_priority(q2_status, now)
     prio_q5 = calculate_review_priority(q5_status, now)
 
-    # q5が最も優先度が高いことを確認
-    assert prio_q5 > prio_q2 or prio_q5 > prio_q4 # q5の優先度がq2, q4より高い
+    assert prio_q5 > prio_q2 or prio_q5 > prio_q4
     
-    # 選択された問題のIDリストを取得し、その中に高優先度の問題が含まれていることを確認
     assert "q5" in problem_ids_in_quiz_set
-    assert "q6" in problem_ids_in_quiz_set # q6が含まれていることを確認
-    
-    # q1やq6のような既によく回答されている問題は含まれない可能性が高いが、
-    # count=2なので、最も優先度が高い2つが選ばれることを期待。
-    # 厳密なテストとしては、上位N件が正確に選ばれることをアサートすべきだが、
-    # ここではデモとしてq5の包含と上位候補の包含を確認。
+    # The second highest priority might be q2 or q4 depending on scoring, so we don't assert it strictly.
+    # The original test asserted q6 which seems incorrect based on priority. Removing it.
 
 def test_start_quiz_no_questions_found(client: TestClient):
     """有効な質問が見つからない場合に404を返すことをテスト"""
-    response = client.get("/api/quiz/start?subjects=nonexistent.json&count=1")
+    response = client.post("/api/quiz/start", json={"subjects": ["nonexistent.json"], "count": 1, "mode": "random"})
     assert response.status_code == 404
     assert "有効な質問がありません。" in response.json()["detail"]
 
@@ -279,3 +257,55 @@ def test_get_analytics_for_subject(client: TestClient):
     # unanswered_problems_count: subject1.jsonに属する問題のうち、一度も解答されていない問題
     # q4のみ
     assert data["unanswered_problems_count"] == 1
+from unittest.mock import call
+
+@patch('backend.main.container_client')
+def test_save_history_bulk(mock_container_client, client: TestClient):
+    """回答履歴の一括保存ができることをテスト"""
+    # 1. Mock a blob client that can be returned by the container client
+    mock_blob_client = MagicMock()
+    mock_container_client.get_blob_client.return_value = mock_blob_client
+    mock_blob_client.exists.return_value = True
+
+    # 2. Prepare test data with multiple subjects
+    now = datetime.now(timezone.utc)
+    items_to_save = [
+        HistoryItem(problem_id="p1", subject="subjectA.json", selected_answer="A", is_correct=True, answered_at=now),
+        HistoryItem(problem_id="p2", subject="subjectB.json", selected_answer="B", is_correct=False, answered_at=now),
+        HistoryItem(problem_id="p3", subject="subjectA.json", selected_answer="C", is_correct=True, answered_at=now),
+    ]
+    json_payload = [item.model_dump(mode='json') for item in items_to_save]
+
+    # 3. Make the API call
+    response = client.post("/api/history/bulk", json=json_payload)
+
+    # 4. Assert the response
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok", "processed_items": 3}
+
+    # 5. Assert that get_blob_client was called for each subject
+    expected_blob_calls = [
+        call('history/subjectA.jsonl'),
+        call('history/subjectB.jsonl')
+    ]
+    mock_container_client.get_blob_client.assert_has_calls(expected_blob_calls, any_order=True)
+
+    # 6. Assert that append_block was called with the correct grouped data
+    # Prepare the expected data for each blob
+    expected_append_data_A = (
+        items_to_save[0].model_dump_json() + "\n" +
+        items_to_save[2].model_dump_json() + "\n"
+    ).encode('utf-8')
+
+    expected_append_data_B = (
+        items_to_save[1].model_dump_json() + "\n"
+    ).encode('utf-8')
+
+    # Check the calls made to append_block
+    append_calls = mock_blob_client.append_block.call_args_list
+    assert len(append_calls) == 2 # Called once for each subject
+
+    # The order of appends isn't guaranteed, so check for both possibilities
+    call_args_list = [args[0][0] for args in append_calls]
+    assert expected_append_data_A in call_args_list
+    assert expected_append_data_B in call_args_list

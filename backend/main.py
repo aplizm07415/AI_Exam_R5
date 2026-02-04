@@ -448,6 +448,45 @@ def save_history(item: HistoryItem):
         print(f"ERROR saving history: {str(e)}") # コンテナログでデバッグしやすくするため
         raise HTTPException(status_code=500, detail=f"Failed to save history to blob: {e}")
 
+@api_router.post("/history/bulk", status_code=200)
+def save_history_bulk(items: list[HistoryItem]):
+    """回答履歴のリストを科目ごとのファイルとしてAzure Blob Storageに一括で追記保存する"""
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="History storage (Blob) is not configured.")
+    
+    # Group items by subject to minimize blob operations
+    grouped_items = {}
+    for item in items:
+        subject_stem = Path(item.subject).stem
+        if subject_stem not in grouped_items:
+            grouped_items[subject_stem] = []
+        grouped_items[subject_stem].append(item)
+
+    # Process each subject group
+    for subject_stem, subject_items in grouped_items.items():
+        try:
+            history_blob_name = f"history/{subject_stem}.jsonl"
+            history_blob_client = container_client.get_blob_client(history_blob_name)
+            
+            if not history_blob_client.exists():
+                history_blob_client.create_append_blob()
+
+            # Create a single string of all lines to append for this subject
+            lines_to_append = ""
+            for item in subject_items:
+                lines_to_append += item.model_dump_json() + "\n"
+            
+            if lines_to_append:
+                history_blob_client.append_block(lines_to_append.encode('utf-8'))
+
+        except Exception as e:
+            # If one subject fails, we might want to continue with others,
+            # but for now, we'll raise an exception for the whole batch on first failure.
+            print(f"ERROR saving bulk history for subject {subject_stem}: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Failed to save bulk history for {subject_stem}: {e}")
+            
+    return {"status": "ok", "processed_items": len(items)}
+
 @api_router.get("/analytics/{subject_name}")
 def get_analytics(subject_name: str):
     """指定された科目の履歴ファイルのみをAzure Blob Storageから読み込み、統計情報を計算して返す"""
