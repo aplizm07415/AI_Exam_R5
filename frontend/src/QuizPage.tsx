@@ -113,38 +113,83 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   const todayRemaining = useMemo(() => {
     if (isPlansLoading) return { count: 0, subjects: [], plan: 0, actual: 0 };
 
-    const todayStr = new Date().toISOString().split('T')[0]!;
-    const today = new Date(todayStr);
-    
-    let dailyPlan = 0;
-    const targetSubjects = new Set<string>();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to start of today in local timezone
 
-    plans.filter((p: Plan) => p.enabled).forEach((plan: Plan) => {
-      // 厳密な型チェックを追加
+    const parseDateLocal = (dateString: string): Date => {
+      const [year, month, day] = dateString.split('-').map(Number) as [number, number, number];
+      const date = new Date(year, month - 1, day);
+      date.setHours(0, 0, 0, 0);
+      return date;
+    };
+    
+    let cumulativePlannedTotal = 0; // Accumulates all planned questions up to today
+    let cumulativeActualTotal = 0;  // Accumulates all actual questions up to today
+    const targetSubjects = new Set<string>();
+    
+    console.log("--- Today Remaining Debug Start ---");
+    console.log("Debug: Today (local start of day):", today.toISOString());
+    console.log("Debug: Plans available:", plans.length);
+
+    plans.filter((p: Plan) => p.enabled).forEach((plan: Plan, planIndex) => {
       const fromDateStr = plan.period?.from;
       const toDateStr = plan.period?.to;
 
+      console.log(`Debug: Processing Plan ${planIndex + 1} - "${plan.title}" (Enabled: ${plan.enabled})`);
+      console.log(`Debug: Plan Period: From ${fromDateStr} to ${toDateStr}`);
+
       if (fromDateStr && toDateStr && typeof fromDateStr === 'string' && typeof toDateStr === 'string') {
-        const from = new Date(fromDateStr);
-        const to = new Date(toDateStr);
-        if (today >= from && today <= to) {
-          const holiday = isHoliday(today);
-          if (plan.applyDays === 'all' || (plan.applyDays === 'holiday' && holiday) || (plan.applyDays === 'weekday' && !holiday)) {
-            dailyPlan += holiday ? plan.dailyGoal.holiday : plan.dailyGoal.weekday;
+        const planStart = parseDateLocal(fromDateStr);
+        const planEnd = parseDateLocal(toDateStr);
+        console.log(`Debug: Parsed Plan Start: ${planStart.toISOString()}, Plan End: ${planEnd.toISOString()}`);
+
+        let currentDate = new Date(planStart);
+        let planDailyPlanned = 0; // For this specific plan's daily planned
+        let planDailyActual = 0;  // For this specific plan's daily actual
+
+        while (currentDate.getTime() <= today.getTime() && currentDate.getTime() <= planEnd.getTime()) {
+            const dayStr = `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${currentDate.getDate().toString().padStart(2, '0')}`;
+            const holiday = isHoliday(currentDate);
+
+            let dailyGoalForCurrentDate = 0;
+            if (plan.applyDays === 'all' || (plan.applyDays === 'holiday' && holiday) || (plan.applyDays === 'weekday' && !holiday)) {
+                dailyGoalForCurrentDate = holiday ? plan.dailyGoal.holiday : plan.dailyGoal.weekday;
+            }
+            
+            cumulativePlannedTotal += dailyGoalForCurrentDate;
+            planDailyPlanned += dailyGoalForCurrentDate;
+            
+            const dailySummaryForDate = dailySummaryAll.find(d => d.date === dayStr);
+            const actualForCurrentDate = dailySummaryForDate?.total_questions ?? 0;
+            
+            cumulativeActualTotal += actualForCurrentDate;
+            planDailyActual += actualForCurrentDate;
+
+            console.log(`  Debug: Date: ${dayStr}, Holiday: ${holiday}, ApplyDays: ${plan.applyDays}, DailyGoal: ${dailyGoalForCurrentDate}, Actual: ${actualForCurrentDate}, CumulativePlannedTillNow: ${cumulativePlannedTotal}, CumulativeActualTillNow: ${cumulativeActualTotal}`);
+
             plan.subjectNames.forEach((name: string) => targetSubjects.add(name));
-          }
+
+            currentDate.setDate(currentDate.getDate() + 1); // Move to next day
         }
+        console.log(`Debug: Plan ${planIndex + 1} cumulative for loop: Planned=${planDailyPlanned}, Actual=${planDailyActual}`);
+      } else {
+        console.log(`Debug: Plan ${planIndex + 1} - Invalid period data (from: ${fromDateStr}, to: ${toDateStr}).`);
       }
     });
 
-    const dailyActual = dailySummaryAll.find(d => d.date === todayStr)?.total_questions ?? 0;
-    const remaining = Math.max(0, dailyPlan - dailyActual);
+    const remaining = Math.max(0, cumulativePlannedTotal - cumulativeActualTotal);
+
+    console.log("Debug: Final Cumulative Planned Total:", cumulativePlannedTotal);
+    console.log("Debug: Final Cumulative Actual Total:", cumulativeActualTotal);
+    console.log("Debug: Final Remaining Count:", remaining);
+    console.log("Debug: Target Subjects:", Array.from(targetSubjects));
+    console.log("--- Today Remaining Debug End ---");
 
     return {
       count: remaining,
       subjects: Array.from(targetSubjects),
-      plan: dailyPlan,
-      actual: dailyActual
+      plan: cumulativePlannedTotal,
+      actual: cumulativeActualTotal
     };
   }, [plans, dailySummaryAll, isPlansLoading]);
 
