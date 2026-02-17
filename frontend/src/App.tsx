@@ -4,7 +4,8 @@ import QuizPage from './QuizPage';
 import DashboardPage from './DashboardPage';
 import PortalPage from './PortalPage';
 import CountdownPage from './CountdownPage';
-import { LayoutDashboardIcon, FileTextIcon, HomeIcon, CalendarDaysIcon } from './components/icons';
+import SoragakiPage from './SoragakiPage'; // Import SoragakiPage
+import { LayoutDashboardIcon, FileTextIcon, HomeIcon, CalendarDaysIcon, PencilIcon } from './components/icons';
 import LoadingSpinner from './components/LoadingSpinner';
 
 interface Subject {
@@ -42,7 +43,8 @@ export default function App() {
 
   const navItems = useMemo(() => [
     { id: 'quiz', path: '/', label: '問題演習', icon: <FileTextIcon className="w-5 h-5" /> },
-    { id: 'dashboard', path: '/dashboard', label: 'ダッシュボード', icon: <LayoutDashboardIcon className="w-5 h-5" /> },
+    { id: 'soragaki', path: '/soragaki', label: '空描き', icon: <PencilIcon className="w-5 h-5" /> },
+    { id: 'dashboard', path: '/dashboard', label: 'Dashboard', icon: <LayoutDashboardIcon className="w-5 h-5" /> },
     { id: 'countdown', path: '/countdown', label: '試験日', icon: <CalendarDaysIcon className="w-5 h-5" /> },
     { id: 'portal', path: '/portal', label: 'ポータル', icon: <HomeIcon className="w-5 h-5" /> },
   ], []);
@@ -98,6 +100,7 @@ export default function App() {
             <Routes>
               <Route path="/portal" element={<PortalPage />} />
               <Route path="/countdown" element={<CountdownPage />} />
+              <Route path="/soragaki" element={<SoragakiPage />} />
               <Route path="/" element={<QuizPage subjects={subjects} />} />
               <Route path="/dashboard" element={<DashboardPage subjects={subjects} key={subjects.map(s => s.name).join(',')} />} />
             </Routes>
@@ -107,12 +110,12 @@ export default function App() {
 
       {/* Mobile Menu Modal */}
       {isMobileMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden" 
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
           onClick={() => setMobileMenuOpen(false)}
           aria-hidden="true"
         >
-          <div 
+          <div
             className="fixed top-0 right-0 h-full bg-white w-64 shadow-lg p-6"
             onClick={(e) => e.stopPropagation()}
           >

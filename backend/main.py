@@ -13,6 +13,9 @@ from fastapi.responses import StreamingResponse
 from azure.storage.blob import BlobServiceClient
 import pytz
 from collections import Counter
+import base64
+from fastapi import Request
+import google.generativeai as genai
 
 # --- ローカルユーティリティ ---
 from .utils import normalize_question, HistoryItem, ProblemStudyStatus, get_problem_study_statuses, calculate_review_priority
@@ -23,6 +26,9 @@ class DailySummaryItem(BaseModel):
     total_questions: int
     correct_count: int
     accuracy: float
+
+class GenerateKeywordsRequest(BaseModel):
+    memo_text: str
 
 # 新規追加: 不正解問題詳細の戻り値用モデル
 class MissedProblemDetail(BaseModel):
@@ -71,6 +77,12 @@ class QuizStartRequest(BaseModel):
 BLOB_CONN_STR = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
 BLOB_CONTAINER_NAME = os.getenv("QUIZ_BLOB_CONTAINER", "exam-json")
 CUSTOM_EXPLANATIONS_DIR = "custom-explanations"
+SORAGAKI_DIR = "soragaki" # Directory for Soragaki data
+
+# Gemini API Setup
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+if GOOGLE_API_KEY:
+    genai.configure(api_key=GOOGLE_API_KEY)
 
 # タイムゾーンの設定 (東京)
 TOKYO_TZ = pytz.timezone("Asia/Tokyo")
@@ -244,9 +256,167 @@ def get_image(image_name: str):
         print(f"Error streaming image: {e}")
         raise HTTPException(status_code=500, detail="Failed to stream image from blob storage.")
 
+@api_router.post("/soragaki/generate-keywords", response_model=List[str])
+def generate_keywords_from_memo(request: GenerateKeywordsRequest):
+    """
+    Takes memo text and uses the Gemini API to extract and suggest keywords.
+    """
+    if not GOOGLE_API_KEY:
+        raise HTTPException(status_code=500, detail="Google API Key is not configured.")
+    if not request.memo_text:
+        return []
+        
+    try:
+        model = genai.GenerativeModel('gemini-3-flash-preview')
+        prompt = f"""
+あなたは優秀な中小企業診断士の一次試験の専門家です。
+以下のテキストは、ある一日に学習した内容のメモです。
+
+# 学習メモ
+{request.memo_text}
+
+# 指示
+- **学習メモが空の場合:**
+    1. 最初に必ず「この日のMy Memoはありませんでした」という文字列を入れてください。
+    2. 次に、中小企業診断士の試験において特に重要だと思われるキーワードを、分野を横断するように **3つ** 挙げてください。
+    3. これらをカンマ区切りで出力してください。
+
+- **学習メモに内容がある場合:**
+    1. この学習メモから、最も重要だと思われるキーワードを **5個** 抽出してください。そのキーワードが中小企業診断士に関係しているかチェックし、不要なキーワードはお勧めキーワードに差し替えてください。
+    2. 抽出した5個のキーワードを元に、知識をさらに深めるために学習すると効果的な関連キーワードを **3個** 提案してください。
+    3. 最終的なアウトプットとして、抽出したキーワード5個と提案キーワード3個を合わせた、合計 **8個** のキーワードを、必ずカンマ区切りの単一の文字列で出力してください。
+
+# 共通の指示
+- 他の説明や前置きは一切不要です。必ずカンマ区切りの文字列のみを出力してください。
+
+# 出力例
+- 学習メモが空の場合:
+  この日のMy Memoはありませんでした,損益分岐点分析,コーポレートガバナンス,需要の価格弾力性
+- 学習メモに内容がある場合:
+  マーケティング,SWOT分析,ファイブフォース分析,キャッシュフロー,労働基準法,サプライチェーンマネジメント,DX,BCP
+"""
+        response = model.generate_content(prompt)
+        
+        # Clean up the response
+        keywords_str = response.text.strip()
+        keywords_list = [kw.strip() for kw in keywords_str.split(',') if kw.strip()]
+        
+        return keywords_list
+
+    except Exception as e:
+        print(f"Error calling Gemini API: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate keywords using Gemini API: {e}")
+
+@api_router.post("/soragaki/{date_str}", status_code=204)
+async def save_soragaki(date_str: str, request: Request):
+    """Saves the Soragaki canvas as a PNG image."""
+    if not container_client:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+    
+    try:
+        # Validate date format
+        datetime.datetime.strptime(date_str, "%Y-%m-%d")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
+        
+    try:
+        body = await request.body()
+        # The body is expected to be a base64 data URL: "data:image/png;base64,iVBORw0KGgo..."
+        # We need to strip the header and decode the base64 part.
+        header, encoded = body.decode('utf-8').split(",", 1)
+        data = base64.b64decode(encoded)
+        
+        blob_name = f"{SORAGAKI_DIR}/{date_str}.png"
+        blob_client = container_client.get_blob_client(blob_name)
+        blob_client.upload_blob(data, overwrite=True)
+    except Exception as e:
+        print(f"Error saving soragaki data to blob: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to save soragaki data: {e}")
+
+@api_router.get("/soragaki/{date_str}")
+async def get_soragaki(date_str: str):
+    """Retrieves a saved Soragaki image for a given date."""
+    if not container_client:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+        
+    try:
+        # Validate date format
+        datetime.datetime.strptime(date_str, "%Y-%m-%d")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
+
+    blob_name = f"{SORAGAKI_DIR}/{date_str}.png"
+    blob_client = container_client.get_blob_client(blob_name)
+
+    if not blob_client.exists():
+        raise HTTPException(status_code=404, detail="No Soragaki data found for this date.")
+        
+    try:
+        stream = blob_client.download_blob().chunks()
+        return StreamingResponse(stream, media_type="image/png")
+    except Exception as e:
+        print(f"Error streaming soragaki image: {e}")
+        raise HTTPException(status_code=500, detail="Failed to stream Soragaki image.")
+
+@api_router.get("/soragaki/memos/{date_str}", response_model=str)
+def get_memos_for_date(date_str: str):
+    """
+    Aggregates and returns all 'My Memo' content for a given date.
+    """
+    if not container_client:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+    
+    try:
+        target_date = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
+
+    problem_ids_for_date = set()
+    
+    # 1. Find all history blobs
+    history_blobs = container_client.list_blobs(name_starts_with="history/")
+    
+    # 2. Iterate through them to find relevant problem_ids
+    for blob in history_blobs:
+        if not blob.name.endswith(".jsonl"):
+            continue
+        try:
+            blob_client = container_client.get_blob_client(blob.name)
+            history_content = blob_client.download_blob().readall().decode('utf-8')
+            history_lines = history_content.strip().split('\n')
+            for line in history_lines:
+                if not line: continue
+                item = HistoryItem.model_validate_json(line)
+                if item.answered_at.astimezone(TOKYO_TZ).date() == target_date:
+                    problem_ids_for_date.add(item.problem_id)
+        except Exception as e:
+            print(f"Warning: Could not process history blob {blob.name}. Error: {e}")
+            continue
+
+    if not problem_ids_for_date:
+        return ""
+
+    # 3. Read custom explanations for each problem_id
+    aggregated_memos = []
+    for problem_id in problem_ids_for_date:
+        try:
+            explanation_blob_name = f"{CUSTOM_EXPLANATIONS_DIR}/{problem_id}.json"
+            explanation_blob_client = container_client.get_blob_client(explanation_blob_name)
+            if explanation_blob_client.exists():
+                content = explanation_blob_client.download_blob().readall()
+                explanation_data = json.loads(content)
+                memo_text = explanation_data.get('text', '')
+                if memo_text:
+                    aggregated_memos.append(memo_text)
+        except Exception as e:
+            print(f"Warning: Could not read custom explanation for {problem_id}. Error: {e}")
+            continue
+            
+    return "\n\n---\n\n".join(aggregated_memos)
+    
 @api_router.get("/quiz/unanswered-count")
 def get_unanswered_count(subjects: list[str] = Query(...)):
-    """指定された科目セットに対する未回答の問題数を計算して返す"""
+    """指定された科目セットに対する未解答の問題数を計算して返す"""
     if container_client is None:
         raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
     if not subjects:
