@@ -197,6 +197,27 @@ def get_subjects():
         print(f"Error fetching subjects: {e}")
         return [f"（Blob接続エラー: {e}）"]
 
+@api_router.get("/subjects/{subject_name:path}/categories", response_model=list[str])
+def get_subject_categories(subject_name: str):
+    """指定された科目に含まれるカテゴリの一覧を返す"""
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+    
+    try:
+        questions = _get_all_questions_for_subject(subject_name).values()
+        categories = set()
+        for q in questions:
+            if q and q.get("category"):
+                categories.add(q["category"])
+        return sorted(list(categories))
+    except HTTPException as e:
+        # Re-raise HTTPException from the helper to propagate 404s etc.
+        raise e
+    except Exception as e:
+        print(f"Error reading categories for subject {subject_name}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get categories for subject {subject_name}.")
+
+
 
 
 @api_router.get("/images/{image_name}")
@@ -521,7 +542,12 @@ def save_history_bulk(items: list[HistoryItem]):
     return {"status": "ok", "processed_items": len(items)}
 
 @api_router.get("/analytics/{subject_name}")
-def get_analytics(subject_name: str):
+def get_analytics(
+    subject_name: str,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    category: Optional[str] = None,
+):
     """指定された科目の履歴ファイルのみをAzure Blob Storageから読み込み、統計情報を計算して返す"""
     if container_client is None:
         return {"overall_correct_rate": 0, "total_runs": 0, "daily_correct_rate_trend": {}, "frequently_missed_categories": {}, "total_problems_in_subject": 0, "unanswered_problems_count": 0}
@@ -541,7 +567,28 @@ def get_analytics(subject_name: str):
         print(f"Error reading history from blob: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to read or parse history from blob: {e}")
     
+    # --- Filtering Logic ---
     target_history = history_items
+    
+    if start_date:
+        try:
+            start_dt = TOKYO_TZ.localize(datetime.datetime.strptime(start_date, "%Y-%m-%d"))
+            target_history = [item for item in target_history if item.answered_at >= start_dt]
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid start_date format. Use YYYY-MM-DD.")
+
+    if end_date:
+        try:
+            # End of the day
+            end_dt = TOKYO_TZ.localize(datetime.datetime.strptime(end_date, "%Y-%m-%d")) + datetime.timedelta(days=1)
+            target_history = [item for item in target_history if item.answered_at < end_dt]
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid end_date format. Use YYYY-MM-DD.")
+            
+    if category:
+        target_history = [item for item in target_history if item.category == category]
+    # --- End of Filtering Logic ---
+
     if not target_history:
         return {"overall_correct_rate": 0, "total_runs": 0, "daily_correct_rate_trend": {}, "frequently_missed_categories": {}, "total_problems_in_subject": 0, "unanswered_problems_count": 0}
 
@@ -563,12 +610,12 @@ def get_analytics(subject_name: str):
         if not item.is_correct and item.category:
             frequently_missed_categories[item.category] = frequently_missed_categories.get(item.category, 0) + 1
 
-    # Call helper to get all questions for the subject
+    # Unfiltered history is needed for unanswered count
     all_questions_for_subject_map = _get_all_questions_for_subject(subject_name)
     total_problems_in_subject = len(all_questions_for_subject_map)
-
-    # Get unique problem IDs from history
-    answered_problem_ids = {item.problem_id for item in target_history}
+    
+    unfiltered_history_items = history_items
+    answered_problem_ids = {item.problem_id for item in unfiltered_history_items}
     unanswered_problems_count = total_problems_in_subject - len(answered_problem_ids)
 
     return {
@@ -798,7 +845,12 @@ def get_all_daily_summaries(subjects: Optional[List[str]] = Query(None)):
     return daily_summary_list
 
 @api_router.get("/history/daily-summary/{subject_name}", response_model=list[DailySummaryItem])
-def get_daily_summary(subject_name: str):
+def get_daily_summary(
+    subject_name: str,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    category: Optional[str] = None,
+):
     """指定された科目の履歴を読み込み、日付ごとに集計したサマリーを返す"""
     if container_client is None:
         return []
@@ -827,12 +879,34 @@ def get_daily_summary(subject_name: str):
         print(f"Error reading history blob for daily summary: {e}")
         return []
 
-    if not history_items:
+    # --- Filtering Logic ---
+    target_history = history_items
+    
+    if start_date:
+        try:
+            start_dt = TOKYO_TZ.localize(datetime.datetime.strptime(start_date, "%Y-%m-%d"))
+            target_history = [item for item in target_history if item.answered_at >= start_dt]
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid start_date format. Use YYYY-MM-DD.")
+
+    if end_date:
+        try:
+            # End of the day
+            end_dt = TOKYO_TZ.localize(datetime.datetime.strptime(end_date, "%Y-%m-%d")) + datetime.timedelta(days=1)
+            target_history = [item for item in target_history if item.answered_at < end_dt]
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid end_date format. Use YYYY-MM-DD.")
+            
+    if category:
+        target_history = [item for item in target_history if item.category == category]
+    # --- End of Filtering Logic ---
+
+    if not target_history:
         return []
 
     daily_summary_map = {} # { "YYYY-MM-DD": { "total": N, "correct": M } }
 
-    for item in history_items:
+    for item in target_history:
         # UTCタイムスタンプをAsia/Tokyoのローカル日付に変換
         local_time = item.answered_at.astimezone(TOKYO_TZ)
         date_str = local_time.strftime("%Y-%m-%d")

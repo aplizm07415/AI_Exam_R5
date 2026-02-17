@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import LoadingSpinner from './components/LoadingSpinner';
 import AnalysisDashboard from './AnalysisDashboard';
 import PlanManagementDashboard from './PlanManagementDashboard';
@@ -29,6 +29,13 @@ interface DailySummaryItem {
   accuracy: number;
 }
 
+interface FetchParams {
+  subject: string;
+  startDate?: string;
+  endDate?: string;
+  category?: string;
+}
+
 export default function DashboardPage({ subjects }: DashboardPageProps) {
   const [selectedSubjectName, setSelectedSubjectName] = useState<string>('');
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
@@ -38,6 +45,26 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
   const [dailySummary, setDailySummary] = useState<DailySummaryItem[]>([]);
   const [isDailySummaryLoading, setIsDailySummaryLoading] = useState(false);
   const [dailySummaryError, setDailySummaryError] = useState('');
+  
+  // Filter states
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [categories, setCategories] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState('');
+
+  // State to trigger data fetching
+  const [fetchParams, setFetchParams] = useState<FetchParams | null>(null);
+
+  const handleApplyFilters = useCallback(() => {
+    if (selectedSubjectName) {
+      setFetchParams({
+        subject: selectedSubjectName,
+        startDate,
+        endDate,
+        category: selectedCategory,
+      });
+    }
+  }, [selectedSubjectName, startDate, endDate, selectedCategory]);
 
   useEffect(() => {
     if (subjects.length > 0 && !selectedSubjectName) {
@@ -49,18 +76,51 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
       setSelectedSubjectName('');
       setAnalytics(null);
     }
-  }, [subjects]);
+  }, [subjects, selectedSubjectName]);
 
+  // Set initial fetch params when subject changes
   useEffect(() => {
-    if (!selectedSubjectName) {
-      setAnalytics(null);
-      return;
+    if (selectedSubjectName) {
+      handleApplyFilters();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSubjectName]);
+
+  // Fetch categories when subject changes
+  useEffect(() => {
+    if (selectedSubjectName) {
+      const fetchCategories = async () => {
+        try {
+          const response = await fetch(`${API_BASE_URL}/subjects/${selectedSubjectName}/categories`);
+          if (!response.ok) {
+            throw new Error('カテゴリの取得に失敗しました。');
+          }
+          const data: string[] = await response.json();
+          setCategories(data);
+        } catch (e) {
+          console.error(e);
+          setCategories([]);
+        }
+      };
+      fetchCategories();
+      setSelectedCategory(''); // Reset category on subject change
+    }
+  }, [selectedSubjectName]);
+
+  // Fetch analytics data when fetchParams change
+  useEffect(() => {
+    if (!fetchParams) return;
+
     const fetchAnalytics = async () => {
       setIsLoading(true);
       setError('');
       try {
-        const response = await fetch(`${API_BASE_URL}/analytics/${selectedSubjectName}`);
+        const query = new URLSearchParams();
+        if (fetchParams.startDate) query.append('start_date', fetchParams.startDate);
+        if (fetchParams.endDate) query.append('end_date', fetchParams.endDate);
+        if (fetchParams.category) query.append('category', fetchParams.category);
+        
+        const response = await fetch(`${API_BASE_URL}/analytics/${fetchParams.subject}?${query.toString()}`);
         if (!response.ok) {
           const err = await response.json();
           throw new Error(err.detail || '分析データの取得に失敗しました。');
@@ -75,18 +135,22 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
       }
     };
     fetchAnalytics();
-  }, [selectedSubjectName]);
+  }, [fetchParams]);
 
+  // Fetch daily summary data when fetchParams change
   useEffect(() => {
-    if (!selectedSubjectName) {
-      setDailySummary([]);
-      return;
-    }
+    if (!fetchParams) return;
+
     const fetchDailySummary = async () => {
       setIsDailySummaryLoading(true);
       setDailySummaryError('');
       try {
-        const response = await fetch(`${API_BASE_URL}/history/daily-summary/${selectedSubjectName}`);
+        const query = new URLSearchParams();
+        if (fetchParams.startDate) query.append('start_date', fetchParams.startDate);
+        if (fetchParams.endDate) query.append('end_date', fetchParams.endDate);
+        if (fetchParams.category) query.append('category', fetchParams.category);
+
+        const response = await fetch(`${API_BASE_URL}/history/daily-summary/${fetchParams.subject}?${query.toString()}`);
         if (!response.ok) {
           const err = await response.json();
           throw new Error(err.detail || '日別集計データの取得に失敗しました。');
@@ -101,7 +165,7 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
       }
     };
     fetchDailySummary();
-  }, [selectedSubjectName]);
+  }, [fetchParams]);
 
   if (subjects.length === 0) {
     return (
@@ -125,6 +189,15 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
         dailySummary={dailySummary}
         isDailySummaryLoading={isDailySummaryLoading}
         dailySummaryError={dailySummaryError}
+        // Filters
+        startDate={startDate}
+        setStartDate={setStartDate}
+        endDate={endDate}
+        setEndDate={setEndDate}
+        categories={categories}
+        selectedCategory={selectedCategory}
+        setSelectedCategory={setSelectedCategory}
+        onApplyFilters={handleApplyFilters}
       />
     </div>
   );

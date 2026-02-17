@@ -812,10 +812,12 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
         </div>
       );
       
+      const progressPercentage = questions.length > 0 ? ((currentQuestionIndex + 1) / questions.length) * 100 : 0;
+
       return (
         <div className="md:h-screen md:overflow-hidden">
             <div className="p-4 md:p-6">
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex justify-between items-center mb-2">
                     <h2 className="text-xl font-bold text-dark truncate" title={selectedSubjectNames.join(', ')}>{selectedSubjectNames.join(', ')}</h2>
                     <div className="flex items-center gap-4">
                         {(() => {
@@ -835,10 +837,13 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                         <p className="text-gray-500">問題 {currentQuestionIndex + 1} / {questions.length}</p>
                     </div>
                 </div>
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div className="bg-primary-new h-2.5 rounded-full transition-all duration-500" style={{ width: `${progressPercentage}%` }}></div>
+                </div>
             </div>
             
             <div className={`
-                md:grid md:gap-8 md:h-[calc(100vh-100px)]
+                md:grid md:gap-8 md:h-[calc(100vh-120px)] // Adjusted height for progress bar
                 ${layoutType === 'image' ? 'md:grid-cols-3' : ''}
                 ${layoutType === 'answered' ? 'md:grid-cols-3' : ''}
                 ${layoutType === 'default' ? 'md:grid-cols-1' : ''}

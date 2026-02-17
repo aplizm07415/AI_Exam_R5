@@ -33,6 +33,15 @@ interface AnalysisDashboardProps {
   dailySummary: DailySummaryItem[];
   isDailySummaryLoading: boolean;
   dailySummaryError: string;
+  // Filters
+  startDate: string;
+  setStartDate: (date: string) => void;
+  endDate: string;
+  setEndDate: (date: string) => void;
+  categories: string[];
+  selectedCategory: string;
+  setSelectedCategory: (category: string) => void;
+  onApplyFilters: () => void;
 }
 
 export default function AnalysisDashboard({
@@ -44,7 +53,16 @@ export default function AnalysisDashboard({
   error,
   dailySummary,
   isDailySummaryLoading,
-  dailySummaryError
+  dailySummaryError,
+  // Filters
+  startDate,
+  setStartDate,
+  endDate,
+  setEndDate,
+  categories,
+  selectedCategory,
+  setSelectedCategory,
+  onApplyFilters,
 }: AnalysisDashboardProps) {
   
   const [isExporting, setIsExporting] = useState(false);
@@ -176,7 +194,7 @@ export default function AnalysisDashboard({
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-8 gap-4">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-4">
         <div className="flex items-center gap-4">
           <h2 className="text-3xl font-bold text-dark">分析ダッシュボード</h2>
           <button onClick={openConsolidatedModal} className="px-4 py-2 bg-white border border-gray-300 text-primary-new text-sm font-semibold rounded-lg shadow-sm hover:bg-gray-50">
@@ -194,6 +212,45 @@ export default function AnalysisDashboard({
               {s.name}
             </option>)}
           </select>
+        </div>
+      </div>
+
+      {/* --- Filter Bar --- */}
+      <div className="bg-white rounded-xl shadow p-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+          {/* Date Range Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">日付範囲</label>
+            <div className="flex items-center gap-2">
+              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 text-sm focus:outline-none focus:ring-primary-new focus:border-primary-new" />
+              <span className="text-gray-500">~</span>
+              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 text-sm focus:outline-none focus:ring-primary-new focus:border-primary-new" />
+            </div>
+          </div>
+          {/* Category Filter */}
+          <div>
+            <label htmlFor="category-filter" className="block text-sm font-medium text-gray-700 mb-1">カテゴリ</label>
+            <select
+              id="category-filter"
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 text-sm focus:outline-none focus:ring-primary-new focus:border-primary-new"
+            >
+              <option value="">すべてのカテゴリ</option>
+              {categories.map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
+          {/* Apply Button */}
+          <div className="md:justify-self-end">
+            <button
+              onClick={onApplyFilters}
+              className="w-full md:w-auto px-6 py-2 bg-primary-new text-white font-semibold rounded-md shadow-sm hover:bg-blue-700"
+            >
+              適用
+            </button>
+          </div>
         </div>
       </div>
 

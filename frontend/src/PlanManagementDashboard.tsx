@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { usePlans } from './hooks/usePlans';
 import type { Plan } from './types/plan.d';
 import { isHoliday } from './utils/date';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Brush } from 'recharts';
 import LoadingSpinner from './components/LoadingSpinner';
 
 const TrashIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -467,11 +467,11 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
       
       <div className="mt-8">
         <h3 className="text-lg font-semibold text-gray-700 mb-4">予実グラフ</h3>
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={350}>
           <LineChart
             data={chartData}
             margin={{
-              top: 5, right: 30, left: 20, bottom: 5,
+              top: 5, right: 30, left: 20, bottom: 50,
             }}
           >
             <CartesianGrid strokeDasharray="3 3" />
@@ -480,7 +480,8 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
             <Tooltip />
             <Legend />
             <Line type="monotone" dataKey="予定" stroke="#3b82f6" activeDot={{ r: 8 }} />
-            <Line type="monotone" dataKey="実績" stroke="#16a34a" />
+            <Line type="monotone" dataKey="実績" stroke="#16a34a" dot={false} /> {/* Changed to dot={false} for '実績' for better mobile visibility */}
+            <Brush dataKey="date" height={30} stroke="#3b82f6" />
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -499,14 +500,17 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {progressData.map((row, index) => (
-                  <tr key={index}>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{row.date}</td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{row.plan.daily} / {row.plan.cumulative}</td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{row.actual.daily} / {row.actual.cumulative}</td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{row.progress.daily.toFixed(0)}% / {row.progress.cumulative.toFixed(0)}%</td>
-                  </tr>
-                ))}
+                {progressData.map((row, index) => {
+                  const isAchieved = row.actual.daily > row.plan.daily; // 当日の実績が日次計画数を上回っている場合
+                  return (
+                    <tr key={index} className={isAchieved ? 'bg-orange-100' : ''}>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{row.date}</td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{row.plan.daily} / {row.plan.cumulative}</td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{row.actual.daily} / {row.actual.cumulative}</td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{row.progress.daily.toFixed(0)}% / {row.progress.cumulative.toFixed(0)}%</td>
+                    </tr>
+                  );
+                })}
                 {progressData.length === 0 && (
                   <tr>
                     <td colSpan={4} className="text-center py-10 text-sm text-gray-500">
