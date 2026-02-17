@@ -5,11 +5,12 @@ import { isHoliday } from './utils/date';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import LoadingSpinner from './components/LoadingSpinner';
 const TrashIcon = (props) => (_jsx("svg", { xmlns: "http://www.w3.org/2000/svg", width: "1em", height: "1em", viewBox: "0 0 24 24", ...props, children: _jsx("path", { fill: "currentColor", d: "M7 21q-.825 0-1.412-.588T5 19V6H4V4h5V3h6v1h5v2h-1v13q0 .825-.588 1.413T17 21zM17 6H7v13h10zM9 17h2V8H9zm4 0h2V8h-2zM7 6v13z" }) }));
-export default function PlanManagementDashboard({ subjects, dailySummaryAll }) {
+export default function PlanManagementDashboard({ subjects }) {
     const { plans, addPlan, updatePlan, deletePlan, isLoading, error } = usePlans();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingPlan, setEditingPlan] = useState(null);
     const [selectedPlanIds, setSelectedPlanIds] = useState([]);
+    const [dailySummaryAll, setDailySummaryAll] = useState([]);
     // Form state
     const [title, setTitle] = useState('');
     const [selectedSubjects, setSelectedSubjects] = useState([]);
@@ -30,6 +31,35 @@ export default function PlanManagementDashboard({ subjects, dailySummaryAll }) {
         const defaultSelectedIds = plans.filter(p => p.enabled).map(p => p.id);
         setSelectedPlanIds(defaultSelectedIds);
     }, [plans]); // plansが変わった時だけ実行
+    useEffect(() => {
+        const fetchFilteredSummary = async () => {
+            const targetPlans = plans.filter(p => selectedPlanIds.includes(p.id));
+            const planSubjects = Array.from(new Set(targetPlans.flatMap(p => p.subjectNames)));
+            if (planSubjects.length === 0) {
+                setDailySummaryAll([]);
+                return;
+            }
+            try {
+                const subjectParams = planSubjects.map(s => `subjects=${encodeURIComponent(s)}`).join('&');
+                const response = await fetch(`/api/history/daily-summary/all?${subjectParams}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setDailySummaryAll(data);
+                }
+                else {
+                    console.error("Failed to fetch filtered daily summary for Plan Mngmt");
+                    setDailySummaryAll([]);
+                }
+            }
+            catch (e) {
+                console.error("Error fetching filtered daily summary for Plan Mngmt:", e);
+                setDailySummaryAll([]);
+            }
+        };
+        if (plans.length > 0) {
+            fetchFilteredSummary();
+        }
+    }, [plans, selectedPlanIds]);
     const handleSubjectChange = (subjectName) => {
         setSelectedSubjects(prev => prev.includes(subjectName)
             ? prev.filter(s => s !== subjectName)

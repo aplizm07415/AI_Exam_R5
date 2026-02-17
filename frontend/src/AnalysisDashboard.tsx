@@ -227,7 +227,7 @@ export default function AnalysisDashboard({
                   </div>
                   <div>
                     <p className="text-3xl font-bold text-green-600">{analytics.unanswered_problems_count}</p>
-                    <p className="text-sm text-gray-500">未回答問題</p>
+                    <p className="text-sm text-gray-500">未解答問題</p>
                   </div>
                 </div>
               </div>

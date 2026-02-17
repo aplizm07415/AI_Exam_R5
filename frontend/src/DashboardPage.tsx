@@ -38,24 +38,6 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
   const [dailySummary, setDailySummary] = useState<DailySummaryItem[]>([]);
   const [isDailySummaryLoading, setIsDailySummaryLoading] = useState(false);
   const [dailySummaryError, setDailySummaryError] = useState('');
-  
-  const [consolidatedData, setConsolidatedData] = useState<DailySummaryItem[]>([]);
-
-  useEffect(() => {
-    const fetchConsolidatedData = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/history/daily-summary/all`);
-        if (!response.ok) {
-          throw new Error('統合履歴の取得に失敗しました。');
-        }
-        const data: DailySummaryItem[] = await response.json();
-        setConsolidatedData(data);
-      } catch (e: any) {
-        setConsolidatedData([]);
-      }
-    };
-    fetchConsolidatedData();
-  }, [subjects]);
 
   useEffect(() => {
     if (subjects.length > 0 && !selectedSubjectName) {
@@ -132,7 +114,7 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
 
   return (
     <div className="max-w-7xl mx-auto space-y-8">
-      <PlanManagementDashboard subjects={subjects} dailySummaryAll={consolidatedData} />
+      <PlanManagementDashboard subjects={subjects} />
       <AnalysisDashboard
         subjects={subjects}
         selectedSubjectName={selectedSubjectName}

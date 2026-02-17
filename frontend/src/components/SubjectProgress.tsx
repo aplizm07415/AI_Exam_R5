@@ -103,13 +103,13 @@ const SubjectProgress: React.FC<SubjectProgressProps> = ({ selectedSubjectNames,
                 <div
                   className="bg-gray-300 h-4"
                   style={{ width: `${unansweredPct}%` }}
-                  title={`未回答: ${data.unanswered_problems}問 (${unansweredPct.toFixed(1)}%)`}
+                  title={`未解答: ${data.unanswered_problems}問 (${unansweredPct.toFixed(1)}%)`}
                 />
               </div>
               <div className="text-xs text-gray-500 mt-1 flex justify-between">
                 <span>正解: {data.correctly_answered_once}</span>
                 <span>不正解のみ: {incorrectlyAnsweredOnly}</span>
-                <span>未回答: {data.unanswered_problems}</span>
+                <span>未解答: {data.unanswered_problems}</span>
               </div>
             </div>
           );

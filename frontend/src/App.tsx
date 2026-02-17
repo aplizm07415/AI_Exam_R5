@@ -16,6 +16,7 @@ const API_BASE_URL = "/api";
 export default function App() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
 
   const fetchSubjects = async () => {
@@ -74,6 +75,17 @@ export default function App() {
                 </Link>
               ))}
             </nav>
+            <div className="md:hidden">
+              <button
+                onClick={() => setMobileMenuOpen(true)}
+                className="p-2 rounded-md text-gray-700 hover:bg-gray-100"
+                aria-label="メインメニューを開く"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -93,20 +105,36 @@ export default function App() {
         )}
       </main>
 
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around p-2">
-        {navItems.map((item) => (
-          <Link
-            key={item.id}
-            to={item.path}
-            className={`flex flex-col items-center w-full py-1 rounded-md transition-colors duration-200 ${activePath === item.path ? 'text-primary-new' : 'text-dark hover:bg-gray-100'
-              }`}
+      {/* Mobile Menu Modal */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden" 
+          onClick={() => setMobileMenuOpen(false)}
+          aria-hidden="true"
+        >
+          <div 
+            className="fixed top-0 right-0 h-full bg-white w-64 shadow-lg p-6"
+            onClick={(e) => e.stopPropagation()}
           >
-            {item.icon}
-            <span className="text-xs mt-1">{item.label}</span>
-          </Link>
-        ))}
-      </nav>
-      <div className="h-16 md:hidden"></div>
+            <nav className="flex flex-col space-y-2">
+              {navItems.map((item) => (
+                <Link
+                  key={item.id}
+                  to={item.path}
+                  onClick={() => setMobileMenuOpen(false)} // リンククリックで閉じる
+                  className={`flex items-center space-x-3 px-3 py-3 text-base font-medium rounded-md ${activePath === item.path
+                    ? 'bg-primary-new text-white shadow-sm'
+                    : 'text-dark hover:bg-gray-100'
+                    }`}
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
+                </Link>
+              ))}
+            </nav>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

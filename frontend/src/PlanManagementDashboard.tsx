@@ -24,7 +24,6 @@ interface Subject {
 
 interface PlanManagementDashboardProps {
   subjects: Subject[];
-  dailySummaryAll: DailySummaryItem[];
 }
 
 interface ProgressDataRow {
@@ -34,11 +33,12 @@ interface ProgressDataRow {
   progress: { daily: number; cumulative: number };
 }
 
-export default function PlanManagementDashboard({ subjects, dailySummaryAll }: PlanManagementDashboardProps) {
+export default function PlanManagementDashboard({ subjects }: PlanManagementDashboardProps) {
   const { plans, addPlan, updatePlan, deletePlan, isLoading, error } = usePlans();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
   const [selectedPlanIds, setSelectedPlanIds] = useState<string[]>([]);
+  const [dailySummaryAll, setDailySummaryAll] = useState<DailySummaryItem[]>([]);
 
   // Form state
   const [title, setTitle] = useState('');
@@ -65,6 +65,37 @@ export default function PlanManagementDashboard({ subjects, dailySummaryAll }: P
     const defaultSelectedIds = plans.filter(p => p.enabled).map(p => p.id);
     setSelectedPlanIds(defaultSelectedIds);
   }, [plans]); // plansが変わった時だけ実行
+
+  useEffect(() => {
+    const fetchFilteredSummary = async () => {
+      const targetPlans = plans.filter(p => selectedPlanIds.includes(p.id));
+      const planSubjects = Array.from(new Set(targetPlans.flatMap(p => p.subjectNames)));
+
+      if (planSubjects.length === 0) {
+        setDailySummaryAll([]);
+        return;
+      }
+
+      try {
+        const subjectParams = planSubjects.map(s => `subjects=${encodeURIComponent(s)}`).join('&');
+        const response = await fetch(`/api/history/daily-summary/all?${subjectParams}`);
+        if (response.ok) {
+          const data = await response.json();
+          setDailySummaryAll(data);
+        } else {
+          console.error("Failed to fetch filtered daily summary for Plan Mngmt");
+          setDailySummaryAll([]);
+        }
+      } catch (e) {
+        console.error("Error fetching filtered daily summary for Plan Mngmt:", e);
+        setDailySummaryAll([]);
+      }
+    };
+
+    if (plans.length > 0) {
+      fetchFilteredSummary();
+    }
+  }, [plans, selectedPlanIds]);
 
   const handleSubjectChange = (subjectName: string) => {
     setSelectedSubjects(prev =>

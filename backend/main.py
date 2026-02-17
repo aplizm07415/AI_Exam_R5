@@ -5,7 +5,7 @@ import datetime
 from pathlib import Path
 from fastapi import FastAPI, APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field # BaseModelをインポート
-from typing import Literal
+from typing import Literal, List, Optional
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import mimetypes
@@ -184,8 +184,15 @@ def get_subjects():
     """Blob Storage内の科目（問題JSONファイル）リストを返す"""
     if container_client is None: return ["（Blob Storage未接続）"]
     try:
-        # 'history/' フォルダにあるファイルは科目リストから除外する
-        return [blob.name for blob in container_client.list_blobs() if blob.name.endswith('.json') and not blob.name.startswith('history/')]
+        # 'history/' and 'custom-explanations/' フォルダにあるファイルは科目リストから除外する
+        return [
+            blob.name for blob in container_client.list_blobs()
+            if (
+                blob.name.endswith('.json') and
+                not blob.name.startswith('history/') and
+                not blob.name.startswith('custom-explanations/')
+            )
+        ]
     except Exception as e:
         print(f"Error fetching subjects: {e}")
         return [f"（Blob接続エラー: {e}）"]
@@ -251,6 +258,25 @@ def get_unanswered_count(subjects: list[str] = Query(...)):
     count = sum(1 for q in all_questions if q.get("id") not in answered_problem_ids)
     
     return {"unanswered_count": count}
+
+@api_router.get("/quiz/missed-problems-count")
+def get_missed_problems_count(subjects: list[str] = Query(...)):
+    """指定された科目セットに対して、一度でも間違えたことがある問題のユニークな数を返す"""
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+    if not subjects:
+        return {"missed_problems_count": 0}
+
+    history_items = []
+    for subject_name in subjects:
+        history_items.extend(_get_history_items_for_subject(subject_name))
+    
+    # is_correct: false の problem_id を set に追加してユニークにする
+    missed_problem_ids = {item.problem_id for item in history_items if not item.is_correct}
+    
+    count = len(missed_problem_ids)
+    
+    return {"missed_problems_count": count}
 
 @api_router.post("/quiz/start")
 def start_quiz(request: QuizStartRequest):
@@ -598,6 +624,50 @@ def save_custom_explanation(problem_id: str, explanation: CustomExplanation):
         raise HTTPException(status_code=500, detail=f"Failed to save custom explanation to blob storage: {e}")
 
 
+@api_router.put("/subjects/{subject_name:path}/problems/{problem_id}")
+def update_problem(subject_name: str, problem_id: str, problem_data: dict):
+    """特定の問題IDの問題データを更新する"""
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+
+    try:
+        blob_client = container_client.get_blob_client(subject_name)
+        if not blob_client.exists():
+            raise HTTPException(status_code=404, detail=f"Subject '{subject_name}' not found.")
+        
+        raw_content = blob_client.download_blob().readall()
+        data = json.loads(raw_content)
+        
+        is_dict_format = isinstance(data, dict) and "questions" in data
+        original_questions = data.get("questions", []) if is_dict_format else data
+
+        target_index = -1
+        # IDの正規化を考慮して目的の問題を探す
+        for i, q in enumerate(original_questions):
+            # normalize_questionは元の辞書を変更する可能性があるのでコピーを渡す
+            normalized_q = normalize_question(q.copy())
+            if normalized_q and normalized_q.get("id") == problem_id:
+                target_index = i
+                break
+        
+        if target_index == -1:
+            raise HTTPException(status_code=404, detail=f"Problem with ID '{problem_id}' not found in '{subject_name}'.")
+
+        # 元の問題データに、受け取ったデータで更新をかける
+        # これにより、フロント側は変更したいフィールドだけを送ればよくなる
+        original_questions[target_index].update(problem_data)
+        
+        # ファイル全体を上書き
+        output_data = {"questions": original_questions} if is_dict_format else original_questions
+        blob_client.upload_blob(json.dumps(output_data, indent=2, ensure_ascii=False), overwrite=True)
+
+        # 更新後の完全な問題オブジェクトを返す
+        return original_questions[target_index]
+    except Exception as e:
+        print(f"ERROR updating problem: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to update problem: {e}")
+
+
 class SubjectProgress(BaseModel):
     total_problems: int
     answered_problems: int
@@ -661,19 +731,25 @@ def get_subjects_progress(subject_names: list[str] = Query(...)):
 
 # --- 新規追加: 日別集計API ---
 @api_router.get("/history/daily-summary/all", response_model=list[DailySummaryItem])
-def get_all_daily_summaries():
-    """すべての科目の履歴を読み込み、直近14日間の日付ごとに集計した統合サマリーを返す"""
+def get_all_daily_summaries(subjects: Optional[List[str]] = Query(None)):
+    """すべての科目の履歴、または指定された科目の履歴を読み込み、直近14日間の日付ごとに集計した統合サマリーを返す"""
     if container_client is None:
         return []
 
     all_history_items = []
-    try:
+    
+    blob_names_to_scan = []
+    if subjects:
+        # subjectsが指定されている場合は、それに対応するblob名だけをスキャン対象にする
+        blob_names_to_scan = [f"history/{Path(s).stem}.jsonl" for s in subjects]
+    else:
+        # 指定がない場合は、従来通りhistory/以下の全blobをスキャン
         history_blobs = container_client.list_blobs(name_starts_with="history/")
-        for blob in history_blobs:
-            if not blob.name.endswith(".jsonl"):
-                continue
-            
-            blob_client = container_client.get_blob_client(blob.name)
+        blob_names_to_scan = [blob.name for blob in history_blobs if blob.name.endswith(".jsonl")]
+
+    try:
+        for blob_name in blob_names_to_scan:
+            blob_client = container_client.get_blob_client(blob_name)
             if blob_client.exists():
                 history_content = blob_client.download_blob().readall().decode('utf-8')
                 history_lines = history_content.strip().split('\n')
@@ -682,7 +758,7 @@ def get_all_daily_summaries():
                         try:
                             all_history_items.append(HistoryItem.model_validate_json(line))
                         except Exception as e:
-                            print(f"Skipping malformed line in {blob.name}: {line}. Error: {e}")
+                            print(f"Skipping malformed line in {blob_name}: {line}. Error: {e}")
     except Exception as e:
         print(f"Error reading history blobs for all summaries: {e}")
         return []
