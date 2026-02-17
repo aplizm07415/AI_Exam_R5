@@ -7,6 +7,21 @@ const useCurrentDate = () => {
 };
 
 export default function SoragakiPage() {
+
+  // --- App Access Token (User needs to replace this with their actual token from .env.local) ---
+  const APP_ACCESS_TOKEN = "REDACTED_CREDENTIAL";
+  // IMPORTANT: Replace "YOUR_APP_ACCESS_TOKEN_HERE" with the same random string
+  // you added to your .env.local file for APP_ACCESS_TOKEN.
+  const getAuthHeaders = useCallback(() => {
+    if (!APP_ACCESS_TOKEN) {
+      alert("セキュリティトークンが設定されていません。SoragakiPage.tsxのAPP_ACCESS_TOKENを更新してください。");
+      throw new Error("Security token not configured.");
+    }
+    return {
+      'Authorization': `Bearer ${APP_ACCESS_TOKEN}`
+    };
+  }, [APP_ACCESS_TOKEN]);
+
   const today = useCurrentDate();
   const [selectedDate, setSelectedDate] = useState(today);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -20,6 +35,20 @@ export default function SoragakiPage() {
   const [keywords, setKeywords] = useState<string[]>([]);
   const [isMemoLoading, setIsMemoLoading] = useState(false);
 
+  // --- App Access Token (User needs to replace this with their actual token from .env.local) ---
+  const APP_ACCESS_TOKEN = "YOUR_APP_ACCESS_TOKEN_HERE"; 
+  // IMPORTANT: Replace "YOUR_APP_ACCESS_TOKEN_HERE" with the same random string
+  // you added to your .env.local file for APP_ACCESS_TOKEN.
+
+  const getAuthHeaders = useCallback(() => {
+    if (!APP_ACCESS_TOKEN) { // Only check if the token is empty or null/undefined
+      alert("セキュリティトークンが設定されていません。SoragakiPage.tsxのAPP_ACCESS_TOKENを更新してください。");
+      throw new Error("Security token not configured."); 
+    }
+    return {
+      'Authorization': `Bearer ${APP_ACCESS_TOKEN}`
+    };
+  }, [APP_ACCESS_TOKEN]);
 
   // --- Device Check ---
   useEffect(() => {
@@ -104,7 +133,9 @@ export default function SoragakiPage() {
     setError(null);
     clearCanvas();
     try {
-      const response = await fetch(`/api/soragaki/${date}`);
+      const response = await fetch(`/api/soragaki/${date}`, {
+        headers: getAuthHeaders(),
+      });
       if (response.status === 404) {
         console.log(`No soragaki found for ${date}`);
         return;
@@ -127,7 +158,7 @@ export default function SoragakiPage() {
       setIsLoading(false);
     }
   }, [getCanvasContext, clearCanvas]);
-  
+
   useEffect(() => {
     if (selectedDate && isDeviceAllowed) {
       loadSoragaki(selectedDate);
@@ -139,14 +170,17 @@ export default function SoragakiPage() {
   const saveSoragaki = async () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
+
     setIsLoading(true);
     setError(null);
     try {
       const dataUrl = canvas.toDataURL('image/png');
       const response = await fetch(`/api/soragaki/${selectedDate}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/octet-stream' },
+        headers: {
+          'Content-Type': 'application/octet-stream',
+          ...getAuthHeaders(),
+        },
         body: dataUrl,
       });
 
@@ -159,14 +193,16 @@ export default function SoragakiPage() {
       setIsLoading(false);
     }
   };
-  
+
   const fetchMemosAndKeywords = async () => {
     setIsMemoLoading(true);
     setMemos('');
     setKeywords([]);
     try {
       // 1. Fetch aggregated memos
-      const memoResponse = await fetch(`/api/soragaki/memos/${selectedDate}`);
+      const memoResponse = await fetch(`/api/soragaki/memos/${selectedDate}`, {
+        headers: getAuthHeaders(),
+      });
       if (!memoResponse.ok) {
         throw new Error('メモの取得に失敗しました。');
       }
@@ -179,6 +215,7 @@ export default function SoragakiPage() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            ...getAuthHeaders(),
           },
           body: JSON.stringify({ memo_text: memoText }),
         });
@@ -198,8 +235,8 @@ export default function SoragakiPage() {
   if (!isDeviceAllowed) {
     return (
       <div className="p-4 md:p-8 text-center">
-         <h1 className="text-3xl font-bold text-dark mb-6">空描き</h1>
-         <p className="text-gray-600">この機能は、iPadまたはタブレット、PCなどの大画面デバイスでのみ利用可能です。</p>
+        <h1 className="text-3xl font-bold text-dark mb-6">空描き</h1>
+        <p className="text-gray-600">この機能は、iPadまたはタブレット、PCなどの大画面デバイスでのみ利用可能です。</p>
       </div>
     );
   }
@@ -210,7 +247,7 @@ export default function SoragakiPage() {
         <h1 className="text-3xl font-bold text-dark mb-4 md:mb-0">空描き</h1>
         <div className="flex flex-col md:flex-row gap-4 items-center p-4 bg-white rounded-xl shadow">
           <label htmlFor="soragaki-date" className="font-semibold">学習日:</label>
-          <input 
+          <input
             type="date"
             id="soragaki-date"
             value={selectedDate}
@@ -219,7 +256,7 @@ export default function SoragakiPage() {
           />
         </div>
       </div>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Keywords and Memos */}
         <div className="lg:col-span-1 space-y-6">
@@ -258,7 +295,7 @@ export default function SoragakiPage() {
           <div className="p-4 bg-white rounded-xl shadow">
             <details>
               <summary className="text-lg font-bold text-gray-800 cursor-pointer">参照元My Memo</summary>
-              <textarea 
+              <textarea
                 readOnly
                 value={memos || "キーワードを生成すると、ここに参照元のメモが表示されます。"}
                 className="mt-2 w-full h-48 p-2 border border-gray-200 rounded-md bg-gray-50 font-mono text-sm"

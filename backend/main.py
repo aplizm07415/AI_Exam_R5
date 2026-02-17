@@ -14,8 +14,9 @@ from azure.storage.blob import BlobServiceClient
 import pytz
 from collections import Counter
 import base64
-from fastapi import Request
+from fastapi import Request, Depends # Add Depends
 import google.generativeai as genai
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials # Add for security
 
 # --- ローカルユーティリティ ---
 from .utils import normalize_question, HistoryItem, ProblemStudyStatus, get_problem_study_statuses, calculate_review_priority
@@ -84,6 +85,9 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 if GOOGLE_API_KEY:
     genai.configure(api_key=GOOGLE_API_KEY)
 
+# App Access Token Setup for single developer use
+APP_ACCESS_TOKEN = os.getenv("APP_ACCESS_TOKEN")
+
 # タイムゾーンの設定 (東京)
 TOKYO_TZ = pytz.timezone("Asia/Tokyo")
 
@@ -104,6 +108,16 @@ app = FastAPI()
 api_router = APIRouter(prefix="/api")
 BASE_DIR = Path(__file__).resolve().parent.parent
 DIST_DIR = BASE_DIR / "frontend" / "dist"
+
+# Security dependency
+security_scheme = HTTPBearer()
+
+def verify_access_token(credentials: HTTPAuthorizationCredentials = Depends(security_scheme)):
+    if APP_ACCESS_TOKEN is None:
+        raise HTTPException(status_code=500, detail="Server access token not configured.")
+    if credentials.credentials != APP_ACCESS_TOKEN:
+        raise HTTPException(status_code=401, detail="Invalid access token.")
+    return credentials.credentials
 
 # Helper to get history items for a subject
 def _get_history_items_for_subject(subject_name: str) -> list[HistoryItem]:
@@ -256,7 +270,7 @@ def get_image(image_name: str):
         print(f"Error streaming image: {e}")
         raise HTTPException(status_code=500, detail="Failed to stream image from blob storage.")
 
-@api_router.post("/soragaki/generate-keywords", response_model=List[str])
+@api_router.post("/soragaki/generate-keywords", response_model=List[str], dependencies=[Depends(verify_access_token)])
 def generate_keywords_from_memo(request: GenerateKeywordsRequest):
     """
     Takes memo text and uses the Gemini API to extract and suggest keywords.
@@ -307,7 +321,7 @@ def generate_keywords_from_memo(request: GenerateKeywordsRequest):
         print(f"Error calling Gemini API: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to generate keywords using Gemini API: {e}")
 
-@api_router.post("/soragaki/{date_str}", status_code=204)
+@api_router.post("/soragaki/{date_str}", status_code=204, dependencies=[Depends(verify_access_token)])
 async def save_soragaki(date_str: str, request: Request):
     """Saves the Soragaki canvas as a PNG image."""
     if not container_client:
@@ -333,7 +347,7 @@ async def save_soragaki(date_str: str, request: Request):
         print(f"Error saving soragaki data to blob: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to save soragaki data: {e}")
 
-@api_router.get("/soragaki/{date_str}")
+@api_router.get("/soragaki/{date_str}", dependencies=[Depends(verify_access_token)])
 async def get_soragaki(date_str: str):
     """Retrieves a saved Soragaki image for a given date."""
     if not container_client:
@@ -358,7 +372,7 @@ async def get_soragaki(date_str: str):
         print(f"Error streaming soragaki image: {e}")
         raise HTTPException(status_code=500, detail="Failed to stream Soragaki image.")
 
-@api_router.get("/soragaki/memos/{date_str}", response_model=str)
+@api_router.get("/soragaki/memos/{date_str}", response_model=str, dependencies=[Depends(verify_access_token)])
 def get_memos_for_date(date_str: str):
     """
     Aggregates and returns all 'My Memo' content for a given date.
@@ -413,7 +427,6 @@ def get_memos_for_date(date_str: str):
             continue
             
     return "\n\n---\n\n".join(aggregated_memos)
-    
 @api_router.get("/quiz/unanswered-count")
 def get_unanswered_count(subjects: list[str] = Query(...)):
     """指定された科目セットに対する未解答の問題数を計算して返す"""
