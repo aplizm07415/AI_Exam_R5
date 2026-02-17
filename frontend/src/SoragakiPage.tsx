@@ -8,20 +8,6 @@ const useCurrentDate = () => {
 
 export default function SoragakiPage() {
 
-  // --- App Access Token (User needs to replace this with their actual token from .env.local) ---
-  const APP_ACCESS_TOKEN = "REDACTED_CREDENTIAL";
-  // IMPORTANT: Replace "YOUR_APP_ACCESS_TOKEN_HERE" with the same random string
-  // you added to your .env.local file for APP_ACCESS_TOKEN.
-  const getAuthHeaders = useCallback(() => {
-    if (!APP_ACCESS_TOKEN) {
-      alert("セキュリティトークンが設定されていません。SoragakiPage.tsxのAPP_ACCESS_TOKENを更新してください。");
-      throw new Error("Security token not configured.");
-    }
-    return {
-      'Authorization': `Bearer ${APP_ACCESS_TOKEN}`
-    };
-  }, [APP_ACCESS_TOKEN]);
-
   const today = useCurrentDate();
   const [selectedDate, setSelectedDate] = useState(today);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -36,14 +22,14 @@ export default function SoragakiPage() {
   const [isMemoLoading, setIsMemoLoading] = useState(false);
 
   // --- App Access Token (User needs to replace this with their actual token from .env.local) ---
-  const APP_ACCESS_TOKEN = "YOUR_APP_ACCESS_TOKEN_HERE"; 
+  const APP_ACCESS_TOKEN = "REDACTED_CREDENTIAL";
   // IMPORTANT: Replace "YOUR_APP_ACCESS_TOKEN_HERE" with the same random string
   // you added to your .env.local file for APP_ACCESS_TOKEN.
 
   const getAuthHeaders = useCallback(() => {
     if (!APP_ACCESS_TOKEN) { // Only check if the token is empty or null/undefined
       alert("セキュリティトークンが設定されていません。SoragakiPage.tsxのAPP_ACCESS_TOKENを更新してください。");
-      throw new Error("Security token not configured."); 
+      throw new Error("Security token not configured.");
     }
     return {
       'Authorization': `Bearer ${APP_ACCESS_TOKEN}`
