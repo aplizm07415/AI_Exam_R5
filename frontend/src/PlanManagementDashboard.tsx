@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { usePlans } from './hooks/usePlans';
 import type { Plan } from './types/plan.d';
 import { isHoliday } from './utils/date';
@@ -38,6 +38,7 @@ export default function PlanManagementDashboard({ subjects, dailySummaryAll }: P
   const { plans, addPlan, updatePlan, deletePlan, isLoading, error } = usePlans();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
+  const [selectedPlanIds, setSelectedPlanIds] = useState<string[]>([]);
 
   // Form state
   const [title, setTitle] = useState('');
@@ -58,6 +59,12 @@ export default function PlanManagementDashboard({ subjects, dailySummaryAll }: P
   const [holidayRatio, setHolidayRatio] = useState(2);
 
   const [applyDays, setApplyDays] = useState<'all' | 'weekday' | 'holiday'>('all');
+
+  useEffect(() => {
+    // plansが読み込まれたら、デフォルトで全ての有効なプランを選択状態にする
+    const defaultSelectedIds = plans.filter(p => p.enabled).map(p => p.id);
+    setSelectedPlanIds(defaultSelectedIds);
+  }, [plans]); // plansが変わった時だけ実行
 
   const handleSubjectChange = (subjectName: string) => {
     setSelectedSubjects(prev =>
@@ -166,7 +173,7 @@ export default function PlanManagementDashboard({ subjects, dailySummaryAll }: P
   };
   
   const progressData = useMemo((): ProgressDataRow[] => {
-    const activePlans = plans.filter(p => p.enabled);
+    const activePlans = plans.filter(p => p.enabled && selectedPlanIds.includes(p.id));
     if (activePlans.length === 0) return [];
 
     const actualsMap = new Map(dailySummaryAll.filter(item => item.date).map(item => [item.date, item.total_questions]));
@@ -232,8 +239,8 @@ export default function PlanManagementDashboard({ subjects, dailySummaryAll }: P
         progress: { daily: dailyProgress, cumulative: cumulativeProgress },
       };
     }).filter(d => d.plan.cumulative > 0 || d.actual.cumulative > 0)
-      .sort((a, b) => b.date.localeCompare(a.date));
-  }, [plans, dailySummaryAll]);
+      .sort((a, b) => a.date.localeCompare(b.date));
+  }, [plans, dailySummaryAll, selectedPlanIds]);
 
   const chartData = useMemo(() => {
     return progressData.map(d => ({
@@ -356,6 +363,53 @@ export default function PlanManagementDashboard({ subjects, dailySummaryAll }: P
         </div>
       )}
 
+      <div className="my-6 p-4 border rounded-lg bg-gray-50">
+        <label className="block text-sm font-medium text-gray-700 mb-2">表示する予定</label>
+        <div className="flex items-center gap-4 mb-3">
+          <button
+            type="button"
+            onClick={() => setSelectedPlanIds(plans.filter(p => p.enabled).map(p => p.id))}
+            className="px-3 py-1 text-xs font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600"
+          >
+            すべて選択
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedPlanIds([])}
+            className="px-3 py-1 text-xs font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+          >
+            すべて解除
+          </button>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          {plans.map(plan => (
+            <div key={plan.id} className="flex items-center">
+              <input
+                type="checkbox"
+                id={`plan-toggle-${plan.id}`}
+                checked={selectedPlanIds.includes(plan.id)}
+                onChange={() => {
+                  setSelectedPlanIds(prev =>
+                    prev.includes(plan.id)
+                      ? prev.filter(id => id !== plan.id)
+                      : [...prev, plan.id]
+                  );
+                }}
+                className="h-4 w-4 text-primary-new border-gray-300 rounded focus:ring-primary-new"
+                disabled={!plan.enabled}
+              />
+              <label
+                htmlFor={`plan-toggle-${plan.id}`}
+                className={`ml-2 text-sm text-gray-700 truncate ${!plan.enabled ? 'text-gray-400 cursor-not-allowed' : 'cursor-pointer'}`}
+                title={plan.title}
+              >
+                {plan.title}
+              </label>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="space-y-4">
         {plans.map(plan => (
           <div key={plan.id} className="p-4 border rounded-lg flex items-center justify-between hover:bg-gray-50 transition-colors">
@@ -431,6 +485,15 @@ export default function PlanManagementDashboard({ subjects, dailySummaryAll }: P
                 )}
               </tbody>
             </table>
+          </div>
+          <div className="mt-4 text-sm text-gray-600 space-y-1">
+            <p className="font-semibold">列の仕様:</p>
+            <ul className="list-disc pl-5">
+              <li><span className="font-semibold">日付</span>: 計画期間内の日付</li>
+              <li><span className="font-semibold">予定 (日/累)</span>: その日の計画問題数 / 累計の計画問題数</li>
+              <li><span className="font-semibold">実績 (日/累)</span>: その日の実績問題数 / 累計の実績問題数</li>
+              <li><span className="font-semibold">進捗 (日/累)</span>: `(実績(日) / 予定(日)) * 100` / `(実績(累) / 予定(累)) * 100`</li>
+            </ul>
           </div>
         </details>
       </div>

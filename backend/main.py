@@ -780,8 +780,8 @@ def get_daily_summary(subject_name: str):
                 accuracy=accuracy
             ))
     
-    # 日付の降順でソート
-    daily_summary_list.sort(key=lambda x: x.date, reverse=True)
+    # 日付の昇順でソート
+    daily_summary_list.sort(key=lambda x: x.date)
 
     return daily_summary_list
 
