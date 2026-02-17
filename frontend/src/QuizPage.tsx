@@ -312,24 +312,18 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     try {
       const apiMode = quizMode === 'today_remaining' ? 'unanswered' : quizMode;
       
-      let response;
-      if (quizMode === 'random') {
-        response = await fetch(`${API_BASE_URL}/quiz/start`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            subjects: selectedSubjectNames,
-            mode: apiMode,
-            count: questionsToFetch,
-            weights: subjectWeights,
-          }),
-        });
-      } else {
-        const subjectParams = selectedSubjectNames.map((s: string) => `subjects=${encodeURIComponent(s)}`).join('&');
-        response = await fetch(`${API_BASE_URL}/quiz/start?${subjectParams}&mode=${apiMode}&count=${questionsToFetch}`);
-      }
+      const response = await fetch(`${API_BASE_URL}/quiz/start`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          subjects: selectedSubjectNames,
+          mode: apiMode,
+          count: questionsToFetch,
+          weights: quizMode === 'random' ? subjectWeights : undefined,
+        }),
+      });
       
       const data = await response.json();
 

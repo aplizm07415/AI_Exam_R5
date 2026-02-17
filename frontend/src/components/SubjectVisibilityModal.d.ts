@@ -7,7 +7,14 @@ interface SubjectVisibilityModalProps {
     subjects: Subject[];
     hiddenSubjects: string[];
     onHiddenSubjectsChange: (newHiddenSubjects: string[]) => void;
+    subjectWeights: {
+        [key: string]: 'light' | 'normal' | 'heavy';
+    };
+    onSubjectWeightsChange: (newWeights: {
+        [key: string]: 'light' | 'normal' | 'heavy';
+    }) => void;
+    quizMode: 'random' | 'weak_area' | 'unanswered' | 'today_remaining';
 }
-export default function SubjectVisibilityModal({ isOpen, onClose, subjects, hiddenSubjects, onHiddenSubjectsChange, }: SubjectVisibilityModalProps): import("react/jsx-runtime").JSX.Element | null;
+export default function SubjectVisibilityModal({ isOpen, onClose, subjects, hiddenSubjects, onHiddenSubjectsChange, subjectWeights, onSubjectWeightsChange, quizMode, }: SubjectVisibilityModalProps): import("react/jsx-runtime").JSX.Element | null;
 export {};
 //# sourceMappingURL=SubjectVisibilityModal.d.ts.map

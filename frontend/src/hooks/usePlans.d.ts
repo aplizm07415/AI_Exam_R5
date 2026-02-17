@@ -4,5 +4,7 @@ export declare function usePlans(): {
     addPlan: (newPlanData: Omit<Plan, "id">) => void;
     updatePlan: (updatedPlan: Plan) => void;
     deletePlan: (planId: string) => void;
+    isLoading: boolean;
+    error: string | null;
 };
 //# sourceMappingURL=usePlans.d.ts.map

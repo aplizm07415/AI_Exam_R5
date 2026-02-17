@@ -1,9 +1,9 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Optional
-from pydantic import BaseModel
-import hashlib # 追加
-import json # 追加
+from pydantic import BaseModel, Field
+import hashlib
+import json
 
 # ロガーの設定
 logging.basicConfig(level=logging.INFO)
@@ -15,7 +15,7 @@ class HistoryItem(BaseModel):
     subject: str
     selected_answer: str
     is_correct: bool
-    answered_at: datetime # タイムゾーン情報はここでは扱わない (main.pyで処理)
+    answered_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     category: str | None = None
 
 class ProblemStudyStatus(BaseModel):

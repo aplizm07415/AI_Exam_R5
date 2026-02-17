@@ -446,6 +446,10 @@ def save_history(item: HistoryItem):
         return {"status": "ok"}
     except Exception as e:
         print(f"ERROR saving history: {str(e)}") # コンテナログでデバッグしやすくするため
+        # エラーメッセージにBlobの種類に関する情報が含まれているかチェック
+        if "The blob type is invalid for this operation" in str(e):
+            detail_msg = f"Failed to save history. The blob 'history/{Path(item.subject).stem}.jsonl' may not be an Append Blob. Please check its type in Azure portal."
+            raise HTTPException(status_code=409, detail=detail_msg)
         raise HTTPException(status_code=500, detail=f"Failed to save history to blob: {e}")
 
 @api_router.post("/history/bulk", status_code=200)
@@ -483,6 +487,9 @@ def save_history_bulk(items: list[HistoryItem]):
             # If one subject fails, we might want to continue with others,
             # but for now, we'll raise an exception for the whole batch on first failure.
             print(f"ERROR saving bulk history for subject {subject_stem}: {str(e)}")
+            if "The blob type is invalid for this operation" in str(e):
+                detail_msg = f"Failed to save history for {subject_stem}. The blob 'history/{subject_stem}.jsonl' may not be an Append Blob."
+                raise HTTPException(status_code=409, detail=detail_msg)
             raise HTTPException(status_code=500, detail=f"Failed to save bulk history for {subject_stem}: {e}")
             
     return {"status": "ok", "processed_items": len(items)}
