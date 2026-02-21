@@ -3,7 +3,7 @@ import json
 import random
 import datetime
 from pathlib import Path
-from fastapi import FastAPI, APIRouter, HTTPException, Query
+from fastapi import FastAPI, APIRouter, HTTPException, Query, Response
 from pydantic import BaseModel, Field # BaseModelをインポート
 from typing import Literal, List, Optional
 from fastapi.staticfiles import StaticFiles
@@ -14,6 +14,9 @@ from azure.storage.blob import BlobServiceClient
 import pytz
 from collections import Counter
 import base64
+import hmac
+import hashlib
+import time
 from fastapi import Request, Depends # Add Depends
 import google.generativeai as genai
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials # Add for security
@@ -30,6 +33,20 @@ class DailySummaryItem(BaseModel):
 
 class GenerateKeywordsRequest(BaseModel):
     memo_text: str
+
+class SoragakiRecordPagePayload(BaseModel):
+    page: int = Field(ge=1)
+    data_url: str
+
+class SoragakiRecordCreateRequest(BaseModel):
+    pages: List[SoragakiRecordPagePayload]
+    learning_date: Optional[str] = None
+
+class SoragakiRecordSummary(BaseModel):
+    record_id: str
+    saved_at: str
+    learning_date: Optional[str] = None
+    page_count: int
 
 # 新規追加: 不正解問題詳細の戻り値用モデル
 class MissedProblemDetail(BaseModel):
@@ -87,6 +104,9 @@ if GOOGLE_API_KEY:
 
 # App Access Token Setup for single developer use
 APP_ACCESS_TOKEN = os.getenv("APP_ACCESS_TOKEN")
+SESSION_SECRET = os.getenv("SESSION_SECRET", APP_ACCESS_TOKEN or "")
+SESSION_TTL_SECONDS = int(os.getenv("SESSION_TTL_SECONDS", "43200"))  # 12 hours
+SESSION_COOKIE_NAME = "soragaki_session"
 
 # タイムゾーンの設定 (東京)
 TOKYO_TZ = pytz.timezone("Asia/Tokyo")
@@ -118,6 +138,82 @@ def verify_access_token(credentials: HTTPAuthorizationCredentials = Depends(secu
     if credentials.credentials != APP_ACCESS_TOKEN:
         raise HTTPException(status_code=401, detail="Invalid access token.")
     return credentials.credentials
+
+
+def _build_session_signature(exp: int) -> str:
+    if not SESSION_SECRET:
+        return ""
+    payload = f"{exp}".encode("utf-8")
+    return hmac.new(SESSION_SECRET.encode("utf-8"), payload, hashlib.sha256).hexdigest()
+
+
+def _build_session_cookie_value() -> str:
+    exp = int(time.time()) + SESSION_TTL_SECONDS
+    return f"{exp}:{_build_session_signature(exp)}"
+
+
+def _is_valid_session_cookie(cookie_value: Optional[str]) -> bool:
+    if not cookie_value or ":" not in cookie_value or not SESSION_SECRET:
+        return False
+
+    exp_str, signature = cookie_value.split(":", 1)
+    if not exp_str.isdigit():
+        return False
+
+    exp = int(exp_str)
+    if exp < int(time.time()):
+        return False
+
+    expected = _build_session_signature(exp)
+    return hmac.compare_digest(signature, expected)
+
+
+def verify_soragaki_auth(request: Request):
+    # Backward compatibility: allow existing Bearer token clients.
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer ") and APP_ACCESS_TOKEN is not None:
+        bearer = auth_header.removeprefix("Bearer ").strip()
+        if hmac.compare_digest(bearer, APP_ACCESS_TOKEN):
+            return True
+
+    session_cookie = request.cookies.get(SESSION_COOKIE_NAME)
+    if _is_valid_session_cookie(session_cookie):
+        return True
+
+    raise HTTPException(status_code=401, detail="Authentication required.")
+
+
+class SessionLoginRequest(BaseModel):
+    access_token: str
+
+
+@api_router.post("/auth/login", status_code=204)
+def auth_login(payload: SessionLoginRequest, request: Request, response: Response):
+    if APP_ACCESS_TOKEN is None:
+        raise HTTPException(status_code=500, detail="Server access token not configured.")
+    if not hmac.compare_digest(payload.access_token, APP_ACCESS_TOKEN):
+        raise HTTPException(status_code=401, detail="Invalid access token.")
+
+    secure_cookie = request.url.scheme == "https"
+    response.set_cookie(
+        key=SESSION_COOKIE_NAME,
+        value=_build_session_cookie_value(),
+        httponly=True,
+        secure=secure_cookie,
+        samesite="lax",
+        max_age=SESSION_TTL_SECONDS,
+        path="/",
+    )
+
+
+@api_router.get("/auth/session", status_code=204)
+def auth_session(_: bool = Depends(verify_soragaki_auth)):
+    return Response(status_code=204)
+
+
+@api_router.post("/auth/logout", status_code=204)
+def auth_logout(response: Response):
+    response.delete_cookie(key=SESSION_COOKIE_NAME, path="/")
 
 # Helper to get history items for a subject
 def _get_history_items_for_subject(subject_name: str) -> list[HistoryItem]:
@@ -270,7 +366,7 @@ def get_image(image_name: str):
         print(f"Error streaming image: {e}")
         raise HTTPException(status_code=500, detail="Failed to stream image from blob storage.")
 
-@api_router.post("/soragaki/generate-keywords", response_model=List[str], dependencies=[Depends(verify_access_token)])
+@api_router.post("/soragaki/generate-keywords", response_model=List[str], dependencies=[Depends(verify_soragaki_auth)])
 def generate_keywords_from_memo(request: GenerateKeywordsRequest):
     """
     Takes memo text and uses the Gemini API to extract and suggest keywords.
@@ -321,58 +417,251 @@ def generate_keywords_from_memo(request: GenerateKeywordsRequest):
         print(f"Error calling Gemini API: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to generate keywords using Gemini API: {e}")
 
-@api_router.post("/soragaki/{date_str}", status_code=204, dependencies=[Depends(verify_access_token)])
-async def save_soragaki(date_str: str, request: Request):
-    """Saves the Soragaki canvas as a PNG image."""
-    if not container_client:
-        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
-    
+def _validate_soragaki_date(date_str: str) -> None:
     try:
-        # Validate date format
         datetime.datetime.strptime(date_str, "%Y-%m-%d")
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
-        
+
+
+def _page_blob_name(date_str: str, page: int) -> str:
+    return f"{SORAGAKI_DIR}/{date_str}/page_{page}.png"
+
+
+def _record_prefix(record_id: str) -> str:
+    return f"{SORAGAKI_DIR}/records/{record_id}/"
+
+
+def _record_meta_blob_name(record_id: str) -> str:
+    return f"{_record_prefix(record_id)}meta.json"
+
+
+def _record_page_blob_name(record_id: str, page: int) -> str:
+    return f"{_record_prefix(record_id)}page_{page}.png"
+
+
+def _validate_record_id(record_id: str) -> None:
+    if "/" in record_id or ".." in record_id or not record_id.strip():
+        raise HTTPException(status_code=400, detail="Invalid record id.")
+
+
+def _decode_data_url_png(data_url: str) -> bytes:
+    if "," not in data_url:
+        raise HTTPException(status_code=400, detail="Invalid image payload format.")
+    try:
+        _, encoded = data_url.split(",", 1)
+        return base64.b64decode(encoded)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid image payload format.")
+
+
+@api_router.get("/soragaki/records", response_model=List[SoragakiRecordSummary], dependencies=[Depends(verify_soragaki_auth)])
+async def list_soragaki_records():
+    if not container_client:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+
+    prefix = f"{SORAGAKI_DIR}/records/"
+    records: List[SoragakiRecordSummary] = []
+
+    for blob in container_client.list_blobs(name_starts_with=prefix):
+        if not blob.name.endswith("/meta.json"):
+            continue
+        try:
+            meta_blob = container_client.get_blob_client(blob.name)
+            meta = json.loads(meta_blob.download_blob().readall())
+            records.append(SoragakiRecordSummary(
+                record_id=meta["record_id"],
+                saved_at=meta["saved_at"],
+                learning_date=meta.get("learning_date"),
+                page_count=int(meta["page_count"]),
+            ))
+        except Exception:
+            continue
+
+    records.sort(key=lambda r: r.saved_at, reverse=True)
+    return records
+
+
+@api_router.post("/soragaki/records", response_model=SoragakiRecordSummary, status_code=201, dependencies=[Depends(verify_soragaki_auth)])
+async def create_soragaki_record(payload: SoragakiRecordCreateRequest):
+    if not container_client:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+
+    if not payload.pages:
+        raise HTTPException(status_code=400, detail="At least one page is required.")
+
+    page_numbers = [p.page for p in payload.pages]
+    if len(set(page_numbers)) != len(page_numbers):
+        raise HTTPException(status_code=400, detail="Duplicate page numbers are not allowed.")
+
+    now = datetime.datetime.now(datetime.timezone.utc)
+    record_id = now.strftime("%Y%m%dT%H%M%S%fZ")
+    saved_at = now.isoformat().replace("+00:00", "Z")
+
+    for page_payload in sorted(payload.pages, key=lambda p: p.page):
+        data = _decode_data_url_png(page_payload.data_url)
+        blob_client = container_client.get_blob_client(_record_page_blob_name(record_id, page_payload.page))
+        blob_client.upload_blob(data, overwrite=False)
+
+    meta = {
+        "record_id": record_id,
+        "saved_at": saved_at,
+        "learning_date": payload.learning_date,
+        "page_count": len(payload.pages),
+    }
+    meta_blob = container_client.get_blob_client(_record_meta_blob_name(record_id))
+    meta_blob.upload_blob(json.dumps(meta), overwrite=False)
+
+    return SoragakiRecordSummary(
+        record_id=record_id,
+        saved_at=saved_at,
+        learning_date=payload.learning_date,
+        page_count=len(payload.pages),
+    )
+
+
+@api_router.get("/soragaki/records/{record_id}/pages", response_model=List[int], dependencies=[Depends(verify_soragaki_auth)])
+async def list_soragaki_record_pages(record_id: str):
+    if not container_client:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+
+    _validate_record_id(record_id)
+
+    page_numbers: List[int] = []
+    prefix = _record_prefix(record_id)
+    for blob in container_client.list_blobs(name_starts_with=prefix):
+        basename = blob.name.split("/")[-1]
+        if not basename.startswith("page_") or not basename.endswith(".png"):
+            continue
+        page_str = basename.replace("page_", "").replace(".png", "")
+        if page_str.isdigit():
+            page_numbers.append(int(page_str))
+
+    if not page_numbers:
+        raise HTTPException(status_code=404, detail="Record not found.")
+
+    return sorted(page_numbers)
+
+
+@api_router.get("/soragaki/records/{record_id}", dependencies=[Depends(verify_soragaki_auth)])
+async def get_soragaki_record_page(record_id: str, page: int = Query(default=1, ge=1)):
+    if not container_client:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+
+    _validate_record_id(record_id)
+
+    page_blob_client = container_client.get_blob_client(_record_page_blob_name(record_id, page))
+    if not page_blob_client.exists():
+        raise HTTPException(status_code=404, detail="No Soragaki data found for this record/page.")
+
+    try:
+        stream = page_blob_client.download_blob().chunks()
+        return StreamingResponse(stream, media_type="image/png")
+    except Exception as e:
+        print(f"Error streaming soragaki record image: {e}")
+        raise HTTPException(status_code=500, detail="Failed to stream Soragaki image.")
+
+
+@api_router.get("/soragaki/{date_str}/pages", response_model=List[int], dependencies=[Depends(verify_soragaki_auth)])
+async def list_soragaki_pages(date_str: str):
+    """Returns sorted page numbers for a date. Falls back to legacy single-file format."""
+    if not container_client:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+
+    _validate_soragaki_date(date_str)
+
+    page_numbers = []
+    prefix = f"{SORAGAKI_DIR}/{date_str}/"
+    for blob in container_client.list_blobs(name_starts_with=prefix):
+        name = blob.name
+        if not name.endswith(".png"):
+            continue
+        basename = name.split("/")[-1]
+        if basename.startswith("page_"):
+            page_str = basename.replace("page_", "").replace(".png", "")
+            if page_str.isdigit():
+                page_numbers.append(int(page_str))
+
+    if page_numbers:
+        return sorted(page_numbers)
+
+    # Backward compatibility: old schema was soragaki/YYYY-MM-DD.png
+    legacy_blob = container_client.get_blob_client(f"{SORAGAKI_DIR}/{date_str}.png")
+    if legacy_blob.exists():
+        return [1]
+
+    return []
+
+
+@api_router.post("/soragaki/{date_str}", status_code=204, dependencies=[Depends(verify_soragaki_auth)])
+async def save_soragaki(date_str: str, request: Request, page: int = Query(default=1, ge=1)):
+    """Saves Soragaki canvas image by date and page."""
+    if not container_client:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+
+    _validate_soragaki_date(date_str)
+
     try:
         body = await request.body()
-        # The body is expected to be a base64 data URL: "data:image/png;base64,iVBORw0KGgo..."
-        # We need to strip the header and decode the base64 part.
-        header, encoded = body.decode('utf-8').split(",", 1)
-        data = base64.b64decode(encoded)
-        
-        blob_name = f"{SORAGAKI_DIR}/{date_str}.png"
-        blob_client = container_client.get_blob_client(blob_name)
-        blob_client.upload_blob(data, overwrite=True)
+        data = _decode_data_url_png(body.decode("utf-8"))
+
+        # New multi-page path
+        page_blob_client = container_client.get_blob_client(_page_blob_name(date_str, page))
+        if page_blob_client.exists():
+            raise HTTPException(status_code=409, detail="Soragaki page is already saved and immutable.")
+        page_blob_client.upload_blob(data, overwrite=False)
+
+        # Keep legacy file in sync for page 1 to preserve old clients.
+        if page == 1:
+            legacy_blob_client = container_client.get_blob_client(f"{SORAGAKI_DIR}/{date_str}.png")
+            if legacy_blob_client.exists():
+                raise HTTPException(status_code=409, detail="Soragaki page is already saved and immutable.")
+            legacy_blob_client.upload_blob(data, overwrite=False)
     except Exception as e:
+        if isinstance(e, HTTPException):
+            raise e
         print(f"Error saving soragaki data to blob: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to save soragaki data: {e}")
 
-@api_router.get("/soragaki/{date_str}", dependencies=[Depends(verify_access_token)])
-async def get_soragaki(date_str: str):
-    """Retrieves a saved Soragaki image for a given date."""
+
+@api_router.get("/soragaki/{date_str}", dependencies=[Depends(verify_soragaki_auth)])
+async def get_soragaki(date_str: str, page: int = Query(default=1, ge=1)):
+    """Retrieves Soragaki image for a date and page."""
     if not container_client:
         raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
-        
-    try:
-        # Validate date format
-        datetime.datetime.strptime(date_str, "%Y-%m-%d")
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
 
-    blob_name = f"{SORAGAKI_DIR}/{date_str}.png"
-    blob_client = container_client.get_blob_client(blob_name)
+    _validate_soragaki_date(date_str)
 
-    if not blob_client.exists():
-        raise HTTPException(status_code=404, detail="No Soragaki data found for this date.")
-        
+    page_blob_client = container_client.get_blob_client(_page_blob_name(date_str, page))
+
+    # Backward compatibility for older single-page data.
+    if not page_blob_client.exists() and page == 1:
+        legacy_blob_client = container_client.get_blob_client(f"{SORAGAKI_DIR}/{date_str}.png")
+        if legacy_blob_client.exists():
+            try:
+                stream = legacy_blob_client.download_blob().chunks()
+                return StreamingResponse(stream, media_type="image/png")
+            except Exception as e:
+                print(f"Error streaming soragaki legacy image: {e}")
+                raise HTTPException(status_code=500, detail="Failed to stream Soragaki image.")
+
+    if not page_blob_client.exists():
+        raise HTTPException(status_code=404, detail="No Soragaki data found for this date/page.")
+
     try:
-        stream = blob_client.download_blob().chunks()
+        stream = page_blob_client.download_blob().chunks()
         return StreamingResponse(stream, media_type="image/png")
     except Exception as e:
         print(f"Error streaming soragaki image: {e}")
         raise HTTPException(status_code=500, detail="Failed to stream Soragaki image.")
 
-@api_router.get("/soragaki/memos/{date_str}", response_model=str, dependencies=[Depends(verify_access_token)])
+
+@api_router.delete("/soragaki/{date_str}", status_code=204, dependencies=[Depends(verify_soragaki_auth)])
+async def delete_soragaki(date_str: str, page: int = Query(default=1, ge=1)):
+    """Soragaki pages are immutable once saved."""
+    raise HTTPException(status_code=409, detail="Soragaki data is immutable and cannot be deleted.")
+
+@api_router.get("/soragaki/memos/{date_str}", response_model=str, dependencies=[Depends(verify_soragaki_auth)])
 def get_memos_for_date(date_str: str):
     """
     Aggregates and returns all 'My Memo' content for a given date.

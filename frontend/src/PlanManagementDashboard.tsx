@@ -33,6 +33,13 @@ interface ProgressDataRow {
   progress: { daily: number; cumulative: number };
 }
 
+const formatDateYmd = (date: Date): string => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
+
 export default function PlanManagementDashboard({ subjects }: PlanManagementDashboardProps) {
   const { plans, addPlan, updatePlan, deletePlan, isLoading, error } = usePlans();
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -274,11 +281,23 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
   }, [plans, dailySummaryAll, selectedPlanIds]);
 
   const chartData = useMemo(() => {
-    return progressData.map(d => ({
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const from = new Date(today);
+    from.setDate(from.getDate() - 4);
+    const to = new Date(today);
+    to.setDate(to.getDate() + 4);
+    const fromYmd = formatDateYmd(from);
+    const toYmd = formatDateYmd(to);
+
+    return progressData
+      .filter(d => d.date >= fromYmd && d.date <= toYmd)
+      .map(d => ({
       date: d.date,
       '予定': d.plan.cumulative,
       '実績': d.actual.cumulative,
-    })).sort((a, b) => a.date.localeCompare(b.date));
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date));
   }, [progressData]);
 
   if (isLoading) {
@@ -467,23 +486,27 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
       
       <div className="mt-8">
         <h3 className="text-lg font-semibold text-gray-700 mb-4">予実グラフ</h3>
-        <ResponsiveContainer width="100%" height={350}>
-          <LineChart
-            data={chartData}
-            margin={{
-              top: 5, right: 30, left: 20, bottom: 50,
-            }}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Line type="monotone" dataKey="予定" stroke="#3b82f6" activeDot={{ r: 8 }} />
-            <Line type="monotone" dataKey="実績" stroke="#16a34a" dot={false} /> {/* Changed to dot={false} for '実績' for better mobile visibility */}
-            <Brush dataKey="date" height={30} stroke="#3b82f6" />
-          </LineChart>
-        </ResponsiveContainer>
+        {chartData.length === 0 ? (
+          <div className="text-sm text-gray-500 py-8">当日±4日に表示対象データがありません。</div>
+        ) : (
+          <ResponsiveContainer width="100%" height={350}>
+            <LineChart
+              data={chartData}
+              margin={{
+                top: 5, right: 30, left: 20, bottom: 50,
+              }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey="予定" stroke="#3b82f6" activeDot={{ r: 8 }} />
+              <Line type="monotone" dataKey="実績" stroke="#16a34a" dot={false} /> {/* Changed to dot={false} for '実績' for better mobile visibility */}
+              <Brush dataKey="date" height={30} stroke="#3b82f6" />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
       </div>
       
       <div className="mt-8">
