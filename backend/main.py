@@ -306,13 +306,14 @@ def get_subjects():
     """Blob Storage内の科目（問題JSONファイル）リストを返す"""
     if container_client is None: return ["（Blob Storage未接続）"]
     try:
-        # 'history/' and 'custom-explanations/' フォルダにあるファイルは科目リストから除外する
+        # 科目一覧に不要な管理系JSONを含めない
         return [
             blob.name for blob in container_client.list_blobs()
             if (
                 blob.name.endswith('.json') and
                 not blob.name.startswith('history/') and
-                not blob.name.startswith('custom-explanations/')
+                not blob.name.startswith('custom-explanations/') and
+                not blob.name.startswith('soragaki/')
             )
         ]
     except Exception as e:

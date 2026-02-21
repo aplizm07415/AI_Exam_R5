@@ -486,6 +486,41 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     }
   };
 
+  const openIpadMode = () => {
+    if (selectedSubjectNames.length === 0) {
+      setError('科目を1つ以上選択してください。');
+      return;
+    }
+
+    let questionsToFetch = numQuestions;
+    if (quizMode === 'today_remaining') {
+      if (todayRemaining.count === 0) {
+        setError('今日の予定は完了しています！');
+        return;
+      }
+      questionsToFetch = Math.min(numQuestions, todayRemaining.count);
+    } else if (quizMode === 'unanswered') {
+      if (unansweredCount === null || unansweredCount === 0) {
+        setError('未解答の問題はありません。');
+        return;
+      }
+      questionsToFetch = Math.min(numQuestions, unansweredCount);
+    } else if (quizMode === 'weak_area') {
+      if (weakAreaCount === null || weakAreaCount === 0) {
+        setError('苦手問題はありません。');
+        return;
+      }
+      questionsToFetch = Math.min(numQuestions, weakAreaCount);
+    }
+
+    const deepLink =
+      `quizapp://quiz?base=${encodeURIComponent(window.location.origin)}` +
+      `&subjects=${encodeURIComponent(selectedSubjectNames.join(','))}` +
+      `&mode=${encodeURIComponent(quizMode)}` +
+      `&count=${encodeURIComponent(String(Math.max(1, questionsToFetch)))}`;
+    window.location.href = deepLink;
+  };
+
   const resetQuestionState = () => {
     setSelectedAnswer(null);
     setIsAnswered(false);
@@ -1167,6 +1202,14 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
                             {isLoading ? 'クイズ準備中...' : 'Start'}
 
+                          </button>
+                          <button
+                            type="button"
+                            onClick={openIpadMode}
+                            disabled={isLoading || selectedSubjectNames.length === 0}
+                            className="mt-3 w-full py-3 px-4 border border-cyan-600 rounded-md shadow-sm text-base font-medium text-cyan-700 bg-cyan-50 hover:bg-cyan-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            iPadモード
                           </button>
 
                         </div>

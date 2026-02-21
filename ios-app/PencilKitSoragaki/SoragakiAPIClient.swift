@@ -5,6 +5,112 @@ struct SoragakiAuthPayload: Encodable {
     let access_token: String
 }
 
+struct QuizChoice: Codable, Identifiable {
+    var label: String
+    var text: String
+    var id: String { label }
+}
+
+struct QuizExplanation: Decodable {
+    let text: String
+
+    init(text: String) {
+        self.text = text
+    }
+
+    init(from decoder: Decoder) throws {
+        if let container = try? decoder.singleValueContainer(),
+           let stringValue = try? container.decode(String.self) {
+            text = stringValue
+            return
+        }
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        text = try container.decodeIfPresent(String.self, forKey: .text) ?? ""
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case text
+    }
+}
+
+struct QuizQuestion: Decodable, Identifiable {
+    let id: String
+    var questionText: String
+    var choices: [QuizChoice]
+    var answer: String
+    let subject: String
+    var explanation: QuizExplanation
+    var category: String?
+    var customExplanation: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case questionText = "question_text"
+        case choices
+        case answer
+        case subject
+        case explanation
+        case category
+        case customExplanation = "custom_explanation"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decodeIfPresent(String.self, forKey: .id) ?? UUID().uuidString
+        questionText = try container.decodeIfPresent(String.self, forKey: .questionText) ?? "(問題文なし)"
+        choices = try container.decodeIfPresent([QuizChoice].self, forKey: .choices) ?? []
+        answer = try container.decodeIfPresent(String.self, forKey: .answer) ?? ""
+        subject = try container.decodeIfPresent(String.self, forKey: .subject) ?? ""
+        explanation = try container.decodeIfPresent(QuizExplanation.self, forKey: .explanation) ?? QuizExplanation(text: "")
+        category = try container.decodeIfPresent(String.self, forKey: .category)
+        customExplanation = try container.decodeIfPresent(String.self, forKey: .customExplanation)
+    }
+}
+
+private struct QuizStartRequestPayload: Encodable {
+    let subjects: [String]
+    let count: Int
+    let mode: String
+}
+
+private struct QuizStartResponsePayload: Decodable {
+    let quiz_set: [QuizQuestion]
+}
+
+private struct QuizHistoryPayload: Encodable {
+    let problem_id: String
+    let subject: String
+    let selected_answer: String
+    let is_correct: Bool
+    let category: String?
+}
+
+private struct QuizBulkHistoryStatsPayload: Encodable {
+    let problem_ids: [String]
+    let subjects: [String]
+}
+
+struct QuizHistoryStat: Decodable {
+    let total: Int
+    let correct: Int
+}
+
+private struct SaveCustomExplanationPayload: Encodable {
+    let text: String
+}
+
+private struct UpdateProblemPayload: Encodable {
+    let question_text: String
+    let choices: [QuizChoice]
+    let answer: String
+    let explanation: QuizExplanationUpdatePayload
+    let category: String?
+}
+
+private struct QuizExplanationUpdatePayload: Encodable {
+    let text: String
+}
+
 struct SoragakiRecordSummary: Codable, Identifiable {
     let record_id: String
     let saved_at: String
@@ -108,6 +214,81 @@ final class SoragakiAPIClient {
         }
     }
 
+    func startQuiz(subjects: [String], mode: String, count: Int) async throws -> [QuizQuestion] {
+        let url = URL(string: "/api/quiz/start", relativeTo: baseURL)!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(
+            QuizStartRequestPayload(subjects: subjects, count: count, mode: mode)
+        )
+        let (data, _) = try await send(request, expectedStatuses: [200])
+        do {
+            let response = try JSONDecoder().decode(QuizStartResponsePayload.self, from: data)
+            return response.quiz_set
+        } catch {
+            let raw = String(data: data, encoding: .utf8) ?? "(invalid utf8)"
+            throw APIError.decoding("quiz/start decode failed: \(error.localizedDescription). raw=\(raw.prefix(280))")
+        }
+    }
+
+    func submitHistory(problemID: String, subject: String, selectedAnswer: String, isCorrect: Bool, category: String?) async throws {
+        let url = URL(string: "/api/history", relativeTo: baseURL)!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(
+            QuizHistoryPayload(
+                problem_id: problemID,
+                subject: subject,
+                selected_answer: selectedAnswer,
+                is_correct: isCorrect,
+                category: category
+            )
+        )
+        _ = try await send(request, expectedStatuses: [200])
+    }
+
+    func getBulkHistoryStats(problemIDs: [String], subjects: [String]) async throws -> [String: QuizHistoryStat] {
+        let url = URL(string: "/api/quiz/bulk-history-stats", relativeTo: baseURL)!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(
+            QuizBulkHistoryStatsPayload(problem_ids: problemIDs, subjects: subjects)
+        )
+        let (data, _) = try await send(request, expectedStatuses: [200])
+        return try JSONDecoder().decode([String: QuizHistoryStat].self, from: data)
+    }
+
+    func saveCustomExplanation(problemID: String, text: String) async throws {
+        let url = URL(string: "/api/problems/\(problemID)/custom-explanation", relativeTo: baseURL)!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(SaveCustomExplanationPayload(text: text))
+        _ = try await send(request, expectedStatuses: [204])
+    }
+
+    func updateProblem(subject: String, problemID: String, questionText: String, choices: [QuizChoice], answer: String, explanationText: String, category: String?) async throws -> QuizQuestion {
+        let escapedSubject = subject.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? subject
+        let url = URL(string: "/api/subjects/\(escapedSubject)/problems/\(problemID)", relativeTo: baseURL)!
+        var request = URLRequest(url: url)
+        request.httpMethod = "PUT"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(
+            UpdateProblemPayload(
+                question_text: questionText,
+                choices: choices,
+                answer: answer,
+                explanation: QuizExplanationUpdatePayload(text: explanationText),
+                category: category?.isEmpty == true ? nil : category
+            )
+        )
+        let (data, _) = try await send(request, expectedStatuses: [200])
+        return try JSONDecoder().decode(QuizQuestion.self, from: data)
+    }
+
     func getMemos(date: String) async throws -> String {
         let url = URL(string: "/api/soragaki/memos/\(date)", relativeTo: baseURL)!
         var request = URLRequest(url: url)
@@ -146,6 +327,7 @@ enum APIError: LocalizedError {
     case invalidResponse
     case unauthorized
     case unexpectedStatus(Int)
+    case decoding(String)
 
     var errorDescription: String? {
         switch self {
@@ -155,6 +337,8 @@ enum APIError: LocalizedError {
             return "認証に失敗しました。"
         case .unexpectedStatus(let code):
             return "サーバーエラー: \(code)"
+        case .decoding(let message):
+            return "データ解析エラー: \(message)"
         }
     }
 }

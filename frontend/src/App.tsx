@@ -28,7 +28,14 @@ export default function App() {
         throw new Error("Failed to fetch subject names.");
       }
       const subjectNames: string[] = await response.json();
-      const subjectObjects = subjectNames.map(name => ({ name }));
+      const subjectObjects = subjectNames
+        .filter((name) =>
+          name.endsWith('.json') &&
+          !name.startsWith('history/') &&
+          !name.startsWith('custom-explanations/') &&
+          !name.startsWith('soragaki/')
+        )
+        .map(name => ({ name }));
       setSubjects(subjectObjects.sort((a, b) => a.name.localeCompare(b.name)));
     } catch (error) {
       console.error("Failed to fetch subjects:", error);
