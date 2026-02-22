@@ -1014,35 +1014,25 @@ def save_history_bulk(items: list[HistoryItem]):
             
     return {"status": "ok", "processed_items": len(items)}
 
-@api_router.get("/analytics/{subject_name}")
-def get_analytics(
-    subject_name: str,
+def _empty_analytics_response():
+    return {
+        "overall_correct_rate": 0,
+        "total_runs": 0,
+        "daily_correct_rate_trend": {},
+        "frequently_missed_categories": {},
+        "total_problems_in_subject": 0,
+        "unanswered_problems_count": 0,
+    }
+
+
+def _filter_history_items(
+    history_items: list[HistoryItem],
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
     category: Optional[str] = None,
-):
-    """指定された科目の履歴ファイルのみをAzure Blob Storageから読み込み、統計情報を計算して返す"""
-    if container_client is None:
-        return {"overall_correct_rate": 0, "total_runs": 0, "daily_correct_rate_trend": {}, "frequently_missed_categories": {}, "total_problems_in_subject": 0, "unanswered_problems_count": 0}
-
-    subject_stem = Path(subject_name).stem
-    history_blob_name = f"history/{subject_stem}.jsonl"
-    history_blob_client = container_client.get_blob_client(history_blob_name)
-
-    if not history_blob_client.exists():
-        return {"overall_correct_rate": 0, "total_runs": 0, "daily_correct_rate_trend": {}, "frequently_missed_categories": {}, "total_problems_in_subject": 0, "unanswered_problems_count": 0}
-
-    try:
-        history_content = history_blob_client.download_blob().readall().decode('utf-8')
-        history_lines = history_content.strip().split('\n')
-        history_items = [HistoryItem.model_validate_json(line) for line in history_lines if line]
-    except Exception as e:
-        print(f"Error reading history from blob: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to read or parse history from blob: {e}")
-    
-    # --- Filtering Logic ---
+) -> list[HistoryItem]:
     target_history = history_items
-    
+
     if start_date:
         try:
             start_dt = TOKYO_TZ.localize(datetime.datetime.strptime(start_date, "%Y-%m-%d"))
@@ -1052,44 +1042,90 @@ def get_analytics(
 
     if end_date:
         try:
-            # End of the day
             end_dt = TOKYO_TZ.localize(datetime.datetime.strptime(end_date, "%Y-%m-%d")) + datetime.timedelta(days=1)
             target_history = [item for item in target_history if item.answered_at < end_dt]
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid end_date format. Use YYYY-MM-DD.")
-            
+
     if category:
         target_history = [item for item in target_history if item.category == category]
-    # --- End of Filtering Logic ---
+
+    return target_history
+
+
+def _build_analytics_response(
+    subject_names: list[str],
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    category: Optional[str] = None,
+):
+    if container_client is None:
+        return _empty_analytics_response()
+
+    unique_subjects: list[str] = []
+    seen_subjects = set()
+    for subject in subject_names:
+        if subject not in seen_subjects:
+            seen_subjects.add(subject)
+            unique_subjects.append(subject)
+
+    if not unique_subjects:
+        return _empty_analytics_response()
+
+    all_history_items: list[HistoryItem] = []
+    answered_problem_keys = set()
+    total_problems_in_subject = 0
+
+    for subject_name in unique_subjects:
+        history_items = _get_history_items_for_subject(subject_name)
+        all_history_items.extend(history_items)
+        for item in history_items:
+            answered_problem_keys.add((subject_name, item.problem_id))
+
+        try:
+            all_questions_for_subject_map = _get_all_questions_for_subject(subject_name)
+            total_problems_in_subject += len(all_questions_for_subject_map)
+        except Exception as e:
+            print(f"Warning: failed to read questions for analytics subject {subject_name}: {e}")
+
+    target_history = _filter_history_items(
+        all_history_items,
+        start_date=start_date,
+        end_date=end_date,
+        category=category,
+    )
+
+    unanswered_problems_count = max(0, total_problems_in_subject - len(answered_problem_keys))
 
     if not target_history:
-        return {"overall_correct_rate": 0, "total_runs": 0, "daily_correct_rate_trend": {}, "frequently_missed_categories": {}, "total_problems_in_subject": 0, "unanswered_problems_count": 0}
+        response = _empty_analytics_response()
+        response["total_problems_in_subject"] = total_problems_in_subject
+        response["unanswered_problems_count"] = unanswered_problems_count
+        return response
 
     total_runs = len(target_history)
     correct_answers = sum(1 for item in target_history if item.is_correct)
     overall_correct_rate = (correct_answers / total_runs) * 100 if total_runs > 0 else 0
+
     daily_trend = {}
     for item in target_history:
-        # UTCタイムスタンプをAsia/Tokyoのローカル日付に変換
         day_str = item.answered_at.astimezone(TOKYO_TZ).strftime("%Y-%m-%d")
-        if day_str not in daily_trend: daily_trend[day_str] = {"correct": 0, "total": 0}
+        if day_str not in daily_trend:
+            daily_trend[day_str] = {"correct": 0, "total": 0}
         daily_trend[day_str]["total"] += 1
         if item.is_correct:
             daily_trend[day_str]["correct"] += 1
-    daily_correct_rate_trend = {day: (stats["correct"] / stats["total"]) for day, stats in daily_trend.items()}
+
+    daily_correct_rate_trend = {
+        day: (stats["correct"] / stats["total"])
+        for day, stats in daily_trend.items()
+        if stats["total"] > 0
+    }
 
     frequently_missed_categories = {}
     for item in target_history:
         if not item.is_correct and item.category:
             frequently_missed_categories[item.category] = frequently_missed_categories.get(item.category, 0) + 1
-
-    # Unfiltered history is needed for unanswered count
-    all_questions_for_subject_map = _get_all_questions_for_subject(subject_name)
-    total_problems_in_subject = len(all_questions_for_subject_map)
-    
-    unfiltered_history_items = history_items
-    answered_problem_ids = {item.problem_id for item in unfiltered_history_items}
-    unanswered_problems_count = total_problems_in_subject - len(answered_problem_ids)
 
     return {
         "overall_correct_rate": overall_correct_rate,
@@ -1099,6 +1135,28 @@ def get_analytics(
         "total_problems_in_subject": total_problems_in_subject,
         "unanswered_problems_count": unanswered_problems_count,
     }
+
+
+@api_router.get("/analytics")
+def get_analytics_multi(
+    subjects: list[str] = Query(...),
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    category: Optional[str] = None,
+):
+    """複数科目の統合統計情報を返す"""
+    return _build_analytics_response(subjects, start_date=start_date, end_date=end_date, category=category)
+
+
+@api_router.get("/analytics/{subject_name}")
+def get_analytics(
+    subject_name: str,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    category: Optional[str] = None,
+):
+    """指定された科目の統計情報を返す（後方互換）"""
+    return _build_analytics_response([subject_name], start_date=start_date, end_date=end_date, category=category)
 
 @api_router.get("/analytics/{subject_name}/missed-problems", response_model=list[MissedProblemDetail])
 def get_missed_problems(subject_name: str):

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { usePlans } from './hooks/usePlans';
 import type { Plan } from './types/plan.d';
 import { isHoliday } from './utils/date';
@@ -66,6 +66,9 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
   const [holidayRatio, setHolidayRatio] = useState(2);
 
   const [applyDays, setApplyDays] = useState<'all' | 'weekday' | 'holiday'>('all');
+  const chartWrapperRef = useRef<HTMLDivElement | null>(null);
+  const [isPrintPreview, setIsPrintPreview] = useState(false);
+  const [printChartWidth, setPrintChartWidth] = useState(900);
 
   useEffect(() => {
     // plansが読み込まれたら、デフォルトで全ての有効なプランを選択状態にする
@@ -103,6 +106,40 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
       fetchFilteredSummary();
     }
   }, [plans, selectedPlanIds]);
+
+  useEffect(() => {
+    const triggerChartResize = () => {
+      // Recharts ResponsiveContainer sometimes keeps stale width in print preview.
+      window.dispatchEvent(new Event('resize'));
+      window.setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+    };
+
+    const updatePrintChartWidth = () => {
+      const width = chartWrapperRef.current?.getBoundingClientRect().width;
+      if (width && width > 0) {
+        setPrintChartWidth(Math.floor(width));
+      }
+    };
+
+    const handleBeforePrint = () => {
+      updatePrintChartWidth();
+      setIsPrintPreview(true);
+      triggerChartResize();
+    };
+
+    const handleAfterPrint = () => {
+      setIsPrintPreview(false);
+      triggerChartResize();
+    };
+
+    window.addEventListener('beforeprint', handleBeforePrint);
+    window.addEventListener('afterprint', handleAfterPrint);
+
+    return () => {
+      window.removeEventListener('beforeprint', handleBeforePrint);
+      window.removeEventListener('afterprint', handleAfterPrint);
+    };
+  }, []);
 
   const handleSubjectChange = (subjectName: string) => {
     setSelectedSubjects(prev =>
@@ -209,6 +246,12 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
   const toggleEnabled = (plan: Plan) => {
     updatePlan({ ...plan, enabled: !plan.enabled });
   };
+
+  const confirmDeletePlan = (plan: Plan) => {
+    const ok = window.confirm(`予定「${plan.title}」を削除しますか？`);
+    if (!ok) return;
+    deletePlan(plan.id);
+  };
   
   const progressData = useMemo((): ProgressDataRow[] => {
     const activePlans = plans.filter(p => p.enabled && selectedPlanIds.includes(p.id));
@@ -280,7 +323,7 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
       .sort((a, b) => a.date.localeCompare(b.date));
   }, [plans, dailySummaryAll, selectedPlanIds]);
 
-  const chartData = useMemo(() => {
+  const displayProgressData = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const from = new Date(today);
@@ -292,13 +335,18 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
 
     return progressData
       .filter(d => d.date >= fromYmd && d.date <= toYmd)
+      .sort((a, b) => a.date.localeCompare(b.date));
+  }, [progressData]);
+
+  const chartData = useMemo(() => {
+    return displayProgressData
       .map(d => ({
       date: d.date,
       '予定': d.plan.cumulative,
       '実績': d.actual.cumulative,
       }))
       .sort((a, b) => a.date.localeCompare(b.date));
-  }, [progressData]);
+  }, [displayProgressData]);
 
   if (isLoading) {
     return (
@@ -314,10 +362,11 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
 
   return (
     <div className="bg-white rounded-xl shadow p-6">
+      <h2 className="text-3xl font-bold text-dark mb-4">予実ダッシュボード</h2>
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold text-gray-800">学習予定管理</h2>
         <button onClick={() => setIsFormOpen(!isFormOpen)} className="px-4 py-2 bg-primary-new text-white rounded-lg hover:bg-blue-700 transition-colors">
-          {isFormOpen ? '閉じる' : '新しい予定を追加'}
+          {isFormOpen ? '閉じる' : '新規予定追加'}
         </button>
       </div>
 
@@ -419,7 +468,7 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
           <button
             type="button"
             onClick={() => setSelectedPlanIds(plans.filter(p => p.enabled).map(p => p.id))}
-            className="px-3 py-1 text-xs font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600"
+            className="px-3 py-1 text-xs font-medium text-white bg-primary-new rounded-md hover:bg-primary"
           >
             すべて選択
           </button>
@@ -445,7 +494,7 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
                       : [...prev, plan.id]
                   );
                 }}
-                className="h-4 w-4 text-primary-new border-gray-300 rounded focus:ring-primary-new"
+                className="h-4 w-4 accent-primary-new text-primary-new border-gray-300 rounded focus:ring-primary-new"
                 disabled={!plan.enabled}
               />
               <label
@@ -472,11 +521,10 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
               <label htmlFor={`toggle-${plan.id}`} className="flex items-center cursor-pointer">
                 <div className="relative">
                   <input type="checkbox" id={`toggle-${plan.id}`} className="sr-only" checked={plan.enabled} onChange={() => toggleEnabled(plan)} />
-                  <div className={`block w-14 h-8 rounded-full ${plan.enabled ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                  <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${plan.enabled ? 'translate-x-6' : ''}`}></div>
+                  <div className={`block w-14 h-8 rounded-full border-2 border-primary-new transition-colors ${plan.enabled ? 'bg-primary-new' : 'bg-white'}`}></div>
                 </div>
               </label>
-              <button onClick={() => deletePlan(plan.id)} className="text-gray-400 hover:text-red-600">
+              <button onClick={() => confirmDeletePlan(plan)} className="text-gray-400 hover:text-danger">
                 <TrashIcon className="w-6 h-6" />
               </button>
             </div>
@@ -484,28 +532,49 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
         ))}
       </div>
       
-      <div className="mt-8">
+      <div className="mt-8 print-chart-fix">
         <h3 className="text-lg font-semibold text-gray-700 mb-4">予実グラフ</h3>
         {chartData.length === 0 ? (
           <div className="text-sm text-gray-500 py-8">当日±4日に表示対象データがありません。</div>
         ) : (
-          <ResponsiveContainer width="100%" height={350}>
-            <LineChart
-              data={chartData}
-              margin={{
-                top: 5, right: 30, left: 20, bottom: 50,
-              }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="予定" stroke="#3b82f6" activeDot={{ r: 8 }} />
-              <Line type="monotone" dataKey="実績" stroke="#16a34a" dot={false} /> {/* Changed to dot={false} for '実績' for better mobile visibility */}
-              <Brush dataKey="date" height={30} stroke="#3b82f6" />
-            </LineChart>
-          </ResponsiveContainer>
+          <div ref={chartWrapperRef}>
+            {isPrintPreview ? (
+              <LineChart
+                width={printChartWidth}
+                height={350}
+                data={chartData}
+                margin={{
+                  top: 5, right: 30, left: 20, bottom: 50,
+                }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="予定" stroke="#3d7cce" dot={false} isAnimationActive={false} />
+                <Line type="monotone" dataKey="実績" stroke="#cf483e" dot={false} isAnimationActive={false} />
+              </LineChart>
+            ) : (
+              <ResponsiveContainer width="100%" height={350}>
+                <LineChart
+                  data={chartData}
+                  margin={{
+                    top: 5, right: 30, left: 20, bottom: 50,
+                  }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="予定" stroke="#3d7cce" dot={false} isAnimationActive={false} />
+                  <Line type="monotone" dataKey="実績" stroke="#cf483e" dot={false} isAnimationActive={false} /> {/* Changed to dot={false} for '実績' for better mobile visibility */}
+                  <Brush dataKey="date" height={30} stroke="#3d7cce" />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </div>
         )}
       </div>
       

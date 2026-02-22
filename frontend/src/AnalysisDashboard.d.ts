@@ -17,8 +17,8 @@ interface DailySummaryItem {
 }
 interface AnalysisDashboardProps {
     subjects: Subject[];
-    selectedSubjectName: string;
-    setSelectedSubjectName: (name: string) => void;
+    selectedSubjectNames: string[];
+    setSelectedSubjectNames: (names: string[]) => void;
     analytics: AnalyticsData | null;
     isLoading: boolean;
     error: string;
@@ -34,6 +34,6 @@ interface AnalysisDashboardProps {
     setSelectedCategory: (category: string) => void;
     onApplyFilters: () => void;
 }
-export default function AnalysisDashboard({ subjects, selectedSubjectName, setSelectedSubjectName, analytics, isLoading, error, dailySummary, isDailySummaryLoading, dailySummaryError, startDate, setStartDate, endDate, setEndDate, categories, selectedCategory, setSelectedCategory, onApplyFilters, }: AnalysisDashboardProps): import("react/jsx-runtime").JSX.Element;
+export default function AnalysisDashboard({ subjects, selectedSubjectNames, setSelectedSubjectNames, analytics, isLoading, error, dailySummary, isDailySummaryLoading, dailySummaryError, startDate, setStartDate, endDate, setEndDate, categories, selectedCategory, setSelectedCategory, onApplyFilters, }: AnalysisDashboardProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=AnalysisDashboard.d.ts.map

@@ -25,8 +25,8 @@ interface DailySummaryItem {
 
 interface AnalysisDashboardProps {
   subjects: Subject[];
-  selectedSubjectName: string;
-  setSelectedSubjectName: (name: string) => void;
+  selectedSubjectNames: string[];
+  setSelectedSubjectNames: (names: string[]) => void;
   analytics: AnalyticsData | null;
   isLoading: boolean;
   error: string;
@@ -46,8 +46,8 @@ interface AnalysisDashboardProps {
 
 export default function AnalysisDashboard({
   subjects,
-  selectedSubjectName,
-  setSelectedSubjectName,
+  selectedSubjectNames,
+  setSelectedSubjectNames,
   analytics,
   isLoading,
   error,
@@ -112,10 +112,15 @@ export default function AnalysisDashboard({
   }, [analytics]);
 
   const handleExportMissedProblems = async () => {
-    if (!selectedSubjectName) {
+    if (selectedSubjectNames.length === 0) {
       alert("科目を選択してください。");
       return;
     }
+    if (selectedSubjectNames.length > 1) {
+      alert("不正解問題リストのエクスポートは現在1科目選択時のみ対応しています。");
+      return;
+    }
+    const selectedSubjectName = selectedSubjectNames[0]!;
     setIsExporting(true);
     try {
       const response = await fetch(`${API_BASE_URL}/analytics/${selectedSubjectName}/missed-problems`);
@@ -141,6 +146,14 @@ export default function AnalysisDashboard({
     } finally {
       setIsExporting(false);
     }
+  };
+
+  const toggleSubject = (name: string) => {
+    setSelectedSubjectNames(
+      selectedSubjectNames.includes(name)
+        ? selectedSubjectNames.filter((s) => s !== name)
+        : [...selectedSubjectNames, name]
+    );
   };
 
   return (
@@ -201,17 +214,41 @@ export default function AnalysisDashboard({
             統合ボード
           </button>
         </div>
-        <div className="w-full sm:w-64">
-          <select
-            id="subject"
-            value={selectedSubjectName}
-            onChange={e => setSelectedSubjectName(e.target.value)}
-            className="block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 text-dark focus:outline-none focus:ring-primary-new focus:border-primary-new"
-          >
-            {subjects.map(s => <option key={s.name} value={s.name}>
-              {s.name}
-            </option>)}
-          </select>
+        <div className="w-full sm:flex-1">
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-sm font-medium text-gray-700">対象科目（複数選択可）</label>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setSelectedSubjectNames(subjects.map((s) => s.name))}
+                className="px-2 py-1 text-xs rounded border border-gray-300 bg-white hover:bg-gray-50"
+              >
+                すべて選択
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedSubjectNames([])}
+                className="px-2 py-1 text-xs rounded border border-gray-300 bg-white hover:bg-gray-50"
+              >
+                解除
+              </button>
+            </div>
+          </div>
+          <div className="max-h-32 overflow-y-auto border border-gray-200 rounded-md p-2 bg-white">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {subjects.map((s) => (
+                <label key={s.name} className="flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={selectedSubjectNames.includes(s.name)}
+                    onChange={() => toggleSubject(s.name)}
+                    className="h-4 w-4 text-primary-new border-gray-300 rounded focus:ring-primary-new"
+                  />
+                  <span className="truncate" title={s.name}>{s.name}</span>
+                </label>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -262,12 +299,12 @@ export default function AnalysisDashboard({
             <div className="text-center text-danger bg-danger/10 rounded-xl p-12"><p>{error}</p></div>
           ) : !analytics || analytics.total_runs === 0 ? (
             <div className="text-center text-gray-500 bg-white rounded-xl p-12">
-              <p>「{selectedSubjectName}」の練習履歴が見つかりません。</p>
+              <p>選択した科目の練習履歴が見つかりません。</p>
               <p className="mt-2">クイズを完了すると、ダッシュボードが表示されます。</p>
             </div>
           ) : (
             <div className="space-y-8">
-              <div className="bg-white rounded-xl shadow p-6">
+              <div className="bg-white rounded-xl shadow p-6 print-color-graph">
                 <h3 className="text-lg font-semibold text-gray-700 mb-4">総合パフォーマンス</h3>
                 <div className="grid grid-cols-4 gap-4 text-center">
                   <div>
@@ -341,6 +378,11 @@ export default function AnalysisDashboard({
                     <span>70%</span>
                     <span>60%</span>
                     <span>50%</span>
+                    <span>40%</span>
+                    <span>30%</span>
+                    <span>20%</span>
+                    <span>10%</span>
+                    <span>0%</span>
                   </div>
 
                   <div className="relative flex-grow overflow-x-auto">
@@ -348,7 +390,7 @@ export default function AnalysisDashboard({
                       
                       {/* Background Grid lines */}
                       <div className="absolute inset-0">
-                        {[100, 90, 80, 70, 60, 50].map(p => {
+                        {[100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 0].map(p => {
                           const topPosition = 100 - p;
                           return <div key={p} className="absolute w-full border-t border-gray-200 border-dashed" style={{ top: `${topPosition}%` }} />;
                         })}
@@ -359,11 +401,17 @@ export default function AnalysisDashboard({
                         <div className="relative w-full h-full flex justify-around gap-2 items-end px-1">
                           {trendData.map((d, i) => {
                               const isAboveThreshold = threshold > 0 && d.rate >= threshold;
-                              const barColor = isAboveThreshold ? 'bg-orange-300 hover:bg-orange-400' : 'bg-blue-200 hover:bg-blue-300';
+                              const barColor = isAboveThreshold ? 'bg-danger/50 hover:bg-danger' : 'bg-blue-200 hover:bg-blue-300';
                               return (
-                                <div key={i} className="flex-1 h-full flex flex-col justify-end items-center group">
-                                    <div className="text-xs font-bold text-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-200">{d.rate.toFixed(0)}%</div>
-                                    <div className={`w-full ${barColor} transition-colors duration-200 rounded-t min-h-[2px]`} style={{ height: `${d.rate}%` }}></div>
+                                <div key={i} className="flex-1 h-full flex flex-col justify-end items-center group relative">
+                                    <div className="absolute -top-5 text-xs font-bold text-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                                      {d.rate.toFixed(0)}%
+                                    </div>
+                                    <div
+                                      className={`w-full ${barColor} transition-colors duration-200 rounded-t min-h-[2px] print-keep-color`}
+                                      style={{ height: `${Math.max(0, Math.min(100, d.rate))}%` }}
+                                      title={`${d.rate.toFixed(1)}%`}
+                                    ></div>
                                     <div className="text-xs text-gray-500 mt-1">{d.date.substring(5)}</div>
                                 </div>
                               )

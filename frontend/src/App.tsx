@@ -5,7 +5,7 @@ import DashboardPage from './DashboardPage';
 import PortalPage from './PortalPage';
 import CountdownPage from './CountdownPage';
 import SoragakiPage from './SoragakiPage'; // Import SoragakiPage
-import { LayoutDashboardIcon, FileTextIcon, HomeIcon, CalendarDaysIcon, PencilIcon } from './components/icons';
+import { BarChartIcon, FileTextIcon, CalendarDaysIcon, PencilIcon } from './components/icons';
 import LoadingSpinner from './components/LoadingSpinner';
 
 interface Subject {
@@ -31,6 +31,7 @@ export default function App() {
       const subjectObjects = subjectNames
         .filter((name) =>
           name.endsWith('.json') &&
+          name !== 'plans.json' &&
           !name.startsWith('history/') &&
           !name.startsWith('custom-explanations/') &&
           !name.startsWith('soragaki/')
@@ -49,11 +50,10 @@ export default function App() {
   }, []);
 
   const navItems = useMemo(() => [
-    { id: 'quiz', path: '/', label: '問題演習', icon: <FileTextIcon className="w-5 h-5" /> },
+    { id: 'quiz', path: '/', label: 'Study', icon: <PencilIcon className="w-5 h-5" /> },
+    { id: 'dashboard', path: '/dashboard', label: 'Dashboard', icon: <BarChartIcon className="w-5 h-5" /> },
     { id: 'soragaki', path: '/soragaki', label: '空描き', icon: <PencilIcon className="w-5 h-5" /> },
-    { id: 'dashboard', path: '/dashboard', label: 'Dashboard', icon: <LayoutDashboardIcon className="w-5 h-5" /> },
     { id: 'countdown', path: '/countdown', label: '試験日', icon: <CalendarDaysIcon className="w-5 h-5" /> },
-    { id: 'portal', path: '/portal', label: 'ポータル', icon: <HomeIcon className="w-5 h-5" /> },
   ], []);
 
   const activePath = location.pathname;
@@ -62,12 +62,12 @@ export default function App() {
     <div className="min-h-screen bg-gray-100 text-gray-800 flex flex-col">
       <header className="bg-white/90 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-12">
             <Link to="/" className="flex items-center space-x-3">
               <div className="bg-primary-new p-2 rounded-lg">
                 <FileTextIcon className="w-6 h-6 text-white" />
               </div>
-              <h1 className="text-xl font-bold text-dark">R2</h1>
+              <h1 className="text-xl font-bold text-dark">R3</h1>
             </Link>
             <nav className="hidden md:flex space-x-2 bg-gray-200 p-1 rounded-lg">
               {navItems.map((item) => (

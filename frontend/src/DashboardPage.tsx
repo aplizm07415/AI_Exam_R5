@@ -4,6 +4,7 @@ import AnalysisDashboard from './AnalysisDashboard';
 import PlanManagementDashboard from './PlanManagementDashboard';
 
 const API_BASE_URL = "/api";
+const DASHBOARD_SELECTED_SUBJECTS_KEY = 'dashboard:selectedSubjectNames';
 
 interface Subject {
   name: string;
@@ -37,7 +38,16 @@ interface FetchParams {
 }
 
 export default function DashboardPage({ subjects }: DashboardPageProps) {
-  const [selectedSubjectName, setSelectedSubjectName] = useState<string>('');
+  const [selectedSubjectNames, setSelectedSubjectNames] = useState<string[]>(() => {
+    try {
+      const raw = localStorage.getItem(DASHBOARD_SELECTED_SUBJECTS_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === 'string') : [];
+    } catch {
+      return [];
+    }
+  });
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -56,47 +66,72 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
   const [fetchParams, setFetchParams] = useState<FetchParams | null>(null);
 
   const handleApplyFilters = useCallback(() => {
-    if (selectedSubjectName) {
+    if (selectedSubjectNames.length > 0) {
       setFetchParams({
-        subject: selectedSubjectName,
+        subject: selectedSubjectNames.join(','),
         startDate,
         endDate,
         category: selectedCategory,
       });
     }
-  }, [selectedSubjectName, startDate, endDate, selectedCategory]);
+  }, [selectedSubjectNames, startDate, endDate, selectedCategory]);
 
   useEffect(() => {
-    if (subjects.length > 0 && !selectedSubjectName) {
+    if (subjects.length === 0) {
+      setSelectedSubjectNames([]);
+      setAnalytics(null);
+      return;
+    }
+
+    const subjectNameSet = new Set(subjects.map((s) => s.name));
+    const validSelected = selectedSubjectNames.filter((name) => subjectNameSet.has(name));
+
+    if (validSelected.length !== selectedSubjectNames.length) {
+      setSelectedSubjectNames(validSelected);
+      return;
+    }
+
+    if (validSelected.length === 0) {
       const firstSubject = subjects[0];
       if (firstSubject) {
-        setSelectedSubjectName(firstSubject.name);
+        setSelectedSubjectNames([firstSubject.name]);
       }
-    } else if (subjects.length === 0) {
-      setSelectedSubjectName('');
-      setAnalytics(null);
     }
-  }, [subjects, selectedSubjectName]);
+  }, [subjects, selectedSubjectNames]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(DASHBOARD_SELECTED_SUBJECTS_KEY, JSON.stringify(selectedSubjectNames));
+    } catch {
+      // no-op
+    }
+  }, [selectedSubjectNames]);
 
   // Set initial fetch params when subject changes
   useEffect(() => {
-    if (selectedSubjectName) {
+    if (selectedSubjectNames.length > 0) {
       handleApplyFilters();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedSubjectName]);
+  }, [selectedSubjectNames]);
 
   // Fetch categories when subject changes
   useEffect(() => {
-    if (selectedSubjectName) {
+    if (selectedSubjectNames.length > 0) {
       const fetchCategories = async () => {
         try {
-          const response = await fetch(`${API_BASE_URL}/subjects/${selectedSubjectName}/categories`);
-          if (!response.ok) {
-            throw new Error('カテゴリの取得に失敗しました。');
-          }
-          const data: string[] = await response.json();
-          setCategories(data);
+          const results = await Promise.all(
+            selectedSubjectNames.map(async (subjectName) => {
+              const response = await fetch(`${API_BASE_URL}/subjects/${subjectName}/categories`);
+              if (!response.ok) {
+                throw new Error('カテゴリの取得に失敗しました。');
+              }
+              const data: string[] = await response.json();
+              return data;
+            })
+          );
+          const merged = Array.from(new Set(results.flat())).sort((a, b) => a.localeCompare(b));
+          setCategories(merged);
         } catch (e) {
           console.error(e);
           setCategories([]);
@@ -105,7 +140,7 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
       fetchCategories();
       setSelectedCategory(''); // Reset category on subject change
     }
-  }, [selectedSubjectName]);
+  }, [selectedSubjectNames]);
 
   // Fetch analytics data when fetchParams change
   useEffect(() => {
@@ -120,7 +155,9 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
         if (fetchParams.endDate) query.append('end_date', fetchParams.endDate);
         if (fetchParams.category) query.append('category', fetchParams.category);
         
-        const response = await fetch(`${API_BASE_URL}/analytics/${fetchParams.subject}?${query.toString()}`);
+        const subjectParams = selectedSubjectNames.map((s) => `subjects=${encodeURIComponent(s)}`).join('&');
+        const suffix = query.toString();
+        const response = await fetch(`${API_BASE_URL}/analytics?${subjectParams}${suffix ? `&${suffix}` : ''}`);
         if (!response.ok) {
           const err = await response.json();
           throw new Error(err.detail || '分析データの取得に失敗しました。');
@@ -135,7 +172,7 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
       }
     };
     fetchAnalytics();
-  }, [fetchParams]);
+  }, [fetchParams, selectedSubjectNames]);
 
   // Fetch daily summary data when fetchParams change
   useEffect(() => {
@@ -150,7 +187,9 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
         if (fetchParams.endDate) query.append('end_date', fetchParams.endDate);
         if (fetchParams.category) query.append('category', fetchParams.category);
 
-        const response = await fetch(`${API_BASE_URL}/history/daily-summary/${fetchParams.subject}?${query.toString()}`);
+        const subjectParams = selectedSubjectNames.map((s) => `subjects=${encodeURIComponent(s)}`).join('&');
+        const suffix = query.toString();
+        const response = await fetch(`${API_BASE_URL}/history/daily-summary/all?${subjectParams}${suffix ? `&${suffix}` : ''}`);
         if (!response.ok) {
           const err = await response.json();
           throw new Error(err.detail || '日別集計データの取得に失敗しました。');
@@ -165,7 +204,7 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
       }
     };
     fetchDailySummary();
-  }, [fetchParams]);
+  }, [fetchParams, selectedSubjectNames]);
 
   if (subjects.length === 0) {
     return (
@@ -181,8 +220,8 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
       <PlanManagementDashboard subjects={subjects} />
       <AnalysisDashboard
         subjects={subjects}
-        selectedSubjectName={selectedSubjectName}
-        setSelectedSubjectName={setSelectedSubjectName}
+        selectedSubjectNames={selectedSubjectNames}
+        setSelectedSubjectNames={setSelectedSubjectNames}
         analytics={analytics}
         isLoading={isLoading}
         error={error}

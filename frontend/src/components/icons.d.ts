@@ -4,6 +4,7 @@ export declare const LoaderIcon: (props: React.SVGProps<SVGSVGElement>) => React
 export declare const CheckCircleIcon: (props: React.SVGProps<SVGSVGElement>) => React.FunctionComponentElement<any>;
 export declare const XCircleIcon: (props: React.SVGProps<SVGSVGElement>) => React.FunctionComponentElement<any>;
 export declare const LayoutDashboardIcon: (props: React.SVGProps<SVGSVGElement>) => React.FunctionComponentElement<any>;
+export declare const BarChartIcon: (props: React.SVGProps<SVGSVGElement>) => React.FunctionComponentElement<any>;
 export declare const FileTextIcon: (props: React.SVGProps<SVGSVGElement>) => React.FunctionComponentElement<any>;
 export declare const HomeIcon: (props: React.SVGProps<SVGSVGElement>) => React.FunctionComponentElement<any>;
 export declare const CalendarDaysIcon: (props: React.SVGProps<SVGSVGElement>) => React.FunctionComponentElement<any>;

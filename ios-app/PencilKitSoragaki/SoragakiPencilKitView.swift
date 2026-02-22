@@ -27,7 +27,7 @@ struct SoragakiPencilKitView: View {
                     baseImage: $viewModel.baseImage
                 )
                 .clipShape(RoundedRectangle(cornerRadius: 12))
-                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.gray.opacity(0.2), lineWidth: 1))
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(AppPalette.light.opacity(0.5), lineWidth: 1))
             }
 
             if let message = viewModel.message {
@@ -35,6 +35,7 @@ struct SoragakiPencilKitView: View {
             }
         }
         .padding()
+        .tint(AppPalette.primaryNew)
         .onAppear {
             SoragakiPencilKitViewModelBridge.shared.viewModel = viewModel
         }
@@ -65,8 +66,8 @@ struct SoragakiPencilKitView: View {
                                 .font(.caption2)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 6)
-                                .background(record.record_id == viewModel.selectedRecordID ? Color.blue : Color.gray.opacity(0.2))
-                                .foregroundColor(record.record_id == viewModel.selectedRecordID ? .white : .primary)
+                                .background(record.record_id == viewModel.selectedRecordID ? AppPalette.primaryNew : AppPalette.light.opacity(0.35))
+                                .foregroundColor(record.record_id == viewModel.selectedRecordID ? AppPalette.white : .primary)
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
                         }
                     }
@@ -87,8 +88,8 @@ struct SoragakiPencilKitView: View {
                         Button(action: { Task { await viewModel.selectPage(page) } }) {
                             Text("\(page)")
                                 .frame(width: 40, height: 30)
-                                .background(page == viewModel.currentPage ? Color.blue : Color.gray.opacity(0.2))
-                                .foregroundColor(page == viewModel.currentPage ? .white : .primary)
+                                .background(page == viewModel.currentPage ? AppPalette.primaryNew : AppPalette.light.opacity(0.35))
+                                .foregroundColor(page == viewModel.currentPage ? AppPalette.white : .primary)
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
                         }
                     }
@@ -138,7 +139,7 @@ struct SoragakiPencilKitView: View {
                                         .font(.caption)
                                         .padding(.horizontal, 10)
                                         .padding(.vertical, 6)
-                                        .background(Color.blue.opacity(0.12))
+                                        .background(AppPalette.info.opacity(0.9))
                                         .clipShape(Capsule())
                                 }
                             }
@@ -152,7 +153,7 @@ struct SoragakiPencilKitView: View {
                                     .font(.caption)
                                     .padding(.horizontal, 10)
                                     .padding(.vertical, 6)
-                                    .background(Color.blue.opacity(0.12))
+                                    .background(AppPalette.info.opacity(0.9))
                                     .clipShape(Capsule())
                             }
                         }
@@ -171,7 +172,7 @@ struct SoragakiPencilKitView: View {
                         .padding(8)
                 }
                 .frame(minHeight: 90, maxHeight: 140)
-                .background(Color.gray.opacity(0.1))
+                .background(AppPalette.light.opacity(0.18))
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             }
         }

@@ -555,6 +555,17 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     return Math.max(0, Math.min(1, 1 - elapsed / QUESTION_TIMER_MS));
   }, [quizState, timerNow, questionStartedAt]);
 
+  const estimatedCompletionText = useMemo(() => {
+    const remainingQuestions = Math.max(0, todayRemaining.count);
+    const totalMinutes = remainingQuestions * 2;
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    if (hours > 0) {
+      return `${hours}時間${minutes}分`;
+    }
+    return `${minutes}分`;
+  }, [todayRemaining.count]);
+
   const handleAnswerSubmit = async () => {
     if (selectedAnswer === null || isSubmittingAnswer) return;
 
@@ -805,7 +816,6 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
               onChange={(e) => setCustomExplanationText(e.target.value)}
               className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-new focus:border-primary-new"
               rows={4}
-              placeholder="この問題に関する自分なりの解説やメモを書き込もう"
             />
           </div>
           <div className="mt-6 pt-4 border-t border-gray-200 flex justify-between items-center">
@@ -816,7 +826,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
               この問題を編集する
             </button>
             <button id="next-question-button-bottom" type="button" onClick={handleNextQuestion} disabled={isSavingCustomExplanation} className="px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-dark bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 disabled:cursor-not-allowed">
-              {currentQuestionIndex < questions.length - 1 ? '次の問題へ' : 'クイズを終了'}
+              {currentQuestionIndex < questions.length - 1 ? '次の問題へ' : '終了'}
             </button>
           </div>
         </div>
@@ -828,7 +838,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
           <p className="text-lg font-semibold text-gray-700 mb-6">{currentQuestion.question_text}</p>
           <div className="w-full h-2.5 rounded-full bg-gray-200/90 border border-gray-200 mb-6 pointer-events-none" aria-hidden="true">
             <div
-              className="h-full rounded-full bg-cyan-300 transition-[width] duration-200 ease-linear"
+              className="h-full rounded-full bg-[#a2c2e6] transition-[width] duration-200 ease-linear"
               style={{ width: `${remainingTimeRatio * 100}%` }}
             />
           </div>
@@ -878,7 +888,6 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
               onChange={(e) => setScratchpadText(e.target.value)}
               className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-new focus:border-primary-new"
               rows={3}
-              placeholder="計算やメモにご利用ください..."
             />
             {!isAnswered && ( // Moved "解答する" button here
               <div className="mt-6 text-center">
@@ -892,7 +901,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
           {isAnswered && ( // This div now only contains "次の問題へ" button, and retains mt-auto
             <div className="mt-auto pt-6 text-center">
               <button id="next-question-button" type="button" onClick={handleNextQuestion} disabled={isSavingCustomExplanation} className="px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-dark bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 disabled:cursor-not-allowed">
-                {currentQuestionIndex < questions.length - 1 ? '次の問題へ' : 'クイズを終了'}
+                {currentQuestionIndex < questions.length - 1 ? '次の問題へ' : '終了'}
               </button>
             </div>
           )}
@@ -916,8 +925,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       return (
         <div className="md:h-screen md:overflow-hidden">
             <div className="p-4 md:p-6">
-                <div className="flex justify-between items-center mb-2">
-                    <h2 className="text-xl font-bold text-dark truncate" title={selectedSubjectNames.join(', ')}>{selectedSubjectNames.join(', ')}</h2>
+                <div className="flex justify-end items-center mb-2">
                     <div className="flex items-center gap-4">
                         {(() => {
                         const stats = historyStats[currentQuestion.id];
@@ -1138,7 +1146,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
                             <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-3">
 
-                              <button type="button" onClick={() => setQuizMode('today_remaining')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'today_remaining' ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>今日の残り</button>
+                              <button type="button" onClick={() => setQuizMode('today_remaining')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'today_remaining' ? 'bg-[#e8383d] text-white' : 'bg-red-100 text-gray-700 hover:bg-red-200'}`}>今日の残り</button>
 
                               <button type="button" onClick={() => setQuizMode('random')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'random' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>ランダム</button>
 
@@ -1156,7 +1164,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
                             <div className="mt-2 text-sm text-gray-500 mb-2">
 
-                              {quizMode === 'today_remaining' && `(今日の残り: ${todayRemaining.count} 問 (予定:${todayRemaining.plan} / 実績:${todayRemaining.actual}))`}
+                              {quizMode === 'today_remaining' && `(今日の残り: ${todayRemaining.count} 問 (予定:${todayRemaining.plan} / 実績:${todayRemaining.actual}) / 2分/問で約${estimatedCompletionText})`}
 
                               {quizMode === 'unanswered' && unansweredCount !== null && `(未解答: ${unansweredCount} 問)`}
 
@@ -1296,30 +1304,17 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
                   <div className="text-center max-w-lg mx-auto">
 
-                    <h2 className="text-3xl font-bold text-dark mb-4">クイズ完了！</h2>
+                    <h2 className="text-3xl font-bold text-dark mb-4">完了！</h2>
 
                     <div className="bg-white rounded-xl shadow p-8">
-
-                      <p className="text-lg text-gray-700">あなたのスコア：</p>
-
-                      <p className="text-6xl font-bold text-primary-new my-4">{questions.length > 0 ? Math.round((score / questions.length) * 100) : 0}%</p>
-
-                      <p className="text-gray-500">{questions.length}問中{score}問正解しました。</p>
-
-                      <div className="flex justify-center gap-4 mt-8">
-
-                        <button type="button" onClick={() => setQuizState('setup')} className="px-6 py-3 border border-gray-300 rounded-md shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50">
-
-                          科目選択へ
-
+                      <div className="flex justify-center mt-2">
+                        <button
+                          type="button"
+                          onClick={() => setQuizState('setup')}
+                          className="px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700"
+                        >
+                          科目選択に遷移
                         </button>
-
-                        <button type="button" onClick={handleTryAgain} className="px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700">
-
-                          もう一度挑戦する
-
-                        </button>
-
                       </div>
 
                     </div>
@@ -1353,8 +1348,6 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                 onChange={(e) => setEditingMemo({ ...editingMemo, content: e.target.value })}
 
                 className="flex-grow w-full p-4 border-0 focus:ring-0 text-base"
-
-                placeholder={editingMemo.type === 'scratchpad' ? '計算やメモにご利用ください...' : 'この問題に関する自分なりの解説やメモを書き込もう'}
 
               />
 

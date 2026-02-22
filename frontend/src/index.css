@@ -38,3 +38,31 @@
     opacity: 0;
   }
 }
+
+@media print {
+  .print-chart-fix,
+  .print-chart-fix *,
+  .print-color-graph,
+  .print-color-graph *,
+  .print-keep-color {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    forced-color-adjust: none !important;
+  }
+
+  .print-chart-fix {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    overflow: visible !important;
+  }
+
+  .print-chart-fix .recharts-responsive-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+  }
+
+  .print-chart-fix .recharts-wrapper {
+    max-width: 100% !important;
+  }
+}

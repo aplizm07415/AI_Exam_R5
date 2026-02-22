@@ -51,7 +51,7 @@ const CountdownItem: React.FC<{ exam: Exam; onDelete: (id: number) => void }> = 
         <div className="bg-gray-50 rounded-xl p-6 relative">
             <button 
                 onClick={() => onDelete(exam.id)} 
-                className="absolute top-3 right-3 text-gray-400 hover:text-red-500 transition-colors"
+                className="absolute top-3 right-3 text-gray-400 hover:text-danger transition-colors"
                 title="削除"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -66,17 +66,17 @@ const CountdownItem: React.FC<{ exam: Exam; onDelete: (id: number) => void }> = 
                 <p className="text-lg text-gray-600">日</p>
             </div>
             <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
-                <div className="bg-blue-50 p-4 rounded-lg">
-                    <p className="text-3xl font-semibold text-blue-600">{result.workdays}</p>
-                    <p className="text-sm text-blue-500">平日</p>
+                <div className="bg-info/30 p-4 rounded-lg">
+                    <p className="text-3xl font-semibold text-primary">{result.workdays}</p>
+                    <p className="text-sm text-secondary">平日</p>
                 </div>
-                <div className="bg-green-50 p-4 rounded-lg">
-                    <p className="text-3xl font-semibold text-green-600">{result.weekends}</p>
-                    <p className="text-sm text-green-500">休日</p>
+                <div className="bg-success/20 p-4 rounded-lg">
+                    <p className="text-3xl font-semibold text-success">{result.weekends}</p>
+                    <p className="text-sm text-success">休日</p>
                 </div>
             </div>
             {isToday && (
-                <p className="text-center mt-4 font-semibold text-lg text-rose-600">
+                <p className="text-center mt-4 font-semibold text-lg text-danger">
                     本番当日です！頑張ってください！
                 </p>
             )}
@@ -95,7 +95,7 @@ export default function CountdownPage() {
     }
   });
 
-  const [newExamName, setNewExamName] = useState<string>('中小企業診断士 2次試験');
+  const [newExamName, setNewExamName] = useState<string>('');
   const [newExamDate, setNewExamDate] = useState<string>(() => (new Date().toISOString().split('T')[0] as string));
 
   useEffect(() => {

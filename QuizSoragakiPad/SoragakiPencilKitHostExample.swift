@@ -2,6 +2,41 @@ import SwiftUI
 import PencilKit
 import Combine
 
+private extension Color {
+    init(hex: String) {
+        let cleaned = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var value: UInt64 = 0
+        Scanner(string: cleaned).scanHexInt64(&value)
+        let r, g, b: UInt64
+        switch cleaned.count {
+        case 6:
+            (r, g, b) = ((value >> 16) & 0xff, (value >> 8) & 0xff, value & 0xff)
+        default:
+            (r, g, b) = (0, 0, 0)
+        }
+        self.init(
+            .sRGB,
+            red: Double(r) / 255,
+            green: Double(g) / 255,
+            blue: Double(b) / 255,
+            opacity: 1
+        )
+    }
+}
+
+enum AppPalette {
+    static let primaryNew = Color(hex: "#3d7cce")
+    static let dark = Color(hex: "#051425")
+    static let light = Color(hex: "#a5b7cf")
+    static let white = Color(hex: "#ffffff")
+    static let primary = Color(hex: "#2e5c99")
+    static let secondary = Color(hex: "#2b71ab")
+    static let info = Color(hex: "#cee4ae")
+    static let success = Color(hex: "#2cb4ad")
+    static let warning = Color(hex: "#f5e48d")
+    static let danger = Color(hex: "#cf483e")
+}
+
 struct SoragakiPencilKitHostExample: View {
     @State private var deepLink: AppDeepLink?
 
@@ -21,6 +56,7 @@ struct SoragakiPencilKitHostExample: View {
                     .padding()
             }
         }
+        .tint(AppPalette.primaryNew)
         .onOpenURL { url in
             deepLink = AppDeepLink.parse(url)
         }
@@ -338,7 +374,7 @@ struct QuizPencilModeView: View {
                 if let message = viewModel.completionMessage {
                     Text(message)
                         .font(.footnote.weight(.semibold))
-                        .foregroundColor(.green)
+                        .foregroundColor(AppPalette.success)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 2)
                         .padding(.bottom, 4)
@@ -401,10 +437,10 @@ struct QuizPencilModeView: View {
                             let ratio = viewModel.remainingTimeRatio(at: context.date)
                             ZStack(alignment: .leading) {
                                 Capsule()
-                                    .fill(Color.gray.opacity(0.14))
+                                    .fill(AppPalette.light.opacity(0.35))
                                 GeometryReader { proxy in
                                     Capsule()
-                                        .fill(Color.blue.opacity(0.35))
+                                        .fill(AppPalette.primaryNew.opacity(0.65))
                                         .frame(width: proxy.size.width * ratio)
                                 }
                             }
@@ -449,9 +485,9 @@ struct QuizPencilModeView: View {
                     )
                 }
                 .frame(maxWidth: .infinity, minHeight: 560 + viewModel.extraWriteAreaHeight, alignment: .top)
-                .background(Color.white)
+                .background(AppPalette.white)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
-                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.gray.opacity(0.2), lineWidth: 1))
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(AppPalette.light.opacity(0.5), lineWidth: 1))
             }
             .frame(maxWidth: .infinity, minHeight: 560, maxHeight: 560)
 
@@ -464,7 +500,7 @@ struct QuizPencilModeView: View {
                         .font(.subheadline)
                         .fontWeight(.semibold)
                 }
-                .toggleStyle(SwitchToggleStyle(tint: .blue))
+                .toggleStyle(SwitchToggleStyle(tint: AppPalette.primaryNew))
 
                 Button("手書きクリア") {
                     viewModel.clearPencilLayer()
@@ -500,7 +536,7 @@ struct QuizPencilModeView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(viewModel.isCorrect ? "正解" : "不正解")
                         .font(.headline)
-                        .foregroundColor(viewModel.isCorrect ? .green : .red)
+                        .foregroundColor(viewModel.isCorrect ? AppPalette.success : AppPalette.danger)
                     Text(viewModel.explanationText.isEmpty ? "この問題の解説はありません。" : viewModel.explanationText)
                         .font(.body)
                         .lineLimit(nil)
@@ -515,9 +551,9 @@ struct QuizPencilModeView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
-                .background(Color.white)
+                .background(AppPalette.white)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
-                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.gray.opacity(0.2), lineWidth: 1))
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(AppPalette.light.opacity(0.5), lineWidth: 1))
 
                 VStack(alignment: .leading, spacing: 6) {
                     HStack {
@@ -528,14 +564,14 @@ struct QuizPencilModeView: View {
                         .focused($isMemoEditorFocused)
                         .frame(minHeight: 110)
                         .padding(6)
-                        .background(Color.white)
-                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.25), lineWidth: 1))
+                        .background(AppPalette.white)
+                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(AppPalette.light.opacity(0.6), lineWidth: 1))
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
-                .background(Color.white)
+                .background(AppPalette.white)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
-                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.gray.opacity(0.2), lineWidth: 1))
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(AppPalette.light.opacity(0.5), lineWidth: 1))
             }
         }
         .sheet(isPresented: $viewModel.isProblemEditSheetPresented) {
@@ -549,17 +585,17 @@ struct QuizPencilModeView: View {
     private func choiceBackground(_ choice: QuizChoice) -> Color {
         if viewModel.isAnswered {
             if choice.label == viewModel.currentQuestion?.answer {
-                return Color.green.opacity(0.25)
+                return AppPalette.success.opacity(0.22)
             }
             if choice.label == viewModel.selectedAnswer {
-                return Color.red.opacity(0.2)
+                return AppPalette.danger.opacity(0.18)
             }
-            return Color.gray.opacity(0.1)
+            return AppPalette.light.opacity(0.18)
         }
         if choice.label == viewModel.selectedAnswer {
-            return Color.blue.opacity(0.2)
+            return AppPalette.primaryNew.opacity(0.2)
         }
-        return Color.gray.opacity(0.1)
+        return AppPalette.light.opacity(0.18)
     }
 }
 
