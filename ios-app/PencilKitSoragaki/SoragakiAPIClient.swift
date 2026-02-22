@@ -215,6 +215,22 @@ final class SoragakiAPIClient {
     }
 
     func startQuiz(subjects: [String], mode: String, count: Int) async throws -> [QuizQuestion] {
+        do {
+            return try await performStartQuiz(subjects: subjects, mode: mode, count: count)
+        } catch let error as APIError {
+            switch error {
+            case .unexpectedStatus(let code, _) where code == 404:
+                let resolvedSubjects = try await resolveQuizSubjects(subjects)
+                guard !resolvedSubjects.isEmpty else { throw error }
+                if resolvedSubjects == subjects { throw error }
+                return try await performStartQuiz(subjects: resolvedSubjects, mode: mode, count: count)
+            default:
+                throw error
+            }
+        }
+    }
+
+    private func performStartQuiz(subjects: [String], mode: String, count: Int) async throws -> [QuizQuestion] {
         let url = URL(string: "/api/quiz/start", relativeTo: baseURL)!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -230,6 +246,88 @@ final class SoragakiAPIClient {
             let raw = String(data: data, encoding: .utf8) ?? "(invalid utf8)"
             throw APIError.decoding("quiz/start decode failed: \(error.localizedDescription). raw=\(raw.prefix(280))")
         }
+    }
+
+    private func resolveQuizSubjects(_ requested: [String]) async throws -> [String] {
+        let available = try await listSubjects()
+        if available.isEmpty { return requested }
+
+        let availableSet = Set(available)
+        var byStem: [String: String] = [:]
+        var duplicateStems = Set<String>()
+        for subject in available {
+            let stem = subject.hasSuffix(".json") ? String(subject.dropLast(5)) : subject
+            if byStem[stem] != nil {
+                duplicateStems.insert(stem)
+            } else {
+                byStem[stem] = subject
+            }
+        }
+        for duplicate in duplicateStems {
+            byStem.removeValue(forKey: duplicate)
+        }
+
+        let normalizedRequested = requested
+            .map { ($0.removingPercentEncoding ?? $0).trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+
+        let resolved = rebuildRequestedSubjects(normalizedRequested, availableSet: availableSet, byStem: byStem)
+        return resolved.isEmpty ? requested : resolved
+    }
+
+    private func rebuildRequestedSubjects(_ parts: [String], availableSet: Set<String>, byStem: [String: String]) -> [String] {
+        guard !parts.isEmpty else { return [] }
+
+        var resolved: [String] = []
+        var seen = Set<String>()
+        var index = 0
+
+        func resolveOne(_ raw: String) -> String? {
+            let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            let candidates = [
+                trimmed,
+                trimmed.hasSuffix(".json") ? trimmed : "\(trimmed).json",
+                byStem[trimmed] ?? ""
+            ]
+            return candidates.first { !$0.isEmpty && availableSet.contains($0) }
+        }
+
+        while index < parts.count {
+            var bestMatch: String?
+            var bestEnd = index
+
+            var combined = ""
+            for end in index..<parts.count {
+                combined = end == index ? parts[end] : "\(combined),\(parts[end])"
+                if let match = resolveOne(combined) {
+                    bestMatch = match
+                    bestEnd = end
+                }
+            }
+
+            if let bestMatch {
+                if seen.insert(bestMatch).inserted {
+                    resolved.append(bestMatch)
+                }
+                index = bestEnd + 1
+                continue
+            }
+
+            if let fallback = resolveOne(parts[index]), seen.insert(fallback).inserted {
+                resolved.append(fallback)
+            }
+            index += 1
+        }
+
+        return resolved
+    }
+
+    private func listSubjects() async throws -> [String] {
+        let url = URL(string: "/api/subjects", relativeTo: baseURL)!
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        let (data, _) = try await send(request, expectedStatuses: [200])
+        return (try? JSONDecoder().decode([String].self, from: data)) ?? []
     }
 
     func submitHistory(problemID: String, subject: String, selectedAnswer: String, isCorrect: Bool, category: String?) async throws {
@@ -317,7 +415,9 @@ final class SoragakiAPIClient {
             throw APIError.unauthorized
         }
         guard expectedStatuses.contains(response.statusCode) else {
-            throw APIError.unexpectedStatus(response.statusCode)
+            let detail = String(data: data, encoding: .utf8)?
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            throw APIError.unexpectedStatus(response.statusCode, detail?.isEmpty == true ? nil : detail)
         }
         return (data, response)
     }
@@ -326,7 +426,7 @@ final class SoragakiAPIClient {
 enum APIError: LocalizedError {
     case invalidResponse
     case unauthorized
-    case unexpectedStatus(Int)
+    case unexpectedStatus(Int, String?)
     case decoding(String)
 
     var errorDescription: String? {
@@ -335,7 +435,10 @@ enum APIError: LocalizedError {
             return "サーバー応答が不正です。"
         case .unauthorized:
             return "認証に失敗しました。"
-        case .unexpectedStatus(let code):
+        case .unexpectedStatus(let code, let detail):
+            if let detail, !detail.isEmpty {
+                return "サーバーエラー: \(code) (\(detail))"
+            }
             return "サーバーエラー: \(code)"
         case .decoding(let message):
             return "データ解析エラー: \(message)"

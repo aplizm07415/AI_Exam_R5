@@ -1183,6 +1183,8 @@ def update_problem(subject_name: str, problem_id: str, problem_data: dict):
 
         # 更新後の完全な問題オブジェクトを返す
         return original_questions[target_index]
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"ERROR updating problem: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to update problem: {e}")

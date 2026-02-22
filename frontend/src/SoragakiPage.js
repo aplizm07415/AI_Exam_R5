@@ -414,7 +414,7 @@ export default function SoragakiPage() {
         }
     }, [authFetch, createBlankDataUrl, fetchRecords, handleUnauthorized, initializeDraft, learningDate, pageNumbers, snapshotCurrentPage]);
     const openNativeSoragakiApp = useCallback(() => {
-        const deepLink = `quizapp://soragaki?date=${encodeURIComponent(learningDate)}&base=${encodeURIComponent(window.location.origin)}`;
+        const deepLink = `quizapp://soragaki?date=${encodeURIComponent(learningDate)}&base=${encodeURIComponent(window.location.origin + '/api')}`;
         window.location.href = deepLink;
     }, [learningDate]);
     const fetchMemosAndKeywords = useCallback(async () => {

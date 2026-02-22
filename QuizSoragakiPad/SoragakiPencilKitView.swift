@@ -52,7 +52,15 @@ struct SoragakiPencilKitView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack {
                     ForEach(viewModel.records) { record in
-                        Button(action: { Task { try? await viewModel.selectSavedRecord(record.record_id) } }) {
+                        Button(action: {
+                            Task {
+                                do {
+                                    try await viewModel.selectSavedRecord(record.record_id)
+                                } catch {
+                                    viewModel.message = error.localizedDescription
+                                }
+                            }
+                        }) {
                             Text(record.saved_at)
                                 .font(.caption2)
                                 .padding(.horizontal, 8)

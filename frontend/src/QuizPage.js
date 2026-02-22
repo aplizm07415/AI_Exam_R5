@@ -1,5 +1,5 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { LoaderIcon, CheckCircleIcon, XCircleIcon } from './components/icons';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -9,6 +9,7 @@ import SubjectProgress from './components/SubjectProgress';
 import { usePlans } from './hooks/usePlans';
 import { isHoliday } from './utils/date';
 const API_BASE_URL = "/api";
+const QUESTION_TIMER_MS = 2 * 60 * 1000;
 export default function QuizPage({ subjects: allSubjects }) {
     const { plans, isLoading: isPlansLoading, error: plansError } = usePlans();
     const [dailySummaryAll, setDailySummaryAll] = useState([]);
@@ -28,8 +29,12 @@ export default function QuizPage({ subjects: allSubjects }) {
     const [editingMemo, setEditingMemo] = useState(null);
     const [editingProblem, setEditingProblem] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [isSubmittingAnswer, setIsSubmittingAnswer] = useState(false);
+    const [isSavingCustomExplanation, setIsSavingCustomExplanation] = useState(false);
     const [error, setError] = useState('');
     const [effectStatus, setEffectStatus] = useState(null);
+    const [questionStartedAt, setQuestionStartedAt] = useState(Date.now());
+    const [timerNow, setTimerNow] = useState(Date.now());
     const openMemoModal = (type) => {
         const content = type === 'scratchpad' ? scratchpadText : customExplanationText;
         setEditingMemo({ type, content });
@@ -293,31 +298,33 @@ export default function QuizPage({ subjects: allSubjects }) {
         };
         fetchWeakAreaCount();
     }, [quizMode, selectedSubjectNames]);
-    useEffect(() => {
-        const fetchHistoryStats = async () => {
-            if (questions.length > 0) {
-                try {
-                    const problemIds = questions.map((q) => q.id);
-                    const response = await fetch(`${API_BASE_URL}/quiz/bulk-history-stats`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            problem_ids: problemIds,
-                            subjects: selectedSubjectNames,
-                        }),
-                    });
-                    if (response.ok) {
-                        const data = await response.json();
-                        setHistoryStats(data);
-                    }
-                }
-                catch (error) {
-                    console.error("Failed to fetch history stats:", error);
-                }
+    const fetchHistoryStats = useCallback(async () => {
+        if (questions.length === 0) {
+            setHistoryStats({});
+            return;
+        }
+        try {
+            const problemIds = questions.map((q) => q.id);
+            const response = await fetch(`${API_BASE_URL}/quiz/bulk-history-stats`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    problem_ids: problemIds,
+                    subjects: selectedSubjectNames,
+                }),
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setHistoryStats(data);
             }
-        };
-        fetchHistoryStats();
+        }
+        catch (fetchError) {
+            console.error("Failed to fetch history stats:", fetchError);
+        }
     }, [questions, selectedSubjectNames]);
+    useEffect(() => {
+        fetchHistoryStats();
+    }, [fetchHistoryStats]);
     const handleSubjectSelection = (subjectName) => {
         setSelectedSubjectNames((prev) => prev.includes(subjectName)
             ? prev.filter((s) => s !== subjectName)
@@ -421,8 +428,11 @@ export default function QuizPage({ subjects: allSubjects }) {
             }
             questionsToFetch = Math.min(numQuestions, weakAreaCount);
         }
+        const subjectQuery = selectedSubjectNames
+            .map((s) => `subject=${encodeURIComponent(s)}`)
+            .join('&');
         const deepLink = `quizapp://quiz?base=${encodeURIComponent(window.location.origin)}` +
-            `&subjects=${encodeURIComponent(selectedSubjectNames.join(','))}` +
+            `&${subjectQuery}` +
             `&mode=${encodeURIComponent(quizMode)}` +
             `&count=${encodeURIComponent(String(Math.max(1, questionsToFetch)))}`;
         window.location.href = deepLink;
@@ -433,21 +443,34 @@ export default function QuizPage({ subjects: allSubjects }) {
         setFeedback(null);
         setScratchpadText('');
         setCustomExplanationText('');
+        setQuestionStartedAt(Date.now());
+        setTimerNow(Date.now());
     };
+    useEffect(() => {
+        if (quizState !== 'active' || isAnswered)
+            return;
+        const id = window.setInterval(() => {
+            setTimerNow(Date.now());
+        }, 250);
+        return () => window.clearInterval(id);
+    }, [quizState, isAnswered, currentQuestionIndex]);
+    const remainingTimeRatio = useMemo(() => {
+        if (quizState !== 'active')
+            return 1;
+        const elapsed = Math.max(0, timerNow - questionStartedAt);
+        return Math.max(0, Math.min(1, 1 - elapsed / QUESTION_TIMER_MS));
+    }, [quizState, timerNow, questionStartedAt]);
     const handleAnswerSubmit = async () => {
-        if (selectedAnswer === null)
+        if (selectedAnswer === null || isSubmittingAnswer)
             return;
         const currentQuestion = questions[currentQuestionIndex];
         if (!currentQuestion)
             return;
         const isCorrect = selectedAnswer === currentQuestion.answer;
-        setEffectStatus(isCorrect ? 'correct' : 'incorrect');
-        setTimeout(() => setEffectStatus(null), 1000);
-        if (isCorrect) {
-            setScore(prev => prev + 1);
-        }
         try {
-            await fetch(`${API_BASE_URL}/history`, {
+            setIsSubmittingAnswer(true);
+            setError('');
+            const response = await fetch(`${API_BASE_URL}/history`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -458,19 +481,47 @@ export default function QuizPage({ subjects: allSubjects }) {
                     category: currentQuestion.category,
                 }),
             });
+            if (!response.ok) {
+                let detail = '実績の保存に失敗しました。';
+                try {
+                    const payload = await response.json();
+                    detail = payload.detail || detail;
+                }
+                catch {
+                    // no-op
+                }
+                throw new Error(detail);
+            }
+            setEffectStatus(isCorrect ? 'correct' : 'incorrect');
+            setTimeout(() => setEffectStatus(null), 1000);
+            if (isCorrect) {
+                setScore(prev => prev + 1);
+            }
+            const explanation = currentQuestion.explanation || { text: "この問題の解説はありません。" };
+            setFeedback({ correct: isCorrect, explanation });
+            setIsAnswered(true);
         }
         catch (e) {
             console.error("Failed to submit history:", e);
+            const message = e instanceof Error ? e.message : '実績の保存に失敗しました。再試行してください。';
+            setError(message);
         }
-        const explanation = currentQuestion.explanation || { text: "この問題の解説はありません。" };
-        setFeedback({ correct: isCorrect, explanation });
-        setIsAnswered(true);
+        finally {
+            setIsSubmittingAnswer(false);
+        }
     };
     const handleNextQuestion = async () => {
         // メモが変更されていたら保存する
         const originalText = currentQuestion?.custom_explanation || '';
         if (customExplanationText.trim() !== originalText.trim()) {
-            await handleSaveCustomExplanation();
+            try {
+                await handleSaveCustomExplanation();
+            }
+            catch (e) {
+                const message = e instanceof Error ? e.message : 'My Memo の保存に失敗しました。';
+                setError(message);
+                return;
+            }
         }
         if (currentQuestionIndex < questions.length - 1) {
             setCurrentQuestionIndex(prev => prev + 1);
@@ -492,13 +543,22 @@ export default function QuizPage({ subjects: allSubjects }) {
         if (!currentQuestion)
             return;
         try {
+            setIsSavingCustomExplanation(true);
             const response = await fetch(`${API_BASE_URL}/problems/${currentQuestion.id}/custom-explanation`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text: customExplanationText }),
             });
             if (!response.ok) {
-                throw new Error('Failed to save custom explanation');
+                let detail = 'My Memo の保存に失敗しました。';
+                try {
+                    const payload = await response.json();
+                    detail = payload.detail || detail;
+                }
+                catch {
+                    // no-op
+                }
+                throw new Error(detail);
             }
             // Update the question in the main questions array to persist state during the session
             const updatedQuestions = questions.map((q) => q.id === currentQuestion.id
@@ -508,7 +568,10 @@ export default function QuizPage({ subjects: allSubjects }) {
         }
         catch (error) {
             console.error("Failed to save custom explanation:", error);
-            // Optionally: show an error message to the user
+            throw error;
+        }
+        finally {
+            setIsSavingCustomExplanation(false);
         }
     };
     const currentQuestion = useMemo(() => questions[currentQuestionIndex], [questions, currentQuestionIndex]);
@@ -532,10 +595,10 @@ export default function QuizPage({ subjects: allSubjects }) {
             }
             if (event.key === 'Enter') {
                 const submitButton = document.getElementById('submit-answer-button');
-                if (!isAnswered && submitButton) {
+                if (!isAnswered && !isSubmittingAnswer && submitButton) {
                     submitButton.click();
                 }
-                else if (isAnswered) {
+                else if (isAnswered && !isSavingCustomExplanation) {
                     handleNextQuestion();
                 }
             }
@@ -544,7 +607,7 @@ export default function QuizPage({ subjects: allSubjects }) {
         return () => {
             window.removeEventListener('keydown', handleKeyPress);
         };
-    }, [quizState, isAnswered, currentQuestion, handleAnswerSubmit, handleNextQuestion]);
+    }, [quizState, isAnswered, currentQuestion, handleAnswerSubmit, handleNextQuestion, isSubmittingAnswer, isSavingCustomExplanation]);
     // --- Render logic for active quiz ---
     const renderActiveQuiz = () => {
         if (!currentQuestion)
@@ -559,9 +622,9 @@ export default function QuizPage({ subjects: allSubjects }) {
             layoutType = 'answered';
         }
         const imagesComponent = hasImages ? (_jsx("div", { className: "space-y-4", children: currentQuestion.image_urls.map((url, index) => (_jsx("img", { src: url, alt: `Question image ${index + 1}`, className: "max-w-full w-full h-auto mx-auto rounded-lg shadow-md" }, index))) })) : null;
-        const explanationComponent = isAnswered ? (_jsxs("div", { className: "bg-white rounded-xl shadow p-6 md:p-8 fade-in", children: [_jsxs("div", { className: "flex items-center gap-3 mb-4", children: [feedback?.correct ? _jsx(CheckCircleIcon, { className: "w-8 h-8 text-green-600" }) : _jsx(XCircleIcon, { className: "w-8 h-8 text-red-600" }), _jsx("h3", { className: "text-2xl font-bold", children: feedback?.correct ? '正解！' : '不正解' })] }), _jsx("h4", { className: "text-lg font-semibold text-primary-new mb-2", children: "\u89E3\u8AAC" }), (currentQuestion.explanation_image_urls && currentQuestion.explanation_image_urls.length > 0) && (_jsx("div", { className: "my-4 grid grid-cols-1 gap-4", children: currentQuestion.explanation_image_urls.map((url, index) => (_jsx("img", { src: url, alt: `Explanation image ${index + 1}`, className: "max-w-full h-auto mx-auto rounded-lg shadow-md" }, index))) })), _jsx("div", { className: "prose prose-sm md:prose-base max-w-none text-gray-700", children: _jsx(ReactMarkdown, { remarkPlugins: [remarkGfm], children: feedback?.explanation?.text || '' }) }), _jsxs("div", { className: "mt-6", children: [_jsxs("div", { className: "flex justify-between items-center mb-2", children: [_jsx("h4", { className: "text-lg font-semibold text-primary-new", children: "My Memo" }), _jsx("button", { onClick: () => openMemoModal('customExplanation'), className: "p-1 rounded-md hover:bg-gray-200 text-gray-500 hover:text-gray-700", title: "\u62E1\u5927\u8868\u793A", children: _jsx("svg", { xmlns: "http://www.w3.org/2000/svg", width: "1em", height: "1em", viewBox: "0 0 24 24", children: _jsx("path", { fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "2", d: "M3 8V4h4m10 0h4v4M3 16v4h4m14-4h-4v4" }) }) })] }), _jsx("textarea", { value: customExplanationText, onChange: (e) => setCustomExplanationText(e.target.value), className: "w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-new focus:border-primary-new", rows: 4, placeholder: "\u3053\u306E\u554F\u984C\u306B\u95A2\u3059\u308B\u81EA\u5206\u306A\u308A\u306E\u89E3\u8AAC\u3084\u30E1\u30E2\u3092\u66F8\u304D\u8FBC\u3082\u3046" })] }), _jsxs("div", { className: "mt-6 pt-4 border-t border-gray-200 flex justify-between items-center", children: [_jsx("button", { onClick: openProblemEditor, className: "px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200", children: "\u3053\u306E\u554F\u984C\u3092\u7DE8\u96C6\u3059\u308B" }), _jsx("button", { id: "next-question-button-bottom", type: "button", onClick: handleNextQuestion, className: "px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-dark bg-gray-200 hover:bg-gray-300", children: currentQuestionIndex < questions.length - 1 ? '次の問題へ' : 'クイズを終了' })] })] })) : null;
+        const explanationComponent = isAnswered ? (_jsxs("div", { className: "bg-white rounded-xl shadow p-6 md:p-8 fade-in", children: [_jsxs("div", { className: "flex items-center gap-3 mb-4", children: [feedback?.correct ? _jsx(CheckCircleIcon, { className: "w-8 h-8 text-green-600" }) : _jsx(XCircleIcon, { className: "w-8 h-8 text-red-600" }), _jsx("h3", { className: "text-2xl font-bold", children: feedback?.correct ? '正解！' : '不正解' })] }), _jsx("h4", { className: "text-lg font-semibold text-primary-new mb-2", children: "\u89E3\u8AAC" }), (currentQuestion.explanation_image_urls && currentQuestion.explanation_image_urls.length > 0) && (_jsx("div", { className: "my-4 grid grid-cols-1 gap-4", children: currentQuestion.explanation_image_urls.map((url, index) => (_jsx("img", { src: url, alt: `Explanation image ${index + 1}`, className: "max-w-full h-auto mx-auto rounded-lg shadow-md" }, index))) })), _jsx("div", { className: "prose prose-sm md:prose-base max-w-none text-gray-700", children: _jsx(ReactMarkdown, { remarkPlugins: [remarkGfm], children: feedback?.explanation?.text || '' }) }), _jsxs("div", { className: "mt-6", children: [_jsxs("div", { className: "flex justify-between items-center mb-2", children: [_jsx("h4", { className: "text-lg font-semibold text-primary-new", children: "My Memo" }), _jsx("button", { onClick: () => openMemoModal('customExplanation'), className: "p-1 rounded-md hover:bg-gray-200 text-gray-500 hover:text-gray-700", title: "\u62E1\u5927\u8868\u793A", children: _jsx("svg", { xmlns: "http://www.w3.org/2000/svg", width: "1em", height: "1em", viewBox: "0 0 24 24", children: _jsx("path", { fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "2", d: "M3 8V4h4m10 0h4v4M3 16v4h4m14-4h-4v4" }) }) })] }), _jsx("textarea", { value: customExplanationText, onChange: (e) => setCustomExplanationText(e.target.value), className: "w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-new focus:border-primary-new", rows: 4, placeholder: "\u3053\u306E\u554F\u984C\u306B\u95A2\u3059\u308B\u81EA\u5206\u306A\u308A\u306E\u89E3\u8AAC\u3084\u30E1\u30E2\u3092\u66F8\u304D\u8FBC\u3082\u3046" })] }), _jsxs("div", { className: "mt-6 pt-4 border-t border-gray-200 flex justify-between items-center", children: [_jsx("button", { onClick: openProblemEditor, className: "px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200", children: "\u3053\u306E\u554F\u984C\u3092\u7DE8\u96C6\u3059\u308B" }), _jsx("button", { id: "next-question-button-bottom", type: "button", onClick: handleNextQuestion, disabled: isSavingCustomExplanation, className: "px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-dark bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 disabled:cursor-not-allowed", children: currentQuestionIndex < questions.length - 1 ? '次の問題へ' : 'クイズを終了' })] })] })) : null;
         // 左カラム（問題・選択肢）
-        const QuestionColumn = () => (_jsxs("div", { className: "bg-white rounded-xl shadow p-6 md:p-8 h-full flex flex-col", children: [_jsx("p", { className: "text-lg font-semibold text-gray-700 mb-6", children: currentQuestion.question_text }), _jsx("div", { className: "md:hidden my-4", children: layoutType === 'image' && imagesComponent }), _jsx("div", { className: "space-y-3", children: currentQuestion.choices.map((option, index) => {
+        const QuestionColumn = () => (_jsxs("div", { className: "bg-white rounded-xl shadow p-6 md:p-8 h-full flex flex-col", children: [_jsx("p", { className: "text-lg font-semibold text-gray-700 mb-6", children: currentQuestion.question_text }), _jsx("div", { className: "w-full h-2.5 rounded-full bg-gray-200/90 border border-gray-200 mb-6 pointer-events-none", "aria-hidden": "true", children: _jsx("div", { className: "h-full rounded-full bg-cyan-300 transition-[width] duration-200 ease-linear", style: { width: `${remainingTimeRatio * 100}%` } }) }), _jsx("div", { className: "md:hidden my-4", children: layoutType === 'image' && imagesComponent }), _jsx("div", { className: "space-y-3", children: currentQuestion.choices.map((option, index) => {
                         const isCorrectAnswer = option.label === currentQuestion.answer;
                         const isSelectedAnswer = option.label === selectedAnswer;
                         let buttonClass = 'bg-gray-100 hover:bg-gray-200';
@@ -578,8 +641,8 @@ export default function QuizPage({ subjects: allSubjects }) {
                         }
                         return (_jsxs("button", { type: "button", onClick: () => !isAnswered && setSelectedAnswer(option.label), disabled: isAnswered, className: `w-full text-left p-4 rounded-lg border border-transparent transition-all duration-200 ${buttonClass}`, children: [_jsxs("span", { className: "font-bold mr-2", children: [option.label, "."] }), _jsx("span", { children: option.text })] }, index));
                     }) }), _jsxs("div", { className: "mt-6", children: [_jsxs("div", { className: "flex justify-between items-center mb-2", children: [_jsx("label", { htmlFor: "scratchpad", className: "block text-sm font-medium text-gray-700", children: "\u30E1\u30E2\u5E33" }), _jsx("button", { onClick: () => openMemoModal('scratchpad'), className: "p-1 rounded-md hover:bg-gray-200 text-gray-500 hover:text-gray-700", title: "\u62E1\u5927\u8868\u793A", children: _jsx("svg", { xmlns: "http://www.w3.org/2000/svg", width: "1em", height: "1em", viewBox: "0 0 24 24", children: _jsx("path", { fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "2", d: "M3 8V4h4m10 0h4v4M3 16v4h4m14-4h-4v4" }) }) })] }), _jsx("textarea", { id: "scratchpad", value: scratchpadText, onChange: (e) => setScratchpadText(e.target.value), className: "w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-new focus:border-primary-new", rows: 3, placeholder: "\u8A08\u7B97\u3084\u30E1\u30E2\u306B\u3054\u5229\u7528\u304F\u3060\u3055\u3044..." }), !isAnswered && ( // Moved "解答する" button here
-                        _jsx("div", { className: "mt-6 text-center", children: _jsx("button", { id: "submit-answer-button", type: "button", onClick: handleAnswerSubmit, disabled: selectedAnswer === null, className: "px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed", children: "\u89E3\u7B54\u3059\u308B" }) }))] }), isAnswered && ( // This div now only contains "次の問題へ" button, and retains mt-auto
-                _jsx("div", { className: "mt-auto pt-6 text-center", children: _jsx("button", { id: "next-question-button", type: "button", onClick: handleNextQuestion, className: "px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-dark bg-gray-200 hover:bg-gray-300", children: currentQuestionIndex < questions.length - 1 ? '次の問題へ' : 'クイズを終了' }) }))] }));
+                        _jsx("div", { className: "mt-6 text-center", children: _jsx("button", { id: "submit-answer-button", type: "button", onClick: handleAnswerSubmit, disabled: selectedAnswer === null || isSubmittingAnswer, className: "px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed", children: isSubmittingAnswer ? '保存中...' : '解答する' }) }))] }), isAnswered && ( // This div now only contains "次の問題へ" button, and retains mt-auto
+                _jsx("div", { className: "mt-auto pt-6 text-center", children: _jsx("button", { id: "next-question-button", type: "button", onClick: handleNextQuestion, disabled: isSavingCustomExplanation, className: "px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-dark bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 disabled:cursor-not-allowed", children: currentQuestionIndex < questions.length - 1 ? '次の問題へ' : 'クイズを終了' }) }))] }));
         // 右カラム（画像・解説）
         const RightColumn = () => (_jsxs("div", { className: "space-y-8", children: [layoutType === 'image' && (_jsx("div", { className: "bg-white rounded-xl shadow p-6 md:p-8", children: imagesComponent })), explanationComponent] }));
         const progressPercentage = questions.length > 0 ? ((currentQuestionIndex + 1) / questions.length) * 100 : 0;

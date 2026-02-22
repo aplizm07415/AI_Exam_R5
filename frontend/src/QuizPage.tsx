@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { LoaderIcon, CheckCircleIcon, XCircleIcon } from './components/icons';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -10,6 +10,7 @@ import type { Plan } from './types/plan.d';
 import { isHoliday } from './utils/date';
 
 const API_BASE_URL = "/api";
+const QUESTION_TIMER_MS = 2 * 60 * 1000;
 
 interface Choice {
   label: string;
@@ -78,8 +79,12 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   const [editingProblem, setEditingProblem] = useState<QuizQuestion | null>(null);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmittingAnswer, setIsSubmittingAnswer] = useState(false);
+  const [isSavingCustomExplanation, setIsSavingCustomExplanation] = useState(false);
   const [error, setError] = useState('');
   const [effectStatus, setEffectStatus] = useState<'correct' | 'incorrect' | null>(null);
+  const [questionStartedAt, setQuestionStartedAt] = useState<number>(Date.now());
+  const [timerNow, setTimerNow] = useState<number>(Date.now());
 
   const openMemoModal = (type: 'scratchpad' | 'customExplanation') => {
     const content = type === 'scratchpad' ? scratchpadText : customExplanationText;
@@ -375,31 +380,33 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     fetchWeakAreaCount();
   }, [quizMode, selectedSubjectNames]);
 
-  useEffect(() => {
-    const fetchHistoryStats = async () => {
-      if (questions.length > 0) {
-        try {
-          const problemIds = questions.map((q) => q.id);
-          const response = await fetch(`${API_BASE_URL}/quiz/bulk-history-stats`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              problem_ids: problemIds,
-              subjects: selectedSubjectNames,
-            }),
-          });
-          if (response.ok) {
-            const data = await response.json();
-            setHistoryStats(data);
-          }
-        } catch (error) {
-          console.error("Failed to fetch history stats:", error);
-        }
+  const fetchHistoryStats = useCallback(async () => {
+    if (questions.length === 0) {
+      setHistoryStats({});
+      return;
+    }
+    try {
+      const problemIds = questions.map((q) => q.id);
+      const response = await fetch(`${API_BASE_URL}/quiz/bulk-history-stats`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          problem_ids: problemIds,
+          subjects: selectedSubjectNames,
+        }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setHistoryStats(data);
       }
-    };
-
-    fetchHistoryStats();
+    } catch (fetchError) {
+      console.error("Failed to fetch history stats:", fetchError);
+    }
   }, [questions, selectedSubjectNames]);
+
+  useEffect(() => {
+    fetchHistoryStats();
+  }, [fetchHistoryStats]);
 
   const handleSubjectSelection = (subjectName: string) => {
     setSelectedSubjectNames((prev: string[]) =>
@@ -513,9 +520,12 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       questionsToFetch = Math.min(numQuestions, weakAreaCount);
     }
 
+    const subjectQuery = selectedSubjectNames
+      .map((s) => `subject=${encodeURIComponent(s)}`)
+      .join('&');
     const deepLink =
       `quizapp://quiz?base=${encodeURIComponent(window.location.origin)}` +
-      `&subjects=${encodeURIComponent(selectedSubjectNames.join(','))}` +
+      `&${subjectQuery}` +
       `&mode=${encodeURIComponent(quizMode)}` +
       `&count=${encodeURIComponent(String(Math.max(1, questionsToFetch)))}`;
     window.location.href = deepLink;
@@ -527,24 +537,35 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     setFeedback(null);
     setScratchpadText('');
     setCustomExplanationText('');
+    setQuestionStartedAt(Date.now());
+    setTimerNow(Date.now());
   };
 
+  useEffect(() => {
+    if (quizState !== 'active' || isAnswered) return;
+    const id = window.setInterval(() => {
+      setTimerNow(Date.now());
+    }, 250);
+    return () => window.clearInterval(id);
+  }, [quizState, isAnswered, currentQuestionIndex]);
+
+  const remainingTimeRatio = useMemo(() => {
+    if (quizState !== 'active') return 1;
+    const elapsed = Math.max(0, timerNow - questionStartedAt);
+    return Math.max(0, Math.min(1, 1 - elapsed / QUESTION_TIMER_MS));
+  }, [quizState, timerNow, questionStartedAt]);
+
   const handleAnswerSubmit = async () => {
-    if (selectedAnswer === null) return;
+    if (selectedAnswer === null || isSubmittingAnswer) return;
 
     const currentQuestion = questions[currentQuestionIndex];
     if (!currentQuestion) return;
     const isCorrect = selectedAnswer === currentQuestion.answer;
-    
-    setEffectStatus(isCorrect ? 'correct' : 'incorrect');
-    setTimeout(() => setEffectStatus(null), 1000);
-
-    if (isCorrect) {
-      setScore(prev => prev + 1);
-    }
 
     try {
-      await fetch(`${API_BASE_URL}/history`, {
+      setIsSubmittingAnswer(true);
+      setError('');
+      const response = await fetch(`${API_BASE_URL}/history`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -555,20 +576,47 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
           category: currentQuestion.category,
         }),
       });
+      if (!response.ok) {
+        let detail = '実績の保存に失敗しました。';
+        try {
+          const payload = await response.json();
+          detail = payload.detail || detail;
+        } catch {
+          // no-op
+        }
+        throw new Error(detail);
+      }
+
+      setEffectStatus(isCorrect ? 'correct' : 'incorrect');
+      setTimeout(() => setEffectStatus(null), 1000);
+
+      if (isCorrect) {
+        setScore(prev => prev + 1);
+      }
+
+      const explanation = currentQuestion.explanation || { text: "この問題の解説はありません。" };
+      setFeedback({ correct: isCorrect, explanation });
+      setIsAnswered(true);
     } catch (e) {
       console.error("Failed to submit history:", e);
+      const message = e instanceof Error ? e.message : '実績の保存に失敗しました。再試行してください。';
+      setError(message);
+    } finally {
+      setIsSubmittingAnswer(false);
     }
-    
-    const explanation = currentQuestion.explanation || { text: "この問題の解説はありません。" };
-    setFeedback({ correct: isCorrect, explanation });
-    setIsAnswered(true);
   };
 
   const handleNextQuestion = async () => {
     // メモが変更されていたら保存する
     const originalText = currentQuestion?.custom_explanation || '';
     if (customExplanationText.trim() !== originalText.trim()) {
-      await handleSaveCustomExplanation();
+      try {
+        await handleSaveCustomExplanation();
+      } catch (e) {
+        const message = e instanceof Error ? e.message : 'My Memo の保存に失敗しました。';
+        setError(message);
+        return;
+      }
     }
 
     if (currentQuestionIndex < questions.length - 1) {
@@ -590,6 +638,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   const handleSaveCustomExplanation = async () => {
     if (!currentQuestion) return;
     try {
+      setIsSavingCustomExplanation(true);
       const response = await fetch(`${API_BASE_URL}/problems/${currentQuestion.id}/custom-explanation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -597,7 +646,14 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save custom explanation');
+        let detail = 'My Memo の保存に失敗しました。';
+        try {
+          const payload = await response.json();
+          detail = payload.detail || detail;
+        } catch {
+          // no-op
+        }
+        throw new Error(detail);
       }
 
       // Update the question in the main questions array to persist state during the session
@@ -609,7 +665,9 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       setQuestions(updatedQuestions);
     } catch (error) {
       console.error("Failed to save custom explanation:", error);
-      // Optionally: show an error message to the user
+      throw error;
+    } finally {
+      setIsSavingCustomExplanation(false);
     }
   };
 
@@ -665,11 +723,11 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
   
 
-          if (!isAnswered && submitButton) {
+          if (!isAnswered && !isSubmittingAnswer && submitButton) {
 
             submitButton.click();
 
-          } else if (isAnswered) {
+          } else if (isAnswered && !isSavingCustomExplanation) {
 
             handleNextQuestion();
 
@@ -691,7 +749,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
       };
 
-    }, [quizState, isAnswered, currentQuestion, handleAnswerSubmit, handleNextQuestion]);
+    }, [quizState, isAnswered, currentQuestion, handleAnswerSubmit, handleNextQuestion, isSubmittingAnswer, isSavingCustomExplanation]);
 
   
 
@@ -757,7 +815,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
             >
               この問題を編集する
             </button>
-            <button id="next-question-button-bottom" type="button" onClick={handleNextQuestion} className="px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-dark bg-gray-200 hover:bg-gray-300">
+            <button id="next-question-button-bottom" type="button" onClick={handleNextQuestion} disabled={isSavingCustomExplanation} className="px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-dark bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 disabled:cursor-not-allowed">
               {currentQuestionIndex < questions.length - 1 ? '次の問題へ' : 'クイズを終了'}
             </button>
           </div>
@@ -768,6 +826,12 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       const QuestionColumn = () => (
         <div className="bg-white rounded-xl shadow p-6 md:p-8 h-full flex flex-col">
           <p className="text-lg font-semibold text-gray-700 mb-6">{currentQuestion.question_text}</p>
+          <div className="w-full h-2.5 rounded-full bg-gray-200/90 border border-gray-200 mb-6 pointer-events-none" aria-hidden="true">
+            <div
+              className="h-full rounded-full bg-cyan-300 transition-[width] duration-200 ease-linear"
+              style={{ width: `${remainingTimeRatio * 100}%` }}
+            />
+          </div>
           
           {/* 画像がある場合、スマホでは問題文の下に表示 */}
           <div className="md:hidden my-4">
@@ -818,8 +882,8 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
             />
             {!isAnswered && ( // Moved "解答する" button here
               <div className="mt-6 text-center">
-                <button id="submit-answer-button" type="button" onClick={handleAnswerSubmit} disabled={selectedAnswer === null} className="px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed">
-                  解答する
+                <button id="submit-answer-button" type="button" onClick={handleAnswerSubmit} disabled={selectedAnswer === null || isSubmittingAnswer} className="px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed">
+                  {isSubmittingAnswer ? '保存中...' : '解答する'}
                 </button>
               </div>
             )}
@@ -827,7 +891,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
           {isAnswered && ( // This div now only contains "次の問題へ" button, and retains mt-auto
             <div className="mt-auto pt-6 text-center">
-              <button id="next-question-button" type="button" onClick={handleNextQuestion} className="px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-dark bg-gray-200 hover:bg-gray-300">
+              <button id="next-question-button" type="button" onClick={handleNextQuestion} disabled={isSavingCustomExplanation} className="px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-dark bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 disabled:cursor-not-allowed">
                 {currentQuestionIndex < questions.length - 1 ? '次の問題へ' : 'クイズを終了'}
               </button>
             </div>

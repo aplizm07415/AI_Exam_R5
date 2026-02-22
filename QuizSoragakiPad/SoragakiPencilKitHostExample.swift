@@ -39,6 +39,8 @@ final class SoragakiPencilKitViewModelBridge {
 
 @MainActor
 final class QuizPencilModeViewModel: ObservableObject {
+    static let questionTimerDuration: TimeInterval = 120
+
     enum InteractionMode {
         case select
         case draw
@@ -46,6 +48,7 @@ final class QuizPencilModeViewModel: ObservableObject {
 
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
+    @Published var completionMessage: String?
     @Published var questions: [QuizQuestion] = []
     @Published var currentIndex: Int = 0
     @Published var selectedAnswer: String?
@@ -61,6 +64,7 @@ final class QuizPencilModeViewModel: ObservableObject {
     @Published var historyStats: [String: QuizHistoryStat] = [:]
     @Published var isProblemEditSheetPresented: Bool = false
     @Published var problemEditDraft: ProblemEditDraft?
+    @Published var questionStartedAt: Date = Date()
 
     private var apiClient: SoragakiAPIClient?
     private var deepLink: QuizDeepLink?
@@ -100,6 +104,7 @@ final class QuizPencilModeViewModel: ObservableObject {
 
     func startQuiz() async {
         guard let apiClient, let deepLink else { return }
+        completionMessage = nil
         guard !deepLink.subjects.isEmpty else {
             errorMessage = "科目が未指定です。Webの問題演習ページから起動してください。"
             return
@@ -131,16 +136,17 @@ final class QuizPencilModeViewModel: ObservableObject {
 
     func submitAnswer() async {
         guard let answer = selectedAnswer, let question = currentQuestion, !isAnswered else { return }
-        isCorrect = (answer == question.answer)
-        isAnswered = true
+        let answerIsCorrect = (answer == question.answer)
         do {
             try await apiClient?.submitHistory(
                 problemID: question.id,
                 subject: question.subject,
                 selectedAnswer: answer,
-                isCorrect: isCorrect,
+                isCorrect: answerIsCorrect,
                 category: question.category
             )
+            isCorrect = answerIsCorrect
+            isAnswered = true
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -149,28 +155,30 @@ final class QuizPencilModeViewModel: ObservableObject {
     func nextQuestion() async {
         guard isAnswered else { return }
         clearPencilLayer()
-        await saveCustomMemoIfNeeded()
+        do {
+            try await saveCustomMemoIfNeeded()
+        } catch {
+            errorMessage = error.localizedDescription
+            return
+        }
         if currentIndex < questions.count - 1 {
             currentIndex += 1
             resetQuestionState()
         } else {
-            errorMessage = "問題演習が完了しました。Webの問題演習ページから次のセットを開始してください。"
+            errorMessage = nil
+            completionMessage = "保存済み・演習完了"
         }
     }
 
-    func saveCustomMemoIfNeeded() async {
+    func saveCustomMemoIfNeeded() async throws {
         guard let apiClient, let question = currentQuestion else { return }
         let newText = customMemoText.trimmingCharacters(in: .whitespacesAndNewlines)
         let oldText = originalMemoText.trimmingCharacters(in: .whitespacesAndNewlines)
         if newText == oldText { return }
-        do {
-            try await apiClient.saveCustomExplanation(problemID: question.id, text: customMemoText)
-            originalMemoText = customMemoText
-            if questions.indices.contains(currentIndex) {
-                questions[currentIndex].customExplanation = customMemoText
-            }
-        } catch {
-            errorMessage = error.localizedDescription
+        try await apiClient.saveCustomExplanation(problemID: question.id, text: customMemoText)
+        originalMemoText = customMemoText
+        if questions.indices.contains(currentIndex) {
+            questions[currentIndex].customExplanation = customMemoText
         }
     }
 
@@ -225,9 +233,11 @@ final class QuizPencilModeViewModel: ObservableObject {
     }
 
     private func resetQuestionState() {
+        completionMessage = nil
         selectedAnswer = nil
         isAnswered = false
         isCorrect = false
+        questionStartedAt = Date()
         interactionMode = .select
         extraWriteAreaHeight = 0
         clearPencilLayer()
@@ -248,6 +258,12 @@ final class QuizPencilModeViewModel: ObservableObject {
         } catch {
             historyStats = [:]
         }
+    }
+
+    func remainingTimeRatio(at date: Date) -> CGFloat {
+        let elapsed = max(0, date.timeIntervalSince(questionStartedAt))
+        let ratio = max(0, min(1, 1 - (elapsed / Self.questionTimerDuration)))
+        return CGFloat(ratio)
     }
 }
 
@@ -297,6 +313,7 @@ struct QuizPencilOverlayView: UIViewRepresentable {
 struct QuizPencilModeView: View {
     let deepLink: QuizDeepLink
     @StateObject private var viewModel = QuizPencilModeViewModel()
+    @FocusState private var isMemoEditorFocused: Bool
 
     var body: some View {
         ScrollView {
@@ -318,9 +335,26 @@ struct QuizPencilModeView: View {
                         .foregroundColor(.secondary)
                         .padding(.bottom, 4)
                 }
+                if let message = viewModel.completionMessage {
+                    Text(message)
+                        .font(.footnote.weight(.semibold))
+                        .foregroundColor(.green)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 2)
+                        .padding(.bottom, 4)
+                }
             }
         }
         .padding()
+        .scrollDismissesKeyboard(.interactively)
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("完了") {
+                    isMemoEditorFocused = false
+                }
+            }
+        }
         .task {
             await viewModel.configure(with: deepLink)
         }
@@ -362,6 +396,23 @@ struct QuizPencilModeView: View {
                             .font(.title3)
                             .fontWeight(.semibold)
                             .padding(.bottom, 4)
+
+                        TimelineView(.periodic(from: .now, by: 0.25)) { context in
+                            let ratio = viewModel.remainingTimeRatio(at: context.date)
+                            ZStack(alignment: .leading) {
+                                Capsule()
+                                    .fill(Color.gray.opacity(0.14))
+                                GeometryReader { proxy in
+                                    Capsule()
+                                        .fill(Color.blue.opacity(0.35))
+                                        .frame(width: proxy.size.width * ratio)
+                                }
+                            }
+                            .frame(height: 8)
+                            .allowsHitTesting(false)
+                            .accessibilityHidden(true)
+                        }
+                        .padding(.bottom, 6)
 
                         ForEach(question.choices) { choice in
                             Button {
@@ -438,6 +489,7 @@ struct QuizPencilModeView: View {
                     .disabled(viewModel.selectedAnswer == nil)
                 } else {
                     Button(viewModel.currentIndex + 1 < viewModel.questions.count ? "次の問題へ" : "完了") {
+                        isMemoEditorFocused = false
                         Task { await viewModel.nextQuestion() }
                     }
                     .buttonStyle(.borderedProminent)
@@ -473,6 +525,7 @@ struct QuizPencilModeView: View {
                             .font(.headline)
                     }
                     TextEditor(text: $viewModel.customMemoText)
+                        .focused($isMemoEditorFocused)
                         .frame(minHeight: 110)
                         .padding(6)
                         .background(Color.white)
@@ -513,6 +566,7 @@ struct QuizPencilModeView: View {
 struct ProblemEditSheet: View {
     @Binding var draft: ProblemEditDraft?
     let onSave: () -> Void
+    @FocusState private var isAnyFieldFocused: Bool
 
     var body: some View {
         NavigationView {
@@ -520,33 +574,49 @@ struct ProblemEditSheet: View {
                 Form {
                     Section("問題文") {
                         TextEditor(text: binding(\.questionText))
+                            .focused($isAnyFieldFocused)
                             .frame(minHeight: 120)
                     }
                     Section("選択肢") {
                         ForEach(0..<(draft?.choices.count ?? 0), id: \.self) { idx in
                             VStack(alignment: .leading, spacing: 4) {
                                 TextField("ラベル", text: choiceBinding(idx, \.label))
+                                    .focused($isAnyFieldFocused)
                                 TextField("本文", text: choiceBinding(idx, \.text))
+                                    .focused($isAnyFieldFocused)
                             }
                         }
                     }
                     Section("正解") {
                         TextField("正解ラベル", text: binding(\.answer))
+                            .focused($isAnyFieldFocused)
                     }
                     Section("解説") {
                         TextEditor(text: binding(\.explanationText))
+                            .focused($isAnyFieldFocused)
                             .frame(minHeight: 100)
                     }
                     Section("カテゴリ") {
                         TextField("カテゴリ", text: binding(\.category))
+                            .focused($isAnyFieldFocused)
                     }
                 }
                 .navigationTitle("問題編集")
                 .toolbar {
                     ToolbarItem(placement: .confirmationAction) {
-                        Button("保存") { onSave() }
+                        Button("保存") {
+                            isAnyFieldFocused = false
+                            onSave()
+                        }
+                    }
+                    ToolbarItemGroup(placement: .keyboard) {
+                        Spacer()
+                        Button("完了") {
+                            isAnyFieldFocused = false
+                        }
                     }
                 }
+                .scrollDismissesKeyboard(.interactively)
             } else {
                 Text("編集対象がありません。")
             }

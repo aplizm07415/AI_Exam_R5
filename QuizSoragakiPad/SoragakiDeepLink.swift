@@ -46,11 +46,21 @@ enum AppDeepLink {
         }
 
         if url.host == "quiz" {
-            let subjectsValue = components.queryItems?.first(where: { $0.name == "subjects" })?.value ?? ""
-            let subjects = subjectsValue
-                .split(separator: ",")
-                .map { String($0).removingPercentEncoding ?? String($0) }
+            let repeatedSubjects = (components.queryItems ?? [])
+                .filter { $0.name == "subject" }
+                .compactMap { $0.value }
+                .map { ($0.removingPercentEncoding ?? $0).trimmingCharacters(in: .whitespacesAndNewlines) }
                 .filter { !$0.isEmpty }
+            let subjects: [String]
+            if !repeatedSubjects.isEmpty {
+                subjects = repeatedSubjects
+            } else {
+                let subjectsValue = components.queryItems?.first(where: { $0.name == "subjects" })?.value ?? ""
+                subjects = subjectsValue
+                    .split(separator: ",")
+                    .map { (String($0).removingPercentEncoding ?? String($0)).trimmingCharacters(in: .whitespacesAndNewlines) }
+                    .filter { !$0.isEmpty }
+            }
             let mode = components.queryItems?.first(where: { $0.name == "mode" })?.value ?? "random"
             let countRaw = components.queryItems?.first(where: { $0.name == "count" })?.value ?? "10"
             let count = max(1, Int(countRaw) ?? 10)
