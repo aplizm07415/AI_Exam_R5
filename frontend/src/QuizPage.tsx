@@ -7,7 +7,7 @@ import SubjectVisibilityModal from './components/SubjectVisibilityModal';
 import SubjectProgress from './components/SubjectProgress';
 import { usePlans } from './hooks/usePlans';
 import type { Plan } from './types/plan.d';
-import { isHoliday } from './utils/date';
+import { isHoliday, getMinutesUntilJstHour, getNowJstParts } from './utils/date';
 
 const API_BASE_URL = "/api";
 const QUESTION_TIMER_MS = 2 * 60 * 1000;
@@ -564,6 +564,21 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       return `${hours}時間${minutes}分`;
     }
     return `${minutes}分`;
+  }, [todayRemaining.count]);
+
+  const todayRemainingPaceHint = useMemo(() => {
+    const { hour } = getNowJstParts();
+    if (hour < 7 || hour >= 21) return null;
+
+    const remainingQuestions = Math.max(0, todayRemaining.count);
+    if (remainingQuestions === 0) return '今日の予定は完了しています。';
+
+    const remainingHoursRaw = getMinutesUntilJstHour(21) / 60;
+    const remainingHoursFloor = Math.max(1, Math.floor(remainingHoursRaw));
+    const targetPerHour = Math.max(1, Math.ceil(remainingQuestions / remainingHoursFloor));
+    const nextHour = Math.min(hour + 1, 21);
+
+    return `${nextHour}時までにあと${targetPerHour}問で順調ペース`;
   }, [todayRemaining.count]);
 
   const handleAnswerSubmit = async () => {
@@ -1165,6 +1180,9 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                             <div className="mt-2 text-sm text-gray-500 mb-2">
 
                               {quizMode === 'today_remaining' && `(今日の残り: ${todayRemaining.count} 問 (予定:${todayRemaining.plan} / 実績:${todayRemaining.actual}) / 2分/問で約${estimatedCompletionText})`}
+                              {quizMode === 'today_remaining' && todayRemainingPaceHint && (
+                                <div className="mt-1 text-xs font-medium text-[#e8383d]">{todayRemainingPaceHint}</div>
+                              )}
 
                               {quizMode === 'unanswered' && unansweredCount !== null && `(未解答: ${unansweredCount} 問)`}
 

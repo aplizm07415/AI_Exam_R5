@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { getTodayYmdJst } from './utils/date';
 
 const STORAGE_KEY_EXAMS = 'countdownExams';
 
@@ -96,7 +97,7 @@ export default function CountdownPage() {
   });
 
   const [newExamName, setNewExamName] = useState<string>('');
-  const [newExamDate, setNewExamDate] = useState<string>(() => (new Date().toISOString().split('T')[0] as string));
+  const [newExamDate, setNewExamDate] = useState<string>(() => getTodayYmdJst());
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY_EXAMS, JSON.stringify(exams));
@@ -115,7 +116,7 @@ export default function CountdownPage() {
     setExams(prevExams => [...prevExams, newExam]);
     // Reset form
     setNewExamName('');
-    setNewExamDate((new Date().toISOString().split('T')[0] as string));
+    setNewExamDate(getTodayYmdJst());
   };
 
   const handleDeleteExam = (id: number) => {

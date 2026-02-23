@@ -397,7 +397,7 @@ export default function AnalysisDashboard({
                       </div>
 
                       {/* Bars */}
-                      {trendData.length > 1 ? (
+                      {trendData.length > 0 ? (
                         <div className="relative w-full h-full flex justify-around gap-2 items-end px-1">
                           {trendData.map((d, i) => {
                               const isAboveThreshold = threshold > 0 && d.rate >= threshold;
@@ -417,7 +417,7 @@ export default function AnalysisDashboard({
                               )
                           })}
                         </div>
-                      ) : <p className="absolute inset-0 flex items-center justify-center text-sm text-gray-500">グラフを表示するには2日以上の履歴が必要です。</p>}
+                      ) : <p className="absolute inset-0 flex items-center justify-center text-sm text-gray-500">履歴データがありません。</p>}
                     </div>
                   </div>
                 </div>

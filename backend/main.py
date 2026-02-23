@@ -409,7 +409,8 @@ def get_subjects():
                 blob.name.endswith('.json') and
                 not blob.name.startswith('history/') and
                 not blob.name.startswith('custom-explanations/') and
-                not blob.name.startswith('soragaki/')
+                not blob.name.startswith('soragaki/') and
+                not blob.name.startswith('photo-library/')
             )
         ]
     except Exception as e:

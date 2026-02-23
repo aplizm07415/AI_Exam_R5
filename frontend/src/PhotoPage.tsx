@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { formatDateTimeJst } from './utils/date';
 
 type PhotoItem = {
   id: string;
@@ -25,9 +26,7 @@ type EditingState = {
 const API_BASE_URL = '/api';
 
 const formatDateTime = (iso: string) => {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return iso;
-  return date.toLocaleString('ja-JP');
+  return formatDateTimeJst(iso);
 };
 
 const formatFileSize = (bytes: number) => {
@@ -327,7 +326,11 @@ export default function PhotoPage() {
   const filteredPhotos = useMemo(() => {
     const keyword = tagFilter.trim().toLowerCase();
     if (!keyword) return photos;
-    return photos.filter((photo) => photo.tags.some((tag) => tag.toLowerCase().includes(keyword)));
+    return photos.filter((photo) => {
+      const matchesTag = photo.tags.some((tag) => tag.toLowerCase().includes(keyword));
+      const matchesDisplayName = photo.display_name.toLowerCase().includes(keyword);
+      return matchesTag || matchesDisplayName;
+    });
   }, [photos, tagFilter]);
 
   const groupedFilteredPhotos = useMemo(() => {
@@ -591,7 +594,7 @@ export default function PhotoPage() {
                 type="text"
                 value={tagFilter}
                 onChange={(e) => setTagFilter(e.target.value)}
-                placeholder="タグで絞り込み"
+                placeholder="タグ / 表示名で絞り込み"
                 className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm sm:w-52"
               />
               <button

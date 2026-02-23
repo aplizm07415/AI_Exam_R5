@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { usePlans } from './hooks/usePlans';
 import type { Plan } from './types/plan.d';
-import { isHoliday } from './utils/date';
+import { isHoliday, getTodayYmdJst } from './utils/date';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Brush } from 'recharts';
 import LoadingSpinner from './components/LoadingSpinner';
 
@@ -267,7 +267,7 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
         let current = new Date(p.period.from);
         const to = new Date(p.period.to);
         while(current <= to) {
-            allDates.add(current.toISOString().split('T')[0]!);
+            allDates.add(formatDateYmd(current));
             current.setDate(current.getDate() + 1);
         }
     });
@@ -324,7 +324,7 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
   }, [plans, dailySummaryAll, selectedPlanIds]);
 
   const displayProgressData = useMemo(() => {
-    const today = new Date();
+    const today = new Date(getTodayYmdJst());
     today.setHours(0, 0, 0, 0);
     const from = new Date(today);
     from.setDate(from.getDate() - 4);
