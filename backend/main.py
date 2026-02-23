@@ -3,7 +3,7 @@ import json
 import random
 import datetime
 from pathlib import Path
-from fastapi import FastAPI, APIRouter, HTTPException, Query, Response
+from fastapi import FastAPI, APIRouter, HTTPException, Query, Response, UploadFile, File, Form
 from pydantic import BaseModel, Field # BaseModelをインポート
 from typing import Literal, List, Optional
 from fastapi.staticfiles import StaticFiles
@@ -17,6 +17,7 @@ import base64
 import hmac
 import hashlib
 import time
+import uuid
 from fastapi import Request, Depends # Add Depends
 import google.generativeai as genai
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials # Add for security
@@ -47,6 +48,24 @@ class SoragakiRecordSummary(BaseModel):
     saved_at: str
     learning_date: Optional[str] = None
     page_count: int
+
+class PhotoItem(BaseModel):
+    id: str
+    display_name: str
+    original_filename: str
+    blob_name: str
+    content_type: str
+    size_bytes: int
+    tags: list[str]
+    uploaded_at: str
+    updated_at: str
+    upload_batch_id: Optional[str] = None
+    upload_index: Optional[int] = None
+    upload_count: Optional[int] = None
+
+class PhotoUpdateRequest(BaseModel):
+    display_name: str = Field(min_length=1, max_length=200)
+    tags: list[str] = Field(default_factory=list)
 
 # 新規追加: 不正解問題詳細の戻り値用モデル
 class MissedProblemDetail(BaseModel):
@@ -96,6 +115,9 @@ BLOB_CONN_STR = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
 BLOB_CONTAINER_NAME = os.getenv("QUIZ_BLOB_CONTAINER", "exam-json")
 CUSTOM_EXPLANATIONS_DIR = "custom-explanations"
 SORAGAKI_DIR = "soragaki" # Directory for Soragaki data
+PHOTO_LIBRARY_DIR = "photo-library"
+PHOTO_META_DIR = f"{PHOTO_LIBRARY_DIR}/meta"
+PHOTO_FILES_DIR = f"{PHOTO_LIBRARY_DIR}/files"
 
 # Gemini API Setup
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
@@ -258,6 +280,80 @@ def _get_all_questions_for_subject(subject_name: str) -> dict[str, dict]:
     
     return {q.get("id"): q for q in all_questions_list if q.get("id")}
 
+
+def _photo_meta_blob_name(photo_id: str) -> str:
+    return f"{PHOTO_META_DIR}/{photo_id}.json"
+
+
+def _safe_photo_extension(filename: str) -> str:
+    suffix = Path(filename or "").suffix.lower()
+    if not suffix:
+        return ""
+    if len(suffix) > 10:
+        return ""
+    allowed = set(".abcdefghijklmnopqrstuvwxyz0123456789")
+    return suffix if all(ch in allowed for ch in suffix) else ""
+
+
+def _photo_file_blob_name(photo_id: str, filename: str) -> str:
+    return f"{PHOTO_FILES_DIR}/{photo_id}{_safe_photo_extension(filename)}"
+
+
+def _now_utc_iso() -> str:
+    return datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+
+def _normalize_photo_tags(tags: list[str]) -> list[str]:
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for raw in tags:
+        tag = raw.strip()
+        if not tag:
+            continue
+        if len(tag) > 40:
+            tag = tag[:40]
+        key = tag.casefold()
+        if key in seen:
+            continue
+        seen.add(key)
+        normalized.append(tag)
+        if len(normalized) >= 20:
+            break
+    return normalized
+
+
+def _coerce_photo_item(meta: dict) -> PhotoItem:
+    return PhotoItem(
+        id=str(meta["id"]),
+        display_name=str(meta.get("display_name") or meta.get("original_filename") or "Untitled"),
+        original_filename=str(meta.get("original_filename") or "unknown"),
+        blob_name=str(meta["blob_name"]),
+        content_type=str(meta.get("content_type") or "application/octet-stream"),
+        size_bytes=int(meta.get("size_bytes") or 0),
+        tags=_normalize_photo_tags(meta.get("tags") or []),
+        uploaded_at=str(meta["uploaded_at"]),
+        updated_at=str(meta.get("updated_at") or meta["uploaded_at"]),
+        upload_batch_id=str(meta["upload_batch_id"]) if meta.get("upload_batch_id") is not None else None,
+        upload_index=int(meta["upload_index"]) if meta.get("upload_index") is not None else None,
+        upload_count=int(meta["upload_count"]) if meta.get("upload_count") is not None else None,
+    )
+
+
+def _load_photo_item(photo_id: str) -> PhotoItem:
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+    meta_blob = container_client.get_blob_client(_photo_meta_blob_name(photo_id))
+    if not meta_blob.exists():
+        raise HTTPException(status_code=404, detail="Photo not found.")
+    try:
+        payload = json.loads(meta_blob.download_blob().readall())
+        return _coerce_photo_item(payload)
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error reading photo metadata for {photo_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to read photo metadata.")
+
 # --- API Routes ---
 @api_router.get("/health")
 def health():
@@ -366,6 +462,146 @@ def get_image(image_name: str):
     except Exception as e:
         print(f"Error streaming image: {e}")
         raise HTTPException(status_code=500, detail="Failed to stream image from blob storage.")
+
+
+@api_router.get("/photos", response_model=List[PhotoItem])
+def list_photos():
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+
+    items: list[PhotoItem] = []
+    try:
+        for blob in container_client.list_blobs(name_starts_with=f"{PHOTO_META_DIR}/"):
+            if not blob.name.endswith(".json"):
+                continue
+            meta_blob = container_client.get_blob_client(blob.name)
+            try:
+                meta = json.loads(meta_blob.download_blob().readall())
+                items.append(_coerce_photo_item(meta))
+            except Exception as e:
+                print(f"Skipping unreadable photo metadata {blob.name}: {e}")
+        items.sort(key=lambda x: x.updated_at, reverse=True)
+        return items
+    except Exception as e:
+        print(f"Error listing photos: {e}")
+        raise HTTPException(status_code=500, detail="Failed to list photos.")
+
+
+@api_router.post("/photos", response_model=List[PhotoItem], status_code=201)
+def upload_photo(
+    files: List[UploadFile] = File(...),
+    display_name: str = Form(...),
+    tags_json: str = Form("[]"),
+):
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+
+    name = display_name.strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="display_name is required.")
+
+    try:
+        raw_tags = json.loads(tags_json)
+        if not isinstance(raw_tags, list):
+            raise ValueError("tags_json must be a JSON array")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid tags_json: {e}")
+
+    if not files:
+        raise HTTPException(status_code=400, detail="At least one file is required.")
+
+    batch_id = uuid.uuid4().hex
+    now_iso = _now_utc_iso()
+    normalized_tags = _normalize_photo_tags([str(tag) for tag in raw_tags])
+    total = len(files)
+    created_items: list[PhotoItem] = []
+
+    try:
+        for index, file in enumerate(files, start=1):
+            try:
+                data = file.file.read()
+            except Exception as e:
+                raise HTTPException(status_code=400, detail=f"Failed to read uploaded file: {e}")
+
+            if not data:
+                raise HTTPException(status_code=400, detail="Empty file is not allowed.")
+
+            photo_id = uuid.uuid4().hex
+            file_blob_name = _photo_file_blob_name(photo_id, file.filename or "")
+            content_type = file.content_type or mimetypes.guess_type(file.filename or "")[0] or "application/octet-stream"
+
+            if total == 1:
+                per_file_display_name = name[:200]
+            else:
+                per_file_display_name = f"{name[:180]} ({index}/{total})"
+
+            meta = {
+                "id": photo_id,
+                "display_name": per_file_display_name,
+                "original_filename": (file.filename or "upload.bin")[:255],
+                "blob_name": file_blob_name,
+                "content_type": content_type,
+                "size_bytes": len(data),
+                "tags": normalized_tags,
+                "uploaded_at": now_iso,
+                "updated_at": now_iso,
+                "upload_batch_id": batch_id,
+                "upload_index": index,
+                "upload_count": total,
+            }
+
+            container_client.get_blob_client(file_blob_name).upload_blob(data, overwrite=False)
+            container_client.get_blob_client(_photo_meta_blob_name(photo_id)).upload_blob(
+                json.dumps(meta, ensure_ascii=False),
+                overwrite=False,
+            )
+            created_items.append(_coerce_photo_item(meta))
+
+        return created_items
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error uploading photo batch: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to upload photo(s): {e}")
+
+
+@api_router.put("/photos/{photo_id}", response_model=PhotoItem)
+def update_photo(photo_id: str, payload: PhotoUpdateRequest):
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+
+    item = _load_photo_item(photo_id)
+    updated_meta = item.model_dump()
+    updated_meta["display_name"] = payload.display_name.strip()[:200]
+    if not updated_meta["display_name"]:
+        raise HTTPException(status_code=400, detail="display_name is required.")
+    updated_meta["tags"] = _normalize_photo_tags(payload.tags)
+    updated_meta["updated_at"] = _now_utc_iso()
+
+    try:
+        container_client.get_blob_client(_photo_meta_blob_name(photo_id)).upload_blob(
+            json.dumps(updated_meta, ensure_ascii=False),
+            overwrite=True,
+        )
+        return _coerce_photo_item(updated_meta)
+    except Exception as e:
+        print(f"Error updating photo metadata for {photo_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update photo metadata.")
+
+
+@api_router.get("/photos/{photo_id}/file")
+def get_photo_file(photo_id: str):
+    item = _load_photo_item(photo_id)
+    file_blob_client = container_client.get_blob_client(item.blob_name) if container_client else None
+    if file_blob_client is None or not file_blob_client.exists():
+        raise HTTPException(status_code=404, detail="Photo file not found.")
+
+    try:
+        stream = file_blob_client.download_blob().chunks()
+        return StreamingResponse(stream, media_type=item.content_type)
+    except Exception as e:
+        print(f"Error streaming photo file for {photo_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to stream photo file.")
 
 @api_router.post("/soragaki/generate-keywords", response_model=List[str], dependencies=[Depends(verify_soragaki_auth)])
 def generate_keywords_from_memo(request: GenerateKeywordsRequest):

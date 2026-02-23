@@ -4,8 +4,9 @@ import QuizPage from './QuizPage';
 import DashboardPage from './DashboardPage';
 import PortalPage from './PortalPage';
 import CountdownPage from './CountdownPage';
+import PhotoPage from './PhotoPage';
 import SoragakiPage from './SoragakiPage'; // Import SoragakiPage
-import { BarChartIcon, FileTextIcon, CalendarDaysIcon, PencilIcon } from './components/icons';
+import { BarChartIcon, FileTextIcon, CalendarDaysIcon, PencilIcon, PhotoIcon } from './components/icons';
 import LoadingSpinner from './components/LoadingSpinner';
 
 interface Subject {
@@ -53,6 +54,7 @@ export default function App() {
     { id: 'quiz', path: '/', label: 'Study', icon: <PencilIcon className="w-5 h-5" /> },
     { id: 'dashboard', path: '/dashboard', label: 'Dashboard', icon: <BarChartIcon className="w-5 h-5" /> },
     { id: 'soragaki', path: '/soragaki', label: '空描き', icon: <PencilIcon className="w-5 h-5" /> },
+    { id: 'photo', path: '/photos', label: 'Photo', icon: <PhotoIcon className="w-5 h-5" /> },
     { id: 'countdown', path: '/countdown', label: '試験日', icon: <CalendarDaysIcon className="w-5 h-5" /> },
   ], []);
 
@@ -106,6 +108,7 @@ export default function App() {
           <div className="fade-in">
             <Routes>
               <Route path="/portal" element={<PortalPage />} />
+              <Route path="/photos" element={<PhotoPage />} />
               <Route path="/countdown" element={<CountdownPage />} />
               <Route path="/soragaki" element={<SoragakiPage />} />
               <Route path="/" element={<QuizPage subjects={subjects} />} />
