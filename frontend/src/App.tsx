@@ -5,8 +5,9 @@ import DashboardPage from './DashboardPage';
 import PortalPage from './PortalPage';
 import CountdownPage from './CountdownPage';
 import PhotoPage from './PhotoPage';
+import MusclePage from './MusclePage';
 import SoragakiPage from './SoragakiPage'; // Import SoragakiPage
-import { BarChartIcon, FileTextIcon, CalendarDaysIcon, PencilIcon, PhotoIcon } from './components/icons';
+import { BarChartIcon, FileTextIcon, CalendarDaysIcon, PencilIcon, PhotoIcon, DumbbellIcon } from './components/icons';
 import LoadingSpinner from './components/LoadingSpinner';
 
 interface Subject {
@@ -56,6 +57,7 @@ export default function App() {
     { id: 'soragaki', path: '/soragaki', label: '空描き', icon: <PencilIcon className="w-5 h-5" /> },
     { id: 'photo', path: '/photos', label: 'Photo', icon: <PhotoIcon className="w-5 h-5" /> },
     { id: 'countdown', path: '/countdown', label: '試験日', icon: <CalendarDaysIcon className="w-5 h-5" /> },
+    { id: 'muscle', path: '/muscle', label: 'Muscle', icon: <DumbbellIcon className="w-5 h-5" /> },
   ], []);
 
   const activePath = location.pathname;
@@ -110,6 +112,7 @@ export default function App() {
               <Route path="/portal" element={<PortalPage />} />
               <Route path="/photos" element={<PhotoPage />} />
               <Route path="/countdown" element={<CountdownPage />} />
+              <Route path="/muscle" element={<MusclePage />} />
               <Route path="/soragaki" element={<SoragakiPage />} />
               <Route path="/" element={<QuizPage subjects={subjects} />} />
               <Route path="/dashboard" element={<DashboardPage subjects={subjects} key={subjects.map(s => s.name).join(',')} />} />

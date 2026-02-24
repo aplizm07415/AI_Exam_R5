@@ -60,3 +60,17 @@ export const PhotoIcon = createIcon(
     <path d="m21 16-5.5-5.5a1 1 0 0 0-1.4 0L7 18" />
   </svg>
 );
+
+export const DumbbellIcon = createIcon(
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 7v10" />
+    <path d="M9 6v12" />
+    <path d="M15 6v12" />
+    <path d="M18 7v10" />
+    <path d="M4 9h2" />
+    <path d="M4 15h2" />
+    <path d="M18 9h2" />
+    <path d="M18 15h2" />
+    <path d="M9 12h6" />
+  </svg>
+);

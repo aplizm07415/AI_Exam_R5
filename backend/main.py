@@ -67,6 +67,59 @@ class PhotoUpdateRequest(BaseModel):
     display_name: str = Field(min_length=1, max_length=200)
     tags: list[str] = Field(default_factory=list)
 
+MuscleRecordMethod = Literal["duration", "reps_weight", "running_manual"]
+
+class MuscleAudioItem(BaseModel):
+    id: str
+    display_name: str
+    original_filename: str
+    blob_name: str
+    content_type: str
+    size_bytes: int
+    created_at: str
+    updated_at: str
+
+class MuscleExercise(BaseModel):
+    id: str
+    name: str
+    record_method: MuscleRecordMethod
+    body_parts: list[str]
+    audio_id: Optional[str] = None
+    is_active: bool = True
+    created_at: str
+    updated_at: str
+
+class MuscleExerciseUpsertRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    record_method: MuscleRecordMethod
+    body_parts: list[str] = Field(default_factory=list)
+    audio_id: Optional[str] = None
+    is_active: bool = True
+
+class MuscleRecord(BaseModel):
+    id: str
+    exercise_id: str
+    exercise_name: str
+    record_method: MuscleRecordMethod
+    performed_at: str  # ISO string (UTC)
+    body_parts: list[str]
+    duration_seconds: Optional[int] = None
+    reps: Optional[int] = None
+    weight_kg: Optional[float] = None
+    distance_km: Optional[float] = None
+    memo: str = ""
+    created_at: str
+    updated_at: str
+
+class MuscleRecordUpsertRequest(BaseModel):
+    exercise_id: str = Field(min_length=1)
+    performed_at: Optional[str] = None
+    duration_seconds: Optional[int] = Field(default=None, ge=0)
+    reps: Optional[int] = Field(default=None, ge=0)
+    weight_kg: Optional[float] = Field(default=None, ge=0)
+    distance_km: Optional[float] = Field(default=None, ge=0)
+    memo: str = Field(default="", max_length=500)
+
 # 新規追加: 不正解問題詳細の戻り値用モデル
 class MissedProblemDetail(BaseModel):
     problem_id: str
@@ -118,6 +171,27 @@ SORAGAKI_DIR = "soragaki" # Directory for Soragaki data
 PHOTO_LIBRARY_DIR = "photo-library"
 PHOTO_META_DIR = f"{PHOTO_LIBRARY_DIR}/meta"
 PHOTO_FILES_DIR = f"{PHOTO_LIBRARY_DIR}/files"
+MUSCLE_DIR = "muscle"
+MUSCLE_EXERCISES_BLOB = f"{MUSCLE_DIR}/exercises.json"
+MUSCLE_RECORDS_BLOB = f"{MUSCLE_DIR}/records.json"
+MUSCLE_AUDIOS_META_BLOB = f"{MUSCLE_DIR}/audios/meta.json"
+MUSCLE_AUDIO_FILES_DIR = f"{MUSCLE_DIR}/audios/files"
+MUSCLE_BODY_PARTS = [
+    "neck",
+    "chest",
+    "upper_back",
+    "lower_back",
+    "shoulders",
+    "biceps",
+    "triceps",
+    "forearms",
+    "abs",
+    "obliques",
+    "glutes",
+    "quads",
+    "hamstrings",
+    "calves",
+]
 
 # Gemini API Setup
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
@@ -354,6 +428,103 @@ def _load_photo_item(photo_id: str) -> PhotoItem:
         print(f"Error reading photo metadata for {photo_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to read photo metadata.")
 
+
+def _load_json_blob_or_default(blob_name: str, default):
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+    blob_client = container_client.get_blob_client(blob_name)
+    if not blob_client.exists():
+        return default
+    try:
+        raw = blob_client.download_blob().readall()
+        if not raw:
+            return default
+        return json.loads(raw)
+    except Exception as e:
+        print(f"Error reading json blob {blob_name}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to read {blob_name}.")
+
+
+def _save_json_blob(blob_name: str, payload) -> None:
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+    try:
+        container_client.get_blob_client(blob_name).upload_blob(
+            json.dumps(payload, ensure_ascii=False, indent=2),
+            overwrite=True,
+        )
+    except Exception as e:
+        print(f"Error saving json blob {blob_name}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to save {blob_name}.")
+
+
+def _normalize_muscle_body_parts(parts: list[str]) -> list[str]:
+    allowed = set(MUSCLE_BODY_PARTS)
+    out: list[str] = []
+    seen: set[str] = set()
+    for p in parts:
+        key = (p or "").strip()
+        if key not in allowed or key in seen:
+            continue
+        seen.add(key)
+        out.append(key)
+    return out
+
+
+def _load_muscle_exercises() -> list[MuscleExercise]:
+    raw = _load_json_blob_or_default(MUSCLE_EXERCISES_BLOB, [])
+    exercises: list[MuscleExercise] = []
+    if not isinstance(raw, list):
+        return []
+    for item in raw:
+        try:
+            exercises.append(MuscleExercise.model_validate(item))
+        except Exception as e:
+            print(f"Skipping invalid muscle exercise: {e}")
+    return exercises
+
+
+def _save_muscle_exercises(exercises: list[MuscleExercise]) -> None:
+    _save_json_blob(MUSCLE_EXERCISES_BLOB, [e.model_dump() for e in exercises])
+
+
+def _load_muscle_records() -> list[MuscleRecord]:
+    raw = _load_json_blob_or_default(MUSCLE_RECORDS_BLOB, [])
+    records: list[MuscleRecord] = []
+    if not isinstance(raw, list):
+        return []
+    for item in raw:
+        try:
+            records.append(MuscleRecord.model_validate(item))
+        except Exception as e:
+            print(f"Skipping invalid muscle record: {e}")
+    return records
+
+
+def _save_muscle_records(records: list[MuscleRecord]) -> None:
+    _save_json_blob(MUSCLE_RECORDS_BLOB, [r.model_dump() for r in records])
+
+
+def _load_muscle_audios() -> list[MuscleAudioItem]:
+    raw = _load_json_blob_or_default(MUSCLE_AUDIOS_META_BLOB, [])
+    audios: list[MuscleAudioItem] = []
+    if not isinstance(raw, list):
+        return []
+    for item in raw:
+        try:
+            audios.append(MuscleAudioItem.model_validate(item))
+        except Exception as e:
+            print(f"Skipping invalid muscle audio meta: {e}")
+    return audios
+
+
+def _save_muscle_audios(items: list[MuscleAudioItem]) -> None:
+    _save_json_blob(MUSCLE_AUDIOS_META_BLOB, [i.model_dump() for i in items])
+
+
+def _safe_audio_blob_name(audio_id: str, filename: str) -> str:
+    return f"{MUSCLE_AUDIO_FILES_DIR}/{audio_id}{_safe_photo_extension(filename)}"
+
 # --- API Routes ---
 @api_router.get("/health")
 def health():
@@ -410,7 +581,8 @@ def get_subjects():
                 not blob.name.startswith('history/') and
                 not blob.name.startswith('custom-explanations/') and
                 not blob.name.startswith('soragaki/') and
-                not blob.name.startswith('photo-library/')
+                not blob.name.startswith('photo-library/') and
+                not blob.name.startswith('muscle/')
             )
         ]
     except Exception as e:
@@ -603,6 +775,247 @@ def get_photo_file(photo_id: str):
     except Exception as e:
         print(f"Error streaming photo file for {photo_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to stream photo file.")
+
+
+@api_router.get("/muscle/body-parts", response_model=List[str])
+def get_muscle_body_parts():
+    return MUSCLE_BODY_PARTS
+
+
+@api_router.get("/muscle/exercises", response_model=List[MuscleExercise])
+def list_muscle_exercises(include_inactive: bool = Query(False)):
+    items = _load_muscle_exercises()
+    if not include_inactive:
+        items = [x for x in items if x.is_active]
+    items.sort(key=lambda x: (x.name.casefold(), x.created_at))
+    return items
+
+
+@api_router.post("/muscle/exercises", response_model=MuscleExercise, status_code=201)
+def create_muscle_exercise(payload: MuscleExerciseUpsertRequest):
+    exercises = _load_muscle_exercises()
+    now_iso = _now_utc_iso()
+    exercise = MuscleExercise(
+        id=uuid.uuid4().hex,
+        name=payload.name.strip(),
+        record_method=payload.record_method,
+        body_parts=_normalize_muscle_body_parts(payload.body_parts),
+        audio_id=payload.audio_id,
+        is_active=payload.is_active,
+        created_at=now_iso,
+        updated_at=now_iso,
+    )
+    if exercise.record_method != "duration":
+        exercise.audio_id = None
+    if not exercise.name:
+        raise HTTPException(status_code=400, detail="Exercise name is required.")
+    exercises.append(exercise)
+    _save_muscle_exercises(exercises)
+    return exercise
+
+
+@api_router.put("/muscle/exercises/{exercise_id}", response_model=MuscleExercise)
+def update_muscle_exercise(exercise_id: str, payload: MuscleExerciseUpsertRequest):
+    exercises = _load_muscle_exercises()
+    idx = next((i for i, e in enumerate(exercises) if e.id == exercise_id), None)
+    if idx is None:
+        raise HTTPException(status_code=404, detail="Exercise not found.")
+
+    old = exercises[idx]
+    updated = old.model_copy(update={
+        "name": payload.name.strip(),
+        "record_method": payload.record_method,
+        "body_parts": _normalize_muscle_body_parts(payload.body_parts),
+        "audio_id": payload.audio_id if payload.record_method == "duration" else None,
+        "is_active": payload.is_active,
+        "updated_at": _now_utc_iso(),
+    })
+    if not updated.name:
+        raise HTTPException(status_code=400, detail="Exercise name is required.")
+    exercises[idx] = updated
+    _save_muscle_exercises(exercises)
+    return updated
+
+
+@api_router.delete("/muscle/exercises/{exercise_id}", status_code=204)
+def delete_muscle_exercise(exercise_id: str):
+    exercises = _load_muscle_exercises()
+    new_items = [e for e in exercises if e.id != exercise_id]
+    if len(new_items) == len(exercises):
+        raise HTTPException(status_code=404, detail="Exercise not found.")
+    _save_muscle_exercises(new_items)
+    return Response(status_code=204)
+
+
+@api_router.get("/muscle/records", response_model=List[MuscleRecord])
+def list_muscle_records(
+    limit: int = Query(200, ge=1, le=2000),
+    exercise_id: Optional[str] = None,
+):
+    records = _load_muscle_records()
+    if exercise_id:
+        records = [r for r in records if r.exercise_id == exercise_id]
+    records.sort(key=lambda r: r.performed_at, reverse=True)
+    return records[:limit]
+
+
+def _build_muscle_record(payload: MuscleRecordUpsertRequest, exercises_by_id: dict[str, MuscleExercise], record_id: Optional[str] = None, created_at: Optional[str] = None) -> MuscleRecord:
+    exercise = exercises_by_id.get(payload.exercise_id)
+    if exercise is None:
+        raise HTTPException(status_code=400, detail="Invalid exercise_id.")
+
+    now_iso = _now_utc_iso()
+    performed_at = payload.performed_at or now_iso
+    try:
+        datetime.datetime.fromisoformat(performed_at.replace("Z", "+00:00"))
+    except Exception:
+        raise HTTPException(status_code=400, detail="performed_at must be ISO datetime.")
+
+    duration_seconds = payload.duration_seconds
+    reps = payload.reps
+    weight_kg = payload.weight_kg
+    distance_km = payload.distance_km
+
+    if exercise.record_method == "duration":
+        if duration_seconds is None:
+            raise HTTPException(status_code=400, detail="duration_seconds is required for duration exercises.")
+        reps = None
+        weight_kg = None
+        distance_km = None
+    elif exercise.record_method == "reps_weight":
+        if reps is None:
+            raise HTTPException(status_code=400, detail="reps is required for reps/weight exercises.")
+        duration_seconds = None
+        distance_km = None
+    elif exercise.record_method == "running_manual":
+        if distance_km is None:
+            raise HTTPException(status_code=400, detail="distance_km is required for running_manual.")
+        # duration optional but usually useful
+        reps = None
+        weight_kg = None
+    else:
+        raise HTTPException(status_code=400, detail="Unsupported record method.")
+
+    return MuscleRecord(
+        id=record_id or uuid.uuid4().hex,
+        exercise_id=exercise.id,
+        exercise_name=exercise.name,
+        record_method=exercise.record_method,
+        performed_at=performed_at,
+        body_parts=exercise.body_parts,
+        duration_seconds=duration_seconds,
+        reps=reps,
+        weight_kg=weight_kg,
+        distance_km=distance_km,
+        memo=(payload.memo or "").strip(),
+        created_at=created_at or now_iso,
+        updated_at=now_iso,
+    )
+
+
+@api_router.post("/muscle/records", response_model=MuscleRecord, status_code=201)
+def create_muscle_record(payload: MuscleRecordUpsertRequest):
+    exercises = _load_muscle_exercises()
+    exercises_by_id = {e.id: e for e in exercises}
+    record = _build_muscle_record(payload, exercises_by_id)
+    records = _load_muscle_records()
+    records.append(record)
+    _save_muscle_records(records)
+    return record
+
+
+@api_router.put("/muscle/records/{record_id}", response_model=MuscleRecord)
+def update_muscle_record(record_id: str, payload: MuscleRecordUpsertRequest):
+    records = _load_muscle_records()
+    idx = next((i for i, r in enumerate(records) if r.id == record_id), None)
+    if idx is None:
+        raise HTTPException(status_code=404, detail="Record not found.")
+
+    exercises_by_id = {e.id: e for e in _load_muscle_exercises()}
+    old = records[idx]
+    updated = _build_muscle_record(payload, exercises_by_id, record_id=old.id, created_at=old.created_at)
+    records[idx] = updated
+    _save_muscle_records(records)
+    return updated
+
+
+@api_router.delete("/muscle/records/{record_id}", status_code=204)
+def delete_muscle_record(record_id: str):
+    records = _load_muscle_records()
+    new_items = [r for r in records if r.id != record_id]
+    if len(new_items) == len(records):
+        raise HTTPException(status_code=404, detail="Record not found.")
+    _save_muscle_records(new_items)
+    return Response(status_code=204)
+
+
+@api_router.get("/muscle/audios", response_model=List[MuscleAudioItem])
+def list_muscle_audios():
+    items = _load_muscle_audios()
+    items.sort(key=lambda x: x.updated_at, reverse=True)
+    return items
+
+
+@api_router.post("/muscle/audios", response_model=MuscleAudioItem, status_code=201)
+def upload_muscle_audio(
+    file: UploadFile = File(...),
+    display_name: str = Form(...),
+):
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+    name = display_name.strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="display_name is required.")
+    try:
+        data = file.file.read()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to read file: {e}")
+    if not data:
+        raise HTTPException(status_code=400, detail="Empty file is not allowed.")
+
+    audio_id = uuid.uuid4().hex
+    now_iso = _now_utc_iso()
+    blob_name = _safe_audio_blob_name(audio_id, file.filename or "")
+    content_type = file.content_type or mimetypes.guess_type(file.filename or "")[0] or "application/octet-stream"
+    item = MuscleAudioItem(
+        id=audio_id,
+        display_name=name[:200],
+        original_filename=(file.filename or "audio.bin")[:255],
+        blob_name=blob_name,
+        content_type=content_type,
+        size_bytes=len(data),
+        created_at=now_iso,
+        updated_at=now_iso,
+    )
+
+    try:
+        container_client.get_blob_client(blob_name).upload_blob(data, overwrite=False)
+        items = _load_muscle_audios()
+        items.append(item)
+        _save_muscle_audios(items)
+        return item
+    except Exception as e:
+        print(f"Error uploading muscle audio: {e}")
+        raise HTTPException(status_code=500, detail="Failed to upload muscle audio.")
+
+
+@api_router.get("/muscle/audios/{audio_id}/file")
+def get_muscle_audio_file(audio_id: str):
+    items = _load_muscle_audios()
+    item = next((x for x in items if x.id == audio_id), None)
+    if item is None:
+        raise HTTPException(status_code=404, detail="Audio not found.")
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+    blob_client = container_client.get_blob_client(item.blob_name)
+    if not blob_client.exists():
+        raise HTTPException(status_code=404, detail="Audio file not found.")
+    try:
+        stream = blob_client.download_blob().chunks()
+        return StreamingResponse(stream, media_type=item.content_type)
+    except Exception as e:
+        print(f"Error streaming muscle audio {audio_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to stream audio.")
 
 @api_router.post("/soragaki/generate-keywords", response_model=List[str], dependencies=[Depends(verify_soragaki_auth)])
 def generate_keywords_from_memo(request: GenerateKeywordsRequest):
