@@ -1,23 +1,14 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import LoadingSpinner from './components/LoadingSpinner';
+import { formatDateTimeJst, getTodayYmdJst } from './utils/date';
 const PEN_COLORS = ['#111111', '#1d4ed8', '#0F52BA', '#dc2626', '#059669', '#7c3aed'];
 const PEN_WIDTH = 1.3;
 const CANVAS_LOGICAL_WIDTH = 2048;
 const CANVAS_LOGICAL_HEIGHT = 1536;
-const useCurrentDate = () => new Date().toISOString().slice(0, 10);
+const useCurrentDate = () => getTodayYmdJst();
 const formatSavedAt = (savedAt) => {
-    const dt = new Date(savedAt);
-    if (Number.isNaN(dt.getTime()))
-        return savedAt;
-    return dt.toLocaleString('ja-JP', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-    });
+    return formatDateTimeJst(savedAt);
 };
 export default function SoragakiPage() {
     const today = useCurrentDate();

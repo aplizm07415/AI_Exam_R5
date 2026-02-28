@@ -75,6 +75,13 @@ TEST_HISTORY_DATA = {
     ]
 }
 
+TEST_CUSTOM_EXPLANATIONS = {
+    "q1": {
+        "text": "Saved memo",
+        "image_data_url": "data:image/png;base64,ZmFrZQ==",
+    }
+}
+
 # BlobClientのdownload_blobメソッドのモック
 class MockBlobDownload:
     def __init__(self, content):
@@ -98,8 +105,14 @@ def mock_fastapi_app():
         def get_blob_client_side_effect(blob_name):
             mock_blob_client_instance = MagicMock()
             
+            if blob_name.startswith("custom-explanations/") and blob_name.endswith(".json"):
+                problem_id = Path(blob_name).stem
+                explanation = TEST_CUSTOM_EXPLANATIONS.get(problem_id)
+                mock_blob_client_instance.exists.return_value = explanation is not None
+                if explanation is not None:
+                    mock_blob_client_instance.download_blob.return_value = MockBlobDownload(json.dumps(explanation))
             # questions blob
-            if blob_name.endswith(".json") and not blob_name.startswith("history/"):
+            elif blob_name.endswith(".json") and not blob_name.startswith("history/"):
                 subject_name_stem = Path(blob_name).stem
                 questions_for_subject = [q for q in TEST_EXAMS_DATA if q["subject"].startswith(subject_name_stem)]
                 mock_blob_client_instance.exists.return_value = bool(questions_for_subject)
@@ -142,6 +155,14 @@ def test_start_quiz_random_mode(client: TestClient):
     assert "quiz_set" in data
     assert len(data["quiz_set"]) == 2
     assert all(q["subject"] == "subject1.json" for q in data["quiz_set"])
+
+def test_start_quiz_includes_custom_explanation_image(client: TestClient):
+    response = client.post("/api/quiz/start", json={"subjects": ["subject1.json"], "count": 10, "mode": "random"})
+    assert response.status_code == 200
+    data = response.json()
+    question_by_id = {q["id"]: q for q in data["quiz_set"]}
+    assert question_by_id["q1"]["custom_explanation"] == "Saved memo"
+    assert question_by_id["q1"]["custom_explanation_image_data_url"] == "data:image/png;base64,ZmFrZQ=="
 
 def test_start_quiz_unanswered_mode(client: TestClient):
     """unansweredモードでクイズを開始できることをテスト (q4は未回答)"""

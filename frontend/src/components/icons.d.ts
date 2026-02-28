@@ -9,4 +9,6 @@ export declare const FileTextIcon: (props: React.SVGProps<SVGSVGElement>) => Rea
 export declare const HomeIcon: (props: React.SVGProps<SVGSVGElement>) => React.FunctionComponentElement<any>;
 export declare const CalendarDaysIcon: (props: React.SVGProps<SVGSVGElement>) => React.FunctionComponentElement<any>;
 export declare const PencilIcon: (props: React.SVGProps<SVGSVGElement>) => React.FunctionComponentElement<any>;
+export declare const PhotoIcon: (props: React.SVGProps<SVGSVGElement>) => React.FunctionComponentElement<any>;
+export declare const DumbbellIcon: (props: React.SVGProps<SVGSVGElement>) => React.FunctionComponentElement<any>;
 //# sourceMappingURL=icons.d.ts.map

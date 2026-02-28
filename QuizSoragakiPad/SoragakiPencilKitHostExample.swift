@@ -94,9 +94,10 @@ final class QuizPencilModeViewModel: ObservableObject {
     @Published var countLabel: String = ""
     @Published var canvasView = PKCanvasView()
     @Published var toolPicker = PKToolPicker()
-    @Published var interactionMode: InteractionMode = .select
+    @Published var interactionMode: InteractionMode = .draw
     @Published var extraWriteAreaHeight: CGFloat = 0
     @Published var customMemoText: String = ""
+    @Published var customMemoImageDataURL: String?
     @Published var historyStats: [String: QuizHistoryStat] = [:]
     @Published var isProblemEditSheetPresented: Bool = false
     @Published var problemEditDraft: ProblemEditDraft?
@@ -105,6 +106,7 @@ final class QuizPencilModeViewModel: ObservableObject {
     private var apiClient: SoragakiAPIClient?
     private var deepLink: QuizDeepLink?
     private var originalMemoText: String = ""
+    private var originalMemoImageDataURL: String?
 
     var currentQuestion: QuizQuestion? {
         guard questions.indices.contains(currentIndex) else { return nil }
@@ -210,11 +212,19 @@ final class QuizPencilModeViewModel: ObservableObject {
         guard let apiClient, let question = currentQuestion else { return }
         let newText = customMemoText.trimmingCharacters(in: .whitespacesAndNewlines)
         let oldText = originalMemoText.trimmingCharacters(in: .whitespacesAndNewlines)
-        if newText == oldText { return }
-        try await apiClient.saveCustomExplanation(problemID: question.id, text: customMemoText)
+        let newImageDataURL = normalizedMemoImageDataURL(customMemoImageDataURL)
+        let oldImageDataURL = normalizedMemoImageDataURL(originalMemoImageDataURL)
+        if newText == oldText, newImageDataURL == oldImageDataURL { return }
+        try await apiClient.saveCustomExplanation(
+            problemID: question.id,
+            text: customMemoText,
+            imageDataURL: newImageDataURL
+        )
         originalMemoText = customMemoText
+        originalMemoImageDataURL = newImageDataURL
         if questions.indices.contains(currentIndex) {
             questions[currentIndex].customExplanation = customMemoText
+            questions[currentIndex].customExplanationImageDataURL = newImageDataURL
         }
     }
 
@@ -243,7 +253,10 @@ final class QuizPencilModeViewModel: ObservableObject {
                 category: draft.category
             )
             if questions.indices.contains(currentIndex) {
-                questions[currentIndex] = updated
+                var merged = updated
+                merged.customExplanation = questions[currentIndex].customExplanation
+                merged.customExplanationImageDataURL = questions[currentIndex].customExplanationImageDataURL
+                questions[currentIndex] = merged
             }
             isProblemEditSheetPresented = false
             problemEditDraft = nil
@@ -254,6 +267,19 @@ final class QuizPencilModeViewModel: ObservableObject {
 
     func clearPencilLayer() {
         canvasView.drawing = PKDrawing()
+    }
+
+    func saveCurrentDrawingToMemoImage() {
+        guard let imageDataURL = snapshotCurrentDrawingDataURL() else {
+            errorMessage = "保存する手書きがありません。"
+            return
+        }
+        errorMessage = nil
+        customMemoImageDataURL = imageDataURL
+    }
+
+    func clearCustomMemoImage() {
+        customMemoImageDataURL = nil
     }
 
     func setInteractionMode(_ mode: InteractionMode) {
@@ -274,15 +300,19 @@ final class QuizPencilModeViewModel: ObservableObject {
         isAnswered = false
         isCorrect = false
         questionStartedAt = Date()
-        interactionMode = .select
+        interactionMode = .draw
         extraWriteAreaHeight = 0
         clearPencilLayer()
         if let question = currentQuestion {
             customMemoText = question.customExplanation ?? ""
             originalMemoText = customMemoText
+            customMemoImageDataURL = normalizedMemoImageDataURL(question.customExplanationImageDataURL)
+            originalMemoImageDataURL = customMemoImageDataURL
         } else {
             customMemoText = ""
             originalMemoText = ""
+            customMemoImageDataURL = nil
+            originalMemoImageDataURL = nil
         }
     }
 
@@ -300,6 +330,40 @@ final class QuizPencilModeViewModel: ObservableObject {
         let elapsed = max(0, date.timeIntervalSince(questionStartedAt))
         let ratio = max(0, min(1, 1 - (elapsed / Self.questionTimerDuration)))
         return CGFloat(ratio)
+    }
+
+    var customMemoImage: UIImage? {
+        Self.image(fromDataURL: customMemoImageDataURL)
+    }
+
+    private func normalizedMemoImageDataURL(_ value: String?) -> String? {
+        guard let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty else {
+            return nil
+        }
+        return trimmed
+    }
+
+    private func snapshotCurrentDrawingDataURL() -> String? {
+        guard !canvasView.drawing.strokes.isEmpty else { return nil }
+        let size = canvasView.bounds.size
+        guard size.width > 0, size.height > 0 else { return nil }
+        let image = canvasView.drawing.image(from: CGRect(origin: .zero, size: size), scale: 1.0)
+        guard let pngData = image.pngData() else { return nil }
+        return "data:image/png;base64,\(pngData.base64EncodedString())"
+    }
+
+    private static func image(fromDataURL dataURL: String?) -> UIImage? {
+        guard
+            let dataURL,
+            let comma = dataURL.firstIndex(of: ",")
+        else {
+            return nil
+        }
+        let encoded = String(dataURL[dataURL.index(after: comma)...])
+        guard let data = Data(base64Encoded: encoded) else {
+            return nil
+        }
+        return UIImage(data: data)
     }
 }
 
@@ -350,6 +414,7 @@ struct QuizPencilModeView: View {
     let deepLink: QuizDeepLink
     @StateObject private var viewModel = QuizPencilModeViewModel()
     @FocusState private var isMemoEditorFocused: Bool
+    @State private var previewImage: UIImage?
 
     var body: some View {
         ScrollView {
@@ -541,6 +606,9 @@ struct QuizPencilModeView: View {
                         .font(.body)
                         .lineLimit(nil)
                         .fixedSize(horizontal: false, vertical: true)
+                    if let memoImage = viewModel.customMemoImage {
+                        memoImageSection(title: "My Memo画像", image: memoImage)
+                    }
                     HStack {
                         Button("問題編集") {
                             viewModel.openProblemEditor()
@@ -559,6 +627,16 @@ struct QuizPencilModeView: View {
                     HStack {
                         Text("My Memo")
                             .font(.headline)
+                        Spacer()
+                        Button("手書きを画像保存") {
+                            viewModel.saveCurrentDrawingToMemoImage()
+                        }
+                        .buttonStyle(.bordered)
+                        Button("画像クリア") {
+                            viewModel.clearCustomMemoImage()
+                        }
+                        .buttonStyle(.bordered)
+                        .disabled(viewModel.customMemoImage == nil)
                     }
                     TextEditor(text: $viewModel.customMemoText)
                         .focused($isMemoEditorFocused)
@@ -566,6 +644,9 @@ struct QuizPencilModeView: View {
                         .padding(6)
                         .background(AppPalette.white)
                         .overlay(RoundedRectangle(cornerRadius: 8).stroke(AppPalette.light.opacity(0.6), lineWidth: 1))
+                    if let memoImage = viewModel.customMemoImage {
+                        memoImageSection(title: "保存済み画像", image: memoImage)
+                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
@@ -579,6 +660,22 @@ struct QuizPencilModeView: View {
                 draft: $viewModel.problemEditDraft,
                 onSave: { Task { await viewModel.saveProblemEdit() } }
             )
+        }
+        .fullScreenCover(
+            isPresented: Binding(
+                get: { previewImage != nil },
+                set: { shouldPresent in
+                    if !shouldPresent {
+                        previewImage = nil
+                    }
+                }
+            )
+        ) {
+            if let previewImage {
+                MemoImagePreviewScreen(image: previewImage) {
+                    self.previewImage = nil
+                }
+            }
         }
     }
 
@@ -596,6 +693,55 @@ struct QuizPencilModeView: View {
             return AppPalette.primaryNew.opacity(0.2)
         }
         return AppPalette.light.opacity(0.18)
+    }
+
+    private func memoImageSection(title: String, image: UIImage) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundColor(.secondary)
+            Button {
+                previewImage = image
+            } label: {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: .infinity, minHeight: 120, maxHeight: 220)
+                    .padding(8)
+                    .background(AppPalette.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(AppPalette.light.opacity(0.6), lineWidth: 1))
+            }
+            .buttonStyle(.plain)
+        }
+    }
+}
+
+struct MemoImagePreviewScreen: View {
+    let image: UIImage
+    let onClose: () -> Void
+
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color.black.opacity(0.92)
+                    .ignoresSafeArea()
+                ScrollView([.horizontal, .vertical]) {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFit()
+                        .padding()
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("閉じる") {
+                        onClose()
+                    }
+                }
+            }
+        }
     }
 }
 

@@ -1,5 +1,5 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { LoaderIcon, CheckCircleIcon, XCircleIcon } from './components/icons';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -7,9 +7,35 @@ import LoadingSpinner from './components/LoadingSpinner';
 import SubjectVisibilityModal from './components/SubjectVisibilityModal';
 import SubjectProgress from './components/SubjectProgress';
 import { usePlans } from './hooks/usePlans';
-import { isHoliday } from './utils/date';
+import { isHoliday, getMinutesUntilJstHour, getNowJstParts } from './utils/date';
 const API_BASE_URL = "/api";
 const QUESTION_TIMER_MS = 2 * 60 * 1000;
+const FORCED_ANSWER_TIMER_MS = 80 * 1000;
+function TimerProgressBar({ durationMs, isActive, resetToken, onExpire, }) {
+    const [remainingRatio, setRemainingRatio] = useState(1);
+    const expireHandledRef = useRef(false);
+    useEffect(() => {
+        setRemainingRatio(1);
+        expireHandledRef.current = false;
+        if (!isActive) {
+            return;
+        }
+        const startedAt = Date.now();
+        const tick = () => {
+            const elapsed = Math.max(0, Date.now() - startedAt);
+            const nextRatio = Math.max(0, Math.min(1, 1 - elapsed / durationMs));
+            setRemainingRatio(nextRatio);
+            if (elapsed >= durationMs && !expireHandledRef.current) {
+                expireHandledRef.current = true;
+                onExpire?.();
+            }
+        };
+        tick();
+        const id = window.setInterval(tick, 250);
+        return () => window.clearInterval(id);
+    }, [durationMs, isActive, onExpire, resetToken]);
+    return (_jsx("div", { className: "w-full h-2.5 rounded-full bg-gray-200/90 border border-gray-200 mb-6 pointer-events-none", "aria-hidden": "true", children: _jsx("div", { className: "h-full rounded-full bg-[#a2c2e6] transition-[width] duration-200 ease-linear", style: { width: `${remainingRatio * 100}%` } }) }));
+}
 export default function QuizPage({ subjects: allSubjects }) {
     const { plans, isLoading: isPlansLoading, error: plansError } = usePlans();
     const [dailySummaryAll, setDailySummaryAll] = useState([]);
@@ -17,6 +43,7 @@ export default function QuizPage({ subjects: allSubjects }) {
     const [quizMode, setQuizMode] = useState('today_remaining');
     const [numQuestions, setNumQuestions] = useState(10);
     const [quizState, setQuizState] = useState('setup');
+    const [isForcedSession, setIsForcedSession] = useState(false);
     const [questions, setQuestions] = useState([]);
     const [historyStats, setHistoryStats] = useState({});
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -26,6 +53,7 @@ export default function QuizPage({ subjects: allSubjects }) {
     const [score, setScore] = useState(0);
     const [scratchpadText, setScratchpadText] = useState('');
     const [customExplanationText, setCustomExplanationText] = useState('');
+    const [previewImageUrl, setPreviewImageUrl] = useState(null);
     const [editingMemo, setEditingMemo] = useState(null);
     const [editingProblem, setEditingProblem] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -34,7 +62,6 @@ export default function QuizPage({ subjects: allSubjects }) {
     const [error, setError] = useState('');
     const [effectStatus, setEffectStatus] = useState(null);
     const [questionStartedAt, setQuestionStartedAt] = useState(Date.now());
-    const [timerNow, setTimerNow] = useState(Date.now());
     const openMemoModal = (type) => {
         const content = type === 'scratchpad' ? scratchpadText : customExplanationText;
         setEditingMemo({ type, content });
@@ -330,7 +357,7 @@ export default function QuizPage({ subjects: allSubjects }) {
             ? prev.filter((s) => s !== subjectName)
             : [...prev, subjectName]);
     };
-    const startQuiz = async () => {
+    const startQuiz = async (forcedSession = false) => {
         if (selectedSubjectNames.length === 0) {
             setError('科目を1つ以上選択してください。');
             return;
@@ -391,6 +418,7 @@ export default function QuizPage({ subjects: allSubjects }) {
             setQuestions(data.quiz_set);
             setCurrentQuestionIndex(0);
             setScore(0);
+            setIsForcedSession(forcedSession);
             setQuizState('active');
             resetQuestionState();
         }
@@ -444,22 +472,7 @@ export default function QuizPage({ subjects: allSubjects }) {
         setScratchpadText('');
         setCustomExplanationText('');
         setQuestionStartedAt(Date.now());
-        setTimerNow(Date.now());
     };
-    useEffect(() => {
-        if (quizState !== 'active' || isAnswered)
-            return;
-        const id = window.setInterval(() => {
-            setTimerNow(Date.now());
-        }, 250);
-        return () => window.clearInterval(id);
-    }, [quizState, isAnswered, currentQuestionIndex]);
-    const remainingTimeRatio = useMemo(() => {
-        if (quizState !== 'active')
-            return 1;
-        const elapsed = Math.max(0, timerNow - questionStartedAt);
-        return Math.max(0, Math.min(1, 1 - elapsed / QUESTION_TIMER_MS));
-    }, [quizState, timerNow, questionStartedAt]);
     const estimatedCompletionText = useMemo(() => {
         const remainingQuestions = Math.max(0, todayRemaining.count);
         const totalMinutes = remainingQuestions * 2;
@@ -470,13 +483,29 @@ export default function QuizPage({ subjects: allSubjects }) {
         }
         return `${minutes}分`;
     }, [todayRemaining.count]);
-    const handleAnswerSubmit = async () => {
-        if (selectedAnswer === null || isSubmittingAnswer)
+    const todayRemainingPaceHint = useMemo(() => {
+        const { hour } = getNowJstParts();
+        if (hour < 7 || hour >= 21)
+            return null;
+        const remainingQuestions = Math.max(0, todayRemaining.count);
+        if (remainingQuestions === 0)
+            return '今日の予定は完了しています。';
+        const remainingHoursRaw = getMinutesUntilJstHour(21) / 60;
+        const remainingHoursFloor = Math.max(1, Math.floor(remainingHoursRaw));
+        const targetPerHour = Math.max(1, Math.ceil(remainingQuestions / remainingHoursFloor));
+        const nextHour = Math.min(hour + 1, 21);
+        return `${nextHour}時までにあと${targetPerHour}問で順調ペース`;
+    }, [todayRemaining.count]);
+    const handleAnswerSubmit = async (forcedSubmission = false) => {
+        if (isSubmittingAnswer)
+            return;
+        if (selectedAnswer === null && !forcedSubmission)
             return;
         const currentQuestion = questions[currentQuestionIndex];
         if (!currentQuestion)
             return;
-        const isCorrect = selectedAnswer === currentQuestion.answer;
+        const submittedAnswer = selectedAnswer ?? '';
+        const isCorrect = submittedAnswer === currentQuestion.answer;
         try {
             setIsSubmittingAnswer(true);
             setError('');
@@ -486,7 +515,7 @@ export default function QuizPage({ subjects: allSubjects }) {
                 body: JSON.stringify({
                     problem_id: currentQuestion.id,
                     subject: currentQuestion.subject,
-                    selected_answer: selectedAnswer,
+                    selected_answer: submittedAnswer,
                     is_correct: isCorrect,
                     category: currentQuestion.category,
                 }),
@@ -538,6 +567,7 @@ export default function QuizPage({ subjects: allSubjects }) {
             resetQuestionState();
         }
         else {
+            setIsForcedSession(false);
             setQuizState('finished');
         }
     };
@@ -546,7 +576,7 @@ export default function QuizPage({ subjects: allSubjects }) {
             setQuizState('setup');
         }
         else {
-            startQuiz();
+            startQuiz(isForcedSession);
         }
     };
     const handleSaveCustomExplanation = async () => {
@@ -557,7 +587,10 @@ export default function QuizPage({ subjects: allSubjects }) {
             const response = await fetch(`${API_BASE_URL}/problems/${currentQuestion.id}/custom-explanation`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: customExplanationText }),
+                body: JSON.stringify({
+                    text: customExplanationText,
+                    image_data_url: currentQuestion.custom_explanation_image_data_url ?? null,
+                }),
             });
             if (!response.ok) {
                 let detail = 'My Memo の保存に失敗しました。';
@@ -572,7 +605,11 @@ export default function QuizPage({ subjects: allSubjects }) {
             }
             // Update the question in the main questions array to persist state during the session
             const updatedQuestions = questions.map((q) => q.id === currentQuestion.id
-                ? { ...q, custom_explanation: customExplanationText }
+                ? {
+                    ...q,
+                    custom_explanation: customExplanationText,
+                    custom_explanation_image_data_url: currentQuestion.custom_explanation_image_data_url,
+                }
                 : q);
             setQuestions(updatedQuestions);
         }
@@ -632,9 +669,9 @@ export default function QuizPage({ subjects: allSubjects }) {
             layoutType = 'answered';
         }
         const imagesComponent = hasImages ? (_jsx("div", { className: "space-y-4", children: currentQuestion.image_urls.map((url, index) => (_jsx("img", { src: url, alt: `Question image ${index + 1}`, className: "max-w-full w-full h-auto mx-auto rounded-lg shadow-md" }, index))) })) : null;
-        const explanationComponent = isAnswered ? (_jsxs("div", { className: "bg-white rounded-xl shadow p-6 md:p-8 fade-in", children: [_jsxs("div", { className: "flex items-center gap-3 mb-4", children: [feedback?.correct ? _jsx(CheckCircleIcon, { className: "w-8 h-8 text-green-600" }) : _jsx(XCircleIcon, { className: "w-8 h-8 text-red-600" }), _jsx("h3", { className: "text-2xl font-bold", children: feedback?.correct ? '正解！' : '不正解' })] }), _jsx("h4", { className: "text-lg font-semibold text-primary-new mb-2", children: "\u89E3\u8AAC" }), (currentQuestion.explanation_image_urls && currentQuestion.explanation_image_urls.length > 0) && (_jsx("div", { className: "my-4 grid grid-cols-1 gap-4", children: currentQuestion.explanation_image_urls.map((url, index) => (_jsx("img", { src: url, alt: `Explanation image ${index + 1}`, className: "max-w-full h-auto mx-auto rounded-lg shadow-md" }, index))) })), _jsx("div", { className: "prose prose-sm md:prose-base max-w-none text-gray-700", children: _jsx(ReactMarkdown, { remarkPlugins: [remarkGfm], children: feedback?.explanation?.text || '' }) }), _jsxs("div", { className: "mt-6", children: [_jsxs("div", { className: "flex justify-between items-center mb-2", children: [_jsx("h4", { className: "text-lg font-semibold text-primary-new", children: "My Memo" }), _jsx("button", { onClick: () => openMemoModal('customExplanation'), className: "p-1 rounded-md hover:bg-gray-200 text-gray-500 hover:text-gray-700", title: "\u62E1\u5927\u8868\u793A", children: _jsx("svg", { xmlns: "http://www.w3.org/2000/svg", width: "1em", height: "1em", viewBox: "0 0 24 24", children: _jsx("path", { fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "2", d: "M3 8V4h4m10 0h4v4M3 16v4h4m14-4h-4v4" }) }) })] }), _jsx("textarea", { value: customExplanationText, onChange: (e) => setCustomExplanationText(e.target.value), className: "w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-new focus:border-primary-new", rows: 4 })] }), _jsxs("div", { className: "mt-6 pt-4 border-t border-gray-200 flex justify-between items-center", children: [_jsx("button", { onClick: openProblemEditor, className: "px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200", children: "\u3053\u306E\u554F\u984C\u3092\u7DE8\u96C6\u3059\u308B" }), _jsx("button", { id: "next-question-button-bottom", type: "button", onClick: handleNextQuestion, disabled: isSavingCustomExplanation, className: "px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-dark bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 disabled:cursor-not-allowed", children: currentQuestionIndex < questions.length - 1 ? '次の問題へ' : '終了' })] })] })) : null;
+        const explanationComponent = isAnswered ? (_jsxs("div", { className: "bg-white rounded-xl shadow p-6 md:p-8 fade-in", children: [_jsxs("div", { className: "flex items-center gap-3 mb-4", children: [feedback?.correct ? _jsx(CheckCircleIcon, { className: "w-8 h-8 text-green-600" }) : _jsx(XCircleIcon, { className: "w-8 h-8 text-red-600" }), _jsx("h3", { className: "text-xl md:text-2xl font-bold", children: feedback?.correct ? '正解！' : '不正解' })] }), _jsx("h4", { className: "text-base md:text-lg font-semibold text-primary-new mb-2", children: "\u89E3\u8AAC" }), (currentQuestion.explanation_image_urls && currentQuestion.explanation_image_urls.length > 0) && (_jsx("div", { className: "my-4 grid grid-cols-1 gap-4", children: currentQuestion.explanation_image_urls.map((url, index) => (_jsx("img", { src: url, alt: `Explanation image ${index + 1}`, className: "max-w-full h-auto mx-auto rounded-lg shadow-md" }, index))) })), _jsx("div", { className: "prose prose-sm md:prose-base max-w-none text-gray-700", children: _jsx(ReactMarkdown, { remarkPlugins: [remarkGfm], children: feedback?.explanation?.text || '' }) }), currentQuestion.custom_explanation_image_data_url && (_jsxs("div", { className: "mt-6", children: [_jsx("h4", { className: "text-base md:text-lg font-semibold text-primary-new mb-2", children: "My Memo\u753B\u50CF" }), _jsx("button", { type: "button", onClick: () => setPreviewImageUrl(currentQuestion.custom_explanation_image_data_url ?? null), className: "block w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50", children: _jsx("img", { src: currentQuestion.custom_explanation_image_data_url, alt: "My Memo handwrite", className: "max-h-48 w-full object-contain" }) })] })), _jsxs("div", { className: "mt-6", children: [_jsxs("div", { className: "flex justify-between items-center mb-2", children: [_jsx("h4", { className: "text-base md:text-lg font-semibold text-primary-new", children: "My Memo" }), _jsx("button", { onClick: () => openMemoModal('customExplanation'), className: "p-1 rounded-md hover:bg-gray-200 text-gray-500 hover:text-gray-700", title: "\u62E1\u5927\u8868\u793A", children: _jsx("svg", { xmlns: "http://www.w3.org/2000/svg", width: "1em", height: "1em", viewBox: "0 0 24 24", children: _jsx("path", { fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "2", d: "M3 8V4h4m10 0h4v4M3 16v4h4m14-4h-4v4" }) }) })] }), _jsx("textarea", { value: customExplanationText, onChange: (e) => setCustomExplanationText(e.target.value), className: "w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-new focus:border-primary-new", rows: 4 })] }), _jsxs("div", { className: "mt-6 pt-4 border-t border-gray-200 flex justify-between items-center", children: [_jsx("button", { onClick: openProblemEditor, className: "px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200", children: "\u3053\u306E\u554F\u984C\u3092\u7DE8\u96C6\u3059\u308B" }), _jsx("button", { id: "next-question-button-bottom", type: "button", onClick: handleNextQuestion, disabled: isSavingCustomExplanation, className: "px-8 py-3 border border-transparent rounded-md shadow-sm text-sm md:text-base font-medium text-dark bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 disabled:cursor-not-allowed", children: currentQuestionIndex < questions.length - 1 ? '次の問題へ' : '終了' })] })] })) : null;
         // 左カラム（問題・選択肢）
-        const QuestionColumn = () => (_jsxs("div", { className: "bg-white rounded-xl shadow p-6 md:p-8 h-full flex flex-col", children: [_jsx("p", { className: "text-lg font-semibold text-gray-700 mb-6", children: currentQuestion.question_text }), _jsx("div", { className: "w-full h-2.5 rounded-full bg-gray-200/90 border border-gray-200 mb-6 pointer-events-none", "aria-hidden": "true", children: _jsx("div", { className: "h-full rounded-full bg-[#a2c2e6] transition-[width] duration-200 ease-linear", style: { width: `${remainingTimeRatio * 100}%` } }) }), _jsx("div", { className: "md:hidden my-4", children: layoutType === 'image' && imagesComponent }), _jsx("div", { className: "space-y-3", children: currentQuestion.choices.map((option, index) => {
+        const QuestionColumn = () => (_jsxs("div", { className: "bg-white rounded-xl shadow p-6 md:p-8 h-full flex flex-col", children: [_jsx("p", { className: "text-base md:text-lg font-semibold text-gray-700 mb-6", children: currentQuestion.question_text }), _jsx(TimerProgressBar, { durationMs: isForcedSession ? FORCED_ANSWER_TIMER_MS : QUESTION_TIMER_MS, isActive: quizState === 'active' && !isAnswered && !isSubmittingAnswer, resetToken: `${currentQuestion.id}-${questionStartedAt}-${isForcedSession ? 'forced' : 'normal'}`, onExpire: isForcedSession ? () => void handleAnswerSubmit(true) : undefined }), _jsx("div", { className: "md:hidden my-4", children: layoutType === 'image' && imagesComponent }), _jsx("div", { className: "space-y-3", children: currentQuestion.choices.map((option, index) => {
                         const isCorrectAnswer = option.label === currentQuestion.answer;
                         const isSelectedAnswer = option.label === selectedAnswer;
                         let buttonClass = 'bg-gray-100 hover:bg-gray-200';
@@ -649,14 +686,14 @@ export default function QuizPage({ subjects: allSubjects }) {
                         else if (isSelectedAnswer) {
                             buttonClass = 'bg-primary-new';
                         }
-                        return (_jsxs("button", { type: "button", onClick: () => !isAnswered && setSelectedAnswer(option.label), disabled: isAnswered, className: `w-full text-left p-4 rounded-lg border border-transparent transition-all duration-200 ${buttonClass}`, children: [_jsxs("span", { className: "font-bold mr-2", children: [option.label, "."] }), _jsx("span", { children: option.text })] }, index));
+                        return (_jsxs("button", { type: "button", onClick: () => !isAnswered && setSelectedAnswer(option.label), disabled: isAnswered, className: `w-full text-left p-4 rounded-lg border border-transparent transition-all duration-200 text-sm md:text-base ${buttonClass}`, children: [_jsxs("span", { className: "font-bold mr-2", children: [option.label, "."] }), _jsx("span", { children: option.text })] }, index));
                     }) }), _jsxs("div", { className: "mt-6", children: [_jsxs("div", { className: "flex justify-between items-center mb-2", children: [_jsx("label", { htmlFor: "scratchpad", className: "block text-sm font-medium text-gray-700", children: "\u30E1\u30E2\u5E33" }), _jsx("button", { onClick: () => openMemoModal('scratchpad'), className: "p-1 rounded-md hover:bg-gray-200 text-gray-500 hover:text-gray-700", title: "\u62E1\u5927\u8868\u793A", children: _jsx("svg", { xmlns: "http://www.w3.org/2000/svg", width: "1em", height: "1em", viewBox: "0 0 24 24", children: _jsx("path", { fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "2", d: "M3 8V4h4m10 0h4v4M3 16v4h4m14-4h-4v4" }) }) })] }), _jsx("textarea", { id: "scratchpad", value: scratchpadText, onChange: (e) => setScratchpadText(e.target.value), className: "w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-new focus:border-primary-new", rows: 3 }), !isAnswered && ( // Moved "解答する" button here
-                        _jsx("div", { className: "mt-6 text-center", children: _jsx("button", { id: "submit-answer-button", type: "button", onClick: handleAnswerSubmit, disabled: selectedAnswer === null || isSubmittingAnswer, className: "px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed", children: isSubmittingAnswer ? '保存中...' : '解答する' }) }))] }), isAnswered && ( // This div now only contains "次の問題へ" button, and retains mt-auto
-                _jsx("div", { className: "mt-auto pt-6 text-center", children: _jsx("button", { id: "next-question-button", type: "button", onClick: handleNextQuestion, disabled: isSavingCustomExplanation, className: "px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-dark bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 disabled:cursor-not-allowed", children: currentQuestionIndex < questions.length - 1 ? '次の問題へ' : '終了' }) }))] }));
+                        _jsx("div", { className: "mt-6 text-center", children: _jsx("button", { id: "submit-answer-button", type: "button", onClick: () => void handleAnswerSubmit(), disabled: selectedAnswer === null || isSubmittingAnswer, className: "px-8 py-3 border border-transparent rounded-md shadow-sm text-sm md:text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed", children: isSubmittingAnswer ? '保存中...' : '解答する' }) }))] }), isAnswered && ( // This div now only contains "次の問題へ" button, and retains mt-auto
+                _jsx("div", { className: "mt-auto pt-6 text-center", children: _jsx("button", { id: "next-question-button", type: "button", onClick: handleNextQuestion, disabled: isSavingCustomExplanation, className: "px-8 py-3 border border-transparent rounded-md shadow-sm text-sm md:text-base font-medium text-dark bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 disabled:cursor-not-allowed", children: currentQuestionIndex < questions.length - 1 ? '次の問題へ' : '終了' }) }))] }));
         // 右カラム（画像・解説）
         const RightColumn = () => (_jsxs("div", { className: "space-y-8", children: [layoutType === 'image' && (_jsx("div", { className: "bg-white rounded-xl shadow p-6 md:p-8", children: imagesComponent })), explanationComponent] }));
         const progressPercentage = questions.length > 0 ? ((currentQuestionIndex + 1) / questions.length) * 100 : 0;
-        return (_jsxs("div", { className: "md:h-screen md:overflow-hidden", children: [_jsxs("div", { className: "p-4 md:p-6", children: [_jsx("div", { className: "flex justify-end items-center mb-2", children: _jsxs("div", { className: "flex items-center gap-4", children: [(() => {
+        return (_jsxs("div", { className: "md:h-screen md:overflow-hidden text-sm md:text-base", children: [_jsxs("div", { className: "p-4 md:p-6", children: [_jsx("div", { className: "flex justify-end items-center mb-2", children: _jsxs("div", { className: "flex items-center gap-4", children: [isForcedSession && (_jsx("div", { className: "text-sm font-semibold text-[#e8383d] whitespace-nowrap", children: "\u5F37\u5236\u30E2\u30FC\u30C9: 80\u79D2" })), (() => {
                                         const stats = historyStats[currentQuestion.id];
                                         if (stats && stats.total > 0) {
                                             return (_jsxs("div", { className: "text-sm text-gray-500 whitespace-nowrap", children: ["\u76F4\u8FD1", stats.total, "\u56DE \u6B63\u7B54\u7387: ", Math.round((stats.correct / stats.total) * 100), "% (", stats.correct, "/", stats.total, ")"] }));
@@ -707,7 +744,7 @@ export default function QuizPage({ subjects: allSubjects }) {
                                                                 }
                                                             }
                                                             return (_jsx("button", { type: "button", onClick: () => handleSubjectSelection(s.name), disabled: isTodayMode, className: buttonClass, children: s.name }, s.name));
-                                                        }) })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u30E2\u30FC\u30C9" }), _jsxs("div", { className: "mt-2 grid grid-cols-2 sm:grid-cols-4 gap-3", children: [_jsx("button", { type: "button", onClick: () => setQuizMode('today_remaining'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'today_remaining' ? 'bg-[#e8383d] text-white' : 'bg-red-100 text-gray-700 hover:bg-red-200'}`, children: "\u4ECA\u65E5\u306E\u6B8B\u308A" }), _jsx("button", { type: "button", onClick: () => setQuizMode('random'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'random' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u30E9\u30F3\u30C0\u30E0" }), _jsx("button", { type: "button", onClick: () => setQuizMode('weak_area'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'weak_area' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u82E6\u624B\u514B\u670D" }), _jsx("button", { type: "button", onClick: () => setQuizMode('unanswered'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'unanswered' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u672A\u89E3\u7B54\u554F\u984C" })] })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u554F\u984C\u6570" }), _jsxs("div", { className: "mt-2 text-sm text-gray-500 mb-2", children: [quizMode === 'today_remaining' && `(今日の残り: ${todayRemaining.count} 問 (予定:${todayRemaining.plan} / 実績:${todayRemaining.actual}) / 2分/問で約${estimatedCompletionText})`, quizMode === 'unanswered' && unansweredCount !== null && `(未解答: ${unansweredCount} 問)`, quizMode === 'weak_area' && weakAreaCount !== null && `(苦手問題: ${weakAreaCount} 問)`] }), _jsx("div", { className: "mt-2 grid grid-cols-5 gap-3", children: [
+                                                        }) })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u30E2\u30FC\u30C9" }), _jsxs("div", { className: "mt-2 grid grid-cols-2 sm:grid-cols-4 gap-3", children: [_jsx("button", { type: "button", onClick: () => setQuizMode('today_remaining'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'today_remaining' ? 'bg-[#e8383d] text-white' : 'bg-red-100 text-gray-700 hover:bg-red-200'}`, children: "\u4ECA\u65E5\u306E\u6B8B\u308A" }), _jsx("button", { type: "button", onClick: () => setQuizMode('random'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'random' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u30E9\u30F3\u30C0\u30E0" }), _jsx("button", { type: "button", onClick: () => setQuizMode('weak_area'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'weak_area' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u82E6\u624B\u514B\u670D" }), _jsx("button", { type: "button", onClick: () => setQuizMode('unanswered'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'unanswered' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u672A\u89E3\u7B54\u554F\u984C" })] })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u554F\u984C\u6570" }), _jsxs("div", { className: "mt-2 text-sm text-gray-500 mb-2", children: [quizMode === 'today_remaining' && `(今日の残り: ${todayRemaining.count} 問 (予定:${todayRemaining.plan} / 実績:${todayRemaining.actual}) / 2分/問で約${estimatedCompletionText})`, quizMode === 'today_remaining' && todayRemainingPaceHint && (_jsx("div", { className: "mt-1 text-xs font-medium text-[#e8383d]", children: todayRemainingPaceHint })), quizMode === 'unanswered' && unansweredCount !== null && `(未解答: ${unansweredCount} 問)`, quizMode === 'weak_area' && weakAreaCount !== null && `(苦手問題: ${weakAreaCount} 問)`] }), _jsx("div", { className: "mt-2 grid grid-cols-5 gap-3", children: [
                                                             { label: '1', value: 1 },
                                                             { label: '10', value: 10 },
                                                             { label: '20', value: 20 },
@@ -736,6 +773,9 @@ export default function QuizPage({ subjects: allSubjects }) {
                                                             return (_jsx("button", { type: "button", onClick: () => setNumQuestions(actualButtonValue), disabled: isDisabled, className: `px-2 py-2 rounded-md text-sm font-medium transition-colors ${numQuestions === actualButtonValue && !isDisabled
                                                                     ? 'bg-primary-new text-white'
                                                                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed'}`, children: displayButtonLabel }, option.label));
-                                                        }) })] })] }), _jsxs("div", { className: "mt-6", children: [_jsxs("button", { type: "button", onClick: startQuiz, disabled: isLoading || selectedSubjectNames.length === 0, className: "w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-primary-new", children: [isLoading ? _jsx(LoaderIcon, { className: "w-5 h-5" }) : null, isLoading ? 'クイズ準備中...' : 'Start'] }), _jsx("button", { type: "button", onClick: openIpadMode, disabled: isLoading || selectedSubjectNames.length === 0, className: "mt-3 w-full py-3 px-4 border border-cyan-600 rounded-md shadow-sm text-base font-medium text-cyan-700 bg-cyan-50 hover:bg-cyan-100 disabled:opacity-50 disabled:cursor-not-allowed", children: "iPad\u30E2\u30FC\u30C9" })] }), (error || plansError) && _jsx("p", { className: "text-danger text-sm mt-2 text-center", children: error || plansError })] }), _jsx(SubjectProgress, { selectedSubjectNames: selectedSubjectNames, quizMode: quizMode })] }))), quizState === 'finished' && (_jsxs("div", { className: "text-center max-w-lg mx-auto", children: [_jsx("h2", { className: "text-3xl font-bold text-dark mb-4", children: "\u5B8C\u4E86\uFF01" }), _jsx("div", { className: "bg-white rounded-xl shadow p-8", children: _jsx("div", { className: "flex justify-center mt-2", children: _jsx("button", { type: "button", onClick: () => setQuizState('setup'), className: "px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700", children: "\u79D1\u76EE\u9078\u629E\u306B\u9077\u79FB" }) }) })] })), quizState === 'active' && renderActiveQuiz()] }), editingMemo && (_jsx("div", { className: "fixed inset-0 bg-black bg-opacity-75 z-50 flex justify-center items-center p-4", children: _jsxs("div", { className: "bg-white rounded-lg shadow-xl w-full max-w-2xl h-3/4 flex flex-col", children: [_jsx("h3", { className: "text-lg font-bold p-4 border-b", children: editingMemo.type === 'scratchpad' ? 'メモ帳' : 'My Memo' }), _jsx("textarea", { value: editingMemo.content, onChange: (e) => setEditingMemo({ ...editingMemo, content: e.target.value }), className: "flex-grow w-full p-4 border-0 focus:ring-0 text-base" }), _jsx("div", { className: "p-4 border-t flex justify-end", children: _jsx("button", { onClick: handleSaveAndCloseModal, className: "px-6 py-2 bg-primary-new text-white rounded-lg hover:bg-blue-700", children: "\u4FDD\u5B58\u3057\u3066\u9589\u3058\u308B" }) })] }) })), editingProblem && (_jsx("div", { className: "fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4", children: _jsxs("div", { className: "bg-white rounded-lg shadow-xl w-full max-w-4xl h-[90vh] flex flex-col", children: [_jsx("h3", { className: "text-xl font-bold p-4 border-b", children: "\u554F\u984C\u306E\u7DE8\u96C6" }), _jsxs("div", { className: "flex-grow overflow-y-auto p-6 space-y-4", children: [_jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u554F\u984C\u6587" }), _jsx("textarea", { name: "question_text", value: editingProblem.question_text, onChange: handleProblemFormChange, rows: 4, className: "mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u9078\u629E\u80A2" }), _jsx("div", { className: "space-y-2 mt-1", children: editingProblem.choices.map((choice, index) => (_jsxs("div", { className: "flex items-center gap-2", children: [_jsx("input", { type: "text", value: choice.label, onChange: (e) => handleProblemChoiceChange(index, 'label', e.target.value), className: "w-16 shadow-sm sm:text-sm border-gray-300 rounded-md" }), _jsx("input", { type: "text", value: choice.text, onChange: (e) => handleProblemChoiceChange(index, 'text', e.target.value), className: "flex-grow shadow-sm sm:text-sm border-gray-300 rounded-md" })] }, index))) })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u6B63\u89E3\u306E\u9078\u629E\u80A2\u30E9\u30D9\u30EB" }), _jsx("input", { type: "text", name: "answer", value: editingProblem.answer, onChange: handleProblemFormChange, className: "mt-1 w-32 block shadow-sm sm:text-sm border-gray-300 rounded-md" })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u30AB\u30C6\u30B4\u30EA" }), _jsx("input", { type: "text", name: "category", value: editingProblem.category || '', onChange: handleProblemFormChange, className: "mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u89E3\u8AAC" }), _jsx("textarea", { name: "explanation.text", value: editingProblem.explanation.text, onChange: handleProblemFormChange, rows: 6, className: "mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" })] })] }), _jsxs("div", { className: "p-4 border-t flex justify-end gap-4", children: [_jsx("button", { onClick: () => setEditingProblem(null), className: "px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300", children: "\u30AD\u30E3\u30F3\u30BB\u30EB" }), _jsx("button", { onClick: handleSaveChanges, className: "px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700", children: "\u5909\u66F4\u3092\u4FDD\u5B58" })] })] }) }))] }));
+                                                        }) })] })] }), _jsxs("div", { className: "mt-6", children: [_jsxs("button", { type: "button", onClick: () => void startQuiz(), disabled: isLoading || selectedSubjectNames.length === 0, className: "w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-primary-new", children: [isLoading ? _jsx(LoaderIcon, { className: "w-5 h-5" }) : null, isLoading ? 'クイズ準備中...' : 'Start'] }), _jsx("button", { type: "button", onClick: openIpadMode, disabled: isLoading || selectedSubjectNames.length === 0, className: "mt-3 w-full py-3 px-4 border border-cyan-600 rounded-md shadow-sm text-base font-medium text-cyan-700 bg-cyan-50 hover:bg-cyan-100 disabled:opacity-50 disabled:cursor-not-allowed", children: "iPad\u30E2\u30FC\u30C9" }), _jsx("button", { type: "button", onClick: () => void startQuiz(true), disabled: isLoading || selectedSubjectNames.length === 0, className: "mt-3 w-full py-3 px-4 border border-[#e8383d] rounded-md shadow-sm text-base font-medium text-[#e8383d] bg-red-50 hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed", children: "\u5F37\u5236\u30E2\u30FC\u30C9" })] }), (error || plansError) && _jsx("p", { className: "text-danger text-sm mt-2 text-center", children: error || plansError })] }), _jsx(SubjectProgress, { selectedSubjectNames: selectedSubjectNames, quizMode: quizMode })] }))), quizState === 'finished' && (_jsxs("div", { className: "text-center max-w-lg mx-auto", children: [_jsx("h2", { className: "text-3xl font-bold text-dark mb-4", children: "\u5B8C\u4E86\uFF01" }), _jsx("div", { className: "bg-white rounded-xl shadow p-8", children: _jsx("div", { className: "flex justify-center mt-2", children: _jsx("button", { type: "button", onClick: () => {
+                                            setIsForcedSession(false);
+                                            setQuizState('setup');
+                                        }, className: "px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700", children: "\u79D1\u76EE\u9078\u629E\u306B\u9077\u79FB" }) }) })] })), quizState === 'active' && renderActiveQuiz()] }), editingMemo && (_jsx("div", { className: "fixed inset-0 bg-black bg-opacity-75 z-50 flex justify-center items-center p-4", children: _jsxs("div", { className: "bg-white rounded-lg shadow-xl w-full max-w-2xl h-3/4 flex flex-col", children: [_jsx("h3", { className: "text-lg font-bold p-4 border-b", children: editingMemo.type === 'scratchpad' ? 'メモ帳' : 'My Memo' }), _jsx("textarea", { value: editingMemo.content, onChange: (e) => setEditingMemo({ ...editingMemo, content: e.target.value }), className: "flex-grow w-full p-4 border-0 focus:ring-0 text-base" }), _jsx("div", { className: "p-4 border-t flex justify-end", children: _jsx("button", { onClick: handleSaveAndCloseModal, className: "px-6 py-2 bg-primary-new text-white rounded-lg hover:bg-blue-700", children: "\u4FDD\u5B58\u3057\u3066\u9589\u3058\u308B" }) })] }) })), previewImageUrl && (_jsxs("div", { className: "fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4", onClick: () => setPreviewImageUrl(null), children: [_jsx("button", { type: "button", className: "absolute top-4 right-4 rounded-md bg-white/10 px-3 py-2 text-sm font-medium text-white", onClick: () => setPreviewImageUrl(null), children: "\u9589\u3058\u308B" }), _jsx("img", { src: previewImageUrl, alt: "My Memo preview", className: "max-h-full max-w-full rounded-lg bg-white object-contain", onClick: (e) => e.stopPropagation() })] })), editingProblem && (_jsx("div", { className: "fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4", children: _jsxs("div", { className: "bg-white rounded-lg shadow-xl w-full max-w-4xl h-[90vh] flex flex-col", children: [_jsx("h3", { className: "text-xl font-bold p-4 border-b", children: "\u554F\u984C\u306E\u7DE8\u96C6" }), _jsxs("div", { className: "flex-grow overflow-y-auto p-6 space-y-4", children: [_jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u554F\u984C\u6587" }), _jsx("textarea", { name: "question_text", value: editingProblem.question_text, onChange: handleProblemFormChange, rows: 4, className: "mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u9078\u629E\u80A2" }), _jsx("div", { className: "space-y-2 mt-1", children: editingProblem.choices.map((choice, index) => (_jsxs("div", { className: "flex items-center gap-2", children: [_jsx("input", { type: "text", value: choice.label, onChange: (e) => handleProblemChoiceChange(index, 'label', e.target.value), className: "w-16 shadow-sm sm:text-sm border-gray-300 rounded-md" }), _jsx("input", { type: "text", value: choice.text, onChange: (e) => handleProblemChoiceChange(index, 'text', e.target.value), className: "flex-grow shadow-sm sm:text-sm border-gray-300 rounded-md" })] }, index))) })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u6B63\u89E3\u306E\u9078\u629E\u80A2\u30E9\u30D9\u30EB" }), _jsx("input", { type: "text", name: "answer", value: editingProblem.answer, onChange: handleProblemFormChange, className: "mt-1 w-32 block shadow-sm sm:text-sm border-gray-300 rounded-md" })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u30AB\u30C6\u30B4\u30EA" }), _jsx("input", { type: "text", name: "category", value: editingProblem.category || '', onChange: handleProblemFormChange, className: "mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u89E3\u8AAC" }), _jsx("textarea", { name: "explanation.text", value: editingProblem.explanation.text, onChange: handleProblemFormChange, rows: 6, className: "mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" })] })] }), _jsxs("div", { className: "p-4 border-t flex justify-end gap-4", children: [_jsx("button", { onClick: () => setEditingProblem(null), className: "px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300", children: "\u30AD\u30E3\u30F3\u30BB\u30EB" }), _jsx("button", { onClick: handleSaveChanges, className: "px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700", children: "\u5909\u66F4\u3092\u4FDD\u5B58" })] })] }) }))] }));
 }
 //# sourceMappingURL=QuizPage.js.map

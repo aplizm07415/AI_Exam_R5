@@ -42,6 +42,7 @@ struct QuizQuestion: Decodable, Identifiable {
     var explanation: QuizExplanation
     var category: String?
     var customExplanation: String?
+    var customExplanationImageDataURL: String?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -52,6 +53,7 @@ struct QuizQuestion: Decodable, Identifiable {
         case explanation
         case category
         case customExplanation = "custom_explanation"
+        case customExplanationImageDataURL = "custom_explanation_image_data_url"
     }
 
     init(from decoder: Decoder) throws {
@@ -64,6 +66,7 @@ struct QuizQuestion: Decodable, Identifiable {
         explanation = try container.decodeIfPresent(QuizExplanation.self, forKey: .explanation) ?? QuizExplanation(text: "")
         category = try container.decodeIfPresent(String.self, forKey: .category)
         customExplanation = try container.decodeIfPresent(String.self, forKey: .customExplanation)
+        customExplanationImageDataURL = try container.decodeIfPresent(String.self, forKey: .customExplanationImageDataURL)
     }
 }
 
@@ -97,6 +100,12 @@ struct QuizHistoryStat: Decodable {
 
 private struct SaveCustomExplanationPayload: Encodable {
     let text: String
+    let imageDataURL: String?
+
+    enum CodingKeys: String, CodingKey {
+        case text
+        case imageDataURL = "image_data_url"
+    }
 }
 
 private struct UpdateProblemPayload: Encodable {
@@ -359,12 +368,12 @@ final class SoragakiAPIClient {
         return try JSONDecoder().decode([String: QuizHistoryStat].self, from: data)
     }
 
-    func saveCustomExplanation(problemID: String, text: String) async throws {
+    func saveCustomExplanation(problemID: String, text: String, imageDataURL: String?) async throws {
         let url = URL(string: "/api/problems/\(problemID)/custom-explanation", relativeTo: baseURL)!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(SaveCustomExplanationPayload(text: text))
+        request.httpBody = try JSONEncoder().encode(SaveCustomExplanationPayload(text: text, imageDataURL: imageDataURL))
         _ = try await send(request, expectedStatuses: [204])
     }
 

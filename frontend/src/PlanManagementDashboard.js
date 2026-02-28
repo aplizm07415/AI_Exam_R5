@@ -1,7 +1,7 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { usePlans } from './hooks/usePlans';
-import { isHoliday } from './utils/date';
+import { isHoliday, getTodayYmdJst } from './utils/date';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Brush } from 'recharts';
 import LoadingSpinner from './components/LoadingSpinner';
 const TrashIcon = (props) => (_jsx("svg", { xmlns: "http://www.w3.org/2000/svg", width: "1em", height: "1em", viewBox: "0 0 24 24", ...props, children: _jsx("path", { fill: "currentColor", d: "M7 21q-.825 0-1.412-.588T5 19V6H4V4h5V3h6v1h5v2h-1v13q0 .825-.588 1.413T17 21zM17 6H7v13h10zM9 17h2V8H9zm4 0h2V8h-2zM7 6v13z" }) }));
@@ -206,7 +206,7 @@ export default function PlanManagementDashboard({ subjects }) {
             let current = new Date(p.period.from);
             const to = new Date(p.period.to);
             while (current <= to) {
-                allDates.add(current.toISOString().split('T')[0]);
+                allDates.add(formatDateYmd(current));
                 current.setDate(current.getDate() + 1);
             }
         });
@@ -254,7 +254,7 @@ export default function PlanManagementDashboard({ subjects }) {
             .sort((a, b) => a.date.localeCompare(b.date));
     }, [plans, dailySummaryAll, selectedPlanIds]);
     const displayProgressData = useMemo(() => {
-        const today = new Date();
+        const today = new Date(getTodayYmdJst());
         today.setHours(0, 0, 0, 0);
         const from = new Date(today);
         from.setDate(from.getDate() - 4);

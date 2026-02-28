@@ -15,12 +15,25 @@ type MuscleAudioItem = {
   updated_at: string;
 };
 
+type PhotoItem = {
+  id: string;
+  display_name: string;
+  original_filename: string;
+  blob_name: string;
+  content_type: string;
+  size_bytes: number;
+  tags: string[];
+  uploaded_at: string;
+  updated_at: string;
+};
+
 type MuscleExercise = {
   id: string;
   name: string;
   record_method: MuscleRecordMethod;
   body_parts: string[];
   audio_id?: string | null;
+  image_id?: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -48,6 +61,7 @@ type ExerciseDraft = {
   record_method: MuscleRecordMethod;
   body_parts: string[];
   audio_id: string;
+  image_id: string;
   is_active: boolean;
 };
 
@@ -92,6 +106,7 @@ const defaultExerciseDraft = (): ExerciseDraft => ({
   record_method: 'duration',
   body_parts: [],
   audio_id: '',
+  image_id: '',
   is_active: true,
 });
 
@@ -144,6 +159,8 @@ const estimateRecordScore = (record: MuscleRecord) => {
   return (record.distance_km ?? 0) * 25 + (record.duration_seconds ?? 0) / 60;
 };
 
+const photoFileUrl = (photoId: string) => `${API_BASE_URL}/photos/${encodeURIComponent(photoId)}/file`;
+
 function HeatCell({ label, score, maxScore }: { label: string; score: number; maxScore: number }) {
   const ratio = maxScore > 0 ? score / maxScore : 0;
   const bg = ratio === 0 ? 'rgba(229,231,235,0.65)' : `rgba(239,68,68,${0.18 + ratio * 0.72})`;
@@ -178,9 +195,6 @@ function BodyHeatmap({ records }: { records: MuscleRecord[] }) {
     return { scores: map, maxScore: max, undertrained: under };
   }, [records]);
 
-  const front = BODY_PARTS_META.filter((b) => b.side === 'front');
-  const back = BODY_PARTS_META.filter((b) => b.side === 'back');
-
   return (
     <div className="rounded-2xl bg-white p-5 shadow">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
@@ -190,23 +204,10 @@ function BodyHeatmap({ records }: { records: MuscleRecord[] }) {
         </div>
         <div className="text-xs text-gray-500">最近弱い部位: {undertrained.map((u) => u.label).join(' / ')}</div>
       </div>
-      <div className="mt-4 grid gap-4 lg:grid-cols-2">
-        <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Front</p>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {front.map((part) => (
-              <HeatCell key={part.key} label={part.label} score={scores.get(part.key) ?? 0} maxScore={maxScore} />
-            ))}
-          </div>
-        </div>
-        <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Back</p>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {back.map((part) => (
-              <HeatCell key={part.key} label={part.label} score={scores.get(part.key) ?? 0} maxScore={maxScore} />
-            ))}
-          </div>
-        </div>
+      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+        {BODY_PARTS_META.map((part) => (
+          <HeatCell key={part.key} label={part.label} score={scores.get(part.key) ?? 0} maxScore={maxScore} />
+        ))}
       </div>
     </div>
   );
@@ -220,6 +221,7 @@ export default function MusclePage() {
   const [exercises, setExercises] = useState<MuscleExercise[]>([]);
   const [records, setRecords] = useState<MuscleRecord[]>([]);
   const [audios, setAudios] = useState<MuscleAudioItem[]>([]);
+  const [photos, setPhotos] = useState<PhotoItem[]>([]);
 
   const [selectedExerciseId, setSelectedExerciseId] = useState('');
   const [workoutMemo, setWorkoutMemo] = useState('');
@@ -227,6 +229,7 @@ export default function MusclePage() {
   const [workoutWeight, setWorkoutWeight] = useState('');
   const [workoutRunDistance, setWorkoutRunDistance] = useState('');
   const [workoutRunMinutes, setWorkoutRunMinutes] = useState('');
+  const [selectedWorkoutAudioId, setSelectedWorkoutAudioId] = useState('');
   const [isSavingWorkout, setIsSavingWorkout] = useState(false);
 
   const [timerRunning, setTimerRunning] = useState(false);
@@ -240,11 +243,16 @@ export default function MusclePage() {
   const [audioUploadFile, setAudioUploadFile] = useState<File | null>(null);
   const [audioUploadName, setAudioUploadName] = useState('');
   const [isUploadingAudio, setIsUploadingAudio] = useState(false);
+  const [exerciseImageFile, setExerciseImageFile] = useState<File | null>(null);
+  const [exerciseImageName, setExerciseImageName] = useState('');
+  const [isUploadingExerciseImage, setIsUploadingExerciseImage] = useState(false);
 
   const [recordDraft, setRecordDraft] = useState<RecordDraft>(defaultRecordDraft());
   const [isSavingRecordDraft, setIsSavingRecordDraft] = useState(false);
 
   const activeExercises = useMemo(() => exercises.filter((e) => e.is_active), [exercises]);
+  const photosById = useMemo(() => new Map(photos.map((photo) => [photo.id, photo])), [photos]);
+  const audiosById = useMemo(() => new Map(audios.map((audio) => [audio.id, audio])), [audios]);
   const selectedExercise = useMemo(
     () => exercises.find((e) => e.id === selectedExerciseId) ?? activeExercises[0] ?? null,
     [exercises, activeExercises, selectedExerciseId]
@@ -257,6 +265,18 @@ export default function MusclePage() {
   }, [selectedExercise, selectedExerciseId]);
 
   useEffect(() => {
+    if (!selectedExercise) {
+      setSelectedWorkoutAudioId('');
+      return;
+    }
+    if (selectedExercise.record_method === 'duration') {
+      setSelectedWorkoutAudioId(selectedExercise.audio_id ?? '');
+      return;
+    }
+    setSelectedWorkoutAudioId('');
+  }, [selectedExercise]);
+
+  useEffect(() => {
     if (recordDraft.exercise_id) return;
     if (activeExercises[0]) {
       setRecordDraft((prev) => ({ ...prev, exercise_id: activeExercises[0]!.id }));
@@ -267,22 +287,25 @@ export default function MusclePage() {
     setIsLoading(true);
     setError(null);
     try {
-      const [exRes, recRes, audioRes] = await Promise.all([
+      const [exRes, recRes, audioRes, photoRes] = await Promise.all([
         fetch(`${API_BASE_URL}/muscle/exercises?include_inactive=true`),
         fetch(`${API_BASE_URL}/muscle/records?limit=500`),
         fetch(`${API_BASE_URL}/muscle/audios`),
+        fetch(`${API_BASE_URL}/photos`),
       ]);
-      if (!exRes.ok || !recRes.ok || !audioRes.ok) {
+      if (!exRes.ok || !recRes.ok || !audioRes.ok || !photoRes.ok) {
         throw new Error('Muscleデータの取得に失敗しました。');
       }
-      const [exData, recData, audioData] = await Promise.all([
+      const [exData, recData, audioData, photoData] = await Promise.all([
         exRes.json() as Promise<MuscleExercise[]>,
         recRes.json() as Promise<MuscleRecord[]>,
         audioRes.json() as Promise<MuscleAudioItem[]>,
+        photoRes.json() as Promise<PhotoItem[]>,
       ]);
       setExercises(exData);
       setRecords(recData);
       setAudios(audioData);
+      setPhotos(photoData);
       if (!selectedExerciseId && exData.find((x) => x.is_active)) {
         setSelectedExerciseId(exData.find((x) => x.is_active)?.id ?? '');
       }
@@ -325,6 +348,26 @@ export default function MusclePage() {
     setWorkoutRunMinutes('');
   };
 
+  const stopWorkoutAudio = () => {
+    if (!audioPlayerRef.current) return;
+    audioPlayerRef.current.pause();
+    audioPlayerRef.current.currentTime = 0;
+    audioPlayerRef.current = null;
+  };
+
+  const playSelectedWorkoutAudio = async () => {
+    if (!selectedWorkoutAudioId) return;
+    stopWorkoutAudio();
+    const player = new Audio(`${API_BASE_URL}/muscle/audios/${encodeURIComponent(selectedWorkoutAudioId)}/file`);
+    player.preload = 'auto';
+    audioPlayerRef.current = player;
+    try {
+      await player.play();
+    } catch (e) {
+      console.warn('Audio playback failed.', e);
+    }
+  };
+
   const postWorkoutRecord = async (payload: {
     exercise_id: string;
     duration_seconds?: number;
@@ -353,11 +396,7 @@ export default function MusclePage() {
     setTimerRunning(false);
     setTimerStartedAtMs(null);
     setTimerElapsedMs(0);
-    if (audioPlayerRef.current) {
-      audioPlayerRef.current.pause();
-      audioPlayerRef.current.currentTime = 0;
-      audioPlayerRef.current = null;
-    }
+    stopWorkoutAudio();
 
     setIsSavingWorkout(true);
     setError(null);
@@ -379,18 +418,12 @@ export default function MusclePage() {
   const startDuration = async () => {
     if (!selectedExercise || selectedExercise.record_method !== 'duration') return;
     setError(null);
-    if (audioPlayerRef.current) {
-      audioPlayerRef.current.pause();
-      audioPlayerRef.current = null;
-    }
-    if (selectedExercise.audio_id) {
-      const player = new Audio(`${API_BASE_URL}/muscle/audios/${encodeURIComponent(selectedExercise.audio_id)}/file`);
-      player.preload = 'auto';
-      audioPlayerRef.current = player;
+    stopWorkoutAudio();
+    if (selectedWorkoutAudioId) {
       try {
-        await player.play();
-      } catch (e) {
-        console.warn('Audio playback failed, continuing timer.', e);
+        await playSelectedWorkoutAudio();
+      } catch {
+        // no-op
       }
     }
     setTimerStartedAtMs(Date.now());
@@ -466,6 +499,7 @@ export default function MusclePage() {
           record_method: exerciseDraft.record_method,
           body_parts: exerciseDraft.body_parts,
           audio_id: exerciseDraft.record_method === 'duration' ? (exerciseDraft.audio_id || null) : null,
+          image_id: exerciseDraft.image_id || null,
           is_active: exerciseDraft.is_active,
         }),
       });
@@ -480,6 +514,10 @@ export default function MusclePage() {
       });
       if (!selectedExerciseId && saved.is_active) setSelectedExerciseId(saved.id);
       setExerciseDraft(defaultExerciseDraft());
+      setExerciseImageFile(null);
+      setExerciseImageName('');
+      const input = document.getElementById('muscle-exercise-image-upload-input') as HTMLInputElement | null;
+      if (input) input.value = '';
     } catch (e) {
       alert(e instanceof Error ? e.message : '種目保存に失敗しました。');
     } finally {
@@ -521,6 +559,36 @@ export default function MusclePage() {
       alert(e instanceof Error ? e.message : '音源アップロードに失敗しました。');
     } finally {
       setIsUploadingAudio(false);
+    }
+  };
+
+  const handleUploadExerciseImage = async () => {
+    if (!exerciseImageFile) {
+      alert('画像ファイルを選択してください。');
+      return;
+    }
+    const name = exerciseImageName.trim() || exerciseImageFile.name.replace(/\.[^.]+$/, '');
+    setIsUploadingExerciseImage(true);
+    try {
+      const fd = new FormData();
+      fd.append('files', exerciseImageFile);
+      fd.append('display_name', name);
+      fd.append('tags_json', JSON.stringify(['muscle-exercise']));
+      const res = await fetch(`${API_BASE_URL}/photos`, { method: 'POST', body: fd });
+      if (!res.ok) throw new Error(await res.text());
+      const created = (await res.json()) as PhotoItem[];
+      const first = created[0];
+      if (!first) throw new Error('画像アップロード結果が不正です。');
+      setPhotos((prev) => [first, ...prev]);
+      setExerciseDraft((prev) => ({ ...prev, image_id: first.id }));
+      setExerciseImageFile(null);
+      setExerciseImageName('');
+      const input = document.getElementById('muscle-exercise-image-upload-input') as HTMLInputElement | null;
+      if (input) input.value = '';
+    } catch (e) {
+      alert(e instanceof Error ? e.message : '画像アップロードに失敗しました。');
+    } finally {
+      setIsUploadingExerciseImage(false);
     }
   };
 
@@ -665,11 +733,61 @@ export default function MusclePage() {
                   </button>
                 </div>
 
+                {activeExercises.length > 0 && (
+                  <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                    {activeExercises.map((exercise) => {
+                      const isSelected = exercise.id === selectedExerciseId;
+                      const photo = exercise.image_id ? photosById.get(exercise.image_id) : undefined;
+                      return (
+                        <button
+                          key={exercise.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedExerciseId(exercise.id);
+                            if (timerRunning) void stopAndSaveDuration();
+                          }}
+                          className={`flex items-center gap-3 rounded-xl border p-3 text-left transition-colors ${
+                            isSelected ? 'border-[#e8383d] bg-red-50' : 'border-gray-200 bg-white hover:bg-gray-50'
+                          }`}
+                        >
+                          {photo ? (
+                            <img
+                              src={photoFileUrl(photo.id)}
+                              alt={exercise.name}
+                              className="h-12 w-12 shrink-0 rounded-lg border border-gray-200 bg-white p-1 object-contain"
+                            />
+                          ) : (
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-[11px] font-semibold text-gray-400">
+                              No Img
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-gray-800">{exercise.name}</p>
+                            <p className="text-xs text-gray-500">{METHOD_LABEL[exercise.record_method]}</p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
                 {selectedExercise ? (
                   <div className="mt-4 space-y-4">
-                    <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                      <div className="flex flex-wrap items-center gap-2">
+                      <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                        <div className="flex flex-wrap items-center gap-3">
+                          {selectedExercise.image_id && photosById.get(selectedExercise.image_id) && (
+                          <img
+                            src={photoFileUrl(selectedExercise.image_id)}
+                            alt={selectedExercise.name}
+                            className="h-16 w-16 rounded-lg border border-gray-200 bg-white p-1 object-contain"
+                          />
+                        )}
                         <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-gray-700">{METHOD_LABEL[selectedExercise.record_method]}</span>
+                        {selectedExercise.audio_id && audiosById.get(selectedExercise.audio_id) && (
+                          <span className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-800">
+                            音源: {audiosById.get(selectedExercise.audio_id)?.display_name}
+                          </span>
+                        )}
                         {selectedExercise.body_parts.map((part) => {
                           const label = BODY_PARTS_META.find((x) => x.key === part)?.label ?? part;
                           return <span key={part} className="rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-700">#{label}</span>;
@@ -680,6 +798,31 @@ export default function MusclePage() {
                     {currentRecordMethod === 'duration' && (
                       <div className="rounded-2xl border border-red-100 bg-red-50/50 p-5">
                         <p className="text-sm font-medium text-gray-700">体幹計測（秒数モード）</p>
+                        <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+                          <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+                            <div>
+                              <label className="mb-1 block text-sm font-medium text-gray-700">開始時に再生する音源（任意）</label>
+                              <select
+                                value={selectedWorkoutAudioId}
+                                onChange={(e) => setSelectedWorkoutAudioId(e.target.value)}
+                                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm bg-white"
+                              >
+                                <option value="">なし</option>
+                                {audios.map((audio) => (
+                                  <option key={audio.id} value={audio.id}>{audio.display_name}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={stopWorkoutAudio}
+                              className="rounded-md border border-emerald-300 px-4 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-100"
+                            >
+                              停止
+                            </button>
+                          </div>
+                          <p className="mt-2 text-xs text-gray-500">種目に既定音源がある場合は初期選択されます。スタートと同時に再生されます。</p>
+                        </div>
                         <p className="mt-3 text-center text-5xl font-bold tracking-tight text-[#e8383d]">{formatDuration(timerDisplaySeconds)}</p>
                         <div className="mt-5 flex flex-col gap-3 sm:flex-row">
                           {!timerRunning ? (
@@ -712,14 +855,46 @@ export default function MusclePage() {
                             placeholder="フォーム感覚・姿勢メモなど"
                           />
                         </div>
-                        {selectedExercise.audio_id && (
-                          <p className="mt-2 text-xs text-gray-500">開始時に設定音源を再生し、停止時に終了します。</p>
+                        {selectedWorkoutAudioId && (
+                          <p className="mt-2 text-xs text-gray-500">開始時に選択音源を再生し、停止時に終了します。</p>
                         )}
                       </div>
                     )}
 
                     {currentRecordMethod === 'reps_weight' && (
                       <div className="grid gap-4 rounded-2xl border border-gray-200 p-5 sm:grid-cols-2">
+                        <div className="sm:col-span-2 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+                          <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto] sm:items-end">
+                            <div>
+                              <label className="mb-1 block text-sm font-medium text-gray-700">再生する音源（任意）</label>
+                              <select
+                                value={selectedWorkoutAudioId}
+                                onChange={(e) => setSelectedWorkoutAudioId(e.target.value)}
+                                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm bg-white"
+                              >
+                                <option value="">なし</option>
+                                {audios.map((audio) => (
+                                  <option key={audio.id} value={audio.id}>{audio.display_name}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => void playSelectedWorkoutAudio()}
+                              disabled={!selectedWorkoutAudioId}
+                              className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
+                            >
+                              再生
+                            </button>
+                            <button
+                              type="button"
+                              onClick={stopWorkoutAudio}
+                              className="rounded-md border border-emerald-300 px-4 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-100"
+                            >
+                              停止
+                            </button>
+                          </div>
+                        </div>
                         <div>
                           <label className="mb-1 block text-sm font-medium text-gray-700">回数</label>
                           <input type="number" min={0} value={workoutReps} onChange={(e) => setWorkoutReps(e.target.value)} className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm" />
@@ -838,6 +1013,60 @@ export default function MusclePage() {
                         </select>
                       </div>
                     )}
+                    <div className="space-y-3 rounded-xl border border-gray-100 bg-gray-50 p-3">
+                      <div>
+                        <label className="mb-1 block text-sm font-medium text-gray-700">種目画像（任意）</label>
+                        <select
+                          value={exerciseDraft.image_id}
+                          onChange={(e) => setExerciseDraft((p) => ({ ...p, image_id: e.target.value }))}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm bg-white"
+                        >
+                          <option value="">なし</option>
+                          {photos.map((photo) => (
+                            <option key={photo.id} value={photo.id}>{photo.display_name}</option>
+                          ))}
+                        </select>
+                      </div>
+                      {exerciseDraft.image_id && photosById.get(exerciseDraft.image_id) && (
+                        <img
+                          src={photoFileUrl(exerciseDraft.image_id)}
+                          alt="exercise preview"
+                          className="h-24 w-full max-w-40 rounded-lg border border-gray-200 bg-white p-2 object-contain"
+                        />
+                      )}
+                      <div>
+                        <label className="mb-1 block text-sm font-medium text-gray-700">新しい画像をアップロード</label>
+                        <input
+                          id="muscle-exercise-image-upload-input"
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] ?? null;
+                            setExerciseImageFile(file);
+                            if (file && !exerciseImageName.trim()) {
+                              setExerciseImageName(file.name.replace(/\.[^.]+$/, ''));
+                            }
+                          }}
+                          className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-sm font-medium text-gray-700">画像表示名</label>
+                        <input
+                          value={exerciseImageName}
+                          onChange={(e) => setExerciseImageName(e.target.value)}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => void handleUploadExerciseImage()}
+                        disabled={isUploadingExerciseImage}
+                        className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60"
+                      >
+                        {isUploadingExerciseImage ? '画像アップロード中...' : '画像をアップロードして選択'}
+                      </button>
+                    </div>
                     <div>
                       <label className="mb-2 block text-sm font-medium text-gray-700">有効部位（14分割・複数可）</label>
                       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -870,7 +1099,17 @@ export default function MusclePage() {
                       <button type="button" onClick={() => void handleSaveExercise()} disabled={isSavingExercise} className="rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-black disabled:opacity-60">
                         {exerciseDraft.id ? '更新する' : '追加する'}
                       </button>
-                      <button type="button" onClick={() => setExerciseDraft(defaultExerciseDraft())} className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setExerciseDraft(defaultExerciseDraft());
+                          setExerciseImageFile(null);
+                          setExerciseImageName('');
+                          const input = document.getElementById('muscle-exercise-image-upload-input') as HTMLInputElement | null;
+                          if (input) input.value = '';
+                        }}
+                        className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                      >
                         クリア
                       </button>
                     </div>
@@ -886,18 +1125,32 @@ export default function MusclePage() {
                         .map((exercise) => (
                           <div key={exercise.id} className="rounded-xl border border-gray-200 p-3">
                             <div className="flex flex-wrap items-start justify-between gap-2">
-                              <div>
+                              <div className="flex items-start gap-3">
+                                {exercise.image_id && photosById.get(exercise.image_id) && (
+                                  <img
+                                    src={photoFileUrl(exercise.image_id)}
+                                    alt={exercise.name}
+                                    className="h-16 w-16 rounded-lg border border-gray-200 bg-white p-1 object-contain"
+                                  />
+                                )}
+                                <div>
                                 <p className="text-sm font-semibold text-gray-800">
                                   {exercise.name}
                                   {!exercise.is_active && <span className="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">無効</span>}
                                 </p>
                                 <p className="text-xs text-gray-500">{METHOD_LABEL[exercise.record_method]}</p>
+                                {exercise.audio_id && audiosById.get(exercise.audio_id) && (
+                                  <p className="mt-1 inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-800">
+                                    音源: {audiosById.get(exercise.audio_id)?.display_name}
+                                  </p>
+                                )}
                                 <div className="mt-1 flex flex-wrap gap-1">
                                   {exercise.body_parts.map((part) => (
                                     <span key={`${exercise.id}-${part}`} className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] text-red-700">
                                       {BODY_PARTS_META.find((x) => x.key === part)?.label ?? part}
                                     </span>
                                   ))}
+                                </div>
                                 </div>
                               </div>
                               <div className="flex gap-2">
@@ -907,6 +1160,7 @@ export default function MusclePage() {
                                   record_method: exercise.record_method,
                                   body_parts: [...exercise.body_parts],
                                   audio_id: exercise.audio_id ?? '',
+                                  image_id: exercise.image_id ?? '',
                                   is_active: exercise.is_active,
                                 })} className="rounded-md border border-gray-300 px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50">
                                   編集

@@ -1,5 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import React, { useState, useEffect, useMemo } from 'react';
+import { getTodayYmdJst } from './utils/date';
 const STORAGE_KEY_EXAMS = 'countdownExams';
 const calculateCountdown = (targetDateStr) => {
     if (!targetDateStr)
@@ -46,7 +47,7 @@ export default function CountdownPage() {
         }
     });
     const [newExamName, setNewExamName] = useState('');
-    const [newExamDate, setNewExamDate] = useState(() => new Date().toISOString().split('T')[0]);
+    const [newExamDate, setNewExamDate] = useState(() => getTodayYmdJst());
     useEffect(() => {
         localStorage.setItem(STORAGE_KEY_EXAMS, JSON.stringify(exams));
     }, [exams]);
@@ -63,7 +64,7 @@ export default function CountdownPage() {
         setExams(prevExams => [...prevExams, newExam]);
         // Reset form
         setNewExamName('');
-        setNewExamDate(new Date().toISOString().split('T')[0]);
+        setNewExamDate(getTodayYmdJst());
     };
     const handleDeleteExam = (id) => {
         if (window.confirm('この試験を削除しますか？')) {

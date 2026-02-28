@@ -85,6 +85,7 @@ class MuscleExercise(BaseModel):
     record_method: MuscleRecordMethod
     body_parts: list[str]
     audio_id: Optional[str] = None
+    image_id: Optional[str] = None
     is_active: bool = True
     created_at: str
     updated_at: str
@@ -94,6 +95,7 @@ class MuscleExerciseUpsertRequest(BaseModel):
     record_method: MuscleRecordMethod
     body_parts: list[str] = Field(default_factory=list)
     audio_id: Optional[str] = None
+    image_id: Optional[str] = None
     is_active: bool = True
 
 class MuscleRecord(BaseModel):
@@ -156,6 +158,7 @@ class AnswerStat(BaseModel):
 
 class CustomExplanation(BaseModel):
     text: str
+    image_data_url: Optional[str] = None
 
 class QuizStartRequest(BaseModel):
     subjects: list[str]
@@ -801,6 +804,7 @@ def create_muscle_exercise(payload: MuscleExerciseUpsertRequest):
         record_method=payload.record_method,
         body_parts=_normalize_muscle_body_parts(payload.body_parts),
         audio_id=payload.audio_id,
+        image_id=(payload.image_id or "").strip() or None,
         is_active=payload.is_active,
         created_at=now_iso,
         updated_at=now_iso,
@@ -827,6 +831,7 @@ def update_muscle_exercise(exercise_id: str, payload: MuscleExerciseUpsertReques
         "record_method": payload.record_method,
         "body_parts": _normalize_muscle_body_parts(payload.body_parts),
         "audio_id": payload.audio_id if payload.record_method == "duration" else None,
+        "image_id": (payload.image_id or "").strip() or None,
         "is_active": payload.is_active,
         "updated_at": _now_utc_iso(),
     })
@@ -1548,7 +1553,8 @@ def start_quiz(request: QuizStartRequest):
             q['explanation_image_urls'] = [f"/api/images/{img_name}" for img_name in q['explanation']['images']]
 
         # Add a default key and then try to load the custom explanation
-        q['custom_explanation'] = '' 
+        q['custom_explanation'] = ''
+        q['custom_explanation_image_data_url'] = None
         try:
             problem_id = q.get("id")
             if problem_id and container_client:
@@ -1558,6 +1564,8 @@ def start_quiz(request: QuizStartRequest):
                     content = explanation_blob_client.download_blob().readall()
                     explanation_data = json.loads(content)
                     q['custom_explanation'] = explanation_data.get('text', '')
+                    image_data_url = explanation_data.get('image_data_url')
+                    q['custom_explanation_image_data_url'] = image_data_url if isinstance(image_data_url, str) and image_data_url.strip() else None
         except Exception as e:
             problem_id_for_log = q.get('id', 'UNKNOWN')
             print(f"Error fetching custom explanation for problem {problem_id_for_log}: {e}")

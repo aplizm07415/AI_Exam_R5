@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { LoaderIcon, CheckCircleIcon, XCircleIcon } from './components/icons';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -11,6 +11,7 @@ import { isHoliday, getMinutesUntilJstHour, getNowJstParts } from './utils/date'
 
 const API_BASE_URL = "/api";
 const QUESTION_TIMER_MS = 2 * 60 * 1000;
+const FORCED_ANSWER_TIMER_MS = 80 * 1000;
 
 interface Choice {
   label: string;
@@ -32,6 +33,7 @@ interface QuizQuestion {
   image_urls?: string[];
   explanation_image_urls?: string[];
   custom_explanation?: string;
+  custom_explanation_image_data_url?: string | undefined;
 }
 
 interface Subject {
@@ -56,6 +58,55 @@ interface HistoryStat {
 
 type QuizMode = 'random' | 'weak_area' | 'unanswered' | 'today_remaining';
 
+function TimerProgressBar({
+  durationMs,
+  isActive,
+  resetToken,
+  onExpire,
+}: {
+  durationMs: number;
+  isActive: boolean;
+  resetToken: string;
+  onExpire?: (() => void) | undefined;
+}) {
+  const [remainingRatio, setRemainingRatio] = useState(1);
+  const expireHandledRef = useRef(false);
+
+  useEffect(() => {
+    setRemainingRatio(1);
+    expireHandledRef.current = false;
+
+    if (!isActive) {
+      return;
+    }
+
+    const startedAt = Date.now();
+    const tick = () => {
+      const elapsed = Math.max(0, Date.now() - startedAt);
+      const nextRatio = Math.max(0, Math.min(1, 1 - elapsed / durationMs));
+      setRemainingRatio(nextRatio);
+
+      if (elapsed >= durationMs && !expireHandledRef.current) {
+        expireHandledRef.current = true;
+        onExpire?.();
+      }
+    };
+
+    tick();
+    const id = window.setInterval(tick, 250);
+    return () => window.clearInterval(id);
+  }, [durationMs, isActive, onExpire, resetToken]);
+
+  return (
+    <div className="w-full h-2.5 rounded-full bg-gray-200/90 border border-gray-200 mb-6 pointer-events-none" aria-hidden="true">
+      <div
+        className="h-full rounded-full bg-[#a2c2e6] transition-[width] duration-200 ease-linear"
+        style={{ width: `${remainingRatio * 100}%` }}
+      />
+    </div>
+  );
+}
+
 export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   const { plans, isLoading: isPlansLoading, error: plansError } = usePlans();
   const [dailySummaryAll, setDailySummaryAll] = useState<DailySummaryItem[]>([]);
@@ -63,6 +114,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   const [quizMode, setQuizMode] = useState<QuizMode>('today_remaining');
   const [numQuestions, setNumQuestions] = useState<number>(10);
   const [quizState, setQuizState] = useState<'setup' | 'active' | 'finished'>('setup');
+  const [isForcedSession, setIsForcedSession] = useState(false);
 
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [historyStats, setHistoryStats] = useState<Record<string, HistoryStat>>({});
@@ -74,6 +126,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   const [score, setScore] = useState(0);
   const [scratchpadText, setScratchpadText] = useState('');
   const [customExplanationText, setCustomExplanationText] = useState('');
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
   const [editingMemo, setEditingMemo] = useState<{type: 'scratchpad' | 'customExplanation', content: string} | null>(null);
   const [editingProblem, setEditingProblem] = useState<QuizQuestion | null>(null);
@@ -84,7 +137,6 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   const [error, setError] = useState('');
   const [effectStatus, setEffectStatus] = useState<'correct' | 'incorrect' | null>(null);
   const [questionStartedAt, setQuestionStartedAt] = useState<number>(Date.now());
-  const [timerNow, setTimerNow] = useState<number>(Date.now());
 
   const openMemoModal = (type: 'scratchpad' | 'customExplanation') => {
     const content = type === 'scratchpad' ? scratchpadText : customExplanationText;
@@ -416,7 +468,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     );
   };
 
-  const startQuiz = async () => {
+  const startQuiz = async (forcedSession = false) => {
     if (selectedSubjectNames.length === 0) {
       setError('科目を1つ以上選択してください。');
       return;
@@ -483,6 +535,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       setQuestions(data.quiz_set);
       setCurrentQuestionIndex(0);
       setScore(0);
+      setIsForcedSession(forcedSession);
       setQuizState('active');
       resetQuestionState();
 
@@ -538,22 +591,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     setScratchpadText('');
     setCustomExplanationText('');
     setQuestionStartedAt(Date.now());
-    setTimerNow(Date.now());
   };
-
-  useEffect(() => {
-    if (quizState !== 'active' || isAnswered) return;
-    const id = window.setInterval(() => {
-      setTimerNow(Date.now());
-    }, 250);
-    return () => window.clearInterval(id);
-  }, [quizState, isAnswered, currentQuestionIndex]);
-
-  const remainingTimeRatio = useMemo(() => {
-    if (quizState !== 'active') return 1;
-    const elapsed = Math.max(0, timerNow - questionStartedAt);
-    return Math.max(0, Math.min(1, 1 - elapsed / QUESTION_TIMER_MS));
-  }, [quizState, timerNow, questionStartedAt]);
 
   const estimatedCompletionText = useMemo(() => {
     const remainingQuestions = Math.max(0, todayRemaining.count);
@@ -581,12 +619,14 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     return `${nextHour}時までにあと${targetPerHour}問で順調ペース`;
   }, [todayRemaining.count]);
 
-  const handleAnswerSubmit = async () => {
-    if (selectedAnswer === null || isSubmittingAnswer) return;
+  const handleAnswerSubmit = async (forcedSubmission = false) => {
+    if (isSubmittingAnswer) return;
+    if (selectedAnswer === null && !forcedSubmission) return;
 
     const currentQuestion = questions[currentQuestionIndex];
     if (!currentQuestion) return;
-    const isCorrect = selectedAnswer === currentQuestion.answer;
+    const submittedAnswer = selectedAnswer ?? '';
+    const isCorrect = submittedAnswer === currentQuestion.answer;
 
     try {
       setIsSubmittingAnswer(true);
@@ -597,7 +637,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
         body: JSON.stringify({
           problem_id: currentQuestion.id,
           subject: currentQuestion.subject,
-          selected_answer: selectedAnswer,
+          selected_answer: submittedAnswer,
           is_correct: isCorrect,
           category: currentQuestion.category,
         }),
@@ -649,6 +689,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       setCurrentQuestionIndex(prev => prev + 1);
       resetQuestionState();
     } else {
+      setIsForcedSession(false);
       setQuizState('finished');
     }
   };
@@ -657,7 +698,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     if (quizMode === 'unanswered') {
       setQuizState('setup');
     } else {
-      startQuiz();
+      startQuiz(isForcedSession);
     }
   };
 
@@ -668,7 +709,10 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       const response = await fetch(`${API_BASE_URL}/problems/${currentQuestion.id}/custom-explanation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: customExplanationText }),
+        body: JSON.stringify({
+          text: customExplanationText,
+          image_data_url: currentQuestion.custom_explanation_image_data_url ?? null,
+        }),
       });
 
       if (!response.ok) {
@@ -685,7 +729,11 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       // Update the question in the main questions array to persist state during the session
       const updatedQuestions = questions.map((q) =>
         q.id === currentQuestion.id
-          ? { ...q, custom_explanation: customExplanationText }
+          ? {
+              ...q,
+              custom_explanation: customExplanationText,
+              custom_explanation_image_data_url: currentQuestion.custom_explanation_image_data_url,
+            }
           : q
       );
       setQuestions(updatedQuestions);
@@ -806,9 +854,9 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
         <div className="bg-white rounded-xl shadow p-6 md:p-8 fade-in">
           <div className="flex items-center gap-3 mb-4">
             {feedback?.correct ? <CheckCircleIcon className="w-8 h-8 text-green-600" /> : <XCircleIcon className="w-8 h-8 text-red-600" />}
-            <h3 className="text-2xl font-bold">{feedback?.correct ? '正解！' : '不正解'}</h3>
+            <h3 className="text-xl md:text-2xl font-bold">{feedback?.correct ? '正解！' : '不正解'}</h3>
           </div>
-          <h4 className="text-lg font-semibold text-primary-new mb-2">解説</h4>
+          <h4 className="text-base md:text-lg font-semibold text-primary-new mb-2">解説</h4>
           {(currentQuestion.explanation_image_urls && currentQuestion.explanation_image_urls.length > 0) && (
             <div className="my-4 grid grid-cols-1 gap-4">
               {currentQuestion.explanation_image_urls.map((url: string, index: number) => (
@@ -819,9 +867,25 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
           <div className="prose prose-sm md:prose-base max-w-none text-gray-700">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{feedback?.explanation?.text || ''}</ReactMarkdown>
           </div>
+          {currentQuestion.custom_explanation_image_data_url && (
+            <div className="mt-6">
+              <h4 className="text-base md:text-lg font-semibold text-primary-new mb-2">My Memo画像</h4>
+              <button
+                type="button"
+                onClick={() => setPreviewImageUrl(currentQuestion.custom_explanation_image_data_url ?? null)}
+                className="block w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50"
+              >
+                <img
+                  src={currentQuestion.custom_explanation_image_data_url}
+                  alt="My Memo handwrite"
+                  className="max-h-48 w-full object-contain"
+                />
+              </button>
+            </div>
+          )}
           <div className="mt-6">
             <div className="flex justify-between items-center mb-2">
-              <h4 className="text-lg font-semibold text-primary-new">My Memo</h4>
+              <h4 className="text-base md:text-lg font-semibold text-primary-new">My Memo</h4>
               <button onClick={() => openMemoModal('customExplanation')} className="p-1 rounded-md hover:bg-gray-200 text-gray-500 hover:text-gray-700" title="拡大表示">
                 <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8V4h4m10 0h4v4M3 16v4h4m14-4h-4v4"/></svg>
               </button>
@@ -840,7 +904,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
             >
               この問題を編集する
             </button>
-            <button id="next-question-button-bottom" type="button" onClick={handleNextQuestion} disabled={isSavingCustomExplanation} className="px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-dark bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 disabled:cursor-not-allowed">
+            <button id="next-question-button-bottom" type="button" onClick={handleNextQuestion} disabled={isSavingCustomExplanation} className="px-8 py-3 border border-transparent rounded-md shadow-sm text-sm md:text-base font-medium text-dark bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 disabled:cursor-not-allowed">
               {currentQuestionIndex < questions.length - 1 ? '次の問題へ' : '終了'}
             </button>
           </div>
@@ -850,13 +914,13 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       // 左カラム（問題・選択肢）
       const QuestionColumn = () => (
         <div className="bg-white rounded-xl shadow p-6 md:p-8 h-full flex flex-col">
-          <p className="text-lg font-semibold text-gray-700 mb-6">{currentQuestion.question_text}</p>
-          <div className="w-full h-2.5 rounded-full bg-gray-200/90 border border-gray-200 mb-6 pointer-events-none" aria-hidden="true">
-            <div
-              className="h-full rounded-full bg-[#a2c2e6] transition-[width] duration-200 ease-linear"
-              style={{ width: `${remainingTimeRatio * 100}%` }}
-            />
-          </div>
+          <p className="text-base md:text-lg font-semibold text-gray-700 mb-6">{currentQuestion.question_text}</p>
+          <TimerProgressBar
+            durationMs={isForcedSession ? FORCED_ANSWER_TIMER_MS : QUESTION_TIMER_MS}
+            isActive={quizState === 'active' && !isAnswered && !isSubmittingAnswer}
+            resetToken={`${currentQuestion.id}-${questionStartedAt}-${isForcedSession ? 'forced' : 'normal'}`}
+            onExpire={isForcedSession ? () => void handleAnswerSubmit(true) : undefined}
+          />
           
           {/* 画像がある場合、スマホでは問題文の下に表示 */}
           <div className="md:hidden my-4">
@@ -881,7 +945,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                   key={index}
                   onClick={() => !isAnswered && setSelectedAnswer(option.label)}
                   disabled={isAnswered}
-                  className={`w-full text-left p-4 rounded-lg border border-transparent transition-all duration-200 ${buttonClass}`}
+                  className={`w-full text-left p-4 rounded-lg border border-transparent transition-all duration-200 text-sm md:text-base ${buttonClass}`}
                 >
                   <span className="font-bold mr-2">{option.label}.</span>
                   <span>{option.text}</span>
@@ -906,7 +970,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
             />
             {!isAnswered && ( // Moved "解答する" button here
               <div className="mt-6 text-center">
-                <button id="submit-answer-button" type="button" onClick={handleAnswerSubmit} disabled={selectedAnswer === null || isSubmittingAnswer} className="px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed">
+                <button id="submit-answer-button" type="button" onClick={() => void handleAnswerSubmit()} disabled={selectedAnswer === null || isSubmittingAnswer} className="px-8 py-3 border border-transparent rounded-md shadow-sm text-sm md:text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed">
                   {isSubmittingAnswer ? '保存中...' : '解答する'}
                 </button>
               </div>
@@ -915,7 +979,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
           {isAnswered && ( // This div now only contains "次の問題へ" button, and retains mt-auto
             <div className="mt-auto pt-6 text-center">
-              <button id="next-question-button" type="button" onClick={handleNextQuestion} disabled={isSavingCustomExplanation} className="px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-dark bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 disabled:cursor-not-allowed">
+              <button id="next-question-button" type="button" onClick={handleNextQuestion} disabled={isSavingCustomExplanation} className="px-8 py-3 border border-transparent rounded-md shadow-sm text-sm md:text-base font-medium text-dark bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 disabled:cursor-not-allowed">
                 {currentQuestionIndex < questions.length - 1 ? '次の問題へ' : '終了'}
               </button>
             </div>
@@ -938,10 +1002,15 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       const progressPercentage = questions.length > 0 ? ((currentQuestionIndex + 1) / questions.length) * 100 : 0;
 
       return (
-        <div className="md:h-screen md:overflow-hidden">
+        <div className="md:h-screen md:overflow-hidden text-sm md:text-base">
             <div className="p-4 md:p-6">
                 <div className="flex justify-end items-center mb-2">
                     <div className="flex items-center gap-4">
+                        {isForcedSession && (
+                            <div className="text-sm font-semibold text-[#e8383d] whitespace-nowrap">
+                                強制モード: 80秒
+                            </div>
+                        )}
                         {(() => {
                         const stats = historyStats[currentQuestion.id];
                         if (stats && stats.total > 0) {
@@ -1286,7 +1355,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
                         <div className="mt-6">
 
-                          <button type="button" onClick={startQuiz} disabled={isLoading || selectedSubjectNames.length === 0} className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-primary-new">
+                          <button type="button" onClick={() => void startQuiz()} disabled={isLoading || selectedSubjectNames.length === 0} className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-primary-new">
 
                             {isLoading ? <LoaderIcon className="w-5 h-5" /> : null}
 
@@ -1300,6 +1369,14 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                             className="mt-3 w-full py-3 px-4 border border-cyan-600 rounded-md shadow-sm text-base font-medium text-cyan-700 bg-cyan-50 hover:bg-cyan-100 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             iPadモード
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void startQuiz(true)}
+                            disabled={isLoading || selectedSubjectNames.length === 0}
+                            className="mt-3 w-full py-3 px-4 border border-[#e8383d] rounded-md shadow-sm text-base font-medium text-[#e8383d] bg-red-50 hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            強制モード
                           </button>
 
                         </div>
@@ -1328,7 +1405,10 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                       <div className="flex justify-center mt-2">
                         <button
                           type="button"
-                          onClick={() => setQuizState('setup')}
+                          onClick={() => {
+                            setIsForcedSession(false);
+                            setQuizState('setup');
+                          }}
                           className="px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700"
                         >
                           科目選択に遷移
@@ -1389,6 +1469,27 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
           </div>
 
+        )}
+
+        {previewImageUrl && (
+          <div
+            className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+            onClick={() => setPreviewImageUrl(null)}
+          >
+            <button
+              type="button"
+              className="absolute top-4 right-4 rounded-md bg-white/10 px-3 py-2 text-sm font-medium text-white"
+              onClick={() => setPreviewImageUrl(null)}
+            >
+              閉じる
+            </button>
+            <img
+              src={previewImageUrl}
+              alt="My Memo preview"
+              className="max-h-full max-w-full rounded-lg bg-white object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
         )}
 
   
