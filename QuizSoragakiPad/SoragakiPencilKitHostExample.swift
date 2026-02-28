@@ -466,6 +466,7 @@ struct QuizPencilModeView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("iPadモード（問題演習）")
                     .font(.headline)
+                    .foregroundColor(AppPalette.dark)
                 Text("Mode: \(viewModel.modeLabel) / Count: \(viewModel.countLabel)")
                     .font(.caption)
                     .foregroundColor(.secondary)
@@ -484,6 +485,7 @@ struct QuizPencilModeView: View {
             Spacer()
             Text(viewModel.progressText)
                 .font(.subheadline)
+                .foregroundColor(AppPalette.dark)
         }
     }
 
@@ -496,6 +498,7 @@ struct QuizPencilModeView: View {
                         Text(question.questionText)
                             .font(.title3)
                             .fontWeight(.semibold)
+                            .foregroundColor(AppPalette.dark)
                             .padding(.bottom, 4)
 
                         TimelineView(.periodic(from: .now, by: 0.25)) { context in
@@ -522,8 +525,10 @@ struct QuizPencilModeView: View {
                                 HStack(alignment: .top) {
                                     Text("\(choice.label).")
                                         .fontWeight(.bold)
+                                        .foregroundColor(AppPalette.dark)
                                     Text(choice.text)
                                         .multilineTextAlignment(.leading)
+                                        .foregroundColor(AppPalette.dark)
                                     Spacer()
                                 }
                                 .padding(10)
@@ -564,6 +569,7 @@ struct QuizPencilModeView: View {
                     Text(viewModel.isDrawMode ? "手書きモード" : "選択モード")
                         .font(.subheadline)
                         .fontWeight(.semibold)
+                        .foregroundColor(AppPalette.dark)
                 }
                 .toggleStyle(SwitchToggleStyle(tint: AppPalette.primaryNew))
 
@@ -604,6 +610,7 @@ struct QuizPencilModeView: View {
                         .foregroundColor(viewModel.isCorrect ? AppPalette.success : AppPalette.danger)
                     Text(viewModel.explanationText.isEmpty ? "この問題の解説はありません。" : viewModel.explanationText)
                         .font(.body)
+                        .foregroundColor(AppPalette.dark)
                         .lineLimit(nil)
                         .fixedSize(horizontal: false, vertical: true)
                     if let memoImage = viewModel.customMemoImage {
@@ -627,6 +634,7 @@ struct QuizPencilModeView: View {
                     HStack {
                         Text("My Memo")
                             .font(.headline)
+                            .foregroundColor(AppPalette.dark)
                         Spacer()
                         Button("手書きを画像保存") {
                             viewModel.saveCurrentDrawingToMemoImage()
@@ -700,7 +708,7 @@ struct QuizPencilModeView: View {
             Text(title)
                 .font(.subheadline)
                 .fontWeight(.semibold)
-                .foregroundColor(.secondary)
+                .foregroundColor(AppPalette.dark)
             Button {
                 previewImage = image
             } label: {

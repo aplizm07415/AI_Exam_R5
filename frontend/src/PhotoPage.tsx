@@ -324,9 +324,10 @@ export default function PhotoPage() {
   }, [photos]);
 
   const filteredPhotos = useMemo(() => {
+    const visiblePhotos = photos.filter((photo) => !photo.tags.includes('muscle-exercise'));
     const keyword = tagFilter.trim().toLowerCase();
-    if (!keyword) return photos;
-    return photos.filter((photo) => {
+    if (!keyword) return visiblePhotos;
+    return visiblePhotos.filter((photo) => {
       const matchesTag = photo.tags.some((tag) => tag.toLowerCase().includes(keyword));
       const matchesDisplayName = photo.display_name.toLowerCase().includes(keyword);
       return matchesTag || matchesDisplayName;
