@@ -812,7 +812,7 @@ struct QuizPencilModeView: View {
                     viewModel.clearPencilLayer()
                 }
                 .buttonStyle(.bordered)
-                Button(viewModel.isMarkedForReviewLater ? "登録済み" : "後で振り返り") {
+                Button(viewModel.isMarkedForReviewLater ? "登録済み" : "後で確認") {
                     Task { await viewModel.toggleReviewLater() }
                 }
                 .buttonStyle(.borderedProminent)

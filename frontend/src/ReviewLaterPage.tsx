@@ -54,7 +54,7 @@ export default function ReviewLaterPage() {
       const response = await fetch(`${API_BASE_URL}/review-later`);
       if (!response.ok) {
         const payload = await response.json().catch(() => null);
-        throw new Error(payload?.detail || '後で振り返り一覧の取得に失敗しました。');
+        throw new Error(payload?.detail || '後で確認一覧の取得に失敗しました。');
       }
       const data: ReviewLaterEntry[] = await response.json();
       setItems(data);
@@ -67,7 +67,7 @@ export default function ReviewLaterPage() {
       });
     } catch (fetchError) {
       console.error(fetchError);
-      setError(fetchError instanceof Error ? fetchError.message : '後で振り返り一覧の取得に失敗しました。');
+      setError(fetchError instanceof Error ? fetchError.message : '後で確認一覧の取得に失敗しました。');
       setItems([]);
       setSelectedKey('');
     } finally {
@@ -197,11 +197,12 @@ export default function ReviewLaterPage() {
     }
   };
 
-  const handleRemove = async () => {
-    if (!selectedItem) return;
+  const handleRemove = async (targetItem?: ReviewLaterEntry) => {
+    const itemToRemove = targetItem ?? selectedItem;
+    if (!itemToRemove) return;
     try {
       const response = await fetch(
-        `${API_BASE_URL}/review-later/${encodeURIComponent(selectedItem.problem_id)}?subject=${encodeURIComponent(selectedItem.subject)}`,
+        `${API_BASE_URL}/review-later/${encodeURIComponent(itemToRemove.problem_id)}?subject=${encodeURIComponent(itemToRemove.subject)}`,
         { method: 'DELETE' }
       );
       if (!response.ok) {
@@ -228,8 +229,8 @@ export default function ReviewLaterPage() {
     <div className="max-w-7xl mx-auto space-y-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-dark">後で振り返り</h2>
-          <p className="text-sm text-gray-500 mt-1">演習中に登録した問題をまとめて見直します。</p>
+          <h2 className="text-3xl font-bold text-dark">後で確認</h2>
+          <p className="text-sm text-gray-500 mt-1">演習中に登録した問題をまとめて確認します。</p>
         </div>
         <Link to="/dashboard" className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg shadow-sm hover:bg-gray-50">
           分析ダッシュボードへ戻る
@@ -249,20 +250,33 @@ export default function ReviewLaterPage() {
               const itemKey = `${item.subject}::${item.problem_id}`;
               const active = itemKey === selectedKey;
               return (
-                <button
+                <div
                   key={itemKey}
-                  type="button"
-                  onClick={() => setSelectedKey(itemKey)}
-                  className={`w-full text-left rounded-lg border px-4 py-3 transition-colors ${
-                    active ? 'border-primary-new bg-blue-50' : 'border-gray-200 bg-white hover:bg-gray-50'
+                  className={`rounded-lg border px-4 py-3 transition-colors ${
+                    active ? 'border-primary-new bg-blue-50' : 'border-gray-200 bg-white'
                   }`}
                 >
-                  <div className="text-xs text-gray-500 truncate">{item.subject}</div>
-                  <div className="mt-1 text-sm font-semibold text-gray-800 line-clamp-2">
-                    {item.question?.question_text || item.error || '問題を読み込めませんでした。'}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedKey(itemKey)}
+                    className="w-full text-left"
+                  >
+                    <div className="text-xs text-gray-500 truncate">{item.subject}</div>
+                    <div className="mt-1 text-sm font-semibold text-gray-800 line-clamp-2">
+                      {item.question?.question_text || item.error || '問題を読み込めませんでした。'}
+                    </div>
+                    <div className="mt-2 text-[11px] text-gray-400">更新: {new Date(item.updated_at).toLocaleString()}</div>
+                  </button>
+                  <div className="mt-3 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => void handleRemove(item)}
+                      className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                    >
+                      一覧で登録解除
+                    </button>
                   </div>
-                  <div className="mt-2 text-[11px] text-gray-400">更新: {new Date(item.updated_at).toLocaleString()}</div>
-                </button>
+                </div>
               );
             })}
           </div>

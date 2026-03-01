@@ -27,10 +27,12 @@ export default function App() {
             const subjectNames = await response.json();
             const subjectObjects = subjectNames
                 .filter((name) => name.endsWith('.json') &&
+                !name.includes('/') &&
                 name !== 'plans.json' &&
                 !name.startsWith('history/') &&
                 !name.startsWith('custom-explanations/') &&
-                !name.startsWith('soragaki/'))
+                !name.startsWith('soragaki/') &&
+                !name.startsWith('review-later/'))
                 .map(name => ({ name }));
             setSubjects(subjectObjects.sort((a, b) => a.name.localeCompare(b.name)));
         }

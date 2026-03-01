@@ -658,11 +658,13 @@ def get_subjects():
             blob.name for blob in container_client.list_blobs()
             if (
                 blob.name.endswith('.json') and
+                '/' not in blob.name and
                 not blob.name.startswith('history/') and
                 not blob.name.startswith('custom-explanations/') and
                 not blob.name.startswith('soragaki/') and
                 not blob.name.startswith('photo-library/') and
-                not blob.name.startswith('muscle/')
+                not blob.name.startswith('muscle/') and
+                not blob.name.startswith('review-later/')
             )
         ]
     except Exception as e:
@@ -1098,6 +1100,38 @@ def get_muscle_audio_file(audio_id: str):
     except Exception as e:
         print(f"Error streaming muscle audio {audio_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to stream audio.")
+
+
+@api_router.delete("/muscle/audios/{audio_id}", status_code=204)
+def delete_muscle_audio(audio_id: str):
+    items = _load_muscle_audios()
+    item = next((x for x in items if x.id == audio_id), None)
+    if item is None:
+        raise HTTPException(status_code=404, detail="Audio not found.")
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+
+    try:
+        blob_client = container_client.get_blob_client(item.blob_name)
+        if blob_client.exists():
+            blob_client.delete_blob()
+
+        _save_muscle_audios([x for x in items if x.id != audio_id])
+
+        exercises = _load_muscle_exercises()
+        did_update_exercises = False
+        for exercise in exercises:
+            if exercise.audio_id == audio_id:
+                exercise.audio_id = None
+                exercise.updated_at = _now_utc_iso()
+                did_update_exercises = True
+        if did_update_exercises:
+            _save_muscle_exercises(exercises)
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error deleting muscle audio {audio_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete muscle audio.")
 
 @api_router.post("/soragaki/generate-keywords", response_model=List[str], dependencies=[Depends(verify_soragaki_auth)])
 def generate_keywords_from_memo(request: GenerateKeywordsRequest):

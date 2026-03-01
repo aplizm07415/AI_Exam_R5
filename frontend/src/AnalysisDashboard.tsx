@@ -218,7 +218,7 @@ export default function AnalysisDashboard({
             to="/dashboard/review-later"
             className="px-4 py-2 bg-amber-50 border border-amber-300 text-amber-800 text-sm font-semibold rounded-lg shadow-sm hover:bg-amber-100"
           >
-            後で振り返り
+            後で確認
           </Link>
         </div>
         <div className="w-full sm:flex-1">

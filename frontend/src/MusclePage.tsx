@@ -231,6 +231,7 @@ export default function MusclePage() {
   const [workoutRunMinutes, setWorkoutRunMinutes] = useState('');
   const [selectedWorkoutAudioId, setSelectedWorkoutAudioId] = useState('');
   const [isSavingWorkout, setIsSavingWorkout] = useState(false);
+  const [audioPlaybackError, setAudioPlaybackError] = useState<string | null>(null);
 
   const [timerRunning, setTimerRunning] = useState(false);
   const [timerStartedAtMs, setTimerStartedAtMs] = useState<number | null>(null);
@@ -355,15 +356,55 @@ export default function MusclePage() {
     audioPlayerRef.current = null;
   };
 
+  const describeAudioError = (audio: HTMLAudioElement | null, fallback?: unknown) => {
+    const mediaError = audio?.error;
+    if (mediaError) {
+      switch (mediaError.code) {
+        case mediaError.MEDIA_ERR_ABORTED:
+          return '音源の読み込みが中断されました。通信状況を確認してください。';
+        case mediaError.MEDIA_ERR_NETWORK:
+          return '音源の取得に失敗しました。通信状況を確認してください。';
+        case mediaError.MEDIA_ERR_DECODE:
+          return '音源を再生できません。スマホで非対応の形式の可能性があります。';
+        case mediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+          return '音源形式または配信形式がこの端末で非対応です。';
+        default:
+          return '音源の再生に失敗しました。';
+      }
+    }
+    if (fallback instanceof DOMException) {
+      if (fallback.name === 'NotAllowedError') {
+        return 'ブラウザに再生をブロックされました。消音モード解除や再生許可を確認してください。';
+      }
+      if (fallback.name === 'NotSupportedError') {
+        return 'この端末で再生できない音源形式です。';
+      }
+      return `${fallback.name}: ${fallback.message}`;
+    }
+    if (fallback instanceof Error) {
+      return fallback.message;
+    }
+    return '音源の再生に失敗しました。';
+  };
+
   const playSelectedWorkoutAudio = async () => {
     if (!selectedWorkoutAudioId) return;
+    setAudioPlaybackError(null);
     stopWorkoutAudio();
     const player = new Audio(`${API_BASE_URL}/muscle/audios/${encodeURIComponent(selectedWorkoutAudioId)}/file`);
     player.preload = 'auto';
+    player.addEventListener('error', () => {
+      setAudioPlaybackError(describeAudioError(player));
+    });
+    player.addEventListener('stalled', () => {
+      setAudioPlaybackError('音源の読み込みが停止しました。通信状況を確認してください。');
+    });
     audioPlayerRef.current = player;
     try {
       await player.play();
     } catch (e) {
+      const message = describeAudioError(player, e);
+      setAudioPlaybackError(message);
       console.warn('Audio playback failed.', e);
     }
   };
@@ -418,6 +459,7 @@ export default function MusclePage() {
   const startDuration = async () => {
     if (!selectedExercise || selectedExercise.record_method !== 'duration') return;
     setError(null);
+    setAudioPlaybackError(null);
     stopWorkoutAudio();
     if (selectedWorkoutAudioId) {
       try {
@@ -559,6 +601,33 @@ export default function MusclePage() {
       alert(e instanceof Error ? e.message : '音源アップロードに失敗しました。');
     } finally {
       setIsUploadingAudio(false);
+    }
+  };
+
+  const handleDeleteAudio = async (audio: MuscleAudioItem) => {
+    if (!window.confirm(`音源「${audio.display_name}」を削除しますか？\n紐づいている種目の音源設定も解除されます。`)) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/muscle/audios/${encodeURIComponent(audio.id)}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || '音源削除に失敗しました。');
+      }
+      setAudios((prev) => prev.filter((item) => item.id !== audio.id));
+      setExercises((prev) =>
+        prev.map((exercise) =>
+          exercise.audio_id === audio.id
+            ? { ...exercise, audio_id: null }
+            : exercise
+        )
+      );
+      setSelectedWorkoutAudioId((prev) => (prev === audio.id ? '' : prev));
+      setExerciseDraft((prev) => (prev.audio_id === audio.id ? { ...prev, audio_id: '' } : prev));
+      setAudioPlaybackError(null);
+      if (audioPlayerRef.current) {
+        stopWorkoutAudio();
+      }
+    } catch (e) {
+      alert(e instanceof Error ? e.message : '音源削除に失敗しました。');
     }
   };
 
@@ -804,7 +873,10 @@ export default function MusclePage() {
                               <label className="mb-1 block text-sm font-medium text-gray-700">開始時に再生する音源（任意）</label>
                               <select
                                 value={selectedWorkoutAudioId}
-                                onChange={(e) => setSelectedWorkoutAudioId(e.target.value)}
+                                onChange={(e) => {
+                                  setSelectedWorkoutAudioId(e.target.value);
+                                  setAudioPlaybackError(null);
+                                }}
                                 className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm bg-white"
                               >
                                 <option value="">なし</option>
@@ -822,6 +894,11 @@ export default function MusclePage() {
                             </button>
                           </div>
                           <p className="mt-2 text-xs text-gray-500">種目に既定音源がある場合は初期選択されます。スタートと同時に再生されます。</p>
+                          {audioPlaybackError && (
+                            <p className="mt-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
+                              音源再生エラー: {audioPlaybackError}
+                            </p>
+                          )}
                         </div>
                         <p className="mt-3 text-center text-5xl font-bold tracking-tight text-[#e8383d]">{formatDuration(timerDisplaySeconds)}</p>
                         <div className="mt-5 flex flex-col gap-3 sm:flex-row">
@@ -869,7 +946,10 @@ export default function MusclePage() {
                               <label className="mb-1 block text-sm font-medium text-gray-700">再生する音源（任意）</label>
                               <select
                                 value={selectedWorkoutAudioId}
-                                onChange={(e) => setSelectedWorkoutAudioId(e.target.value)}
+                                onChange={(e) => {
+                                  setSelectedWorkoutAudioId(e.target.value);
+                                  setAudioPlaybackError(null);
+                                }}
                                 className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm bg-white"
                               >
                                 <option value="">なし</option>
@@ -894,6 +974,11 @@ export default function MusclePage() {
                               停止
                             </button>
                           </div>
+                          {audioPlaybackError && (
+                            <p className="mt-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
+                              音源再生エラー: {audioPlaybackError}
+                            </p>
+                          )}
                         </div>
                         <div>
                           <label className="mb-1 block text-sm font-medium text-gray-700">回数</label>
@@ -1215,7 +1300,16 @@ export default function MusclePage() {
                               <p className="truncate text-sm font-semibold text-gray-800">{audio.display_name}</p>
                               <p className="truncate text-xs text-gray-500">{audio.original_filename}</p>
                             </div>
-                            <audio controls preload="none" src={`${API_BASE_URL}/muscle/audios/${encodeURIComponent(audio.id)}/file`} className="max-w-full" />
+                            <div className="flex flex-wrap items-center gap-2">
+                              <audio controls preload="none" src={`${API_BASE_URL}/muscle/audios/${encodeURIComponent(audio.id)}/file`} className="max-w-full" />
+                              <button
+                                type="button"
+                                onClick={() => void handleDeleteAudio(audio)}
+                                className="rounded-md border border-red-200 px-3 py-2 text-xs font-medium text-red-700 hover:bg-red-50"
+                              >
+                                削除
+                              </button>
+                            </div>
                           </div>
                         </div>
                       ))

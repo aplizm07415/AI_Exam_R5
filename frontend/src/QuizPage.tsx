@@ -235,7 +235,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     try {
       const response = await fetch(`${API_BASE_URL}/review-later`);
       if (!response.ok) {
-        throw new Error('後で振り返り一覧の取得に失敗しました。');
+        throw new Error('後で確認一覧の取得に失敗しました。');
       }
       const data: Array<{ subject: string; problem_id: string }> = await response.json();
       setReviewLaterKeys(data.map((item) => buildReviewKey(item.subject, item.problem_id)));
@@ -266,14 +266,14 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       );
       if (!response.ok) {
         const payload = await response.json().catch(() => null);
-        throw new Error(payload?.detail || '後で振り返りの更新に失敗しました。');
+        throw new Error(payload?.detail || '後で確認の更新に失敗しました。');
       }
       setReviewLaterKeys((prev) =>
         alreadyRegistered ? prev.filter((key) => key !== reviewKey) : [...prev, reviewKey]
       );
     } catch (toggleError) {
       console.error(toggleError);
-      const message = toggleError instanceof Error ? toggleError.message : '後で振り返りの更新に失敗しました。';
+      const message = toggleError instanceof Error ? toggleError.message : '後で確認の更新に失敗しました。';
       setError(message);
     } finally {
       setIsUpdatingReviewLater(false);
@@ -1063,7 +1063,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                     : 'border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100'
                 } disabled:bg-gray-200 disabled:text-gray-500 disabled:border-gray-300 disabled:cursor-not-allowed`}
               >
-                {isUpdatingReviewLater ? '更新中...' : isCurrentQuestionReviewLater ? '登録済み' : '後で振り返り'}
+                {isUpdatingReviewLater ? '更新中...' : isCurrentQuestionReviewLater ? '登録済み' : '後で確認'}
               </button>
             </div>
             {!isAnswered && ( // Moved "解答する" button here
