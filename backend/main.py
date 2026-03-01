@@ -159,6 +159,8 @@ class AnswerStat(BaseModel):
 class CustomExplanation(BaseModel):
     text: str
     image_data_url: Optional[str] = None
+    explanation_image_data_url: Optional[str] = None
+    question_image_data_url: Optional[str] = None
 
 class QuizStartRequest(BaseModel):
     subjects: list[str]
@@ -1555,6 +1557,7 @@ def start_quiz(request: QuizStartRequest):
         # Add a default key and then try to load the custom explanation
         q['custom_explanation'] = ''
         q['custom_explanation_image_data_url'] = None
+        q['custom_question_image_data_url'] = None
         try:
             problem_id = q.get("id")
             if problem_id and container_client:
@@ -1564,8 +1567,11 @@ def start_quiz(request: QuizStartRequest):
                     content = explanation_blob_client.download_blob().readall()
                     explanation_data = json.loads(content)
                     q['custom_explanation'] = explanation_data.get('text', '')
-                    image_data_url = explanation_data.get('image_data_url')
-                    q['custom_explanation_image_data_url'] = image_data_url if isinstance(image_data_url, str) and image_data_url.strip() else None
+                    legacy_image_data_url = explanation_data.get('image_data_url')
+                    explanation_image_data_url = explanation_data.get('explanation_image_data_url', legacy_image_data_url)
+                    question_image_data_url = explanation_data.get('question_image_data_url')
+                    q['custom_explanation_image_data_url'] = explanation_image_data_url if isinstance(explanation_image_data_url, str) and explanation_image_data_url.strip() else None
+                    q['custom_question_image_data_url'] = question_image_data_url if isinstance(question_image_data_url, str) and question_image_data_url.strip() else None
         except Exception as e:
             problem_id_for_log = q.get('id', 'UNKNOWN')
             print(f"Error fetching custom explanation for problem {problem_id_for_log}: {e}")
@@ -1852,9 +1858,18 @@ def save_custom_explanation(problem_id: str, explanation: CustomExplanation):
         raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
         
     try:
+        explanation_image_data_url = explanation.explanation_image_data_url
+        if not explanation_image_data_url and explanation.image_data_url:
+            explanation_image_data_url = explanation.image_data_url
+
+        normalized_payload = {
+            "text": explanation.text,
+            "explanation_image_data_url": explanation_image_data_url,
+            "question_image_data_url": explanation.question_image_data_url,
+        }
         blob_name = f"{CUSTOM_EXPLANATIONS_DIR}/{problem_id}.json"
         blob_client = container_client.get_blob_client(blob_name)
-        blob_client.upload_blob(explanation.model_dump_json(), overwrite=True)
+        blob_client.upload_blob(json.dumps(normalized_payload, ensure_ascii=False), overwrite=True)
     except Exception as e:
         print(f"Error saving custom explanation to blob: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to save custom explanation to blob storage: {e}")

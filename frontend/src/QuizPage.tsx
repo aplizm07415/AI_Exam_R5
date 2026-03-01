@@ -34,6 +34,7 @@ interface QuizQuestion {
   explanation_image_urls?: string[];
   custom_explanation?: string;
   custom_explanation_image_data_url?: string | undefined;
+  custom_question_image_data_url?: string | undefined;
 }
 
 interface Subject {
@@ -189,7 +190,14 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     if (!editingProblem) return;
 
     try {
-      const { image_urls, explanation_image_urls, custom_explanation, ...payload } = editingProblem;
+      const {
+        image_urls,
+        explanation_image_urls,
+        custom_explanation,
+        custom_explanation_image_data_url,
+        custom_question_image_data_url,
+        ...payload
+      } = editingProblem;
       
       const response = await fetch(`/api/subjects/${editingProblem.subject}/problems/${editingProblem.id}`, {
         method: 'PUT',
@@ -711,7 +719,8 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           text: customExplanationText,
-          image_data_url: currentQuestion.custom_explanation_image_data_url ?? null,
+          explanation_image_data_url: currentQuestion.custom_explanation_image_data_url ?? null,
+          question_image_data_url: currentQuestion.custom_question_image_data_url ?? null,
         }),
       });
 
@@ -733,6 +742,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
               ...q,
               custom_explanation: customExplanationText,
               custom_explanation_image_data_url: currentQuestion.custom_explanation_image_data_url,
+              custom_question_image_data_url: currentQuestion.custom_question_image_data_url,
             }
           : q
       );
@@ -832,21 +842,35 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     const renderActiveQuiz = () => {
       if (!currentQuestion) return null;
   
-      const hasImages = currentQuestion.image_urls && currentQuestion.image_urls.length > 0;
+      const hasQuestionImages = (currentQuestion.image_urls && currentQuestion.image_urls.length > 0)
+        || Boolean(currentQuestion.custom_question_image_data_url);
   
       // レイアウトの決定ロジック
       let layoutType: 'image' | 'answered' | 'default' = 'default';
-      if (hasImages) {
+      if (hasQuestionImages) {
         layoutType = 'image';
       } else if (isAnswered) {
         layoutType = 'answered';
       }
   
-      const imagesComponent = hasImages ? (
+      const imagesComponent = hasQuestionImages ? (
         <div className="space-y-4">
-          {currentQuestion.image_urls!.map((url: string, index: number) => (
+          {(currentQuestion.image_urls || []).map((url: string, index: number) => (
             <img key={index} src={url} alt={`Question image ${index + 1}`} className="max-w-full w-full h-auto mx-auto rounded-lg shadow-md" />
           ))}
+          {currentQuestion.custom_question_image_data_url && (
+            <button
+              type="button"
+              onClick={() => setPreviewImageUrl(currentQuestion.custom_question_image_data_url ?? null)}
+              className="block w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50"
+            >
+              <img
+                src={currentQuestion.custom_question_image_data_url}
+                alt="My Memo question supplement"
+                className="max-h-64 w-full object-contain"
+              />
+            </button>
+          )}
         </div>
       ) : null;
   
@@ -869,7 +893,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
           </div>
           {currentQuestion.custom_explanation_image_data_url && (
             <div className="mt-6">
-              <h4 className="text-base md:text-lg font-semibold text-primary-new mb-2">My Memo画像</h4>
+              <h4 className="text-base md:text-lg font-semibold text-primary-new mb-2">My Memo 解説補足画像</h4>
               <button
                 type="button"
                 onClick={() => setPreviewImageUrl(currentQuestion.custom_explanation_image_data_url ?? null)}

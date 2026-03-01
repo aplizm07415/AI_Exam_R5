@@ -34,6 +34,7 @@ enum AppPalette {
     static let info = Color(hex: "#cee4ae")
     static let success = Color(hex: "#2cb4ad")
     static let warning = Color(hex: "#f5e48d")
+    static let caution = Color(hex: "#c96a14")
     static let danger = Color(hex: "#cf483e")
 }
 
@@ -85,6 +86,7 @@ final class QuizPencilModeViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     @Published var completionMessage: String?
+    @Published var isSessionFinished: Bool = false
     @Published var questions: [QuizQuestion] = []
     @Published var currentIndex: Int = 0
     @Published var selectedAnswer: String?
@@ -97,7 +99,10 @@ final class QuizPencilModeViewModel: ObservableObject {
     @Published var interactionMode: InteractionMode = .draw
     @Published var extraWriteAreaHeight: CGFloat = 0
     @Published var customMemoText: String = ""
-    @Published var customMemoImageDataURL: String?
+    @Published var explanationMemoCanvasView = PKCanvasView()
+    @Published var questionMemoCanvasView = PKCanvasView()
+    @Published var customExplanationMemoImageDataURL: String?
+    @Published var customQuestionMemoImageDataURL: String?
     @Published var historyStats: [String: QuizHistoryStat] = [:]
     @Published var isProblemEditSheetPresented: Bool = false
     @Published var problemEditDraft: ProblemEditDraft?
@@ -106,7 +111,8 @@ final class QuizPencilModeViewModel: ObservableObject {
     private var apiClient: SoragakiAPIClient?
     private var deepLink: QuizDeepLink?
     private var originalMemoText: String = ""
-    private var originalMemoImageDataURL: String?
+    private var originalExplanationMemoImageDataURL: String?
+    private var originalQuestionMemoImageDataURL: String?
 
     var currentQuestion: QuizQuestion? {
         guard questions.indices.contains(currentIndex) else { return nil }
@@ -132,17 +138,16 @@ final class QuizPencilModeViewModel: ObservableObject {
         apiClient = SoragakiAPIClient(baseURL: deepLink.baseURL)
         modeLabel = deepLink.mode
         countLabel = "\(deepLink.count)"
-        canvasView.backgroundColor = .clear
-        canvasView.isOpaque = false
-        canvasView.drawingPolicy = .pencilOnly
-        canvasView.alwaysBounceVertical = false
-        canvasView.alwaysBounceHorizontal = false
+        prepareMainCanvas()
+        prepareMemoCanvas(explanationMemoCanvasView)
+        prepareMemoCanvas(questionMemoCanvasView)
         await startQuiz()
     }
 
     func startQuiz() async {
         guard let apiClient, let deepLink else { return }
         completionMessage = nil
+        isSessionFinished = false
         guard !deepLink.subjects.isEmpty else {
             errorMessage = "科目が未指定です。Webの問題演習ページから起動してください。"
             return
@@ -223,6 +228,7 @@ final class QuizPencilModeViewModel: ObservableObject {
         } else {
             errorMessage = nil
             completionMessage = "保存済み・演習完了"
+            isSessionFinished = true
         }
     }
 
@@ -230,19 +236,28 @@ final class QuizPencilModeViewModel: ObservableObject {
         guard let apiClient, let question = currentQuestion else { return }
         let newText = customMemoText.trimmingCharacters(in: .whitespacesAndNewlines)
         let oldText = originalMemoText.trimmingCharacters(in: .whitespacesAndNewlines)
-        let newImageDataURL = normalizedMemoImageDataURL(customMemoImageDataURL)
-        let oldImageDataURL = normalizedMemoImageDataURL(originalMemoImageDataURL)
-        if newText == oldText, newImageDataURL == oldImageDataURL { return }
+        let newExplanationImageDataURL = normalizedMemoImageDataURL(customExplanationMemoImageDataURL)
+        let oldExplanationImageDataURL = normalizedMemoImageDataURL(originalExplanationMemoImageDataURL)
+        let newQuestionImageDataURL = normalizedMemoImageDataURL(customQuestionMemoImageDataURL)
+        let oldQuestionImageDataURL = normalizedMemoImageDataURL(originalQuestionMemoImageDataURL)
+        if newText == oldText,
+           newExplanationImageDataURL == oldExplanationImageDataURL,
+           newQuestionImageDataURL == oldQuestionImageDataURL {
+            return
+        }
         try await apiClient.saveCustomExplanation(
             problemID: question.id,
             text: customMemoText,
-            imageDataURL: newImageDataURL
+            explanationImageDataURL: newExplanationImageDataURL,
+            questionImageDataURL: newQuestionImageDataURL
         )
         originalMemoText = customMemoText
-        originalMemoImageDataURL = newImageDataURL
+        originalExplanationMemoImageDataURL = newExplanationImageDataURL
+        originalQuestionMemoImageDataURL = newQuestionImageDataURL
         if questions.indices.contains(currentIndex) {
             questions[currentIndex].customExplanation = customMemoText
-            questions[currentIndex].customExplanationImageDataURL = newImageDataURL
+            questions[currentIndex].customExplanationImageDataURL = newExplanationImageDataURL
+            questions[currentIndex].customQuestionImageDataURL = newQuestionImageDataURL
         }
     }
 
@@ -274,6 +289,7 @@ final class QuizPencilModeViewModel: ObservableObject {
                 var merged = updated
                 merged.customExplanation = questions[currentIndex].customExplanation
                 merged.customExplanationImageDataURL = questions[currentIndex].customExplanationImageDataURL
+                merged.customQuestionImageDataURL = questions[currentIndex].customQuestionImageDataURL
                 questions[currentIndex] = merged
             }
             isProblemEditSheetPresented = false
@@ -287,17 +303,38 @@ final class QuizPencilModeViewModel: ObservableObject {
         canvasView.drawing = PKDrawing()
     }
 
-    func saveCurrentDrawingToMemoImage() {
-        guard let imageDataURL = snapshotCurrentDrawingDataURL() else {
-            errorMessage = "保存する手書きがありません。"
+    func saveExplanationMemoDrawing() {
+        guard let imageDataURL = snapshotDrawingDataURL(from: explanationMemoCanvasView) else {
+            errorMessage = "解説補足の手書きがありません。"
             return
         }
         errorMessage = nil
-        customMemoImageDataURL = imageDataURL
+        customExplanationMemoImageDataURL = imageDataURL
     }
 
-    func clearCustomMemoImage() {
-        customMemoImageDataURL = nil
+    func saveQuestionMemoDrawing() {
+        guard let imageDataURL = snapshotDrawingDataURL(from: questionMemoCanvasView) else {
+            errorMessage = "問題文補足の手書きがありません。"
+            return
+        }
+        errorMessage = nil
+        customQuestionMemoImageDataURL = imageDataURL
+    }
+
+    func clearExplanationMemoInput() {
+        explanationMemoCanvasView.drawing = PKDrawing()
+    }
+
+    func clearQuestionMemoInput() {
+        questionMemoCanvasView.drawing = PKDrawing()
+    }
+
+    func clearExplanationMemoImage() {
+        customExplanationMemoImageDataURL = nil
+    }
+
+    func clearQuestionMemoImage() {
+        customQuestionMemoImageDataURL = nil
     }
 
     func setInteractionMode(_ mode: InteractionMode) {
@@ -314,6 +351,7 @@ final class QuizPencilModeViewModel: ObservableObject {
 
     private func resetQuestionState() {
         completionMessage = nil
+        isSessionFinished = false
         selectedAnswer = nil
         isAnswered = false
         isCorrect = false
@@ -321,16 +359,22 @@ final class QuizPencilModeViewModel: ObservableObject {
         interactionMode = .draw
         extraWriteAreaHeight = 0
         clearPencilLayer()
+        clearExplanationMemoInput()
+        clearQuestionMemoInput()
         if let question = currentQuestion {
             customMemoText = question.customExplanation ?? ""
             originalMemoText = customMemoText
-            customMemoImageDataURL = normalizedMemoImageDataURL(question.customExplanationImageDataURL)
-            originalMemoImageDataURL = customMemoImageDataURL
+            customExplanationMemoImageDataURL = normalizedMemoImageDataURL(question.customExplanationImageDataURL)
+            customQuestionMemoImageDataURL = normalizedMemoImageDataURL(question.customQuestionImageDataURL)
+            originalExplanationMemoImageDataURL = customExplanationMemoImageDataURL
+            originalQuestionMemoImageDataURL = customQuestionMemoImageDataURL
         } else {
             customMemoText = ""
             originalMemoText = ""
-            customMemoImageDataURL = nil
-            originalMemoImageDataURL = nil
+            customExplanationMemoImageDataURL = nil
+            customQuestionMemoImageDataURL = nil
+            originalExplanationMemoImageDataURL = nil
+            originalQuestionMemoImageDataURL = nil
         }
     }
 
@@ -350,8 +394,16 @@ final class QuizPencilModeViewModel: ObservableObject {
         return CGFloat(ratio)
     }
 
-    var customMemoImage: UIImage? {
-        Self.image(fromDataURL: customMemoImageDataURL)
+    var customExplanationMemoImage: UIImage? {
+        Self.image(fromDataURL: customExplanationMemoImageDataURL)
+    }
+
+    var customQuestionMemoImage: UIImage? {
+        Self.image(fromDataURL: customQuestionMemoImageDataURL)
+    }
+
+    func resolvedURL(path: String) -> URL? {
+        apiClient?.resolveURL(path: path)
     }
 
     private func normalizedMemoImageDataURL(_ value: String?) -> String? {
@@ -361,11 +413,29 @@ final class QuizPencilModeViewModel: ObservableObject {
         return trimmed
     }
 
-    private func snapshotCurrentDrawingDataURL() -> String? {
-        guard !canvasView.drawing.strokes.isEmpty else { return nil }
-        let size = canvasView.bounds.size
+    private func prepareMainCanvas() {
+        canvasView.backgroundColor = .clear
+        canvasView.isOpaque = false
+        canvasView.drawingPolicy = .pencilOnly
+        canvasView.alwaysBounceVertical = false
+        canvasView.alwaysBounceHorizontal = false
+    }
+
+    private func prepareMemoCanvas(_ canvas: PKCanvasView) {
+        canvas.backgroundColor = .clear
+        canvas.isOpaque = false
+        canvas.drawingPolicy = .pencilOnly
+        canvas.isScrollEnabled = false
+        canvas.alwaysBounceVertical = false
+        canvas.alwaysBounceHorizontal = false
+        canvas.tool = PKInkingTool(.pen, color: .black, width: 4)
+    }
+
+    private func snapshotDrawingDataURL(from canvas: PKCanvasView) -> String? {
+        guard !canvas.drawing.strokes.isEmpty else { return nil }
+        let size = canvas.bounds.size
         guard size.width > 0, size.height > 0 else { return nil }
-        let image = canvasView.drawing.image(from: CGRect(origin: .zero, size: size), scale: 1.0)
+        let image = canvas.drawing.image(from: CGRect(origin: .zero, size: size), scale: 1.0)
         guard let pngData = image.pngData() else { return nil }
         return "data:image/png;base64,\(pngData.base64EncodedString())"
     }
@@ -428,6 +498,29 @@ struct QuizPencilOverlayView: UIViewRepresentable {
     }
 }
 
+struct MemoCanvasInputView: UIViewRepresentable {
+    @Binding var canvasView: PKCanvasView
+
+    func makeUIView(context: Context) -> UIView {
+        let container = UIView(frame: .zero)
+        container.backgroundColor = .clear
+        canvasView.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(canvasView)
+        NSLayoutConstraint.activate([
+            canvasView.topAnchor.constraint(equalTo: container.topAnchor),
+            canvasView.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+            canvasView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            canvasView.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+        ])
+        return container
+    }
+
+    func updateUIView(_ uiView: UIView, context: Context) {
+        canvasView.backgroundColor = .clear
+        canvasView.isOpaque = false
+    }
+}
+
 struct QuizPencilModeView: View {
     let deepLink: QuizDeepLink
     @StateObject private var viewModel = QuizPencilModeViewModel()
@@ -441,6 +534,8 @@ struct QuizPencilModeView: View {
                 if viewModel.isLoading {
                     ProgressView("問題を取得中...")
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if viewModel.isSessionFinished {
+                    completionView
                 } else if let question = viewModel.currentQuestion {
                     questionBody(question)
                 } else {
@@ -507,6 +602,26 @@ struct QuizPencilModeView: View {
         }
     }
 
+    private var completionView: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("演習完了")
+                .font(.title3.weight(.bold))
+                .foregroundColor(AppPalette.dark)
+            Text(viewModel.completionMessage ?? "保存済み・演習完了")
+                .font(.body)
+                .foregroundColor(AppPalette.dark)
+            Button("もう一度開始") {
+                Task { await viewModel.startQuiz() }
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(AppPalette.white)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(AppPalette.light.opacity(0.5), lineWidth: 1))
+    }
+
     @ViewBuilder
     private func questionBody(_ question: QuizQuestion) -> some View {
         VStack(spacing: 12) {
@@ -518,6 +633,38 @@ struct QuizPencilModeView: View {
                             .fontWeight(.semibold)
                             .foregroundColor(AppPalette.dark)
                             .padding(.bottom, 4)
+                        if !question.imageURLs.isEmpty || viewModel.customQuestionMemoImage != nil {
+                            VStack(alignment: .leading, spacing: 8) {
+                                ForEach(Array(question.imageURLs.enumerated()), id: \.offset) { index, path in
+                                    if let imageURL = viewModel.resolvedURL(path: path) {
+                                        AsyncImage(url: imageURL) { phase in
+                                            switch phase {
+                                            case .success(let image):
+                                                image
+                                                    .resizable()
+                                                    .scaledToFit()
+                                                    .frame(maxWidth: .infinity, minHeight: 140, maxHeight: 260)
+                                                    .padding(8)
+                                                    .background(AppPalette.white)
+                                                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(AppPalette.light.opacity(0.6), lineWidth: 1))
+                                            case .failure(_):
+                                                Text("画像\(index + 1)を読み込めませんでした。")
+                                                    .font(.footnote)
+                                                    .foregroundColor(.secondary)
+                                            default:
+                                                ProgressView()
+                                                    .frame(maxWidth: .infinity, minHeight: 140)
+                                            }
+                                        }
+                                    }
+                                }
+                                if let memoImage = viewModel.customQuestionMemoImage {
+                                    memoImageSection(title: "My Memo 問題文補足", image: memoImage)
+                                }
+                            }
+                            .padding(.bottom, 2)
+                        }
 
                         TimelineView(.periodic(from: .now, by: 0.25)) { context in
                             let ratio = viewModel.remainingTimeRatio(at: context.date)
@@ -617,8 +764,9 @@ struct QuizPencilModeView: View {
                         Button("わからない") {
                             Task { await viewModel.submitAsUnknown() }
                         }
-                        .buttonStyle(.bordered)
-                        .tint(AppPalette.warning)
+                        .buttonStyle(.borderedProminent)
+                        .tint(AppPalette.caution)
+                        .disabled(viewModel.isDrawMode)
                     }
                 } else {
                     Button(viewModel.currentIndex + 1 < viewModel.questions.count ? "次の問題へ" : "完了") {
@@ -639,8 +787,8 @@ struct QuizPencilModeView: View {
                         .foregroundColor(AppPalette.dark)
                         .lineLimit(nil)
                         .fixedSize(horizontal: false, vertical: true)
-                    if let memoImage = viewModel.customMemoImage {
-                        memoImageSection(title: "My Memo画像", image: memoImage)
+                    if let memoImage = viewModel.customExplanationMemoImage {
+                        memoImageSection(title: "My Memo 解説補足", image: memoImage)
                     }
                     HStack {
                         Button("問題編集") {
@@ -657,30 +805,36 @@ struct QuizPencilModeView: View {
                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(AppPalette.light.opacity(0.5), lineWidth: 1))
 
                 VStack(alignment: .leading, spacing: 6) {
-                    HStack {
-                        Text("My Memo")
-                            .font(.headline)
-                            .foregroundColor(AppPalette.dark)
-                        Spacer()
-                        Button("手書きを画像保存") {
-                            viewModel.saveCurrentDrawingToMemoImage()
-                        }
-                        .buttonStyle(.bordered)
-                        Button("画像クリア") {
-                            viewModel.clearCustomMemoImage()
-                        }
-                        .buttonStyle(.bordered)
-                        .disabled(viewModel.customMemoImage == nil)
-                    }
+                    Text("My Memo")
+                        .font(.headline)
+                        .foregroundColor(AppPalette.dark)
+                    Text("テキスト入力")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundColor(AppPalette.dark)
                     TextEditor(text: $viewModel.customMemoText)
                         .focused($isMemoEditorFocused)
                         .frame(minHeight: 110)
                         .padding(6)
                         .background(AppPalette.white)
                         .overlay(RoundedRectangle(cornerRadius: 8).stroke(AppPalette.light.opacity(0.6), lineWidth: 1))
-                    if let memoImage = viewModel.customMemoImage {
-                        memoImageSection(title: "保存済み画像", image: memoImage)
-                    }
+                    memoHandwritingEditor(
+                        title: "解説補足手書き入力",
+                        canvasView: $viewModel.explanationMemoCanvasView,
+                        onSave: viewModel.saveExplanationMemoDrawing,
+                        onClearInput: viewModel.clearExplanationMemoInput,
+                        onClearSaved: viewModel.clearExplanationMemoImage,
+                        savedImage: viewModel.customExplanationMemoImage,
+                        savedImageTitle: "保存済みの解説補足画像"
+                    )
+                    memoHandwritingEditor(
+                        title: "問題文補足手書き入力",
+                        canvasView: $viewModel.questionMemoCanvasView,
+                        onSave: viewModel.saveQuestionMemoDrawing,
+                        onClearInput: viewModel.clearQuestionMemoInput,
+                        onClearSaved: viewModel.clearQuestionMemoImage,
+                        savedImage: viewModel.customQuestionMemoImage,
+                        savedImageTitle: "保存済みの問題文補足画像"
+                    )
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
@@ -748,6 +902,46 @@ struct QuizPencilModeView: View {
                     .overlay(RoundedRectangle(cornerRadius: 10).stroke(AppPalette.light.opacity(0.6), lineWidth: 1))
             }
             .buttonStyle(.plain)
+        }
+    }
+
+    private func memoHandwritingEditor(
+        title: String,
+        canvasView: Binding<PKCanvasView>,
+        onSave: @escaping () -> Void,
+        onClearInput: @escaping () -> Void,
+        onClearSaved: @escaping () -> Void,
+        savedImage: UIImage?,
+        savedImageTitle: String
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .center) {
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(AppPalette.dark)
+                Spacer()
+                Button("入力クリア") {
+                    onClearInput()
+                }
+                .buttonStyle(.bordered)
+                Button("保存") {
+                    onSave()
+                }
+                .buttonStyle(.borderedProminent)
+                Button("保存画像クリア") {
+                    onClearSaved()
+                }
+                .buttonStyle(.bordered)
+                .disabled(savedImage == nil)
+            }
+            MemoCanvasInputView(canvasView: canvasView)
+                .frame(minHeight: 270)
+                .background(AppPalette.white)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .overlay(RoundedRectangle(cornerRadius: 10).stroke(AppPalette.light.opacity(0.6), lineWidth: 1))
+            if let savedImage {
+                memoImageSection(title: savedImageTitle, image: savedImage)
+            }
         }
     }
 }

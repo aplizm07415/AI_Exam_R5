@@ -163,6 +163,7 @@ def test_start_quiz_includes_custom_explanation_image(client: TestClient):
     question_by_id = {q["id"]: q for q in data["quiz_set"]}
     assert question_by_id["q1"]["custom_explanation"] == "Saved memo"
     assert question_by_id["q1"]["custom_explanation_image_data_url"] == "data:image/png;base64,ZmFrZQ=="
+    assert question_by_id["q1"]["custom_question_image_data_url"] is None
 
 def test_start_quiz_unanswered_mode(client: TestClient):
     """unansweredモードでクイズを開始できることをテスト (q4は未回答)"""
@@ -232,6 +233,30 @@ def test_save_history(client: TestClient):
     # history blobに追記されたことを確認するための追加アサートは、
     # Blob Storageのモックがappend_blockを記録している場合のみ可能。
     # 現在のモックでは直接検証は難しいが、ここではAPIがエラーなく動作することを確認。
+
+def test_save_custom_explanation_uses_new_fields(client: TestClient):
+    from backend import main
+
+    mock_blob_client = MagicMock()
+    main.container_client.get_blob_client = MagicMock(return_value=mock_blob_client)
+
+    response = client.post(
+        "/api/problems/q1/custom-explanation",
+        json={
+            "text": "updated memo",
+            "explanation_image_data_url": "data:image/png;base64,ZXhwbA==",
+            "question_image_data_url": "data:image/png;base64,cXVlc3Q=",
+        },
+    )
+
+    assert response.status_code == 204
+    upload_arg = mock_blob_client.upload_blob.call_args.args[0]
+    saved_payload = json.loads(upload_arg)
+    assert saved_payload == {
+        "text": "updated memo",
+        "explanation_image_data_url": "data:image/png;base64,ZXhwbA==",
+        "question_image_data_url": "data:image/png;base64,cXVlc3Q=",
+    }
 
 def test_get_unanswered_count(client: TestClient):
     """未回答の問題数を正しく取得できることをテスト"""

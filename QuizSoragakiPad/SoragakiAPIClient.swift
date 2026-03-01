@@ -41,8 +41,11 @@ struct QuizQuestion: Decodable, Identifiable {
     let subject: String
     var explanation: QuizExplanation
     var category: String?
+    var imageURLs: [String]
+    var explanationImageURLs: [String]
     var customExplanation: String?
     var customExplanationImageDataURL: String?
+    var customQuestionImageDataURL: String?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -52,8 +55,11 @@ struct QuizQuestion: Decodable, Identifiable {
         case subject
         case explanation
         case category
+        case imageURLs = "image_urls"
+        case explanationImageURLs = "explanation_image_urls"
         case customExplanation = "custom_explanation"
         case customExplanationImageDataURL = "custom_explanation_image_data_url"
+        case customQuestionImageDataURL = "custom_question_image_data_url"
     }
 
     init(from decoder: Decoder) throws {
@@ -65,8 +71,11 @@ struct QuizQuestion: Decodable, Identifiable {
         subject = try container.decodeIfPresent(String.self, forKey: .subject) ?? ""
         explanation = try container.decodeIfPresent(QuizExplanation.self, forKey: .explanation) ?? QuizExplanation(text: "")
         category = try container.decodeIfPresent(String.self, forKey: .category)
+        imageURLs = try container.decodeIfPresent([String].self, forKey: .imageURLs) ?? []
+        explanationImageURLs = try container.decodeIfPresent([String].self, forKey: .explanationImageURLs) ?? []
         customExplanation = try container.decodeIfPresent(String.self, forKey: .customExplanation)
         customExplanationImageDataURL = try container.decodeIfPresent(String.self, forKey: .customExplanationImageDataURL)
+        customQuestionImageDataURL = try container.decodeIfPresent(String.self, forKey: .customQuestionImageDataURL)
     }
 }
 
@@ -100,11 +109,13 @@ struct QuizHistoryStat: Decodable {
 
 private struct SaveCustomExplanationPayload: Encodable {
     let text: String
-    let imageDataURL: String?
+    let explanationImageDataURL: String?
+    let questionImageDataURL: String?
 
     enum CodingKeys: String, CodingKey {
         case text
-        case imageDataURL = "image_data_url"
+        case explanationImageDataURL = "explanation_image_data_url"
+        case questionImageDataURL = "question_image_data_url"
     }
 }
 
@@ -368,18 +379,26 @@ final class SoragakiAPIClient {
         return try JSONDecoder().decode([String: QuizHistoryStat].self, from: data)
     }
 
-    func saveCustomExplanation(problemID: String, text: String, imageDataURL: String?) async throws {
-        let url = URL(string: "/api/problems/\(problemID)/custom-explanation", relativeTo: baseURL)!
+    func saveCustomExplanation(problemID: String, text: String, explanationImageDataURL: String?, questionImageDataURL: String?) async throws {
+        let encodedProblemID = Self.encodePathComponent(problemID)
+        let url = URL(string: "/api/problems/\(encodedProblemID)/custom-explanation", relativeTo: baseURL)!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(SaveCustomExplanationPayload(text: text, imageDataURL: imageDataURL))
+        request.httpBody = try JSONEncoder().encode(
+            SaveCustomExplanationPayload(
+                text: text,
+                explanationImageDataURL: explanationImageDataURL,
+                questionImageDataURL: questionImageDataURL
+            )
+        )
         _ = try await send(request, expectedStatuses: [204])
     }
 
     func updateProblem(subject: String, problemID: String, questionText: String, choices: [QuizChoice], answer: String, explanationText: String, category: String?) async throws -> QuizQuestion {
-        let escapedSubject = subject.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? subject
-        let url = URL(string: "/api/subjects/\(escapedSubject)/problems/\(problemID)", relativeTo: baseURL)!
+        let encodedSubject = Self.encodePath(subject)
+        let encodedProblemID = Self.encodePathComponent(problemID)
+        let url = URL(string: "/api/subjects/\(encodedSubject)/problems/\(encodedProblemID)", relativeTo: baseURL)!
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -394,6 +413,10 @@ final class SoragakiAPIClient {
         )
         let (data, _) = try await send(request, expectedStatuses: [200])
         return try JSONDecoder().decode(QuizQuestion.self, from: data)
+    }
+
+    func resolveURL(path: String) -> URL? {
+        URL(string: path, relativeTo: baseURL)
     }
 
     func getMemos(date: String) async throws -> String {
@@ -429,6 +452,19 @@ final class SoragakiAPIClient {
             throw APIError.unexpectedStatus(response.statusCode, detail?.isEmpty == true ? nil : detail)
         }
         return (data, response)
+    }
+
+    private static func encodePath(_ raw: String) -> String {
+        raw
+            .split(separator: "/", omittingEmptySubsequences: false)
+            .map { encodePathComponent(String($0)) }
+            .joined(separator: "/")
+    }
+
+    private static func encodePathComponent(_ raw: String) -> String {
+        var allowed = CharacterSet.urlPathAllowed
+        allowed.remove(charactersIn: "/")
+        return raw.addingPercentEncoding(withAllowedCharacters: allowed) ?? raw
     }
 }
 
