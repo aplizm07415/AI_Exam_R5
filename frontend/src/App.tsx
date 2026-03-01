@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import QuizPage from './QuizPage';
 import DashboardPage from './DashboardPage';
+import ReviewLaterPage from './ReviewLaterPage';
 import PortalPage from './PortalPage';
 import CountdownPage from './CountdownPage';
 import PhotoPage from './PhotoPage';
@@ -116,6 +117,7 @@ export default function App() {
               <Route path="/soragaki" element={<SoragakiPage />} />
               <Route path="/" element={<QuizPage subjects={subjects} />} />
               <Route path="/dashboard" element={<DashboardPage subjects={subjects} key={subjects.map(s => s.name).join(',')} />} />
+              <Route path="/dashboard/review-later" element={<ReviewLaterPage />} />
             </Routes>
           </div>
         )}

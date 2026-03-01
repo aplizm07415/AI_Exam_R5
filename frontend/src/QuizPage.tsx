@@ -135,6 +135,8 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmittingAnswer, setIsSubmittingAnswer] = useState(false);
   const [isSavingCustomExplanation, setIsSavingCustomExplanation] = useState(false);
+  const [reviewLaterKeys, setReviewLaterKeys] = useState<string[]>([]);
+  const [isUpdatingReviewLater, setIsUpdatingReviewLater] = useState(false);
   const [error, setError] = useState('');
   const [effectStatus, setEffectStatus] = useState<'correct' | 'incorrect' | null>(null);
   const [questionStartedAt, setQuestionStartedAt] = useState<number>(Date.now());
@@ -143,6 +145,8 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     const content = type === 'scratchpad' ? scratchpadText : customExplanationText;
     setEditingMemo({ type, content });
   };
+
+  const buildReviewKey = useCallback((subject: string, problemId: string) => `${subject}::${problemId}`, []);
 
   const handleSaveAndCloseModal = () => {
     if (!editingMemo) return;
@@ -199,7 +203,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
         ...payload
       } = editingProblem;
       
-      const response = await fetch(`/api/subjects/${editingProblem.subject}/problems/${editingProblem.id}`, {
+      const response = await fetch(`/api/subjects/${encodeURIComponent(editingProblem.subject)}/problems/${encodeURIComponent(editingProblem.id)}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -226,6 +230,55 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     }
   };
   // --- End of Problem Editing Functions ---
+
+  const fetchReviewLaterItems = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/review-later`);
+      if (!response.ok) {
+        throw new Error('後で振り返り一覧の取得に失敗しました。');
+      }
+      const data: Array<{ subject: string; problem_id: string }> = await response.json();
+      setReviewLaterKeys(data.map((item) => buildReviewKey(item.subject, item.problem_id)));
+    } catch (fetchError) {
+      console.error(fetchError);
+    }
+  }, [buildReviewKey]);
+
+  const toggleReviewLater = async () => {
+    if (!currentQuestion || isUpdatingReviewLater) return;
+    const reviewKey = buildReviewKey(currentQuestion.subject, currentQuestion.id);
+    const alreadyRegistered = reviewLaterKeys.includes(reviewKey);
+
+    try {
+      setIsUpdatingReviewLater(true);
+      const requestInit: RequestInit = alreadyRegistered
+        ? { method: 'DELETE' }
+        : {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ subject: currentQuestion.subject, problem_id: currentQuestion.id }),
+          };
+      const response = await fetch(
+        alreadyRegistered
+          ? `${API_BASE_URL}/review-later/${encodeURIComponent(currentQuestion.id)}?subject=${encodeURIComponent(currentQuestion.subject)}`
+          : `${API_BASE_URL}/review-later`,
+        requestInit
+      );
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.detail || '後で振り返りの更新に失敗しました。');
+      }
+      setReviewLaterKeys((prev) =>
+        alreadyRegistered ? prev.filter((key) => key !== reviewKey) : [...prev, reviewKey]
+      );
+    } catch (toggleError) {
+      console.error(toggleError);
+      const message = toggleError instanceof Error ? toggleError.message : '後で振り返りの更新に失敗しました。';
+      setError(message);
+    } finally {
+      setIsUpdatingReviewLater(false);
+    }
+  };
 
   const [subjectWeights, setSubjectWeights] = useState<{ [key: string]: 'light' | 'normal' | 'heavy' }>(() => {
     try {
@@ -698,7 +751,8 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       resetQuestionState();
     } else {
       setIsForcedSession(false);
-      setQuizState('finished');
+      resetQuestionState();
+      setQuizState('setup');
     }
   };
 
@@ -756,6 +810,12 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   };
 
     const currentQuestion = useMemo(() => questions[currentQuestionIndex], [questions, currentQuestionIndex]);
+    const currentReviewKey = currentQuestion ? buildReviewKey(currentQuestion.subject, currentQuestion.id) : null;
+    const isCurrentQuestionReviewLater = currentReviewKey ? reviewLaterKeys.includes(currentReviewKey) : false;
+
+    useEffect(() => {
+      fetchReviewLaterItems();
+    }, [fetchReviewLaterItems]);
 
   
 
@@ -992,6 +1052,20 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
               className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-new focus:border-primary-new"
               rows={3}
             />
+            <div className="mt-3 flex justify-end">
+              <button
+                type="button"
+                onClick={() => void toggleReviewLater()}
+                disabled={isUpdatingReviewLater}
+                className={`px-4 py-2 rounded-md text-sm font-medium border shadow-sm transition-colors ${
+                  isCurrentQuestionReviewLater
+                    ? 'border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+                    : 'border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100'
+                } disabled:bg-gray-200 disabled:text-gray-500 disabled:border-gray-300 disabled:cursor-not-allowed`}
+              >
+                {isUpdatingReviewLater ? '更新中...' : isCurrentQuestionReviewLater ? '登録済み' : '後で振り返り'}
+              </button>
+            </div>
             {!isAnswered && ( // Moved "解答する" button here
               <div className="mt-6 text-center">
                 <div className="flex flex-col justify-center gap-3 sm:flex-row">

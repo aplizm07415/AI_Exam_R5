@@ -162,6 +162,16 @@ class CustomExplanation(BaseModel):
     explanation_image_data_url: Optional[str] = None
     question_image_data_url: Optional[str] = None
 
+class ReviewLaterUpsertRequest(BaseModel):
+    subject: str
+    problem_id: str
+
+class ReviewLaterItem(BaseModel):
+    subject: str
+    problem_id: str
+    created_at: str
+    updated_at: str
+
 class QuizStartRequest(BaseModel):
     subjects: list[str]
     count: int = 10
@@ -180,6 +190,7 @@ MUSCLE_DIR = "muscle"
 MUSCLE_EXERCISES_BLOB = f"{MUSCLE_DIR}/exercises.json"
 MUSCLE_RECORDS_BLOB = f"{MUSCLE_DIR}/records.json"
 MUSCLE_AUDIOS_META_BLOB = f"{MUSCLE_DIR}/audios/meta.json"
+REVIEW_LATER_BLOB = "review-later/items.json"
 MUSCLE_AUDIO_FILES_DIR = f"{MUSCLE_DIR}/audios/files"
 MUSCLE_BODY_PARTS = [
     "neck",
@@ -358,6 +369,70 @@ def _get_all_questions_for_subject(subject_name: str) -> dict[str, dict]:
         raise HTTPException(status_code=500, detail=f"Failed to read questions from blob storage: {e}")
     
     return {q.get("id"): q for q in all_questions_list if q.get("id")}
+
+
+def _load_review_later_items() -> list[ReviewLaterItem]:
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+
+    blob_client = container_client.get_blob_client(REVIEW_LATER_BLOB)
+    if not blob_client.exists():
+        return []
+
+    try:
+        payload = json.loads(blob_client.download_blob().readall())
+        if not isinstance(payload, list):
+            return []
+        items: list[ReviewLaterItem] = []
+        for raw in payload:
+            if isinstance(raw, dict):
+                try:
+                    items.append(ReviewLaterItem.model_validate(raw))
+                except Exception:
+                    continue
+        items.sort(key=lambda x: x.updated_at, reverse=True)
+        return items
+    except Exception as e:
+        print(f"Error reading review-later items: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to read review-later items: {e}")
+
+
+def _save_review_later_items(items: list[ReviewLaterItem]) -> None:
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+
+    blob_client = container_client.get_blob_client(REVIEW_LATER_BLOB)
+    payload = [item.model_dump() for item in sorted(items, key=lambda x: x.updated_at, reverse=True)]
+    try:
+        blob_client.upload_blob(json.dumps(payload, ensure_ascii=False, indent=2), overwrite=True)
+    except Exception as e:
+        print(f"Error saving review-later items: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to save review-later items: {e}")
+
+
+def _enrich_question_with_custom_explanation(question: dict) -> dict:
+    enriched = question.copy()
+    enriched['custom_explanation'] = ''
+    enriched['custom_explanation_image_data_url'] = None
+    enriched['custom_question_image_data_url'] = None
+    try:
+        problem_id = enriched.get("id")
+        if problem_id and container_client:
+            explanation_blob_name = f"{CUSTOM_EXPLANATIONS_DIR}/{problem_id}.json"
+            explanation_blob_client = container_client.get_blob_client(explanation_blob_name)
+            if explanation_blob_client.exists():
+                content = explanation_blob_client.download_blob().readall()
+                explanation_data = json.loads(content)
+                enriched['custom_explanation'] = explanation_data.get('text', '')
+                legacy_image_data_url = explanation_data.get('image_data_url')
+                explanation_image_data_url = explanation_data.get('explanation_image_data_url', legacy_image_data_url)
+                question_image_data_url = explanation_data.get('question_image_data_url')
+                enriched['custom_explanation_image_data_url'] = explanation_image_data_url if isinstance(explanation_image_data_url, str) and explanation_image_data_url.strip() else None
+                enriched['custom_question_image_data_url'] = question_image_data_url if isinstance(question_image_data_url, str) and question_image_data_url.strip() else None
+    except Exception as e:
+        problem_id_for_log = enriched.get('id', 'UNKNOWN')
+        print(f"Error fetching custom explanation for problem {problem_id_for_log}: {e}")
+    return enriched
 
 
 def _photo_meta_blob_name(photo_id: str) -> str:
@@ -1554,27 +1629,9 @@ def start_quiz(request: QuizStartRequest):
         if 'explanation' in q and isinstance(q['explanation'], dict) and 'images' in q['explanation'] and isinstance(q['explanation']['images'], list):
             q['explanation_image_urls'] = [f"/api/images/{img_name}" for img_name in q['explanation']['images']]
 
-        # Add a default key and then try to load the custom explanation
-        q['custom_explanation'] = ''
-        q['custom_explanation_image_data_url'] = None
-        q['custom_question_image_data_url'] = None
-        try:
-            problem_id = q.get("id")
-            if problem_id and container_client:
-                explanation_blob_name = f"{CUSTOM_EXPLANATIONS_DIR}/{problem_id}.json"
-                explanation_blob_client = container_client.get_blob_client(explanation_blob_name)
-                if explanation_blob_client.exists():
-                    content = explanation_blob_client.download_blob().readall()
-                    explanation_data = json.loads(content)
-                    q['custom_explanation'] = explanation_data.get('text', '')
-                    legacy_image_data_url = explanation_data.get('image_data_url')
-                    explanation_image_data_url = explanation_data.get('explanation_image_data_url', legacy_image_data_url)
-                    question_image_data_url = explanation_data.get('question_image_data_url')
-                    q['custom_explanation_image_data_url'] = explanation_image_data_url if isinstance(explanation_image_data_url, str) and explanation_image_data_url.strip() else None
-                    q['custom_question_image_data_url'] = question_image_data_url if isinstance(question_image_data_url, str) and question_image_data_url.strip() else None
-        except Exception as e:
-            problem_id_for_log = q.get('id', 'UNKNOWN')
-            print(f"Error fetching custom explanation for problem {problem_id_for_log}: {e}")
+        enriched = _enrich_question_with_custom_explanation(q)
+        q.clear()
+        q.update(enriched)
 
     return {"quiz_set": selected_questions}
 
@@ -1850,6 +1907,74 @@ def get_missed_problems(subject_name: str):
             ))
     
     return missed_problems_details
+
+
+@api_router.get("/subjects/{subject_name:path}/problems/{problem_id}")
+def get_problem(subject_name: str, problem_id: str):
+    """指定された問題を取得する"""
+    questions = _get_all_questions_for_subject(subject_name)
+    question = questions.get(problem_id)
+    if not question:
+        raise HTTPException(status_code=404, detail="Problem not found.")
+    return _enrich_question_with_custom_explanation(question)
+
+
+@api_router.get("/review-later")
+def get_review_later():
+    """後で振り返る問題の一覧を返す"""
+    items = _load_review_later_items()
+    response_items: list[dict] = []
+    for item in items:
+        question_payload = None
+        error_detail = None
+        try:
+            questions = _get_all_questions_for_subject(item.subject)
+            question = questions.get(item.problem_id)
+            if question:
+                question_payload = _enrich_question_with_custom_explanation(question)
+        except HTTPException as e:
+            error_detail = e.detail
+        except Exception as e:
+            error_detail = str(e)
+
+        response_items.append({
+            "subject": item.subject,
+            "problem_id": item.problem_id,
+            "created_at": item.created_at,
+            "updated_at": item.updated_at,
+            "question": question_payload,
+            "error": error_detail,
+        })
+    return response_items
+
+
+@api_router.post("/review-later", status_code=204)
+def save_review_later(item: ReviewLaterUpsertRequest):
+    """後で振り返る問題を登録する"""
+    items = _load_review_later_items()
+    now = _now_utc_iso()
+    existing = next((x for x in items if x.subject == item.subject and x.problem_id == item.problem_id), None)
+    if existing:
+        existing.updated_at = now
+    else:
+        items.append(
+            ReviewLaterItem(
+                subject=item.subject,
+                problem_id=item.problem_id,
+                created_at=now,
+                updated_at=now,
+            )
+        )
+    _save_review_later_items(items)
+
+
+@api_router.delete("/review-later/{problem_id}", status_code=204)
+def delete_review_later(problem_id: str, subject: str):
+    """後で振り返る問題を解除する"""
+    items = _load_review_later_items()
+    filtered = [x for x in items if not (x.subject == subject and x.problem_id == problem_id)]
+    if len(filtered) != len(items):
+        _save_review_later_items(filtered)
 
 @api_router.post("/problems/{problem_id}/custom-explanation", status_code=204)
 def save_custom_explanation(problem_id: str, explanation: CustomExplanation):

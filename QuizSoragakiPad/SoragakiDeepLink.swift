@@ -5,6 +5,11 @@ struct QuizDeepLink {
     let subjects: [String]
     let mode: String
     let count: Int
+    let problemID: String?
+
+    var isReviewMode: Bool {
+        problemID != nil
+    }
 }
 
 struct SoragakiDeepLink {
@@ -64,7 +69,16 @@ enum AppDeepLink {
             let mode = components.queryItems?.first(where: { $0.name == "mode" })?.value ?? "random"
             let countRaw = components.queryItems?.first(where: { $0.name == "count" })?.value ?? "10"
             let count = max(1, Int(countRaw) ?? 10)
-            return .quiz(QuizDeepLink(baseURL: baseURL, subjects: subjects, mode: mode, count: count))
+            return .quiz(QuizDeepLink(baseURL: baseURL, subjects: subjects, mode: mode, count: count, problemID: nil))
+        }
+
+        if url.host == "quiz-review" {
+            let subject = components.queryItems?.first(where: { $0.name == "subject" })?.value ?? ""
+            let problemID = components.queryItems?.first(where: { $0.name == "problem" })?.value
+            guard !subject.isEmpty, let problemID, !problemID.isEmpty else {
+                return nil
+            }
+            return .quiz(QuizDeepLink(baseURL: baseURL, subjects: [subject], mode: "review", count: 1, problemID: problemID))
         }
 
         return nil

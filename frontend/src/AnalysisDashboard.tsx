@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import LoadingSpinner from './components/LoadingSpinner';
 
 const API_BASE_URL = "/api";
@@ -213,6 +214,12 @@ export default function AnalysisDashboard({
           <button onClick={openConsolidatedModal} className="px-4 py-2 bg-white border border-gray-300 text-primary-new text-sm font-semibold rounded-lg shadow-sm hover:bg-gray-50">
             統合ボード
           </button>
+          <Link
+            to="/dashboard/review-later"
+            className="px-4 py-2 bg-amber-50 border border-amber-300 text-amber-800 text-sm font-semibold rounded-lg shadow-sm hover:bg-amber-100"
+          >
+            後で振り返り
+          </Link>
         </div>
         <div className="w-full sm:flex-1">
           <div className="flex items-center justify-between mb-2">

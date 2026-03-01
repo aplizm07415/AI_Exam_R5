@@ -92,6 +92,9 @@ final class QuizPencilModeViewModel: ObservableObject {
     @Published var selectedAnswer: String?
     @Published var isAnswered: Bool = false
     @Published var isCorrect: Bool = false
+    @Published var isReviewMode: Bool = false
+    @Published var isMarkedForReviewLater: Bool = false
+    @Published var isUpdatingReviewLater: Bool = false
     @Published var modeLabel: String = ""
     @Published var countLabel: String = ""
     @Published var canvasView = PKCanvasView()
@@ -136,6 +139,7 @@ final class QuizPencilModeViewModel: ObservableObject {
     func configure(with deepLink: QuizDeepLink) async {
         self.deepLink = deepLink
         apiClient = SoragakiAPIClient(baseURL: deepLink.baseURL)
+        isReviewMode = deepLink.isReviewMode
         modeLabel = deepLink.mode
         countLabel = "\(deepLink.count)"
         prepareMainCanvas()
@@ -148,6 +152,21 @@ final class QuizPencilModeViewModel: ObservableObject {
         guard let apiClient, let deepLink else { return }
         completionMessage = nil
         isSessionFinished = false
+        if deepLink.isReviewMode, let subject = deepLink.subjects.first, let problemID = deepLink.problemID {
+            isLoading = true
+            defer { isLoading = false }
+            do {
+                let problem = try await apiClient.getProblem(subject: subject, problemID: problemID)
+                questions = [problem]
+                currentIndex = 0
+                historyStats = [:]
+                resetQuestionState()
+                await syncReviewLaterFlag()
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+            return
+        }
         guard !deepLink.subjects.isEmpty else {
             errorMessage = "科目が未指定です。Webの問題演習ページから起動してください。"
             return
@@ -167,6 +186,7 @@ final class QuizPencilModeViewModel: ObservableObject {
                 await fetchHistoryStats()
             }
             resetQuestionState()
+            await syncReviewLaterFlag()
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -214,6 +234,15 @@ final class QuizPencilModeViewModel: ObservableObject {
     }
 
     func nextQuestion() async {
+        if isReviewMode {
+            do {
+                try await saveCustomMemoIfNeeded()
+                completionMessage = "保存済み"
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+            return
+        }
         guard isAnswered else { return }
         clearPencilLayer()
         do {
@@ -225,6 +254,7 @@ final class QuizPencilModeViewModel: ObservableObject {
         if currentIndex < questions.count - 1 {
             currentIndex += 1
             resetQuestionState()
+            await syncReviewLaterFlag()
         } else {
             errorMessage = nil
             completionMessage = "保存済み・演習完了"
@@ -341,6 +371,23 @@ final class QuizPencilModeViewModel: ObservableObject {
         interactionMode = mode
     }
 
+    func toggleReviewLater() async {
+        guard let apiClient, let question = currentQuestion, !isUpdatingReviewLater else { return }
+        isUpdatingReviewLater = true
+        defer { isUpdatingReviewLater = false }
+        do {
+            if isMarkedForReviewLater {
+                try await apiClient.deleteReviewLater(subject: question.subject, problemID: question.id)
+                isMarkedForReviewLater = false
+            } else {
+                try await apiClient.saveReviewLater(subject: question.subject, problemID: question.id)
+                isMarkedForReviewLater = true
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
     func expandWriteArea() {
         extraWriteAreaHeight = min(extraWriteAreaHeight + 160, 1200)
     }
@@ -353,7 +400,7 @@ final class QuizPencilModeViewModel: ObservableObject {
         completionMessage = nil
         isSessionFinished = false
         selectedAnswer = nil
-        isAnswered = false
+        isAnswered = isReviewMode
         isCorrect = false
         questionStartedAt = Date()
         interactionMode = .draw
@@ -379,12 +426,32 @@ final class QuizPencilModeViewModel: ObservableObject {
     }
 
     private func fetchHistoryStats() async {
+        guard !isReviewMode else {
+            historyStats = [:]
+            return
+        }
         guard let apiClient, let deepLink else { return }
         do {
             let ids = questions.map { $0.id }
             historyStats = try await apiClient.getBulkHistoryStats(problemIDs: ids, subjects: deepLink.subjects)
         } catch {
             historyStats = [:]
+        }
+    }
+
+    private func syncReviewLaterFlag() async {
+        guard !isReviewMode else {
+            isMarkedForReviewLater = true
+            return
+        }
+        guard let apiClient, let question = currentQuestion else {
+            isMarkedForReviewLater = false
+            return
+        }
+        do {
+            isMarkedForReviewLater = try await apiClient.isReviewLater(subject: question.subject, problemID: question.id)
+        } catch {
+            isMarkedForReviewLater = false
         }
     }
 
@@ -580,10 +647,11 @@ struct QuizPencilModeView: View {
                 Text("iPadモード（問題演習）")
                     .font(.headline)
                     .foregroundColor(AppPalette.dark)
-                Text("Mode: \(viewModel.modeLabel) / Count: \(viewModel.countLabel)")
+                Text(viewModel.isReviewMode ? "レビュー専用モード" : "Mode: \(viewModel.modeLabel) / Count: \(viewModel.countLabel)")
                     .font(.caption)
                     .foregroundColor(.secondary)
-                if let question = viewModel.currentQuestion,
+                if !viewModel.isReviewMode,
+                   let question = viewModel.currentQuestion,
                    let stat = viewModel.historyStats[question.id],
                    stat.total > 0 {
                     Text("直近\(stat.total)回 正答率: \(Int((Double(stat.correct) / Double(stat.total)) * 100))% (\(stat.correct)/\(stat.total))")
@@ -666,22 +734,24 @@ struct QuizPencilModeView: View {
                             .padding(.bottom, 2)
                         }
 
-                        TimelineView(.periodic(from: .now, by: 0.25)) { context in
-                            let ratio = viewModel.remainingTimeRatio(at: context.date)
-                            ZStack(alignment: .leading) {
-                                Capsule()
-                                    .fill(AppPalette.light.opacity(0.35))
-                                GeometryReader { proxy in
+                        if !viewModel.isReviewMode {
+                            TimelineView(.periodic(from: .now, by: 0.25)) { context in
+                                let ratio = viewModel.remainingTimeRatio(at: context.date)
+                                ZStack(alignment: .leading) {
                                     Capsule()
-                                        .fill(AppPalette.primaryNew.opacity(0.65))
-                                        .frame(width: proxy.size.width * ratio)
+                                        .fill(AppPalette.light.opacity(0.35))
+                                    GeometryReader { proxy in
+                                        Capsule()
+                                            .fill(AppPalette.primaryNew.opacity(0.65))
+                                            .frame(width: proxy.size.width * ratio)
+                                    }
                                 }
+                                .frame(height: 8)
+                                .allowsHitTesting(false)
+                                .accessibilityHidden(true)
                             }
-                            .frame(height: 8)
-                            .allowsHitTesting(false)
-                            .accessibilityHidden(true)
+                            .padding(.bottom, 6)
                         }
-                        .padding(.bottom, 6)
 
                         ForEach(question.choices) { choice in
                             Button {
@@ -701,7 +771,7 @@ struct QuizPencilModeView: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 10))
                             }
                             .buttonStyle(.plain)
-                            .disabled(viewModel.isAnswered || viewModel.isDrawMode)
+                            .disabled(viewModel.isAnswered || viewModel.isDrawMode || viewModel.isReviewMode)
                         }
                         Spacer(minLength: viewModel.extraWriteAreaHeight)
                     }
@@ -742,6 +812,12 @@ struct QuizPencilModeView: View {
                     viewModel.clearPencilLayer()
                 }
                 .buttonStyle(.bordered)
+                Button(viewModel.isMarkedForReviewLater ? "登録済み" : "後で振り返り") {
+                    Task { await viewModel.toggleReviewLater() }
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(viewModel.isMarkedForReviewLater ? AppPalette.success : AppPalette.caution)
+                .disabled(viewModel.isUpdatingReviewLater)
                 Button("余白+") {
                     viewModel.expandWriteArea()
                 }
@@ -753,7 +829,13 @@ struct QuizPencilModeView: View {
 
                 Spacer()
 
-                if !viewModel.isAnswered {
+                if viewModel.isReviewMode {
+                    Button("My Memo保存") {
+                        isMemoEditorFocused = false
+                        Task { await viewModel.nextQuestion() }
+                    }
+                    .buttonStyle(.borderedProminent)
+                } else if !viewModel.isAnswered {
                     HStack(spacing: 10) {
                         Button("解答する") {
                             Task { await viewModel.submitAnswer() }
@@ -779,9 +861,9 @@ struct QuizPencilModeView: View {
 
             if viewModel.isAnswered {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(viewModel.isCorrect ? "正解" : "不正解")
+                    Text(viewModel.isReviewMode ? "レビュー内容" : (viewModel.isCorrect ? "正解" : "不正解"))
                         .font(.headline)
-                        .foregroundColor(viewModel.isCorrect ? AppPalette.success : AppPalette.danger)
+                        .foregroundColor(viewModel.isReviewMode ? AppPalette.primaryNew : (viewModel.isCorrect ? AppPalette.success : AppPalette.danger))
                     Text(viewModel.explanationText.isEmpty ? "この問題の解説はありません。" : viewModel.explanationText)
                         .font(.body)
                         .foregroundColor(AppPalette.dark)

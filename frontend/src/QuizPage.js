@@ -59,6 +59,8 @@ export default function QuizPage({ subjects: allSubjects }) {
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmittingAnswer, setIsSubmittingAnswer] = useState(false);
     const [isSavingCustomExplanation, setIsSavingCustomExplanation] = useState(false);
+    const [reviewLaterKeys, setReviewLaterKeys] = useState([]);
+    const [isUpdatingReviewLater, setIsUpdatingReviewLater] = useState(false);
     const [error, setError] = useState('');
     const [effectStatus, setEffectStatus] = useState(null);
     const [questionStartedAt, setQuestionStartedAt] = useState(Date.now());
@@ -66,6 +68,7 @@ export default function QuizPage({ subjects: allSubjects }) {
         const content = type === 'scratchpad' ? scratchpadText : customExplanationText;
         setEditingMemo({ type, content });
     };
+    const buildReviewKey = useCallback((subject, problemId) => `${subject}::${problemId}`, []);
     const handleSaveAndCloseModal = () => {
         if (!editingMemo)
             return;
@@ -113,7 +116,7 @@ export default function QuizPage({ subjects: allSubjects }) {
             return;
         try {
             const { image_urls, explanation_image_urls, custom_explanation, custom_explanation_image_data_url, custom_question_image_data_url, ...payload } = editingProblem;
-            const response = await fetch(`/api/subjects/${editingProblem.subject}/problems/${editingProblem.id}`, {
+            const response = await fetch(`/api/subjects/${encodeURIComponent(editingProblem.subject)}/problems/${encodeURIComponent(editingProblem.id)}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
@@ -134,6 +137,51 @@ export default function QuizPage({ subjects: allSubjects }) {
         }
     };
     // --- End of Problem Editing Functions ---
+    const fetchReviewLaterItems = useCallback(async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/review-later`);
+            if (!response.ok) {
+                throw new Error('後で振り返り一覧の取得に失敗しました。');
+            }
+            const data = await response.json();
+            setReviewLaterKeys(data.map((item) => buildReviewKey(item.subject, item.problem_id)));
+        }
+        catch (fetchError) {
+            console.error(fetchError);
+        }
+    }, [buildReviewKey]);
+    const toggleReviewLater = async () => {
+        if (!currentQuestion || isUpdatingReviewLater)
+            return;
+        const reviewKey = buildReviewKey(currentQuestion.subject, currentQuestion.id);
+        const alreadyRegistered = reviewLaterKeys.includes(reviewKey);
+        try {
+            setIsUpdatingReviewLater(true);
+            const requestInit = alreadyRegistered
+                ? { method: 'DELETE' }
+                : {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ subject: currentQuestion.subject, problem_id: currentQuestion.id }),
+                };
+            const response = await fetch(alreadyRegistered
+                ? `${API_BASE_URL}/review-later/${encodeURIComponent(currentQuestion.id)}?subject=${encodeURIComponent(currentQuestion.subject)}`
+                : `${API_BASE_URL}/review-later`, requestInit);
+            if (!response.ok) {
+                const payload = await response.json().catch(() => null);
+                throw new Error(payload?.detail || '後で振り返りの更新に失敗しました。');
+            }
+            setReviewLaterKeys((prev) => alreadyRegistered ? prev.filter((key) => key !== reviewKey) : [...prev, reviewKey]);
+        }
+        catch (toggleError) {
+            console.error(toggleError);
+            const message = toggleError instanceof Error ? toggleError.message : '後で振り返りの更新に失敗しました。';
+            setError(message);
+        }
+        finally {
+            setIsUpdatingReviewLater(false);
+        }
+    };
     const [subjectWeights, setSubjectWeights] = useState(() => {
         try {
             const saved = localStorage.getItem('subjectWeights');
@@ -568,7 +616,8 @@ export default function QuizPage({ subjects: allSubjects }) {
         }
         else {
             setIsForcedSession(false);
-            setQuizState('finished');
+            resetQuestionState();
+            setQuizState('setup');
         }
     };
     const handleTryAgain = () => {
@@ -624,6 +673,11 @@ export default function QuizPage({ subjects: allSubjects }) {
         }
     };
     const currentQuestion = useMemo(() => questions[currentQuestionIndex], [questions, currentQuestionIndex]);
+    const currentReviewKey = currentQuestion ? buildReviewKey(currentQuestion.subject, currentQuestion.id) : null;
+    const isCurrentQuestionReviewLater = currentReviewKey ? reviewLaterKeys.includes(currentReviewKey) : false;
+    useEffect(() => {
+        fetchReviewLaterItems();
+    }, [fetchReviewLaterItems]);
     useEffect(() => {
         if (currentQuestion) {
             setCustomExplanationText(currentQuestion.custom_explanation || '');
@@ -690,7 +744,9 @@ export default function QuizPage({ subjects: allSubjects }) {
                             buttonClass = 'bg-primary-new';
                         }
                         return (_jsxs("button", { type: "button", onClick: () => !isAnswered && setSelectedAnswer(option.label), disabled: isAnswered, className: `w-full text-left p-4 rounded-lg border border-transparent transition-all duration-200 text-sm md:text-base ${buttonClass}`, children: [_jsxs("span", { className: "font-bold mr-2", children: [option.label, "."] }), _jsx("span", { children: option.text })] }, index));
-                    }) }), _jsxs("div", { className: "mt-6", children: [_jsxs("div", { className: "flex justify-between items-center mb-2", children: [_jsx("label", { htmlFor: "scratchpad", className: "block text-sm font-medium text-gray-700", children: "\u30E1\u30E2\u5E33" }), _jsx("button", { onClick: () => openMemoModal('scratchpad'), className: "p-1 rounded-md hover:bg-gray-200 text-gray-500 hover:text-gray-700", title: "\u62E1\u5927\u8868\u793A", children: _jsx("svg", { xmlns: "http://www.w3.org/2000/svg", width: "1em", height: "1em", viewBox: "0 0 24 24", children: _jsx("path", { fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "2", d: "M3 8V4h4m10 0h4v4M3 16v4h4m14-4h-4v4" }) }) })] }), _jsx("textarea", { id: "scratchpad", value: scratchpadText, onChange: (e) => setScratchpadText(e.target.value), className: "w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-new focus:border-primary-new", rows: 3 }), !isAnswered && ( // Moved "解答する" button here
+                    }) }), _jsxs("div", { className: "mt-6", children: [_jsxs("div", { className: "flex justify-between items-center mb-2", children: [_jsx("label", { htmlFor: "scratchpad", className: "block text-sm font-medium text-gray-700", children: "\u30E1\u30E2\u5E33" }), _jsx("button", { onClick: () => openMemoModal('scratchpad'), className: "p-1 rounded-md hover:bg-gray-200 text-gray-500 hover:text-gray-700", title: "\u62E1\u5927\u8868\u793A", children: _jsx("svg", { xmlns: "http://www.w3.org/2000/svg", width: "1em", height: "1em", viewBox: "0 0 24 24", children: _jsx("path", { fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "2", d: "M3 8V4h4m10 0h4v4M3 16v4h4m14-4h-4v4" }) }) })] }), _jsx("textarea", { id: "scratchpad", value: scratchpadText, onChange: (e) => setScratchpadText(e.target.value), className: "w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-new focus:border-primary-new", rows: 3 }), _jsx("div", { className: "mt-3 flex justify-end", children: _jsx("button", { type: "button", onClick: () => void toggleReviewLater(), disabled: isUpdatingReviewLater, className: `px-4 py-2 rounded-md text-sm font-medium border shadow-sm transition-colors ${isCurrentQuestionReviewLater
+                                    ? 'border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+                                    : 'border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100'} disabled:bg-gray-200 disabled:text-gray-500 disabled:border-gray-300 disabled:cursor-not-allowed`, children: isUpdatingReviewLater ? '更新中...' : isCurrentQuestionReviewLater ? '登録済み' : '後で振り返り' }) }), !isAnswered && ( // Moved "解答する" button here
                         _jsx("div", { className: "mt-6 text-center", children: _jsxs("div", { className: "flex flex-col justify-center gap-3 sm:flex-row", children: [_jsx("button", { id: "submit-answer-button", type: "button", onClick: () => void handleAnswerSubmit(), disabled: selectedAnswer === null || isSubmittingAnswer, className: "px-8 py-3 border border-transparent rounded-md shadow-sm text-sm md:text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed", children: isSubmittingAnswer ? '保存中...' : '解答する' }), _jsx("button", { type: "button", onClick: () => void handleAnswerSubmit(true, true), disabled: isSubmittingAnswer, className: "px-8 py-3 border border-amber-300 rounded-md shadow-sm text-sm md:text-base font-medium text-amber-900 bg-amber-50 hover:bg-amber-100 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed", children: isSubmittingAnswer ? '保存中...' : 'わからない' })] }) }))] }), isAnswered && ( // This div now only contains "次の問題へ" button, and retains mt-auto
                 _jsx("div", { className: "mt-auto pt-6 text-center", children: _jsx("button", { id: "next-question-button", type: "button", onClick: handleNextQuestion, disabled: isSavingCustomExplanation, className: "px-8 py-3 border border-transparent rounded-md shadow-sm text-sm md:text-base font-medium text-dark bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 disabled:cursor-not-allowed", children: currentQuestionIndex < questions.length - 1 ? '次の問題へ' : '終了' }) }))] }));
         // 右カラム（画像・解説）

@@ -102,6 +102,16 @@ private struct QuizBulkHistoryStatsPayload: Encodable {
     let subjects: [String]
 }
 
+private struct ReviewLaterPayload: Encodable {
+    let subject: String
+    let problem_id: String
+}
+
+private struct ReviewLaterListItem: Decodable {
+    let subject: String
+    let problem_id: String
+}
+
 struct QuizHistoryStat: Decodable {
     let total: Int
     let correct: Int
@@ -377,6 +387,43 @@ final class SoragakiAPIClient {
         )
         let (data, _) = try await send(request, expectedStatuses: [200])
         return try JSONDecoder().decode([String: QuizHistoryStat].self, from: data)
+    }
+
+    func getProblem(subject: String, problemID: String) async throws -> QuizQuestion {
+        let encodedSubject = Self.encodePath(subject)
+        let encodedProblemID = Self.encodePathComponent(problemID)
+        let url = URL(string: "/api/subjects/\(encodedSubject)/problems/\(encodedProblemID)", relativeTo: baseURL)!
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        let (data, _) = try await send(request, expectedStatuses: [200])
+        return try JSONDecoder().decode(QuizQuestion.self, from: data)
+    }
+
+    func saveReviewLater(subject: String, problemID: String) async throws {
+        let url = URL(string: "/api/review-later", relativeTo: baseURL)!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(ReviewLaterPayload(subject: subject, problem_id: problemID))
+        _ = try await send(request, expectedStatuses: [204])
+    }
+
+    func deleteReviewLater(subject: String, problemID: String) async throws {
+        let encodedProblemID = Self.encodePathComponent(problemID)
+        let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? subject
+        let url = URL(string: "/api/review-later/\(encodedProblemID)?subject=\(encodedSubject)", relativeTo: baseURL)!
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        _ = try await send(request, expectedStatuses: [204])
+    }
+
+    func isReviewLater(subject: String, problemID: String) async throws -> Bool {
+        let url = URL(string: "/api/review-later", relativeTo: baseURL)!
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        let (data, _) = try await send(request, expectedStatuses: [200])
+        let items = try JSONDecoder().decode([ReviewLaterListItem].self, from: data)
+        return items.contains { $0.subject == subject && $0.problem_id == problemID }
     }
 
     func saveCustomExplanation(problemID: String, text: String, explanationImageDataURL: String?, questionImageDataURL: String?) async throws {
