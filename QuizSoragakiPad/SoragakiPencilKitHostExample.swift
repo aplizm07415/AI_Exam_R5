@@ -190,6 +190,24 @@ final class QuizPencilModeViewModel: ObservableObject {
         }
     }
 
+    func submitAsUnknown() async {
+        guard let question = currentQuestion, !isAnswered else { return }
+        let submittedAnswer = selectedAnswer ?? ""
+        do {
+            try await apiClient?.submitHistory(
+                problemID: question.id,
+                subject: question.subject,
+                selectedAnswer: submittedAnswer,
+                isCorrect: false,
+                category: question.category
+            )
+            isCorrect = false
+            isAnswered = true
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
     func nextQuestion() async {
         guard isAnswered else { return }
         clearPencilLayer()
@@ -589,11 +607,19 @@ struct QuizPencilModeView: View {
                 Spacer()
 
                 if !viewModel.isAnswered {
-                    Button("解答する") {
-                        Task { await viewModel.submitAnswer() }
+                    HStack(spacing: 10) {
+                        Button("解答する") {
+                            Task { await viewModel.submitAnswer() }
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .disabled(viewModel.selectedAnswer == nil)
+
+                        Button("わからない") {
+                            Task { await viewModel.submitAsUnknown() }
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(AppPalette.warning)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(viewModel.selectedAnswer == nil)
                 } else {
                     Button(viewModel.currentIndex + 1 < viewModel.questions.count ? "次の問題へ" : "完了") {
                         isMemoEditorFocused = false

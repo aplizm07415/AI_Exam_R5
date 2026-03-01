@@ -496,7 +496,7 @@ export default function QuizPage({ subjects: allSubjects }) {
         const nextHour = Math.min(hour + 1, 21);
         return `${nextHour}時までにあと${targetPerHour}問で順調ペース`;
     }, [todayRemaining.count]);
-    const handleAnswerSubmit = async (forcedSubmission = false) => {
+    const handleAnswerSubmit = async (forcedSubmission = false, forceIncorrect = false) => {
         if (isSubmittingAnswer)
             return;
         if (selectedAnswer === null && !forcedSubmission)
@@ -505,7 +505,7 @@ export default function QuizPage({ subjects: allSubjects }) {
         if (!currentQuestion)
             return;
         const submittedAnswer = selectedAnswer ?? '';
-        const isCorrect = submittedAnswer === currentQuestion.answer;
+        const isCorrect = forceIncorrect ? false : submittedAnswer === currentQuestion.answer;
         try {
             setIsSubmittingAnswer(true);
             setError('');
@@ -688,7 +688,7 @@ export default function QuizPage({ subjects: allSubjects }) {
                         }
                         return (_jsxs("button", { type: "button", onClick: () => !isAnswered && setSelectedAnswer(option.label), disabled: isAnswered, className: `w-full text-left p-4 rounded-lg border border-transparent transition-all duration-200 text-sm md:text-base ${buttonClass}`, children: [_jsxs("span", { className: "font-bold mr-2", children: [option.label, "."] }), _jsx("span", { children: option.text })] }, index));
                     }) }), _jsxs("div", { className: "mt-6", children: [_jsxs("div", { className: "flex justify-between items-center mb-2", children: [_jsx("label", { htmlFor: "scratchpad", className: "block text-sm font-medium text-gray-700", children: "\u30E1\u30E2\u5E33" }), _jsx("button", { onClick: () => openMemoModal('scratchpad'), className: "p-1 rounded-md hover:bg-gray-200 text-gray-500 hover:text-gray-700", title: "\u62E1\u5927\u8868\u793A", children: _jsx("svg", { xmlns: "http://www.w3.org/2000/svg", width: "1em", height: "1em", viewBox: "0 0 24 24", children: _jsx("path", { fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "2", d: "M3 8V4h4m10 0h4v4M3 16v4h4m14-4h-4v4" }) }) })] }), _jsx("textarea", { id: "scratchpad", value: scratchpadText, onChange: (e) => setScratchpadText(e.target.value), className: "w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-new focus:border-primary-new", rows: 3 }), !isAnswered && ( // Moved "解答する" button here
-                        _jsx("div", { className: "mt-6 text-center", children: _jsx("button", { id: "submit-answer-button", type: "button", onClick: () => void handleAnswerSubmit(), disabled: selectedAnswer === null || isSubmittingAnswer, className: "px-8 py-3 border border-transparent rounded-md shadow-sm text-sm md:text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed", children: isSubmittingAnswer ? '保存中...' : '解答する' }) }))] }), isAnswered && ( // This div now only contains "次の問題へ" button, and retains mt-auto
+                        _jsx("div", { className: "mt-6 text-center", children: _jsxs("div", { className: "flex flex-col justify-center gap-3 sm:flex-row", children: [_jsx("button", { id: "submit-answer-button", type: "button", onClick: () => void handleAnswerSubmit(), disabled: selectedAnswer === null || isSubmittingAnswer, className: "px-8 py-3 border border-transparent rounded-md shadow-sm text-sm md:text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed", children: isSubmittingAnswer ? '保存中...' : '解答する' }), _jsx("button", { type: "button", onClick: () => void handleAnswerSubmit(true, true), disabled: isSubmittingAnswer, className: "px-8 py-3 border border-amber-300 rounded-md shadow-sm text-sm md:text-base font-medium text-amber-900 bg-amber-50 hover:bg-amber-100 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed", children: isSubmittingAnswer ? '保存中...' : 'わからない' })] }) }))] }), isAnswered && ( // This div now only contains "次の問題へ" button, and retains mt-auto
                 _jsx("div", { className: "mt-auto pt-6 text-center", children: _jsx("button", { id: "next-question-button", type: "button", onClick: handleNextQuestion, disabled: isSavingCustomExplanation, className: "px-8 py-3 border border-transparent rounded-md shadow-sm text-sm md:text-base font-medium text-dark bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 disabled:cursor-not-allowed", children: currentQuestionIndex < questions.length - 1 ? '次の問題へ' : '終了' }) }))] }));
         // 右カラム（画像・解説）
         const RightColumn = () => (_jsxs("div", { className: "space-y-8", children: [layoutType === 'image' && (_jsx("div", { className: "bg-white rounded-xl shadow p-6 md:p-8", children: imagesComponent })), explanationComponent] }));

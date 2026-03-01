@@ -619,14 +619,14 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     return `${nextHour}時までにあと${targetPerHour}問で順調ペース`;
   }, [todayRemaining.count]);
 
-  const handleAnswerSubmit = async (forcedSubmission = false) => {
+  const handleAnswerSubmit = async (forcedSubmission = false, forceIncorrect = false) => {
     if (isSubmittingAnswer) return;
     if (selectedAnswer === null && !forcedSubmission) return;
 
     const currentQuestion = questions[currentQuestionIndex];
     if (!currentQuestion) return;
     const submittedAnswer = selectedAnswer ?? '';
-    const isCorrect = submittedAnswer === currentQuestion.answer;
+    const isCorrect = forceIncorrect ? false : submittedAnswer === currentQuestion.answer;
 
     try {
       setIsSubmittingAnswer(true);
@@ -970,9 +970,14 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
             />
             {!isAnswered && ( // Moved "解答する" button here
               <div className="mt-6 text-center">
-                <button id="submit-answer-button" type="button" onClick={() => void handleAnswerSubmit()} disabled={selectedAnswer === null || isSubmittingAnswer} className="px-8 py-3 border border-transparent rounded-md shadow-sm text-sm md:text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed">
-                  {isSubmittingAnswer ? '保存中...' : '解答する'}
-                </button>
+                <div className="flex flex-col justify-center gap-3 sm:flex-row">
+                  <button id="submit-answer-button" type="button" onClick={() => void handleAnswerSubmit()} disabled={selectedAnswer === null || isSubmittingAnswer} className="px-8 py-3 border border-transparent rounded-md shadow-sm text-sm md:text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed">
+                    {isSubmittingAnswer ? '保存中...' : '解答する'}
+                  </button>
+                  <button type="button" onClick={() => void handleAnswerSubmit(true, true)} disabled={isSubmittingAnswer} className="px-8 py-3 border border-amber-300 rounded-md shadow-sm text-sm md:text-base font-medium text-amber-900 bg-amber-50 hover:bg-amber-100 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed">
+                    {isSubmittingAnswer ? '保存中...' : 'わからない'}
+                  </button>
+                </div>
               </div>
             )}
           </div>
