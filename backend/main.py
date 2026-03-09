@@ -131,6 +131,9 @@ class MissedProblemDetail(BaseModel):
     miss_count: int
     correct_answer: str | None = None
 
+class FirstMissedProblemsExportResponse(BaseModel):
+    questions: list[dict]
+
 class Period(BaseModel):
     from_field: str = Field(alias='from')
     to: str
@@ -146,6 +149,8 @@ class Plan(BaseModel):
     period: Period
     dailyGoal: DailyGoal
     applyDays: Literal['all', 'weekday', 'holiday']
+    minimumDaily: int = 0
+    autoRedistribute: bool = True
     enabled: bool
 
 class ProblemHistoryStatsRequest(BaseModel):
@@ -177,6 +182,40 @@ class QuizStartRequest(BaseModel):
     count: int = 10
     mode: str = "random"
     weights: dict[str, str] | None = None
+
+OralVivaStep = Literal["root", "refute", "apply", "summary"]
+
+class OralVivaQuestionContext(BaseModel):
+    problem_id: str
+    question_text: str
+    explanation_text: str = ""
+    correct_answer: Optional[str] = None
+    selected_answer: Optional[str] = None
+    was_correct: Optional[bool] = None
+
+class OralVivaTurn(BaseModel):
+    role: Literal["assistant", "user"]
+    content: str
+
+class OralVivaStepRequest(BaseModel):
+    step: OralVivaStep
+    question: OralVivaQuestionContext
+    conversation: list[OralVivaTurn] = Field(default_factory=list)
+    user_message: str = ""
+
+class OralVivaStepResponse(BaseModel):
+    step: OralVivaStep
+    assistant_message: str
+    scores: dict[str, int]
+    is_final_step: bool
+    improvement_points: list[str] = Field(default_factory=list)
+    mini_quiz_question: Optional[str] = None
+    mini_quiz_answer: Optional[str] = None
+    memo_summary: Optional[str] = None
+
+class SimilarQuestionSearchResponse(BaseModel):
+    topic_keywords: list[str] = Field(default_factory=list)
+    quiz_set: list[dict] = Field(default_factory=list)
 
 # --- 定数とセットアップ ---
 BLOB_CONN_STR = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
@@ -433,6 +472,28 @@ def _enrich_question_with_custom_explanation(question: dict) -> dict:
         problem_id_for_log = enriched.get('id', 'UNKNOWN')
         print(f"Error fetching custom explanation for problem {problem_id_for_log}: {e}")
     return enriched
+
+
+def _prepare_question_for_client(question: dict) -> dict:
+    prepared = question.copy()
+    if 'image' in prepared and prepared['image']:
+        if 'images' not in prepared or not isinstance(prepared['images'], list):
+            prepared['images'] = []
+        if isinstance(prepared['image'], str) and prepared['image'] not in prepared['images']:
+            prepared['images'].insert(0, prepared['image'])
+
+    if 'images' in prepared and isinstance(prepared['images'], list):
+        prepared['image_urls'] = [f"/api/images/{img_name}" for img_name in prepared['images']]
+
+    if (
+        'explanation' in prepared and
+        isinstance(prepared['explanation'], dict) and
+        'images' in prepared['explanation'] and
+        isinstance(prepared['explanation']['images'], list)
+    ):
+        prepared['explanation_image_urls'] = [f"/api/images/{img_name}" for img_name in prepared['explanation']['images']]
+
+    return _enrich_question_with_custom_explanation(prepared)
 
 
 def _photo_meta_blob_name(photo_id: str) -> str:
@@ -1184,6 +1245,118 @@ def generate_keywords_from_memo(request: GenerateKeywordsRequest):
         print(f"Error calling Gemini API: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to generate keywords using Gemini API: {e}")
 
+
+def _coerce_score(value, default_value: int = 50) -> int:
+    try:
+        as_int = int(value)
+        return max(0, min(100, as_int))
+    except Exception:
+        return default_value
+
+
+@api_router.post("/quiz/oral-viva/step", response_model=OralVivaStepResponse)
+def generate_oral_viva_step(request: OralVivaStepRequest):
+    """解説後に任意で実行する、1問単位の口頭試問ターンを生成する。"""
+    if not GOOGLE_API_KEY:
+        raise HTTPException(status_code=500, detail="Google API Key is not configured.")
+
+    step_titles = {
+        "root": "根拠",
+        "refute": "反証",
+        "apply": "応用",
+        "summary": "要約",
+    }
+    step_title = step_titles.get(request.step, "根拠")
+
+    transcript_lines = []
+    for turn in request.conversation:
+        role = "面接官" if turn.role == "assistant" else "受験者"
+        transcript_lines.append(f"{role}: {turn.content}")
+    transcript = "\n".join(transcript_lines)
+
+    prompt = f"""
+あなたは中小企業診断士試験向けの厳密な口頭試問官です。
+以下の問題コンテキストと会話履歴を読み、今回ターンの返答を作成してください。
+
+# 問題コンテキスト
+- 問題ID: {request.question.problem_id}
+- 問題文: {request.question.question_text}
+- 正解: {request.question.correct_answer or "(未指定)"}
+- 受験者の選択: {request.question.selected_answer or "(未回答)"}
+- 正誤: {"正解" if request.question.was_correct else "不正解"}
+- 解説: {request.question.explanation_text or "(なし)"}
+
+# 現在ステップ
+- ステップ: {request.step}
+- ステップ名: {step_title}
+- 固定ステップ順: 根拠 -> 反証 -> 応用 -> 要約
+
+# 既存会話
+{transcript or "(なし)"}
+
+# 今回の受験者発言
+{request.user_message or "(開始時のため未入力)"}
+
+# 出力ルール
+- 出力は必ずJSONオブジェクト1つのみ。
+- JSON以外のテキストを出力しない。
+- 評価指標 scores は logicality/specificity/reproducibility を0〜100の整数で返す。
+- is_final_step は、現在ステップが要約なら true、それ以外は false。
+- 要約ステップでは improvement_points を必ず3件、mini_quiz_question/mini_quiz_answer/memo_summary も必ず埋める。
+- 要約以外のステップでは improvement_points は空配列、mini_quiz_question/mini_quiz_answer/memo_summary は null。
+- assistant_message は日本語で簡潔明瞭に。次に考えるべき問いを含める。
+
+# JSONスキーマ
+{{
+  "assistant_message": "string",
+  "scores": {{
+    "logicality": 0,
+    "specificity": 0,
+    "reproducibility": 0
+  }},
+  "is_final_step": false,
+  "improvement_points": [],
+  "mini_quiz_question": null,
+  "mini_quiz_answer": null,
+  "memo_summary": null
+}}
+"""
+    try:
+        model = genai.GenerativeModel('gemini-3-flash-preview')
+        response = model.generate_content(prompt)
+        raw_text = (response.text or "").strip()
+
+        json_text = raw_text
+        if not json_text.startswith("{"):
+            start = json_text.find("{")
+            end = json_text.rfind("}")
+            if start >= 0 and end > start:
+                json_text = json_text[start:end + 1]
+
+        payload = json.loads(json_text)
+        scores_raw = payload.get("scores") or {}
+        result = OralVivaStepResponse(
+            step=request.step,
+            assistant_message=str(payload.get("assistant_message") or "次の観点で説明してみてください。"),
+            scores={
+                "logicality": _coerce_score(scores_raw.get("logicality"), 50),
+                "specificity": _coerce_score(scores_raw.get("specificity"), 50),
+                "reproducibility": _coerce_score(scores_raw.get("reproducibility"), 50),
+            },
+            is_final_step=bool(payload.get("is_final_step")) or request.step == "summary",
+            improvement_points=[str(x) for x in (payload.get("improvement_points") or [])][:3],
+            mini_quiz_question=(str(payload.get("mini_quiz_question")) if payload.get("mini_quiz_question") else None),
+            mini_quiz_answer=(str(payload.get("mini_quiz_answer")) if payload.get("mini_quiz_answer") else None),
+            memo_summary=(str(payload.get("memo_summary")) if payload.get("memo_summary") else None),
+        )
+        if result.is_final_step and len(result.improvement_points) < 3:
+            fallback_points = result.improvement_points + ["根拠を本文の事実で示す", "反証可能性を先に潰す", "応用時は条件差を明示する"]
+            result.improvement_points = fallback_points[:3]
+        return result
+    except Exception as e:
+        print(f"Error generating oral viva step: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate oral viva step: {e}")
+
 def _validate_soragaki_date(date_str: str) -> None:
     try:
         datetime.datetime.strptime(date_str, "%Y-%m-%d")
@@ -1645,27 +1818,8 @@ def start_quiz(request: QuizStartRequest):
         random.shuffle(all_questions)
         selected_questions = all_questions[:num_to_select]
     
-    # 最終処理: 選択された問題リストに画像URLを付与
-    for q in selected_questions:
-        # 'image' (str) を 'images' (list[str]) に統合
-        if 'image' in q and q['image']:
-            if 'images' not in q:
-                q['images'] = []
-            if isinstance(q['image'], str) and q['image'] not in q['images']:
-                 q['images'].insert(0, q['image'])
-            # del q['image'] # 元の'image'キーは削除しないでおく
-
-        # 'images'リストから'image_urls'を生成
-        if 'images' in q and isinstance(q['images'], list):
-            q['image_urls'] = [f"/api/images/{img_name}" for img_name in q['images']]
-
-        # 'explanation.images'リストから'explanation_image_urls'を生成
-        if 'explanation' in q and isinstance(q['explanation'], dict) and 'images' in q['explanation'] and isinstance(q['explanation']['images'], list):
-            q['explanation_image_urls'] = [f"/api/images/{img_name}" for img_name in q['explanation']['images']]
-
-        enriched = _enrich_question_with_custom_explanation(q)
-        q.clear()
-        q.update(enriched)
+    for i, q in enumerate(selected_questions):
+        selected_questions[i] = _prepare_question_for_client(q)
 
     return {"quiz_set": selected_questions}
 
@@ -1943,6 +2097,55 @@ def get_missed_problems(subject_name: str):
     return missed_problems_details
 
 
+@api_router.get("/analytics/export/first-missed-problems", response_model=FirstMissedProblemsExportResponse)
+def export_first_missed_problems(subjects: list[str] = Query(...)):
+    """選択科目ごとに初回解答が不正解だった問題を1つの問題JSON形式で返す。"""
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+    if not subjects:
+        return {"questions": []}
+
+    unique_subjects: list[str] = []
+    seen_subjects = set()
+    for subject in subjects:
+        if subject in seen_subjects:
+            continue
+        seen_subjects.add(subject)
+        unique_subjects.append(subject)
+
+    export_questions: list[dict] = []
+    for subject_name in unique_subjects:
+        history_items = _get_history_items_for_subject(subject_name)
+        if not history_items:
+            continue
+
+        first_attempt_by_problem: dict[str, HistoryItem] = {}
+        for item in sorted(history_items, key=lambda x: x.answered_at):
+            if item.problem_id not in first_attempt_by_problem:
+                first_attempt_by_problem[item.problem_id] = item
+
+        first_missed_problem_ids = {
+            problem_id
+            for problem_id, item in first_attempt_by_problem.items()
+            if not item.is_correct
+        }
+        if not first_missed_problem_ids:
+            continue
+
+        all_questions = _get_all_questions_for_subject(subject_name)
+        for problem_id in first_missed_problem_ids:
+            question = all_questions.get(problem_id)
+            if not question:
+                continue
+            export_question = question.copy()
+            export_question["subject"] = subject_name
+            enriched = _enrich_question_with_custom_explanation(export_question)
+            export_questions.append(enriched)
+
+    export_questions.sort(key=lambda q: (str(q.get("subject", "")), str(q.get("id", ""))))
+    return {"questions": export_questions}
+
+
 @api_router.get("/subjects/{subject_name:path}/problems/{problem_id}")
 def get_problem(subject_name: str, problem_id: str):
     """指定された問題を取得する"""
@@ -1980,6 +2183,110 @@ def get_review_later():
             "error": error_detail,
         })
     return response_items
+
+
+def _extract_candidate_terms(text: str) -> list[str]:
+    raw_tokens = []
+    separators = " \n\t\r,。、「」()（）[]{}:：;；!?！？/\\|+-=*\"'`"
+    token = []
+    for ch in text:
+        if ch in separators:
+            if token:
+                raw_tokens.append("".join(token))
+                token = []
+        else:
+            token.append(ch)
+    if token:
+        raw_tokens.append("".join(token))
+
+    filtered: list[str] = []
+    seen = set()
+    for t in raw_tokens:
+        term = t.strip().lower()
+        if len(term) < 2:
+            continue
+        if term in seen:
+            continue
+        seen.add(term)
+        filtered.append(term)
+        if len(filtered) >= 40:
+            break
+    return filtered
+
+
+def _score_question_by_terms(question: dict, terms: list[str]) -> int:
+    target_text = " ".join([
+        str(question.get("question_text") or ""),
+        str(question.get("category") or ""),
+        str((question.get("explanation") or {}).get("text") if isinstance(question.get("explanation"), dict) else ""),
+    ]).lower()
+    score = 0
+    for term in terms:
+        if term in target_text:
+            score += 1
+    return score
+
+
+@api_router.get("/review-later/{subject_name:path}/{problem_id}/similar", response_model=SimilarQuestionSearchResponse)
+def get_similar_questions_for_review_later(subject_name: str, problem_id: str, count: int = Query(default=5, ge=1, le=20)):
+    """後で確認問題からトピックをAI抽出し、同一科目内の類題を返す。"""
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+    if not GOOGLE_API_KEY:
+        raise HTTPException(status_code=500, detail="Google API Key is not configured.")
+
+    questions = _get_all_questions_for_subject(subject_name)
+    base_question = questions.get(problem_id)
+    if not base_question:
+        raise HTTPException(status_code=404, detail="Base problem not found.")
+
+    enriched_base = _prepare_question_for_client(base_question)
+    base_text = "\n".join([
+        str(enriched_base.get("question_text") or ""),
+        str((enriched_base.get("explanation") or {}).get("text") if isinstance(enriched_base.get("explanation"), dict) else ""),
+        str(enriched_base.get("custom_explanation") or ""),
+    ])
+
+    prompt = f"""
+以下の問題テキストから、同一科目内の類題検索に使えるトピックキーワードを6個抽出してください。
+出力は「カンマ区切り1行」のみ。
+
+# 問題テキスト
+{base_text}
+"""
+    topic_keywords: list[str] = []
+    try:
+        model = genai.GenerativeModel('gemini-3-flash-preview')
+        response = model.generate_content(prompt)
+        keyword_line = (response.text or "").strip()
+        topic_keywords = [k.strip().lower() for k in keyword_line.split(",") if k.strip()]
+    except Exception as e:
+        print(f"Error extracting topic keywords for similar questions: {e}")
+
+    if not topic_keywords:
+        topic_keywords = _extract_candidate_terms(base_text)[:6]
+
+    candidates = []
+    for qid, q in questions.items():
+        if qid == problem_id:
+            continue
+        score = _score_question_by_terms(q, topic_keywords)
+        if score <= 0:
+            continue
+        candidates.append((score, q))
+
+    candidates.sort(key=lambda x: x[0], reverse=True)
+    selected = [q for _, q in candidates[:count]]
+    quiz_set = []
+    for q in selected:
+        q_with_subject = q.copy()
+        q_with_subject["subject"] = subject_name
+        quiz_set.append(_prepare_question_for_client(q_with_subject))
+
+    return SimilarQuestionSearchResponse(
+        topic_keywords=topic_keywords[:8],
+        quiz_set=quiz_set,
+    )
 
 
 @api_router.post("/review-later", status_code=204)

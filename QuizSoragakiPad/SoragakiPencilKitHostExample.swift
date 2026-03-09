@@ -77,6 +77,7 @@ final class SoragakiPencilKitViewModelBridge {
 @MainActor
 final class QuizPencilModeViewModel: ObservableObject {
     static let questionTimerDuration: TimeInterval = 120
+    private static let installDateKey = "quiz_app_install_date"
 
     enum InteractionMode {
         case select
@@ -110,6 +111,7 @@ final class QuizPencilModeViewModel: ObservableObject {
     @Published var isProblemEditSheetPresented: Bool = false
     @Published var problemEditDraft: ProblemEditDraft?
     @Published var questionStartedAt: Date = Date()
+    @Published var installedElapsedDays: Int = 0
 
     private var apiClient: SoragakiAPIClient?
     private var deepLink: QuizDeepLink?
@@ -142,10 +144,27 @@ final class QuizPencilModeViewModel: ObservableObject {
         isReviewMode = deepLink.isReviewMode
         modeLabel = deepLink.mode
         countLabel = "\(deepLink.count)"
+        updateInstalledElapsedDays()
         prepareMainCanvas()
         prepareMemoCanvas(explanationMemoCanvasView)
         prepareMemoCanvas(questionMemoCanvasView)
         await startQuiz()
+    }
+
+    private func updateInstalledElapsedDays() {
+        let defaults = UserDefaults.standard
+        let now = Date()
+        let installDate: Date
+        if let savedDate = defaults.object(forKey: Self.installDateKey) as? Date {
+            installDate = savedDate
+        } else {
+            installDate = now
+            defaults.set(installDate, forKey: Self.installDateKey)
+        }
+        let startOfInstall = Calendar.current.startOfDay(for: installDate)
+        let startOfNow = Calendar.current.startOfDay(for: now)
+        let elapsed = Calendar.current.dateComponents([.day], from: startOfInstall, to: startOfNow).day ?? 0
+        installedElapsedDays = max(0, elapsed)
     }
 
     func startQuiz() async {
@@ -662,6 +681,9 @@ struct QuizPencilModeView: View {
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }
+                Text("インストールから\(viewModel.installedElapsedDays)日経過")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
             }
             Spacer()
             Text(viewModel.progressText)

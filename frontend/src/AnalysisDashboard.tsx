@@ -117,26 +117,23 @@ export default function AnalysisDashboard({
       alert("科目を選択してください。");
       return;
     }
-    if (selectedSubjectNames.length > 1) {
-      alert("不正解問題リストのエクスポートは現在1科目選択時のみ対応しています。");
-      return;
-    }
-    const selectedSubjectName = selectedSubjectNames[0]!;
     setIsExporting(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/analytics/${selectedSubjectName}/missed-problems`);
+      const subjectParams = selectedSubjectNames.map((s) => `subjects=${encodeURIComponent(s)}`).join('&');
+      const response = await fetch(`${API_BASE_URL}/analytics/export/first-missed-problems?${subjectParams}`);
       if (!response.ok) {
         const err = await response.json();
         throw new Error(err.detail || '不正解問題リストの取得に失敗しました。');
       }
       const data = await response.json();
+      const questionCount = Array.isArray(data?.questions) ? data.questions.length : 0;
       
       const jsonString = JSON.stringify(data, null, 2);
       const blob = new Blob([jsonString], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `missed_problems_${selectedSubjectName}.json`;
+      a.download = `初回間違い_${questionCount}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -339,10 +336,10 @@ export default function AnalysisDashboard({
                   {missedCategories.length > 0 && (
                     <button
                       onClick={handleExportMissedProblems}
-                      disabled={isExporting}
+                      disabled={isExporting || selectedSubjectNames.length === 0}
                       className="px-3 py-1 bg-primary-new text-white text-xs font-medium rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
                     >
-                      {isExporting ? 'エクスポート中...' : 'エクスポート'}
+                      {isExporting ? 'エクスポート中...' : '初回間違いJSONエクスポート'}
                     </button>
                   )}
                 </div>

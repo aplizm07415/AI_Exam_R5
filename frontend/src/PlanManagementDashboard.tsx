@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { usePlans } from './hooks/usePlans';
 import type { Plan } from './types/plan.d';
 import { isHoliday, getTodayYmdJst } from './utils/date';
+import { buildPlanSchedule } from './utils/planSchedule';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Brush } from 'recharts';
 import LoadingSpinner from './components/LoadingSpinner';
 
@@ -66,6 +67,8 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
   const [holidayRatio, setHolidayRatio] = useState(2);
 
   const [applyDays, setApplyDays] = useState<'all' | 'weekday' | 'holiday'>('all');
+  const [minimumDaily, setMinimumDaily] = useState(0);
+  const [autoRedistribute, setAutoRedistribute] = useState(true);
   const chartWrapperRef = useRef<HTMLDivElement | null>(null);
   const [isPrintPreview, setIsPrintPreview] = useState(false);
   const [printChartWidth, setPrintChartWidth] = useState(900);
@@ -160,6 +163,8 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
     setWeekdayRatio(1);
     setHolidayRatio(2);
     setApplyDays('all');
+    setMinimumDaily(0);
+    setAutoRedistribute(true);
     setPlanCreationMode('daily');
     setEditingPlan(null);
     setIsFormOpen(false);
@@ -219,6 +224,8 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
       period: { from: fromDate, to: toDate },
       dailyGoal: { weekday: calculatedWeekdayGoal, holiday: calculatedHolidayGoal },
       applyDays,
+      minimumDaily: Math.max(0, minimumDaily),
+      autoRedistribute,
       enabled: true,
     };
 
@@ -239,6 +246,8 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
     setWeekdayGoal(plan.dailyGoal.weekday);
     setHolidayGoal(plan.dailyGoal.holiday);
     setApplyDays(plan.applyDays);
+    setMinimumDaily(plan.minimumDaily ?? 0);
+    setAutoRedistribute(plan.autoRedistribute !== false);
     setPlanCreationMode('daily'); // Editing defaults to daily mode for simplicity
     setIsFormOpen(true);
   };
@@ -258,70 +267,28 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
     if (activePlans.length === 0) return [];
 
     const actualsMap = new Map(dailySummaryAll.filter(item => item.date).map(item => [item.date, item.total_questions]));
-
-    const allDates = new Set<string>();
-    activePlans.forEach(p => {
-        if (!p.period || typeof p.period.from !== 'string' || typeof p.period.to !== 'string') {
-          return;
-        }
-        let current = new Date(p.period.from);
-        const to = new Date(p.period.to);
-        while(current <= to) {
-            allDates.add(formatDateYmd(current));
-            current.setDate(current.getDate() + 1);
-        }
-    });
-
-    
-    if (allDates.size === 0) return [];
-
-    const sortedDates = Array.from(allDates).sort();
-    
-    let cumulativePlan = 0;
-    let cumulativeActual = 0;
-
-    return sortedDates.map(dateStr => {
-      const date = new Date(dateStr);
-      date.setUTCHours(0,0,0,0); 
-      
-      let dailyPlan = 0;
-      activePlans.forEach((plan: Plan) => {
-        if (!plan.period.from || !plan.period.to) return;
-        
-        const from = new Date(plan.period.from);
-        const to = new Date(plan.period.to);
-        from.setUTCHours(0,0,0,0);
-        to.setUTCHours(0,0,0,0);
-
-        if(date >= from && date <= to) {
-          const holiday = isHoliday(date);
-          if (plan.applyDays === 'all') {
-            dailyPlan += holiday ? plan.dailyGoal.holiday : plan.dailyGoal.weekday;
-          } else if (plan.applyDays === 'holiday' && holiday) {
-            dailyPlan += plan.dailyGoal.holiday;
-          } else if (plan.applyDays === 'weekday' && !holiday) {
-            dailyPlan += plan.dailyGoal.weekday;
-          }
-        }
-      });
-
-      const dailyActual = actualsMap.get(dateStr) || 0;
-
-      cumulativePlan += dailyPlan;
-      cumulativeActual += dailyActual;
-      
-      const dailyProgress = dailyPlan > 0 ? (dailyActual / dailyPlan) * 100 : 0;
-      const cumulativeProgress = cumulativePlan > 0 ? (cumulativeActual / cumulativePlan) * 100 : 0;
-
-      return {
-        date: dateStr,
-        plan: { daily: dailyPlan, cumulative: cumulativePlan },
-        actual: { daily: dailyActual, cumulative: cumulativeActual },
-        progress: { daily: dailyProgress, cumulative: cumulativeProgress },
-      };
-    }).filter(d => d.plan.cumulative > 0 || d.actual.cumulative > 0)
+    const schedule = buildPlanSchedule(activePlans, actualsMap, getTodayYmdJst());
+    return schedule.rows
+      .map((row) => ({
+        date: row.date,
+        plan: { daily: row.planDaily, cumulative: row.planCumulative },
+        actual: { daily: row.actualDaily, cumulative: row.actualCumulative },
+        progress: {
+          daily: row.planDaily > 0 ? (row.actualDaily / row.planDaily) * 100 : 0,
+          cumulative: row.planCumulative > 0 ? (row.actualCumulative / row.planCumulative) * 100 : 0,
+        },
+      }))
+      .filter(d => d.plan.cumulative > 0 || d.actual.cumulative > 0)
       .sort((a, b) => a.date.localeCompare(b.date));
   }, [plans, dailySummaryAll, selectedPlanIds]);
+
+  const learningDebt = useMemo(() => {
+    const today = getTodayYmdJst();
+    const upToToday = progressData.filter((row) => row.date <= today);
+    const latest = upToToday.length > 0 ? upToToday[upToToday.length - 1] : null;
+    if (!latest) return 0;
+    return Math.max(0, latest.plan.cumulative - latest.actual.cumulative);
+  }, [progressData]);
 
   const displayProgressData = useMemo(() => {
     const today = new Date(getTodayYmdJst());
@@ -454,6 +421,32 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
                      ))}
                  </div>
             </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="minimumDaily" className="block text-sm font-medium text-gray-700">最低実施ライン（1日あたり）</label>
+                <input
+                  type="number"
+                  id="minimumDaily"
+                  value={minimumDaily}
+                  onChange={e => setMinimumDaily(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                  min="0"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-new focus:border-primary-new sm:text-sm"
+                />
+                <p className="mt-1 text-xs text-gray-500">平日/休日目標より小さい場合は目標値が優先されます。</p>
+              </div>
+              <div className="flex items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 mt-6 sm:mt-0">
+                <div>
+                  <p className="text-sm font-medium text-gray-700">未達分の自動日次再配分</p>
+                  <p className="text-xs text-gray-500">前日までの未達を残り日程に均等加算します。</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={autoRedistribute}
+                  onChange={(e) => setAutoRedistribute(e.target.checked)}
+                  className="h-4 w-4 accent-primary-new"
+                />
+              </div>
+            </div>
             <div className="flex justify-end gap-4">
               <button type="button" onClick={resetForm} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">キャンセル</button>
               <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">{editingPlan ? '更新' : '登録'}</button>
@@ -516,6 +509,9 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
               <p className="font-bold text-gray-800">{plan.title}</p>
               <p className="text-sm text-gray-500">{plan.subjectNames.join(', ')}</p>
               <p className="text-sm text-gray-500">{plan.period.from} ~ {plan.period.to}</p>
+              <p className="text-xs text-gray-500 mt-1">
+                最低実施ライン: {plan.minimumDaily ?? 0}問 / 自動再配分: {plan.autoRedistribute === false ? 'OFF' : 'ON'}
+              </p>
             </div>
             <div className="flex items-center gap-4 ml-4">
               <label htmlFor={`toggle-${plan.id}`} className="flex items-center cursor-pointer">
@@ -533,6 +529,11 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
       </div>
       
       <div className="mt-8 print-chart-fix">
+        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+          <p className="text-sm font-medium text-amber-900">学習負債メーター</p>
+          <p className="text-2xl font-bold text-amber-700">{learningDebt} 問</p>
+          <p className="text-xs text-amber-800">未消化復習（累計予定 - 累計実績）</p>
+        </div>
         <h3 className="text-lg font-semibold text-gray-700 mb-4">予実グラフ</h3>
         {chartData.length === 0 ? (
           <div className="text-sm text-gray-500 py-8">当日±4日に表示対象データがありません。</div>

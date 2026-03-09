@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import LoadingSpinner from './components/LoadingSpinner';
 
 const API_BASE_URL = '/api';
@@ -24,8 +24,8 @@ interface QuizQuestion {
   image_urls?: string[];
   explanation_image_urls?: string[];
   custom_explanation?: string;
-  custom_explanation_image_data_url?: string;
-  custom_question_image_data_url?: string;
+  custom_explanation_image_data_url?: string | undefined;
+  custom_question_image_data_url?: string | undefined;
 }
 
 interface ReviewLaterEntry {
@@ -38,6 +38,7 @@ interface ReviewLaterEntry {
 }
 
 export default function ReviewLaterPage() {
+  const navigate = useNavigate();
   const [items, setItems] = useState<ReviewLaterEntry[]>([]);
   const [selectedKey, setSelectedKey] = useState('');
   const [editingProblem, setEditingProblem] = useState<QuizQuestion | null>(null);
@@ -45,6 +46,8 @@ export default function ReviewLaterPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSavingProblem, setIsSavingProblem] = useState(false);
   const [isSavingMemo, setIsSavingMemo] = useState(false);
+  const [isFindingSimilar, setIsFindingSimilar] = useState(false);
+  const [similarTopics, setSimilarTopics] = useState<string[]>([]);
   const [error, setError] = useState('');
 
   const fetchItems = async () => {
@@ -184,16 +187,62 @@ export default function ReviewLaterPage() {
       setItems((prev) =>
         prev.map((item) =>
           item.subject === editingProblem.subject && item.problem_id === editingProblem.id && item.question
-            ? { ...item, question: { ...item.question, custom_explanation: customExplanationText } }
+            ? {
+                ...item,
+                question: {
+                  ...item.question,
+                  custom_explanation: customExplanationText,
+                  custom_explanation_image_data_url: editingProblem.custom_explanation_image_data_url,
+                  custom_question_image_data_url: editingProblem.custom_question_image_data_url,
+                },
+              }
             : item
         )
       );
-      setEditingProblem((prev) => (prev ? { ...prev, custom_explanation: customExplanationText } : prev));
+      setEditingProblem((prev) =>
+        prev
+          ? {
+              ...prev,
+              custom_explanation: customExplanationText,
+              custom_explanation_image_data_url: prev.custom_explanation_image_data_url,
+              custom_question_image_data_url: prev.custom_question_image_data_url,
+            }
+          : prev
+      );
     } catch (saveError) {
       console.error(saveError);
       setError(saveError instanceof Error ? saveError.message : 'My Memo の保存に失敗しました。');
     } finally {
       setIsSavingMemo(false);
+    }
+  };
+
+  const readFileAsDataUrl = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result;
+        if (typeof result === 'string') {
+          resolve(result);
+          return;
+        }
+        reject(new Error('画像の読み込みに失敗しました。'));
+      };
+      reader.onerror = () => reject(new Error('画像の読み込みに失敗しました。'));
+      reader.readAsDataURL(file);
+    });
+
+  const handleCustomImageUpload = async (kind: 'question' | 'explanation', file?: File) => {
+    if (!editingProblem || !file) return;
+    try {
+      const dataUrl = await readFileAsDataUrl(file);
+      if (kind === 'question') {
+        setEditingProblem((prev) => (prev ? { ...prev, custom_question_image_data_url: dataUrl } : prev));
+      } else {
+        setEditingProblem((prev) => (prev ? { ...prev, custom_explanation_image_data_url: dataUrl } : prev));
+      }
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : '画像の読み込みに失敗しました。');
     }
   };
 
@@ -223,6 +272,38 @@ export default function ReviewLaterPage() {
       `&subject=${encodeURIComponent(selectedItem.subject)}` +
       `&problem=${encodeURIComponent(selectedItem.problem_id)}`;
     window.location.href = deepLink;
+  };
+
+  const handleStartSimilarPractice = async () => {
+    if (!selectedItem || !selectedItem.question) return;
+    setIsFindingSimilar(true);
+    setError('');
+    setSimilarTopics([]);
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/review-later/${encodeURIComponent(selectedItem.subject)}/${encodeURIComponent(selectedItem.problem_id)}/similar?count=5`
+      );
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.detail || '類題の取得に失敗しました。');
+      }
+      const payload: { topic_keywords?: string[]; quiz_set?: QuizQuestion[] } = await response.json();
+      const quizSet = Array.isArray(payload.quiz_set) ? payload.quiz_set : [];
+      const topics = Array.isArray(payload.topic_keywords) ? payload.topic_keywords : [];
+      setSimilarTopics(topics);
+
+      if (quizSet.length === 0) {
+        setError('類題が見つかりませんでした。');
+        return;
+      }
+      sessionStorage.setItem('adhocQuizSet', JSON.stringify(quizSet));
+      sessionStorage.setItem('adhocQuizLabel', `類題演習: ${selectedItem.problem_id}`);
+      navigate('/?adhoc=1');
+    } catch (similarError) {
+      setError(similarError instanceof Error ? similarError.message : '類題の取得に失敗しました。');
+    } finally {
+      setIsFindingSimilar(false);
+    }
   };
 
   return (
@@ -294,6 +375,14 @@ export default function ReviewLaterPage() {
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
+                      onClick={() => void handleStartSimilarPractice()}
+                      disabled={isFindingSimilar}
+                      className="px-4 py-2 rounded-md bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:bg-gray-300"
+                    >
+                      {isFindingSimilar ? '類題検索中...' : '類題出題'}
+                    </button>
+                    <button
+                      type="button"
                       onClick={openIpadReview}
                       className="px-4 py-2 rounded-md bg-primary-new text-white text-sm font-medium hover:bg-blue-700"
                     >
@@ -308,6 +397,11 @@ export default function ReviewLaterPage() {
                     </button>
                   </div>
                 </div>
+                {similarTopics.length > 0 && (
+                  <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-900">
+                    AI抽出トピック: {similarTopics.join(', ')}
+                  </div>
+                )}
 
                 <section className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-800">問題データ</h3>
@@ -385,6 +479,44 @@ export default function ReviewLaterPage() {
                     rows={5}
                     className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                   />
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700">問題文補足画像アップロード</label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(event) => void handleCustomImageUpload('question', event.target.files?.[0])}
+                        className="block w-full text-sm text-gray-700 file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-slate-700 hover:file:bg-slate-200"
+                      />
+                      {editingProblem.custom_question_image_data_url && (
+                        <button
+                          type="button"
+                          onClick={() => setEditingProblem((prev) => (prev ? { ...prev, custom_question_image_data_url: undefined } : prev))}
+                          className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                        >
+                          問題文補足画像を削除
+                        </button>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700">解説補足画像アップロード</label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(event) => void handleCustomImageUpload('explanation', event.target.files?.[0])}
+                        className="block w-full text-sm text-gray-700 file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-slate-700 hover:file:bg-slate-200"
+                      />
+                      {editingProblem.custom_explanation_image_data_url && (
+                        <button
+                          type="button"
+                          onClick={() => setEditingProblem((prev) => (prev ? { ...prev, custom_explanation_image_data_url: undefined } : prev))}
+                          className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                        >
+                          解説補足画像を削除
+                        </button>
+                      )}
+                    </div>
+                  </div>
                   <button
                     type="button"
                     onClick={() => void handleSaveMemo()}

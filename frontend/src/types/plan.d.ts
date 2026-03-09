@@ -12,5 +12,7 @@ export interface Plan {
   };
   // 'all': 曜日関係なし, 'weekday': 平日のみ, 'holiday': 土日祝のみ
   applyDays: 'all' | 'weekday' | 'holiday';
+  minimumDaily?: number;
+  autoRedistribute?: boolean;
   enabled: boolean;
 }

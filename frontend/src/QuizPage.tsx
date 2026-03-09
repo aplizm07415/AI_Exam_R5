@@ -7,11 +7,23 @@ import SubjectVisibilityModal from './components/SubjectVisibilityModal';
 import SubjectProgress from './components/SubjectProgress';
 import { usePlans } from './hooks/usePlans';
 import type { Plan } from './types/plan.d';
-import { isHoliday, getMinutesUntilJstHour, getNowJstParts } from './utils/date';
+import { getMinutesUntilJstHour, getNowJstParts, getTodayYmdJst } from './utils/date';
+import { buildPlanSchedule } from './utils/planSchedule';
 
 const API_BASE_URL = "/api";
 const QUESTION_TIMER_MS = 2 * 60 * 1000;
 const FORCED_ANSWER_TIMER_MS = 80 * 1000;
+
+type SpeechRecognitionLike = {
+  lang: string;
+  interimResults: boolean;
+  continuous: boolean;
+  onresult: ((event: any) => void) | null;
+  onerror: ((event: any) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+};
 
 interface Choice {
   label: string;
@@ -58,6 +70,29 @@ interface HistoryStat {
 }
 
 type QuizMode = 'random' | 'weak_area' | 'unanswered' | 'today_remaining';
+type OralVivaStep = 'root' | 'refute' | 'apply' | 'summary';
+
+interface OralVivaMessage {
+  role: 'assistant' | 'user';
+  content: string;
+}
+
+interface OralVivaScores {
+  logicality: number;
+  specificity: number;
+  reproducibility: number;
+}
+
+interface OralVivaResponse {
+  step: OralVivaStep;
+  assistant_message: string;
+  scores: OralVivaScores;
+  is_final_step: boolean;
+  improvement_points: string[];
+  mini_quiz_question?: string | null;
+  mini_quiz_answer?: string | null;
+  memo_summary?: string | null;
+}
 
 function TimerProgressBar({
   durationMs,
@@ -140,6 +175,31 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   const [error, setError] = useState('');
   const [effectStatus, setEffectStatus] = useState<'correct' | 'incorrect' | null>(null);
   const [questionStartedAt, setQuestionStartedAt] = useState<number>(Date.now());
+  const [isScratchpadOpen, setIsScratchpadOpen] = useState(false);
+  const [adhocQuizLabel, setAdhocQuizLabel] = useState('');
+  const [isOralVivaActive, setIsOralVivaActive] = useState(false);
+  const [oralVivaStepIndex, setOralVivaStepIndex] = useState(0);
+  const [oralVivaMessages, setOralVivaMessages] = useState<OralVivaMessage[]>([]);
+  const [oralVivaInput, setOralVivaInput] = useState('');
+  const [oralVivaScores, setOralVivaScores] = useState<OralVivaScores>({
+    logicality: 0,
+    specificity: 0,
+    reproducibility: 0,
+  });
+  const [oralVivaResult, setOralVivaResult] = useState<{
+    improvementPoints: string[];
+    miniQuizQuestion: string;
+    miniQuizAnswer: string;
+  } | null>(null);
+  const [isOralVivaLoading, setIsOralVivaLoading] = useState(false);
+  const [isSpeechSupported, setIsSpeechSupported] = useState(false);
+  const [isListeningSpeech, setIsListeningSpeech] = useState(false);
+  const questionTopRef = useRef<HTMLDivElement | null>(null);
+  const oralVivaMessagesEndRef = useRef<HTMLDivElement | null>(null);
+  const shuffledChoicesByQuestionRef = useRef<Record<string, Choice[]>>({});
+  const prefetchedImageUrlsRef = useRef<Set<string>>(new Set());
+  const speechRecognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const currentQuestion = questions[currentQuestionIndex];
 
   const openMemoModal = (type: 'scratchpad' | 'customExplanation') => {
     const content = type === 'scratchpad' ? scratchpadText : customExplanationText;
@@ -147,6 +207,29 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   };
 
   const buildReviewKey = useCallback((subject: string, problemId: string) => `${subject}::${problemId}`, []);
+  const oralVivaSteps: OralVivaStep[] = ['root', 'refute', 'apply', 'summary'];
+  const oralVivaStepLabels: Record<OralVivaStep, string> = {
+    root: '根拠',
+    refute: '反証',
+    apply: '応用',
+    summary: '要約',
+  };
+
+  const ensureShuffledChoicesForQuestion = useCallback((question: QuizQuestion) => {
+    const existing = shuffledChoicesByQuestionRef.current[question.id];
+    if (existing && existing.length === question.choices.length) {
+      return existing;
+    }
+    const shuffled = [...question.choices];
+    for (let i = shuffled.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = shuffled[i];
+      shuffled[i] = shuffled[j] as Choice;
+      shuffled[j] = tmp as Choice;
+    }
+    shuffledChoicesByQuestionRef.current[question.id] = shuffled;
+    return shuffled;
+  }, []);
 
   const handleSaveAndCloseModal = () => {
     if (!editingMemo) return;
@@ -334,76 +417,20 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   
   const todayRemaining = useMemo(() => {
     if (isPlansLoading) return { count: 0, subjects: [], plan: 0, actual: 0 };
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Set to start of today in local timezone
-
-    const parseDateLocal = (dateString: string): Date => {
-      const [year, month, day] = dateString.split('-').map(Number) as [number, number, number];
-      const date = new Date(year, month - 1, day);
-      date.setHours(0, 0, 0, 0);
-      return date;
-    };
-    
-    let cumulativePlannedTotal = 0; // Accumulates all planned questions up to today
+    const todayYmd = getTodayYmdJst();
+    const activePlans = plans.filter((p: Plan) => p.enabled);
     const targetSubjects = new Set<string>();
-    
-    console.log("--- Today Remaining Debug Start ---");
-    console.log("Debug: Today (local start of day):", today.toISOString());
-    console.log("Debug: Plans available:", plans.length);
-
-    plans.filter((p: Plan) => p.enabled).forEach((plan: Plan, planIndex) => {
-      const fromDateStr = plan.period?.from;
-      const toDateStr = plan.period?.to;
-
-      console.log(`Debug: Processing Plan ${planIndex + 1} - "${plan.title}" (Enabled: ${plan.enabled})`);
-      console.log(`Debug: Plan Period: From ${fromDateStr} to ${toDateStr}`);
-
-      if (fromDateStr && toDateStr && typeof fromDateStr === 'string' && typeof toDateStr === 'string') {
-        const planStart = parseDateLocal(fromDateStr);
-        const planEnd = parseDateLocal(toDateStr);
-        console.log(`Debug: Parsed Plan Start: ${planStart.toISOString()}, Plan End: ${planEnd.toISOString()}`);
-
-        let currentDate = new Date(planStart);
-        let planDailyPlanned = 0;
-
-        while (currentDate.getTime() <= today.getTime() && currentDate.getTime() <= planEnd.getTime()) {
-            const dayStr = `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${currentDate.getDate().toString().padStart(2, '0')}`;
-            const holiday = isHoliday(currentDate);
-
-            let dailyGoalForCurrentDate = 0;
-            if (plan.applyDays === 'all' || (plan.applyDays === 'holiday' && holiday) || (plan.applyDays === 'weekday' && !holiday)) {
-                dailyGoalForCurrentDate = holiday ? plan.dailyGoal.holiday : plan.dailyGoal.weekday;
-            }
-            
-            cumulativePlannedTotal += dailyGoalForCurrentDate;
-            planDailyPlanned += dailyGoalForCurrentDate;
-            
-            plan.subjectNames.forEach((name: string) => targetSubjects.add(name));
-
-            currentDate.setDate(currentDate.getDate() + 1); // Move to next day
-        }
-        console.log(`Debug: Plan ${planIndex + 1} cumulative for loop: Planned=${planDailyPlanned}`);
-      } else {
-        console.log(`Debug: Plan ${planIndex + 1} - Invalid period data (from: ${fromDateStr}, to: ${toDateStr}).`);
-      }
+    activePlans.forEach((plan) => {
+      plan.subjectNames.forEach((name: string) => targetSubjects.add(name));
     });
 
-    const cumulativeActualTotal = dailySummaryAll.reduce((total, summary) => {
-        const summaryDate = parseDateLocal(summary.date);
-        if (summaryDate.getTime() <= today.getTime()) {
-            return total + summary.total_questions;
-        }
-        return total;
-    }, 0);
+    const actualsMap = new Map(dailySummaryAll.filter(item => item.date).map(item => [item.date, item.total_questions]));
+    const schedule = buildPlanSchedule(activePlans, actualsMap, todayYmd);
+    const todayRow = schedule.rows.find((row) => row.date === todayYmd);
 
-    const remaining = Math.max(0, cumulativePlannedTotal - cumulativeActualTotal);
-
-    console.log("Debug: Final Cumulative Planned Total:", cumulativePlannedTotal);
-    console.log("Debug: Final Cumulative Actual Total:", cumulativeActualTotal);
-    console.log("Debug: Final Remaining Count:", remaining);
-    console.log("Debug: Target Subjects:", Array.from(targetSubjects));
-    console.log("--- Today Remaining Debug End ---");
+    const cumulativePlannedTotal = todayRow?.planCumulative ?? 0;
+    const cumulativeActualTotal = todayRow?.actualCumulative ?? 0;
+    const remaining = todayRow ? Math.max(0, todayRow.planDaily - todayRow.actualDaily) : 0;
 
     return {
       count: remaining,
@@ -418,6 +445,40 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       setSelectedSubjectNames(todayRemaining.subjects);
     }
   }, [quizMode, todayRemaining]);
+
+  useEffect(() => {
+    if (quizState !== 'setup') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('adhoc') !== '1') return;
+    const raw = sessionStorage.getItem('adhocQuizSet');
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw) as QuizQuestion[];
+      if (!Array.isArray(parsed) || parsed.length === 0) {
+        throw new Error('類題セットが空です。');
+      }
+      setQuestions(parsed);
+      setCurrentQuestionIndex(0);
+      setScore(0);
+      setIsForcedSession(false);
+      setQuizState('active');
+      setSelectedSubjectNames(Array.from(new Set(parsed.map((q) => q.subject).filter(Boolean))));
+      setAdhocQuizLabel(sessionStorage.getItem('adhocQuizLabel') || '類題演習');
+      shuffledChoicesByQuestionRef.current = {};
+      prefetchedImageUrlsRef.current = new Set();
+      resetQuestionState();
+      sessionStorage.removeItem('adhocQuizSet');
+      sessionStorage.removeItem('adhocQuizLabel');
+      params.delete('adhoc');
+      const nextUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`;
+      window.history.replaceState({}, '', nextUrl);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : '類題セットの読み込みに失敗しました。';
+      setError(message);
+      sessionStorage.removeItem('adhocQuizSet');
+      sessionStorage.removeItem('adhocQuizLabel');
+    }
+  }, [quizState]);
 
   // 科目表示制御
   const [hiddenSubjects, setHiddenSubjects] = useState<string[]>(() => {
@@ -594,6 +655,9 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       }
 
       setQuestions(data.quiz_set);
+      shuffledChoicesByQuestionRef.current = {};
+      prefetchedImageUrlsRef.current = new Set();
+      setAdhocQuizLabel('');
       setCurrentQuestionIndex(0);
       setScore(0);
       setIsForcedSession(forcedSession);
@@ -651,6 +715,15 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     setFeedback(null);
     setScratchpadText('');
     setCustomExplanationText('');
+    setIsScratchpadOpen(false);
+    setIsOralVivaActive(false);
+    setOralVivaStepIndex(0);
+    setOralVivaMessages([]);
+    setOralVivaInput('');
+    setOralVivaScores({ logicality: 0, specificity: 0, reproducibility: 0 });
+    setOralVivaResult(null);
+    setIsOralVivaLoading(false);
+    setIsListeningSpeech(false);
     setQuestionStartedAt(Date.now());
   };
 
@@ -764,15 +837,16 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     }
   };
 
-  const handleSaveCustomExplanation = async () => {
+  const handleSaveCustomExplanation = async (overrideText?: string) => {
     if (!currentQuestion) return;
+    const textToSave = overrideText ?? customExplanationText;
     try {
       setIsSavingCustomExplanation(true);
       const response = await fetch(`${API_BASE_URL}/problems/${currentQuestion.id}/custom-explanation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          text: customExplanationText,
+          text: textToSave,
           explanation_image_data_url: currentQuestion.custom_explanation_image_data_url ?? null,
           question_image_data_url: currentQuestion.custom_question_image_data_url ?? null,
         }),
@@ -794,7 +868,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
         q.id === currentQuestion.id
           ? {
               ...q,
-              custom_explanation: customExplanationText,
+              custom_explanation: textToSave,
               custom_explanation_image_data_url: currentQuestion.custom_explanation_image_data_url,
               custom_question_image_data_url: currentQuestion.custom_question_image_data_url,
             }
@@ -809,9 +883,147 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     }
   };
 
-    const currentQuestion = useMemo(() => questions[currentQuestionIndex], [questions, currentQuestionIndex]);
+  const callOralVivaStep = useCallback(async (step: OralVivaStep, userMessage: string): Promise<OralVivaResponse> => {
+    if (!currentQuestion) {
+      throw new Error('問題情報が見つかりません。');
+    }
+    const response = await fetch(`${API_BASE_URL}/quiz/oral-viva/step`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        step,
+        question: {
+          problem_id: currentQuestion.id,
+          question_text: currentQuestion.question_text,
+          explanation_text: feedback?.explanation?.text ?? currentQuestion.explanation?.text ?? '',
+          correct_answer: currentQuestion.answer,
+          selected_answer: selectedAnswer,
+          was_correct: feedback?.correct ?? false,
+        },
+        conversation: oralVivaMessages,
+        user_message: userMessage,
+      }),
+    });
+    if (!response.ok) {
+      const payload = await response.json().catch(() => null);
+      throw new Error(payload?.detail || '口頭試問の生成に失敗しました。');
+    }
+    return response.json();
+  }, [currentQuestion, feedback, selectedAnswer, oralVivaMessages]);
+
+  const startOralViva = useCallback(async () => {
+    if (!currentQuestion || !isAnswered || isOralVivaLoading) return;
+    setIsOralVivaLoading(true);
+    setError('');
+    setIsOralVivaActive(true);
+    setOralVivaStepIndex(0);
+    setOralVivaMessages([]);
+    setOralVivaResult(null);
+    setOralVivaScores({ logicality: 0, specificity: 0, reproducibility: 0 });
+    try {
+      const step = oralVivaSteps[0] as OralVivaStep;
+      const result = await callOralVivaStep(step, '');
+      setOralVivaMessages([{ role: 'assistant', content: result.assistant_message }]);
+      setOralVivaScores(result.scores);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : '口頭試問の開始に失敗しました。';
+      setError(message);
+      setIsOralVivaActive(false);
+    } finally {
+      setIsOralVivaLoading(false);
+    }
+  }, [currentQuestion, isAnswered, isOralVivaLoading, callOralVivaStep, oralVivaSteps]);
+
+  const submitOralVivaAnswer = useCallback(async () => {
+    if (!isOralVivaActive || isOralVivaLoading) return;
+    const message = oralVivaInput.trim();
+    if (!message) return;
+    const step = oralVivaSteps[Math.min(oralVivaStepIndex, oralVivaSteps.length - 1)] as OralVivaStep;
+    setIsOralVivaLoading(true);
+    setError('');
+    const userTurn: OralVivaMessage = { role: 'user', content: message };
+    setOralVivaMessages((prev) => [...prev, userTurn]);
+    setOralVivaInput('');
+
+    try {
+      const result = await fetch(`${API_BASE_URL}/quiz/oral-viva/step`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          step,
+          question: {
+            problem_id: currentQuestion?.id,
+            question_text: currentQuestion?.question_text,
+            explanation_text: feedback?.explanation?.text ?? currentQuestion?.explanation?.text ?? '',
+            correct_answer: currentQuestion?.answer,
+            selected_answer: selectedAnswer,
+            was_correct: feedback?.correct ?? false,
+          },
+          conversation: [...oralVivaMessages, userTurn],
+          user_message: message,
+        }),
+      });
+      if (!result.ok) {
+        const payload = await result.json().catch(() => null);
+        throw new Error(payload?.detail || '口頭試問の送信に失敗しました。');
+      }
+      const payload: OralVivaResponse = await result.json();
+      setOralVivaMessages((prev) => [...prev, { role: 'assistant', content: payload.assistant_message }]);
+      setOralVivaScores(payload.scores);
+      if (payload.is_final_step) {
+        setOralVivaResult({
+          improvementPoints: payload.improvement_points ?? [],
+          miniQuizQuestion: payload.mini_quiz_question ?? '',
+          miniQuizAnswer: payload.mini_quiz_answer ?? '',
+        });
+        if (payload.memo_summary && payload.memo_summary.trim()) {
+          const appended = customExplanationText.trim()
+            ? `${customExplanationText.trim()}\n\n---\n\n【口頭試問まとめ】\n${payload.memo_summary.trim()}`
+            : `【口頭試問まとめ】\n${payload.memo_summary.trim()}`;
+          setCustomExplanationText(appended);
+          await handleSaveCustomExplanation(appended);
+        }
+      } else {
+        setOralVivaStepIndex((prev) => Math.min(prev + 1, oralVivaSteps.length - 1));
+      }
+    } catch (e) {
+      const errMsg = e instanceof Error ? e.message : '口頭試問の送信に失敗しました。';
+      setError(errMsg);
+    } finally {
+      setIsOralVivaLoading(false);
+    }
+  }, [
+    isOralVivaActive,
+    isOralVivaLoading,
+    oralVivaInput,
+    oralVivaSteps,
+    oralVivaStepIndex,
+    currentQuestion,
+    feedback,
+    selectedAnswer,
+    oralVivaMessages,
+    customExplanationText,
+    handleSaveCustomExplanation,
+  ]);
+
+  const toggleSpeechInput = useCallback(() => {
+    const recognition = speechRecognitionRef.current;
+    if (!recognition) return;
+    if (isListeningSpeech) {
+      recognition.stop();
+      setIsListeningSpeech(false);
+    } else {
+      recognition.start();
+      setIsListeningSpeech(true);
+    }
+  }, [isListeningSpeech]);
+
     const currentReviewKey = currentQuestion ? buildReviewKey(currentQuestion.subject, currentQuestion.id) : null;
     const isCurrentQuestionReviewLater = currentReviewKey ? reviewLaterKeys.includes(currentReviewKey) : false;
+    const displayedChoices = useMemo(
+      () => (currentQuestion ? ensureShuffledChoicesForQuestion(currentQuestion) : []),
+      [currentQuestion, ensureShuffledChoicesForQuestion]
+    );
 
     useEffect(() => {
       fetchReviewLaterItems();
@@ -829,13 +1041,63 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
     }, [currentQuestion]);
 
+    useEffect(() => {
+      const SpeechRecognitionCtor =
+        (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (!SpeechRecognitionCtor) {
+        setIsSpeechSupported(false);
+        speechRecognitionRef.current = null;
+        return;
+      }
+      setIsSpeechSupported(true);
+      const recognition: SpeechRecognitionLike = new SpeechRecognitionCtor();
+      recognition.lang = 'ja-JP';
+      recognition.interimResults = false;
+      recognition.continuous = false;
+      recognition.onresult = (event: any) => {
+        const transcript = event?.results?.[0]?.[0]?.transcript ?? '';
+        if (typeof transcript === 'string' && transcript.trim()) {
+          setOralVivaInput((prev) => (prev ? `${prev}\n${transcript.trim()}` : transcript.trim()));
+        }
+      };
+      recognition.onerror = () => {
+        setIsListeningSpeech(false);
+      };
+      recognition.onend = () => {
+        setIsListeningSpeech(false);
+      };
+      speechRecognitionRef.current = recognition;
+      return () => {
+        recognition.stop();
+        speechRecognitionRef.current = null;
+      };
+    }, []);
+
+    useEffect(() => {
+      oralVivaMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [oralVivaMessages]);
+
+    useEffect(() => {
+      if (isOralVivaActive) return;
+      if (speechRecognitionRef.current) {
+        speechRecognitionRef.current.stop();
+      }
+      setIsListeningSpeech(false);
+    }, [isOralVivaActive]);
+
   
 
     useEffect(() => {
 
       const handleKeyPress = (event: KeyboardEvent) => {
 
-        if (quizState !== 'active' || (event.target instanceof HTMLTextAreaElement)) {
+        if (
+          quizState !== 'active' ||
+          event.target instanceof HTMLTextAreaElement ||
+          event.target instanceof HTMLInputElement ||
+          event.target instanceof HTMLSelectElement ||
+          (event.target instanceof HTMLElement && event.target.isContentEditable)
+        ) {
 
           return;
 
@@ -849,9 +1111,9 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
             const choiceIndex = parseInt(event.key) - 1;
 
-            if (currentQuestion && currentQuestion.choices && currentQuestion.choices[choiceIndex]) {
+            if (displayedChoices[choiceIndex]) {
 
-              setSelectedAnswer(currentQuestion.choices[choiceIndex].label);
+              setSelectedAnswer(displayedChoices[choiceIndex].label);
 
             }
 
@@ -893,7 +1155,35 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
       };
 
-    }, [quizState, isAnswered, currentQuestion, handleAnswerSubmit, handleNextQuestion, isSubmittingAnswer, isSavingCustomExplanation]);
+    }, [quizState, isAnswered, currentQuestion, displayedChoices, handleAnswerSubmit, handleNextQuestion, isSubmittingAnswer, isSavingCustomExplanation]);
+
+    useEffect(() => {
+      if (quizState !== 'active') return;
+      const target = questionTopRef.current;
+      if (!target) return;
+      window.requestAnimationFrame(() => {
+        const top = target.getBoundingClientRect().top + window.scrollY - 12;
+        window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+      });
+    }, [quizState, currentQuestionIndex, isAnswered]);
+
+    useEffect(() => {
+      if (quizState !== 'active' || questions.length === 0) return;
+      const prefetchCount = 3;
+      const start = currentQuestionIndex + 1;
+      const end = Math.min(questions.length, start + prefetchCount);
+      for (let i = start; i < end; i += 1) {
+        const q = questions[i];
+        if (!q) continue;
+        const urls = [...(q.image_urls ?? []), ...(q.explanation_image_urls ?? [])];
+        for (const url of urls) {
+          if (!url || prefetchedImageUrlsRef.current.has(url)) continue;
+          prefetchedImageUrlsRef.current.add(url);
+          const img = new Image();
+          img.src = url;
+        }
+      }
+    }, [quizState, questions, currentQuestionIndex]);
 
   
 
@@ -981,6 +1271,115 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
               rows={4}
             />
           </div>
+          <div className="mt-6 rounded-xl border border-sky-200 bg-sky-50 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h4 className="text-base md:text-lg font-semibold text-sky-900">口頭試問モード</h4>
+              {!isOralVivaActive ? (
+                <button
+                  type="button"
+                  onClick={() => void startOralViva()}
+                  disabled={isOralVivaLoading}
+                  className="px-4 py-2 rounded-md bg-sky-700 text-white text-sm font-medium hover:bg-sky-800 disabled:bg-gray-300"
+                >
+                  {isOralVivaLoading ? '開始中...' : '口頭試問を開始'}
+                </button>
+              ) : (
+                <span className="text-xs font-semibold text-sky-800">
+                  ステップ: {oralVivaStepLabels[oralVivaSteps[Math.min(oralVivaStepIndex, oralVivaSteps.length - 1)] as OralVivaStep]}
+                </span>
+              )}
+            </div>
+
+            {isOralVivaActive && (
+              <div className="mt-4 space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  {([
+                    ['論理性', oralVivaScores.logicality],
+                    ['具体性', oralVivaScores.specificity],
+                    ['再現性', oralVivaScores.reproducibility],
+                  ] as Array<[string, number]>).map(([label, value]) => (
+                    <div key={label} className="rounded-md bg-white border border-sky-200 px-3 py-2">
+                      <div className="flex items-center justify-between text-xs text-sky-900 mb-1">
+                        <span>{label}</span>
+                        <span>{value}</span>
+                      </div>
+                      <div className="h-2 rounded bg-sky-100 overflow-hidden">
+                        <div className="h-full bg-sky-500" style={{ width: `${Math.max(0, Math.min(100, value))}%` }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="max-h-72 overflow-y-auto rounded-md border border-sky-200 bg-white p-3 space-y-2">
+                  {oralVivaMessages.length === 0 && (
+                    <p className="text-sm text-gray-500">開始すると、AI面接官が質問します。</p>
+                  )}
+                  {oralVivaMessages.map((msg, idx) => (
+                    <div key={`${msg.role}-${idx}`} className={`rounded-lg px-3 py-2 text-sm ${msg.role === 'assistant' ? 'bg-sky-100 text-sky-900' : 'bg-gray-100 text-gray-800'}`}>
+                      <p className="text-[11px] font-semibold mb-1">{msg.role === 'assistant' ? 'AI面接官' : 'あなた'}</p>
+                      <p className="whitespace-pre-wrap">{msg.content}</p>
+                    </div>
+                  ))}
+                  <div ref={oralVivaMessagesEndRef} />
+                </div>
+
+                {!oralVivaResult && (
+                  <div className="space-y-2">
+                    <textarea
+                      value={oralVivaInput}
+                      onChange={(e) => setOralVivaInput(e.target.value)}
+                      className="w-full p-2 border border-sky-300 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 bg-white"
+                      rows={3}
+                      placeholder="回答を入力してください（任意で音声入力も可）"
+                    />
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => void submitOralVivaAnswer()}
+                        disabled={isOralVivaLoading || !oralVivaInput.trim()}
+                        className="px-4 py-2 rounded-md bg-sky-700 text-white text-sm font-medium hover:bg-sky-800 disabled:bg-gray-300"
+                      >
+                        {isOralVivaLoading ? '送信中...' : '送信'}
+                      </button>
+                      {isSpeechSupported && (
+                        <button
+                          type="button"
+                          onClick={toggleSpeechInput}
+                          className={`px-4 py-2 rounded-md text-sm font-medium border ${isListeningSpeech ? 'border-rose-300 bg-rose-50 text-rose-700' : 'border-sky-300 bg-white text-sky-800'}`}
+                        >
+                          {isListeningSpeech ? '音声入力停止' : '音声入力開始'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {oralVivaResult && (
+                  <div className="rounded-md border border-sky-200 bg-white p-3 space-y-2">
+                    <h5 className="text-sm font-semibold text-sky-900">最終フィードバック</h5>
+                    <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                      {oralVivaResult.improvementPoints.map((point, idx) => (
+                        <li key={`${point}-${idx}`}>{point}</li>
+                      ))}
+                    </ul>
+                    {oralVivaResult.miniQuizQuestion && (
+                      <div className="text-sm text-gray-800">
+                        <p className="font-semibold">次回確認ミニ問題</p>
+                        <p className="whitespace-pre-wrap">{oralVivaResult.miniQuizQuestion}</p>
+                      </div>
+                    )}
+                    {oralVivaResult.miniQuizAnswer && (
+                      <div className="text-sm text-gray-700">
+                        <p className="font-semibold">想定解答</p>
+                        <p className="whitespace-pre-wrap">{oralVivaResult.miniQuizAnswer}</p>
+                      </div>
+                    )}
+                    <p className="text-xs text-gray-500">最終要約は My Memo に自動追記・保存されます。</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
           <div className="mt-6 pt-4 border-t border-gray-200 flex justify-between items-center">
             <button
               onClick={openProblemEditor}
@@ -995,8 +1394,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
         </div>
       ) : null;
   
-      // 左カラム（問題・選択肢）
-      const QuestionColumn = () => (
+      const questionColumn = (
         <div className="bg-white rounded-xl shadow p-6 md:p-8 h-full flex flex-col">
           <p className="text-base md:text-lg font-semibold text-gray-700 mb-6">{currentQuestion.question_text}</p>
           <TimerProgressBar
@@ -1012,7 +1410,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
           </div>
 
           <div className="space-y-3">
-            {currentQuestion.choices.map((option: Choice, index: number) => {
+            {displayedChoices.map((option: Choice, index: number) => {
               const isCorrectAnswer = option.label === currentQuestion.answer;
               const isSelectedAnswer = option.label === selectedAnswer;
               let buttonClass = 'bg-gray-100 hover:bg-gray-200';
@@ -1039,19 +1437,29 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
           </div>
 
           <div className="mt-6">
-            <div className="flex justify-between items-center mb-2">
-              <label htmlFor="scratchpad" className="block text-sm font-medium text-gray-700">メモ帳</label>
-              <button onClick={() => openMemoModal('scratchpad')} className="p-1 rounded-md hover:bg-gray-200 text-gray-500 hover:text-gray-700" title="拡大表示">
-                <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8V4h4m10 0h4v4M3 16v4h4m14-4h-4v4"/></svg>
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <button
+                type="button"
+                onClick={() => setIsScratchpadOpen((prev) => !prev)}
+                className="px-3 py-1.5 text-sm font-medium rounded-md border border-gray-300 bg-gray-50 hover:bg-gray-100"
+              >
+                {isScratchpadOpen ? 'メモ帳を閉じる' : 'メモ帳を開く'}
               </button>
+              {isScratchpadOpen && (
+                <button onClick={() => openMemoModal('scratchpad')} className="p-1 rounded-md hover:bg-gray-200 text-gray-500 hover:text-gray-700" title="拡大表示">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8V4h4m10 0h4v4M3 16v4h4m14-4h-4v4"/></svg>
+                </button>
+              )}
             </div>
-            <textarea
-              id="scratchpad"
-              value={scratchpadText}
-              onChange={(e) => setScratchpadText(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-new focus:border-primary-new"
-              rows={3}
-            />
+            {isScratchpadOpen && (
+              <textarea
+                id="scratchpad"
+                value={scratchpadText}
+                onChange={(e) => setScratchpadText(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-new focus:border-primary-new"
+                rows={3}
+              />
+            )}
             <div className="mt-3 flex justify-end">
               <button
                 type="button"
@@ -1091,7 +1499,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       );
   
       // 右カラム（画像・解説）
-      const RightColumn = () => (
+      const rightColumn = (
         <div className="space-y-8">
           {layoutType === 'image' && (
              <div className="bg-white rounded-xl shadow p-6 md:p-8">
@@ -1106,7 +1514,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
       return (
         <div className="md:h-screen md:overflow-hidden text-sm md:text-base">
-            <div className="p-4 md:p-6">
+            <div ref={questionTopRef} className="p-4 md:p-6">
                 <div className="flex justify-end items-center mb-2">
                     <div className="flex items-center gap-4">
                         {isForcedSession && (
@@ -1128,6 +1536,11 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                         }
                         return null;
                         })()}
+                        {adhocQuizLabel && (
+                          <span className="text-xs px-2 py-1 rounded bg-emerald-100 text-emerald-800 whitespace-nowrap">
+                            {adhocQuizLabel}
+                          </span>
+                        )}
                         <p className="text-gray-500">問題 {currentQuestionIndex + 1} / {questions.length}</p>
                     </div>
                 </div>
@@ -1149,7 +1562,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                 ${layoutType === 'answered' ? 'md:col-span-1' : ''}
                 ${layoutType !== 'default' ? 'md:h-full md:overflow-y-auto' : ''}
               `}>
-                <QuestionColumn />
+                {questionColumn}
               </div>
 
               {/* --- Right Column (PC only) --- */}
@@ -1160,7 +1573,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                   ${layoutType === 'answered' ? 'md:col-span-2' : ''}
                   md:h-full md:overflow-y-auto
                 `}>
-                  <RightColumn />
+                  {rightColumn}
                 </div>
               )}
               
