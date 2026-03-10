@@ -1018,6 +1018,66 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     }
   }, [isListeningSpeech]);
 
+  const skipOralVivaToSummary = useCallback(async () => {
+    if (!isOralVivaActive || isOralVivaLoading) return;
+    setOralVivaStepIndex(oralVivaSteps.length - 1);
+    setIsOralVivaLoading(true);
+    try {
+      const userTurn: OralVivaMessage = { role: 'user', content: 'ここまでの内容を要約して終了してください。' };
+      const result = await fetch(`${API_BASE_URL}/quiz/oral-viva/step`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          step: 'summary',
+          question: {
+            problem_id: currentQuestion?.id,
+            question_text: currentQuestion?.question_text,
+            explanation_text: feedback?.explanation?.text ?? currentQuestion?.explanation?.text ?? '',
+            correct_answer: currentQuestion?.answer,
+            selected_answer: selectedAnswer,
+            was_correct: feedback?.correct ?? false,
+          },
+          conversation: [...oralVivaMessages, userTurn],
+          user_message: userTurn.content,
+        }),
+      });
+      if (!result.ok) {
+        const payload = await result.json().catch(() => null);
+        throw new Error(payload?.detail || '要約生成に失敗しました。');
+      }
+      const payload: OralVivaResponse = await result.json();
+      setOralVivaMessages((prev) => [...prev, userTurn, { role: 'assistant', content: payload.assistant_message }]);
+      setOralVivaScores(payload.scores);
+      setOralVivaResult({
+        improvementPoints: payload.improvement_points ?? [],
+        miniQuizQuestion: payload.mini_quiz_question ?? '',
+        miniQuizAnswer: payload.mini_quiz_answer ?? '',
+      });
+      if (payload.memo_summary && payload.memo_summary.trim()) {
+        const appended = customExplanationText.trim()
+          ? `${customExplanationText.trim()}\n\n---\n\n【口頭試問まとめ】\n${payload.memo_summary.trim()}`
+          : `【口頭試問まとめ】\n${payload.memo_summary.trim()}`;
+        setCustomExplanationText(appended);
+        await handleSaveCustomExplanation(appended);
+      }
+    } catch (e) {
+      const message = e instanceof Error ? e.message : '要約生成に失敗しました。';
+      setError(message);
+    } finally {
+      setIsOralVivaLoading(false);
+    }
+  }, [
+    isOralVivaActive,
+    isOralVivaLoading,
+    oralVivaSteps.length,
+    currentQuestion,
+    feedback,
+    selectedAnswer,
+    oralVivaMessages,
+    customExplanationText,
+    handleSaveCustomExplanation,
+  ]);
+
     const currentReviewKey = currentQuestion ? buildReviewKey(currentQuestion.subject, currentQuestion.id) : null;
     const isCurrentQuestionReviewLater = currentReviewKey ? reviewLaterKeys.includes(currentReviewKey) : false;
     const displayedChoices = useMemo(
@@ -1284,9 +1344,12 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                   {isOralVivaLoading ? '開始中...' : '口頭試問を開始'}
                 </button>
               ) : (
-                <span className="text-xs font-semibold text-sky-800">
-                  ステップ: {oralVivaStepLabels[oralVivaSteps[Math.min(oralVivaStepIndex, oralVivaSteps.length - 1)] as OralVivaStep]}
-                </span>
+                <div className="text-right">
+                  <div className="text-xs font-semibold text-sky-800">
+                    ステップ: {oralVivaStepLabels[oralVivaSteps[Math.min(oralVivaStepIndex, oralVivaSteps.length - 1)] as OralVivaStep]} ({Math.min(oralVivaStepIndex + 1, oralVivaSteps.length)}/{oralVivaSteps.length})
+                  </div>
+                  <div className="text-[11px] text-sky-700">終了条件: 4ステップ完了 or 要約へスキップ</div>
+                </div>
               )}
             </div>
 
@@ -1350,6 +1413,22 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                           {isListeningSpeech ? '音声入力停止' : '音声入力開始'}
                         </button>
                       )}
+                      <button
+                        type="button"
+                        onClick={() => void skipOralVivaToSummary()}
+                        disabled={isOralVivaLoading}
+                        className="px-4 py-2 rounded-md text-sm font-medium border border-sky-300 bg-white text-sky-800 hover:bg-sky-100 disabled:bg-gray-100 disabled:text-gray-400"
+                      >
+                        要約へスキップ
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsOralVivaActive(false)}
+                        disabled={isOralVivaLoading}
+                        className="px-4 py-2 rounded-md text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400"
+                      >
+                        口頭試問を閉じる
+                      </button>
                     </div>
                   </div>
                 )}
