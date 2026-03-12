@@ -486,7 +486,18 @@ final class SoragakiAPIClient {
 
     @discardableResult
     private func send(_ request: URLRequest, expectedStatuses: Set<Int>) async throws -> (Data, HTTPURLResponse) {
-        let (data, rawResponse) = try await session.data(for: request)
+        let data: Data
+        let rawResponse: URLResponse
+        do {
+            (data, rawResponse) = try await session.data(for: request)
+        } catch let urlError as URLError {
+            switch urlError.code {
+            case .notConnectedToInternet, .networkConnectionLost, .timedOut, .cannotConnectToHost, .cannotFindHost, .dnsLookupFailed:
+                throw APIError.networkUnavailable(urlError.localizedDescription)
+            default:
+                throw APIError.networkUnavailable(urlError.localizedDescription)
+            }
+        }
         guard let response = rawResponse as? HTTPURLResponse else {
             throw APIError.invalidResponse
         }
@@ -520,6 +531,7 @@ enum APIError: LocalizedError {
     case unauthorized
     case unexpectedStatus(Int, String?)
     case decoding(String)
+    case networkUnavailable(String?)
 
     var errorDescription: String? {
         switch self {
@@ -534,6 +546,11 @@ enum APIError: LocalizedError {
             return "サーバーエラー: \(code)"
         case .decoding(let message):
             return "データ解析エラー: \(message)"
+        case .networkUnavailable(let message):
+            if let message, !message.isEmpty {
+                return "通信エラー: \(message)"
+            }
+            return "通信エラー: ネットワーク接続を確認してください。"
         }
     }
 }

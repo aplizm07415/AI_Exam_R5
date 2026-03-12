@@ -1,6 +1,7 @@
 import SwiftUI
 import PencilKit
 import Combine
+import Network
 
 private extension Color {
     init(hex: String) {
@@ -112,12 +113,37 @@ final class QuizPencilModeViewModel: ObservableObject {
     @Published var problemEditDraft: ProblemEditDraft?
     @Published var questionStartedAt: Date = Date()
     @Published var installedElapsedDays: Int = 0
+    @Published var isSubmittingAnswer: Bool = false
+    @Published var isNetworkAvailable: Bool = true
+    @Published var networkStatusText: String = "ネットワーク確認中..."
+    @Published var pendingSyncCount: Int = 0
+    @Published var isSyncingPendingActions: Bool = false
+    @Published var syncStatusMessage: String?
 
     private var apiClient: SoragakiAPIClient?
     private var deepLink: QuizDeepLink?
     private var originalMemoText: String = ""
     private var originalExplanationMemoImageDataURL: String?
     private var originalQuestionMemoImageDataURL: String?
+    private var networkMonitor: NWPathMonitor?
+    private var pendingSyncActions: [PendingSyncAction] = []
+    private var isProcessingPendingActions = false
+
+    private static let pendingSyncStorageKey = "quiz_ipad_pending_sync_actions"
+
+    struct PendingSyncAction: Codable, Identifiable {
+        let id: String
+        let type: String
+        let createdAt: Date
+        let problemID: String?
+        let subject: String?
+        let selectedAnswer: String?
+        let isCorrect: Bool?
+        let category: String?
+        let memoText: String?
+        let explanationImageDataURL: String?
+        let questionImageDataURL: String?
+    }
 
     var currentQuestion: QuizQuestion? {
         guard questions.indices.contains(currentIndex) else { return nil }
@@ -126,7 +152,7 @@ final class QuizPencilModeViewModel: ObservableObject {
 
     var progressText: String {
         guard !questions.isEmpty else { return "0 / 0" }
-        return "\(currentIndex + 1) / \(questions.count)"
+        return "第\(currentIndex + 1)問 / 全\(questions.count)問"
     }
 
     var explanationText: String {
@@ -138,6 +164,10 @@ final class QuizPencilModeViewModel: ObservableObject {
         interactionMode == .draw
     }
 
+    deinit {
+        networkMonitor?.cancel()
+    }
+
     func configure(with deepLink: QuizDeepLink) async {
         self.deepLink = deepLink
         apiClient = SoragakiAPIClient(baseURL: deepLink.baseURL)
@@ -145,10 +175,13 @@ final class QuizPencilModeViewModel: ObservableObject {
         modeLabel = deepLink.mode
         countLabel = "\(deepLink.count)"
         updateInstalledElapsedDays()
+        loadPendingSyncActions()
+        setupNetworkMonitor()
         prepareMainCanvas()
         prepareMemoCanvas(explanationMemoCanvasView)
         prepareMemoCanvas(questionMemoCanvasView)
         await startQuiz()
+        await processPendingSyncActionsIfNeeded()
     }
 
     private func updateInstalledElapsedDays() {
@@ -165,6 +198,117 @@ final class QuizPencilModeViewModel: ObservableObject {
         let startOfNow = Calendar.current.startOfDay(for: now)
         let elapsed = Calendar.current.dateComponents([.day], from: startOfInstall, to: startOfNow).day ?? 0
         installedElapsedDays = max(0, elapsed)
+    }
+
+    private func setupNetworkMonitor() {
+        if networkMonitor != nil { return }
+        let monitor = NWPathMonitor()
+        let queue = DispatchQueue(label: "quiz.ipad.network.monitor")
+        monitor.pathUpdateHandler = { [weak self] path in
+            Task { @MainActor in
+                guard let self else { return }
+                let available = path.status == .satisfied
+                self.isNetworkAvailable = available
+                self.networkStatusText = available ? "オンライン" : "オフライン（ローカル保持中）"
+                if available {
+                    await self.processPendingSyncActionsIfNeeded()
+                }
+            }
+        }
+        networkMonitor = monitor
+        monitor.start(queue: queue)
+    }
+
+    private func loadPendingSyncActions() {
+        guard
+            let raw = UserDefaults.standard.data(forKey: Self.pendingSyncStorageKey),
+            let decoded = try? JSONDecoder().decode([PendingSyncAction].self, from: raw)
+        else {
+            pendingSyncActions = []
+            pendingSyncCount = 0
+            return
+        }
+        pendingSyncActions = decoded
+        pendingSyncCount = decoded.count
+    }
+
+    private func persistPendingSyncActions() {
+        if let encoded = try? JSONEncoder().encode(pendingSyncActions) {
+            UserDefaults.standard.set(encoded, forKey: Self.pendingSyncStorageKey)
+        }
+        pendingSyncCount = pendingSyncActions.count
+    }
+
+    private func enqueuePendingSyncAction(_ action: PendingSyncAction) {
+        pendingSyncActions.append(action)
+        persistPendingSyncActions()
+        syncStatusMessage = "通信不安定のためローカル保存しました。接続回復後に自動同期します。"
+    }
+
+    private func isNetworkError(_ error: Error) -> Bool {
+        if case APIError.networkUnavailable = error {
+            return true
+        }
+        if let urlError = error as? URLError {
+            switch urlError.code {
+            case .notConnectedToInternet, .networkConnectionLost, .timedOut, .cannotConnectToHost, .cannotFindHost, .dnsLookupFailed:
+                return true
+            default:
+                return false
+            }
+        }
+        return false
+    }
+
+    private func processPendingSyncActionsIfNeeded() async {
+        guard isNetworkAvailable, !isProcessingPendingActions, !pendingSyncActions.isEmpty, let apiClient else { return }
+        isProcessingPendingActions = true
+        isSyncingPendingActions = true
+        defer {
+            isProcessingPendingActions = false
+            isSyncingPendingActions = false
+            persistPendingSyncActions()
+        }
+
+        var nextQueue: [PendingSyncAction] = []
+        for action in pendingSyncActions {
+            do {
+                switch action.type {
+                case "history":
+                    guard
+                        let problemID = action.problemID,
+                        let subject = action.subject,
+                        let selected = action.selectedAnswer,
+                        let isCorrect = action.isCorrect
+                    else { continue }
+                    try await apiClient.submitHistory(problemID: problemID, subject: subject, selectedAnswer: selected, isCorrect: isCorrect, category: action.category)
+                case "customMemo":
+                    guard let problemID = action.problemID else { continue }
+                    try await apiClient.saveCustomExplanation(
+                        problemID: problemID,
+                        text: action.memoText ?? "",
+                        explanationImageDataURL: action.explanationImageDataURL,
+                        questionImageDataURL: action.questionImageDataURL
+                    )
+                case "reviewLaterAdd":
+                    guard let subject = action.subject, let problemID = action.problemID else { continue }
+                    try await apiClient.saveReviewLater(subject: subject, problemID: problemID)
+                case "reviewLaterDelete":
+                    guard let subject = action.subject, let problemID = action.problemID else { continue }
+                    try await apiClient.deleteReviewLater(subject: subject, problemID: problemID)
+                default:
+                    continue
+                }
+            } catch {
+                if isNetworkError(error) {
+                    nextQueue.append(action)
+                    continue
+                }
+                nextQueue.append(action)
+            }
+        }
+        pendingSyncActions = nextQueue
+        syncStatusMessage = nextQueue.isEmpty ? "未送信データの同期が完了しました。" : "一部の未送信データは引き続き保留です。"
     }
 
     func startQuiz() async {
@@ -217,8 +361,10 @@ final class QuizPencilModeViewModel: ObservableObject {
     }
 
     func submitAnswer() async {
-        guard let answer = selectedAnswer, let question = currentQuestion, !isAnswered else { return }
+        guard let answer = selectedAnswer, let question = currentQuestion, !isAnswered, !isSubmittingAnswer else { return }
         let answerIsCorrect = (answer == question.answer)
+        isSubmittingAnswer = true
+        defer { isSubmittingAnswer = false }
         do {
             try await apiClient?.submitHistory(
                 problemID: question.id,
@@ -229,14 +375,37 @@ final class QuizPencilModeViewModel: ObservableObject {
             )
             isCorrect = answerIsCorrect
             isAnswered = true
+            syncStatusMessage = nil
         } catch {
-            errorMessage = error.localizedDescription
+            if isNetworkError(error) {
+                enqueuePendingSyncAction(
+                    PendingSyncAction(
+                        id: UUID().uuidString,
+                        type: "history",
+                        createdAt: Date(),
+                        problemID: question.id,
+                        subject: question.subject,
+                        selectedAnswer: answer,
+                        isCorrect: answerIsCorrect,
+                        category: question.category,
+                        memoText: nil,
+                        explanationImageDataURL: nil,
+                        questionImageDataURL: nil
+                    )
+                )
+                isCorrect = answerIsCorrect
+                isAnswered = true
+            } else {
+                errorMessage = error.localizedDescription
+            }
         }
     }
 
     func submitAsUnknown() async {
-        guard let question = currentQuestion, !isAnswered else { return }
+        guard let question = currentQuestion, !isAnswered, !isSubmittingAnswer else { return }
         let submittedAnswer = selectedAnswer ?? ""
+        isSubmittingAnswer = true
+        defer { isSubmittingAnswer = false }
         do {
             try await apiClient?.submitHistory(
                 problemID: question.id,
@@ -247,8 +416,29 @@ final class QuizPencilModeViewModel: ObservableObject {
             )
             isCorrect = false
             isAnswered = true
+            syncStatusMessage = nil
         } catch {
-            errorMessage = error.localizedDescription
+            if isNetworkError(error) {
+                enqueuePendingSyncAction(
+                    PendingSyncAction(
+                        id: UUID().uuidString,
+                        type: "history",
+                        createdAt: Date(),
+                        problemID: question.id,
+                        subject: question.subject,
+                        selectedAnswer: submittedAnswer,
+                        isCorrect: false,
+                        category: question.category,
+                        memoText: nil,
+                        explanationImageDataURL: nil,
+                        questionImageDataURL: nil
+                    )
+                )
+                isCorrect = false
+                isAnswered = true
+            } else {
+                errorMessage = error.localizedDescription
+            }
         }
     }
 
@@ -281,6 +471,37 @@ final class QuizPencilModeViewModel: ObservableObject {
         }
     }
 
+    private func saveCustomMemoOrQueue(
+        questionID: String,
+        text: String,
+        explanationImageDataURL: String?,
+        questionImageDataURL: String?
+    ) {
+        enqueuePendingSyncAction(
+            PendingSyncAction(
+                id: UUID().uuidString,
+                type: "customMemo",
+                createdAt: Date(),
+                problemID: questionID,
+                subject: nil,
+                selectedAnswer: nil,
+                isCorrect: nil,
+                category: nil,
+                memoText: text,
+                explanationImageDataURL: explanationImageDataURL,
+                questionImageDataURL: questionImageDataURL
+            )
+        )
+        if questions.indices.contains(currentIndex) {
+            questions[currentIndex].customExplanation = text
+            questions[currentIndex].customExplanationImageDataURL = explanationImageDataURL
+            questions[currentIndex].customQuestionImageDataURL = questionImageDataURL
+        }
+        originalMemoText = text
+        originalExplanationMemoImageDataURL = explanationImageDataURL
+        originalQuestionMemoImageDataURL = questionImageDataURL
+    }
+
     func saveCustomMemoIfNeeded() async throws {
         guard let apiClient, let question = currentQuestion else { return }
         let newText = customMemoText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -294,12 +515,26 @@ final class QuizPencilModeViewModel: ObservableObject {
            newQuestionImageDataURL == oldQuestionImageDataURL {
             return
         }
-        try await apiClient.saveCustomExplanation(
-            problemID: question.id,
-            text: customMemoText,
-            explanationImageDataURL: newExplanationImageDataURL,
-            questionImageDataURL: newQuestionImageDataURL
-        )
+        do {
+            try await apiClient.saveCustomExplanation(
+                problemID: question.id,
+                text: customMemoText,
+                explanationImageDataURL: newExplanationImageDataURL,
+                questionImageDataURL: newQuestionImageDataURL
+            )
+            syncStatusMessage = nil
+        } catch {
+            if isNetworkError(error) {
+                saveCustomMemoOrQueue(
+                    questionID: question.id,
+                    text: customMemoText,
+                    explanationImageDataURL: newExplanationImageDataURL,
+                    questionImageDataURL: newQuestionImageDataURL
+                )
+            } else {
+                throw error
+            }
+        }
         originalMemoText = customMemoText
         originalExplanationMemoImageDataURL = newExplanationImageDataURL
         originalQuestionMemoImageDataURL = newQuestionImageDataURL
@@ -394,16 +629,36 @@ final class QuizPencilModeViewModel: ObservableObject {
         guard let apiClient, let question = currentQuestion, !isUpdatingReviewLater else { return }
         isUpdatingReviewLater = true
         defer { isUpdatingReviewLater = false }
+        let shouldRemove = isMarkedForReviewLater
+        isMarkedForReviewLater.toggle()
         do {
-            if isMarkedForReviewLater {
+            if shouldRemove {
                 try await apiClient.deleteReviewLater(subject: question.subject, problemID: question.id)
-                isMarkedForReviewLater = false
             } else {
                 try await apiClient.saveReviewLater(subject: question.subject, problemID: question.id)
-                isMarkedForReviewLater = true
             }
+            syncStatusMessage = nil
         } catch {
-            errorMessage = error.localizedDescription
+            if isNetworkError(error) {
+                enqueuePendingSyncAction(
+                    PendingSyncAction(
+                        id: UUID().uuidString,
+                        type: shouldRemove ? "reviewLaterDelete" : "reviewLaterAdd",
+                        createdAt: Date(),
+                        problemID: question.id,
+                        subject: question.subject,
+                        selectedAnswer: nil,
+                        isCorrect: nil,
+                        category: nil,
+                        memoText: nil,
+                        explanationImageDataURL: nil,
+                        questionImageDataURL: nil
+                    )
+                )
+            } else {
+                isMarkedForReviewLater = shouldRemove
+                errorMessage = error.localizedDescription
+            }
         }
     }
 
@@ -510,7 +765,8 @@ final class QuizPencilModeViewModel: ObservableObject {
     private func prepareMemoCanvas(_ canvas: PKCanvasView) {
         canvas.backgroundColor = .clear
         canvas.isOpaque = false
-        canvas.drawingPolicy = .pencilOnly
+        canvas.drawingPolicy = .anyInput
+        canvas.isUserInteractionEnabled = true
         canvas.isScrollEnabled = false
         canvas.alwaysBounceVertical = false
         canvas.alwaysBounceHorizontal = false
@@ -604,6 +860,8 @@ struct MemoCanvasInputView: UIViewRepresentable {
     func updateUIView(_ uiView: UIView, context: Context) {
         canvasView.backgroundColor = .clear
         canvasView.isOpaque = false
+        canvasView.drawingPolicy = .anyInput
+        canvasView.isUserInteractionEnabled = true
     }
 }
 
@@ -628,6 +886,13 @@ struct QuizPencilModeView: View {
                     Text(viewModel.errorMessage ?? "問題がありません。")
                         .foregroundColor(.secondary)
                         .padding()
+                }
+                if let message = viewModel.syncStatusMessage {
+                    Text(message)
+                        .font(.footnote.weight(.semibold))
+                        .foregroundColor(viewModel.pendingSyncCount > 0 ? AppPalette.caution : AppPalette.success)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.bottom, 4)
                 }
                 if let message = viewModel.errorMessage {
                     Text(message)
@@ -684,6 +949,23 @@ struct QuizPencilModeView: View {
                 Text("インストールから\(viewModel.installedElapsedDays)日経過")
                     .font(.caption2)
                     .foregroundColor(.secondary)
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(viewModel.isNetworkAvailable ? AppPalette.success : AppPalette.caution)
+                        .frame(width: 8, height: 8)
+                    Text(viewModel.networkStatusText)
+                        .font(.caption2.weight(.semibold))
+                        .foregroundColor(viewModel.isNetworkAvailable ? AppPalette.success : AppPalette.caution)
+                    if viewModel.pendingSyncCount > 0 {
+                        Text("未同期\(viewModel.pendingSyncCount)件")
+                            .font(.caption2)
+                            .foregroundColor(AppPalette.caution)
+                    }
+                    if viewModel.isSyncingPendingActions {
+                        ProgressView()
+                            .scaleEffect(0.7)
+                    }
+                }
             }
             Spacer()
             Text(viewModel.progressText)
@@ -863,14 +1145,14 @@ struct QuizPencilModeView: View {
                             Task { await viewModel.submitAnswer() }
                         }
                         .buttonStyle(.borderedProminent)
-                        .disabled(viewModel.selectedAnswer == nil)
+                        .disabled(viewModel.selectedAnswer == nil || viewModel.isSubmittingAnswer)
 
                         Button("わからない") {
                             Task { await viewModel.submitAsUnknown() }
                         }
                         .buttonStyle(.borderedProminent)
                         .tint(AppPalette.caution)
-                        .disabled(viewModel.isDrawMode)
+                        .disabled(viewModel.isDrawMode || viewModel.isSubmittingAnswer)
                     }
                 } else {
                     Button(viewModel.currentIndex + 1 < viewModel.questions.count ? "次の問題へ" : "完了") {
