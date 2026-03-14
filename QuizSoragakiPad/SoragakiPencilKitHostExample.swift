@@ -84,6 +84,9 @@ final class QuizPencilModeViewModel: ObservableObject {
     static let questionTimerDuration: TimeInterval = 120
     private static let installDateKey = "quiz_app_install_date"
     private static let installFingerprintKey = "quiz_app_install_fingerprint"
+    private static let memoColorIDKey = "quiz_app_memo_color_id"
+    private static let memoColorWheelRotationKey = "quiz_app_memo_color_wheel_rotation"
+    private static let memoRecentColorIDsKey = "quiz_app_memo_recent_color_ids"
 
     enum InteractionMode {
         case select
@@ -122,12 +125,15 @@ final class QuizPencilModeViewModel: ObservableObject {
         }
     }
 
-    enum MemoCanvasTarget {
+    enum MemoCanvasTarget: String, Identifiable {
         case explanation
         case question
+
+        var id: String { rawValue }
     }
 
     enum MemoToolKind: String, CaseIterable, Identifiable {
+        case pencil
         case pen
         case marker
         case eraser
@@ -136,6 +142,8 @@ final class QuizPencilModeViewModel: ObservableObject {
 
         var label: String {
             switch self {
+            case .pencil:
+                return "鉛筆"
             case .pen:
                 return "ペン"
             case .marker:
@@ -144,46 +152,111 @@ final class QuizPencilModeViewModel: ObservableObject {
                 return "消しゴム"
             }
         }
-    }
 
-    enum MemoInkColor: String, CaseIterable, Identifiable {
-        case black
-        case blue
-        case red
-        case green
-
-        var id: String { rawValue }
-
-        var color: Color {
+        var symbolName: String {
             switch self {
-            case .black:
-                return Color(uiColor: .quizInkBlack)
-            case .blue:
-                return Color(uiColor: .systemBlue)
-            case .red:
-                return Color(uiColor: .systemRed)
-            case .green:
-                return Color(uiColor: .systemGreen)
+            case .pencil:
+                return "pencil.tip"
+            case .pen:
+                return "pencil.line"
+            case .marker:
+                return "highlighter"
+            case .eraser:
+                return "eraser"
             }
         }
+    }
 
-        var uiColor: UIColor {
-            switch self {
-            case .black:
-                return .quizInkBlack
-            case .blue:
-                return .systemBlue
-            case .red:
-                return .systemRed
-            case .green:
-                return .systemGreen
+    struct MemoInkColor: Identifiable, Equatable {
+        let id: String
+        let name: String
+        let code: String
+        let familyCode: String
+        let uiColor: UIColor
+        let ring: Int
+        let slot: Int
+
+        static func == (lhs: MemoInkColor, rhs: MemoInkColor) -> Bool {
+            lhs.id == rhs.id
+        }
+
+        var color: Color {
+            Color(uiColor: uiColor)
+        }
+
+        static let defaultColorID = "neutral-0"
+
+        static let palette: [MemoInkColor] = {
+            let neutralSwatches: [(String, String, String)] = [
+                ("100", "Black", "#051425"),
+                ("C3", "Cool Gray", "#4b555f"),
+                ("N4", "Neutral Gray", "#7d878f"),
+                ("W3", "Warm Gray", "#b5ac9c"),
+                ("T1", "Tonal Gray", "#ded7cd"),
+                ("C1", "Cool Light", "#c9d2db"),
+                ("N1", "Neutral Light", "#dfe4e8"),
+                ("W1", "Warm Light", "#ede3d6"),
+                ("110", "White", "#f8fbff"),
+            ]
+
+            let neutrals = neutralSwatches.enumerated().map { index, swatch in
+                MemoInkColor(
+                    id: "neutral-\(index)",
+                    name: swatch.1,
+                    code: swatch.0,
+                    familyCode: "GRAY",
+                    uiColor: UIColor(Color(hex: swatch.2)),
+                    ring: 0,
+                    slot: index
+                )
             }
+
+            let familyCodes = ["R", "YR", "Y", "YG", "G", "BG", "B", "BV", "RV"]
+            let ringConfigs: [(CGFloat, CGFloat)] = [
+                (0.35, 1.00),
+                (0.50, 0.98),
+                (0.65, 0.96),
+                (0.80, 0.93),
+                (0.96, 0.90),
+            ]
+
+            let chromatic = ringConfigs.enumerated().flatMap { ringIndex, config in
+                (0..<9).map { slot in
+                    let hue = CGFloat(slot) / 9.0
+                    return MemoInkColor(
+                        id: "ring-\(ringIndex)-slot-\(slot)",
+                        name: "\(familyCodes[slot]) Family",
+                        code: "\(familyCodes[slot])\(ringIndex * 2 + 1)",
+                        familyCode: familyCodes[slot],
+                        uiColor: UIColor(hue: hue, saturation: config.0, brightness: config.1, alpha: 1),
+                        ring: ringIndex + 1,
+                        slot: slot
+                    )
+                }
+            }
+
+            return neutrals + chromatic
+        }()
+
+        static var defaultColor: MemoInkColor {
+            color(withID: defaultColorID)
+        }
+
+        static func color(withID id: String?) -> MemoInkColor {
+            guard let id, let match = palette.first(where: { $0.id == id }) else {
+                return defaultColorFallback
+            }
+            return match
+        }
+
+        private static var defaultColorFallback: MemoInkColor {
+            palette.first(where: { $0.id == defaultColorID }) ?? palette[0]
         }
     }
 
     struct MemoToolState: Equatable {
         var kind: MemoToolKind = .pen
-        var color: MemoInkColor = .black
+        var color: MemoInkColor = MemoInkColor.defaultColor
     }
 
     @Published var isLoading: Bool = false
@@ -215,6 +288,10 @@ final class QuizPencilModeViewModel: ObservableObject {
     @Published var questionMemoToolPicker = PKToolPicker()
     @Published var explanationMemoTool = MemoToolState()
     @Published var questionMemoTool = MemoToolState()
+    @Published var memoColorWheelRotation: Double = -90
+    @Published var recentMemoColors: [MemoInkColor] = []
+    @Published var explanationMemoExtraHeight: CGFloat = 0
+    @Published var questionMemoExtraHeight: CGFloat = 0
     @Published var customExplanationMemoImageDataURL: String?
     @Published var customQuestionMemoImageDataURL: String?
     @Published var historyStats: [String: QuizHistoryStat] = [:]
@@ -289,6 +366,7 @@ final class QuizPencilModeViewModel: ObservableObject {
             iPadProfile = detectIPadProfile()
         }
         updateInstalledElapsedDays()
+        loadPersistedMemoPaletteSettings()
         loadPendingSyncActions()
         setupNetworkMonitor()
         prepareMainCanvas()
@@ -297,6 +375,30 @@ final class QuizPencilModeViewModel: ObservableObject {
         prepareMemoCanvas(questionMemoCanvasView, toolState: questionMemoTool)
         await startQuiz()
         await processPendingSyncActionsIfNeeded()
+    }
+
+    private func loadPersistedMemoPaletteSettings() {
+        let defaults = UserDefaults.standard
+        let persistedColor = MemoInkColor.color(withID: defaults.string(forKey: Self.memoColorIDKey))
+        explanationMemoTool.color = persistedColor
+        questionMemoTool.color = persistedColor
+        let persistedRotation = defaults.object(forKey: Self.memoColorWheelRotationKey) as? Double
+        memoColorWheelRotation = persistedRotation ?? -90
+        let recentColorIDs = defaults.stringArray(forKey: Self.memoRecentColorIDsKey) ?? [persistedColor.id]
+        recentMemoColors = recentColorIDs.map { MemoInkColor.color(withID: $0) }
+    }
+
+    private func persistMemoPaletteSettings() {
+        let defaults = UserDefaults.standard
+        defaults.set(explanationMemoTool.color.id, forKey: Self.memoColorIDKey)
+        defaults.set(memoColorWheelRotation, forKey: Self.memoColorWheelRotationKey)
+        defaults.set(recentMemoColors.map(\.id), forKey: Self.memoRecentColorIDsKey)
+    }
+
+    private func registerRecentMemoColor(_ color: MemoInkColor) {
+        var next = recentMemoColors.filter { $0 != color }
+        next.insert(color, at: 0)
+        recentMemoColors = Array(next.prefix(8))
     }
 
     private func updateInstalledElapsedDays() {
@@ -815,6 +917,8 @@ final class QuizPencilModeViewModel: ObservableObject {
         interactionMode = .draw
         isExplanationDrawMode = true
         extraWriteAreaHeight = 0
+        explanationMemoExtraHeight = 0
+        questionMemoExtraHeight = 0
         clearPencilLayer()
         clearExplanationPencilLayer()
         clearExplanationMemoInput()
@@ -930,6 +1034,8 @@ final class QuizPencilModeViewModel: ObservableObject {
 
     private func makeCanvasTool(from state: MemoToolState) -> PKTool {
         switch state.kind {
+        case .pencil:
+            return PKInkingTool(.pencil, color: state.color.uiColor, width: 3)
         case .pen:
             return PKInkingTool(.pen, color: state.color.uiColor, width: 4)
         case .marker:
@@ -959,19 +1065,46 @@ final class QuizPencilModeViewModel: ObservableObject {
     }
 
     func setMemoInkColor(_ color: MemoInkColor, for target: MemoCanvasTarget) {
+        explanationMemoTool.color = color
+        questionMemoTool.color = color
         switch target {
         case .explanation:
-            explanationMemoTool.color = color
             if explanationMemoTool.kind == .eraser {
                 explanationMemoTool.kind = .pen
             }
+            applyMemoTool(for: .question)
         case .question:
-            questionMemoTool.color = color
             if questionMemoTool.kind == .eraser {
                 questionMemoTool.kind = .pen
             }
+            applyMemoTool(for: .explanation)
         }
         applyMemoTool(for: target)
+        registerRecentMemoColor(color)
+        persistMemoPaletteSettings()
+    }
+
+    func setMemoColorWheelRotation(_ rotation: Double) {
+        memoColorWheelRotation = rotation
+        persistMemoPaletteSettings()
+    }
+
+    func expandMemoInputArea(for target: MemoCanvasTarget) {
+        switch target {
+        case .explanation:
+            explanationMemoExtraHeight = min(explanationMemoExtraHeight + 220, 1600)
+        case .question:
+            questionMemoExtraHeight = min(questionMemoExtraHeight + 220, 1600)
+        }
+    }
+
+    func shrinkMemoInputArea(for target: MemoCanvasTarget) {
+        switch target {
+        case .explanation:
+            explanationMemoExtraHeight = max(explanationMemoExtraHeight - 220, 0)
+        case .question:
+            questionMemoExtraHeight = max(questionMemoExtraHeight - 220, 0)
+        }
     }
 
     private func snapshotDrawingDataURL(from canvas: PKCanvasView) -> String? {
@@ -1191,96 +1324,141 @@ struct QuizPencilModeView: View {
     @State private var isMyMemoSectionExpanded = false
     @State private var isExplanationMemoSectionExpanded = false
     @State private var isQuestionMemoSectionExpanded = false
+    @State private var activeMemoColorWheelTarget: QuizPencilModeViewModel.MemoCanvasTarget?
 
     var body: some View {
         GeometryReader { geometry in
-            ScrollViewReader { scrollProxy in
-                ScrollView {
-                    VStack(spacing: 10) {
-                        header
-                            .id(ScrollTarget.top)
-                        if viewModel.isLoading {
-                            ProgressView("問題を取得中...")
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        } else if viewModel.isSessionFinished {
-                            completionView
-                        } else if let question = viewModel.currentQuestion {
-                            questionBody(question, availableHeight: geometry.size.height)
-                        } else {
-                            Text(viewModel.errorMessage ?? "問題がありません。")
-                                .foregroundColor(.secondary)
-                                .padding()
-                        }
-                        if let message = viewModel.syncStatusMessage {
-                            Text(message)
-                                .font(.footnote.weight(.semibold))
-                                .foregroundColor(viewModel.pendingSyncCount > 0 ? AppPalette.caution : AppPalette.success)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.bottom, 4)
-                        }
-                        if let message = viewModel.errorMessage {
-                            Text(message)
-                                .font(.footnote)
-                                .foregroundColor(.secondary)
-                                .padding(.bottom, 4)
-                        }
-                        if let message = viewModel.completionMessage {
-                            Text(message)
-                                .font(.footnote.weight(.semibold))
-                                .foregroundColor(AppPalette.success)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.horizontal, 2)
-                                .padding(.bottom, 4)
-                        }
-                    }
-                }
-                .padding()
-                .scrollDismissesKeyboard(.interactively)
-                .toolbar {
-                    ToolbarItemGroup(placement: .keyboard) {
-                        Spacer()
-                        Button("完了") {
-                            isMemoEditorFocused = false
+            ZStack {
+                ScrollViewReader { scrollProxy in
+                    ScrollView {
+                        VStack(spacing: 10) {
+                            header
+                                .id(ScrollTarget.top)
+                            if viewModel.isLoading {
+                                ProgressView("問題を取得中...")
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            } else if viewModel.isSessionFinished {
+                                completionView
+                            } else if let question = viewModel.currentQuestion {
+                                questionBody(question, availableHeight: geometry.size.height)
+                            } else {
+                                Text(viewModel.errorMessage ?? "問題がありません。")
+                                    .foregroundColor(.secondary)
+                                    .padding()
+                            }
+                            if let message = viewModel.syncStatusMessage {
+                                Text(message)
+                                    .font(.footnote.weight(.semibold))
+                                    .foregroundColor(viewModel.pendingSyncCount > 0 ? AppPalette.caution : AppPalette.success)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.bottom, 4)
+                            }
+                            if let message = viewModel.errorMessage {
+                                Text(message)
+                                    .font(.footnote)
+                                    .foregroundColor(.secondary)
+                                    .padding(.bottom, 4)
+                            }
+                            if let message = viewModel.completionMessage {
+                                Text(message)
+                                    .font(.footnote.weight(.semibold))
+                                    .foregroundColor(AppPalette.success)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.horizontal, 2)
+                                    .padding(.bottom, 4)
+                            }
                         }
                     }
-                }
-                .onChange(of: viewModel.currentQuestion?.id) { _, _ in
-                    collapseMemoSections()
-                    isMemoEditorFocused = false
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        scrollProxy.scrollTo(ScrollTarget.top, anchor: .top)
+                    .padding()
+                    .scrollDismissesKeyboard(.interactively)
+                    .toolbar {
+                        ToolbarItemGroup(placement: .keyboard) {
+                            Spacer()
+                            Button("完了") {
+                                isMemoEditorFocused = false
+                            }
+                        }
+                    }
+                    .onChange(of: viewModel.currentQuestion?.id) { _, _ in
+                        collapseMemoSections()
+                        isMemoEditorFocused = false
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            scrollProxy.scrollTo(ScrollTarget.top, anchor: .top)
+                        }
+                    }
+                    .onChange(of: isMyMemoSectionExpanded) { _, isExpanded in
+                        guard isExpanded else { return }
+                        scrollToSection(.myMemo, with: scrollProxy)
+                    }
+                    .onChange(of: isMemoEditorFocused) { _, isFocused in
+                        guard isFocused else { return }
+                        if !isMyMemoSectionExpanded {
+                            isMyMemoSectionExpanded = true
+                        }
+                        scrollToMemoEditor(with: scrollProxy)
+                    }
+                    .onChange(of: isExplanationMemoSectionExpanded) { _, isExpanded in
+                        guard isExpanded else { return }
+                        scrollToSection(.explanationMemo, with: scrollProxy)
+                    }
+                    .onChange(of: isQuestionMemoSectionExpanded) { _, isExpanded in
+                        guard isExpanded else { return }
+                        scrollToSection(.questionMemo, with: scrollProxy)
+                    }
+                    .onChange(of: scenePhase) { _, newPhase in
+                        guard newPhase == .active else { return }
+                        Task {
+                            await viewModel.refreshPendingSyncState()
+                        }
+                    }
+                    .task {
+                        await viewModel.configure(with: deepLink)
+                        collapseMemoSections()
                     }
                 }
-                .onChange(of: isMyMemoSectionExpanded) { _, isExpanded in
-                    guard isExpanded else { return }
-                    scrollToSection(.myMemo, with: scrollProxy)
-                }
-                .onChange(of: isMemoEditorFocused) { _, isFocused in
-                    guard isFocused else { return }
-                    if !isMyMemoSectionExpanded {
-                        isMyMemoSectionExpanded = true
+
+                if let target = activeMemoColorWheelTarget {
+                    ZStack {
+                        Color.black.opacity(0.001)
+                            .ignoresSafeArea()
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                withAnimation(.spring(response: 0.28, dampingFraction: 0.9)) {
+                                    activeMemoColorWheelTarget = nil
+                                }
+                            }
+
+                        MemoColorWheelOverlay(
+                            title: target == .explanation ? "解説補足の色変更" : "問題補足の色変更",
+                            selectedColor: memoToolState(for: target).color,
+                            selectedTool: memoToolState(for: target).kind,
+                            rotationDegrees: viewModel.memoColorWheelRotation,
+                            recentColors: viewModel.recentMemoColors,
+                            onSelectColor: { color in
+                                viewModel.setMemoInkColor(color, for: target)
+                            },
+                            onSelectTool: { kind in
+                                viewModel.setMemoToolKind(kind, for: target)
+                            },
+                            onRotate: { rotation in
+                                viewModel.setMemoColorWheelRotation(rotation)
+                            },
+                            onClose: {
+                                withAnimation(.spring(response: 0.28, dampingFraction: 0.9)) {
+                                    activeMemoColorWheelTarget = nil
+                                }
+                            }
+                        )
+                        .frame(width: min(geometry.size.width * 0.7, 620), height: min(geometry.size.height * 0.78, 760))
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                        .padding(.top, 82)
+                        .padding(.trailing, 18)
                     }
-                    scrollToMemoEditor(with: scrollProxy)
-                }
-                .onChange(of: isExplanationMemoSectionExpanded) { _, isExpanded in
-                    guard isExpanded else { return }
-                    scrollToSection(.explanationMemo, with: scrollProxy)
-                }
-                .onChange(of: isQuestionMemoSectionExpanded) { _, isExpanded in
-                    guard isExpanded else { return }
-                    scrollToSection(.questionMemo, with: scrollProxy)
-                }
-                .onChange(of: scenePhase) { _, newPhase in
-                    guard newPhase == .active else { return }
-                    Task {
-                        await viewModel.refreshPendingSyncState()
-                    }
-                }
-                .task {
-                    await viewModel.configure(with: deepLink)
-                    collapseMemoSections()
+                    .transition(.asymmetric(insertion: .scale(scale: 0.92).combined(with: .opacity), removal: .opacity))
+                    .zIndex(20)
                 }
             }
+            .animation(.spring(response: 0.28, dampingFraction: 0.9), value: activeMemoColorWheelTarget != nil)
         }
     }
 
@@ -1671,8 +1849,11 @@ struct QuizPencilModeView: View {
                             toolPicker: $viewModel.explanationMemoToolPicker,
                             isActive: isExplanationMemoSectionExpanded,
                             toolState: viewModel.explanationMemoTool,
+                            extraHeight: viewModel.explanationMemoExtraHeight,
                             onSelectTool: { viewModel.setMemoToolKind($0, for: .explanation) },
-                            onSelectColor: { viewModel.setMemoInkColor($0, for: .explanation) },
+                            onOpenColorWheel: { activeMemoColorWheelTarget = .explanation },
+                            onExpandInputArea: { viewModel.expandMemoInputArea(for: .explanation) },
+                            onShrinkInputArea: { viewModel.shrinkMemoInputArea(for: .explanation) },
                             onSave: viewModel.saveExplanationMemoDrawing,
                             onClearInput: viewModel.clearExplanationMemoInput,
                             onClearSaved: viewModel.clearExplanationMemoImage,
@@ -1691,8 +1872,11 @@ struct QuizPencilModeView: View {
                             toolPicker: $viewModel.questionMemoToolPicker,
                             isActive: isQuestionMemoSectionExpanded,
                             toolState: viewModel.questionMemoTool,
+                            extraHeight: viewModel.questionMemoExtraHeight,
                             onSelectTool: { viewModel.setMemoToolKind($0, for: .question) },
-                            onSelectColor: { viewModel.setMemoInkColor($0, for: .question) },
+                            onOpenColorWheel: { activeMemoColorWheelTarget = .question },
+                            onExpandInputArea: { viewModel.expandMemoInputArea(for: .question) },
+                            onShrinkInputArea: { viewModel.shrinkMemoInputArea(for: .question) },
                             onSave: viewModel.saveQuestionMemoDrawing,
                             onClearInput: viewModel.clearQuestionMemoInput,
                             onClearSaved: viewModel.clearQuestionMemoImage,
@@ -1740,6 +1924,15 @@ struct QuizPencilModeView: View {
         isMyMemoSectionExpanded = false
         isExplanationMemoSectionExpanded = false
         isQuestionMemoSectionExpanded = false
+    }
+
+    private func memoToolState(for target: QuizPencilModeViewModel.MemoCanvasTarget) -> QuizPencilModeViewModel.MemoToolState {
+        switch target {
+        case .explanation:
+            return viewModel.explanationMemoTool
+        case .question:
+            return viewModel.questionMemoTool
+        }
     }
 
     private func mainQuestionAreaHeight(availableHeight: CGFloat) -> CGFloat {
@@ -1836,8 +2029,11 @@ struct QuizPencilModeView: View {
         toolPicker: Binding<PKToolPicker>,
         isActive: Bool,
         toolState: QuizPencilModeViewModel.MemoToolState,
+        extraHeight: CGFloat,
         onSelectTool: @escaping (QuizPencilModeViewModel.MemoToolKind) -> Void,
-        onSelectColor: @escaping (QuizPencilModeViewModel.MemoInkColor) -> Void,
+        onOpenColorWheel: @escaping () -> Void,
+        onExpandInputArea: @escaping () -> Void,
+        onShrinkInputArea: @escaping () -> Void,
         onSave: @escaping () -> Void,
         onClearInput: @escaping () -> Void,
         onClearSaved: @escaping () -> Void,
@@ -1863,6 +2059,15 @@ struct QuizPencilModeView: View {
                 }
                 .buttonStyle(.bordered)
                 .disabled(savedImage == nil)
+                Button("入力エリア+") {
+                    onExpandInputArea()
+                }
+                .buttonStyle(.bordered)
+                Button("入力エリア-") {
+                    onShrinkInputArea()
+                }
+                .buttonStyle(.bordered)
+                .disabled(extraHeight <= 0)
             }
             HStack(spacing: 8) {
                 ForEach(QuizPencilModeViewModel.MemoToolKind.allCases) { kind in
@@ -1873,22 +2078,32 @@ struct QuizPencilModeView: View {
                     .tint(toolState.kind == kind ? AppPalette.primaryNew : AppPalette.light)
                 }
                 Spacer()
-                ForEach(QuizPencilModeViewModel.MemoInkColor.allCases) { color in
-                    Button {
-                        onSelectColor(color)
-                    } label: {
+                Button {
+                    onOpenColorWheel()
+                } label: {
+                    HStack(spacing: 8) {
                         Circle()
-                            .fill(color.color)
+                            .fill(toolState.color.color)
                             .frame(width: 22, height: 22)
                             .overlay(
                                 Circle()
-                                    .stroke(toolState.color == color ? AppPalette.primaryNew : AppPalette.light.opacity(0.5), lineWidth: 2)
+                                    .stroke(AppPalette.primaryNew, lineWidth: 2)
                             )
+                        Text("色変更")
+                            .font(.subheadline.weight(.semibold))
                     }
-                    .buttonStyle(.plain)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(AppPalette.white)
+                    .clipShape(Capsule())
+                    .overlay(
+                        Capsule()
+                            .stroke(AppPalette.light.opacity(0.7), lineWidth: 1)
+                    )
                 }
+                .buttonStyle(.plain)
             }
-            Text("ペン・マーカー・消しゴムを切り替えられます。画像保存の動きはそのままです。")
+            Text("鉛筆・ペン・マーカー・消しゴムを切り替え、色変更は円形ホイールから行えます。画像保存の動きはそのままです。")
                 .font(.caption)
                 .foregroundColor(.secondary)
             MemoCanvasInputView(
@@ -1896,7 +2111,7 @@ struct QuizPencilModeView: View {
                 toolPicker: toolPicker,
                 isActive: isActive
             )
-                .frame(minHeight: 810)
+                .frame(minHeight: 810 + extraHeight)
                 .background(AppPalette.white)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
                 .overlay(RoundedRectangle(cornerRadius: 10).stroke(AppPalette.light.opacity(0.6), lineWidth: 1))
@@ -1904,6 +2119,464 @@ struct QuizPencilModeView: View {
                 memoImageSection(title: savedImageTitle, image: savedImage)
             }
         }
+    }
+}
+
+struct MemoColorWheelOverlay: View {
+    let title: String
+    let selectedColor: QuizPencilModeViewModel.MemoInkColor
+    let selectedTool: QuizPencilModeViewModel.MemoToolKind
+    let rotationDegrees: Double
+    let recentColors: [QuizPencilModeViewModel.MemoInkColor]
+    let onSelectColor: (QuizPencilModeViewModel.MemoInkColor) -> Void
+    let onSelectTool: (QuizPencilModeViewModel.MemoToolKind) -> Void
+    let onRotate: (Double) -> Void
+    let onClose: () -> Void
+
+    @State private var workingRotation: Double
+    @State private var lastDragAngle: Double?
+
+    init(
+        title: String,
+        selectedColor: QuizPencilModeViewModel.MemoInkColor,
+        selectedTool: QuizPencilModeViewModel.MemoToolKind,
+        rotationDegrees: Double,
+        recentColors: [QuizPencilModeViewModel.MemoInkColor],
+        onSelectColor: @escaping (QuizPencilModeViewModel.MemoInkColor) -> Void,
+        onSelectTool: @escaping (QuizPencilModeViewModel.MemoToolKind) -> Void,
+        onRotate: @escaping (Double) -> Void,
+        onClose: @escaping () -> Void
+    ) {
+        self.title = title
+        self.selectedColor = selectedColor
+        self.selectedTool = selectedTool
+        self.rotationDegrees = rotationDegrees
+        self.recentColors = recentColors
+        self.onSelectColor = onSelectColor
+        self.onSelectTool = onSelectTool
+        self.onRotate = onRotate
+        self.onClose = onClose
+        _workingRotation = State(initialValue: rotationDegrees)
+    }
+
+    var body: some View {
+        GeometryReader { proxy in
+            let width = proxy.size.width
+            let wheelSize = min(width * 0.30, 180.0)
+            let panelWidth = width
+            let panelHeight = proxy.size.height
+            let pivot = CGPoint(x: wheelSize * 0.98, y: wheelSize * 1.14)
+
+            ZStack(alignment: .topLeading) {
+                fanBackground(width: panelWidth - wheelSize * 0.58, height: panelHeight - 28)
+                    .offset(x: wheelSize * 0.52, y: 12)
+
+                topBar
+                    .padding(.leading, wheelSize + 8)
+                    .padding(.top, 16)
+
+                fanPalette(
+                    size: CGSize(width: panelWidth, height: panelHeight),
+                    pivot: pivot,
+                    wheelSize: wheelSize
+                )
+
+                toolWheel(size: wheelSize)
+                    .offset(x: 10, y: 50)
+
+                recentColorsBar
+                    .padding(.leading, wheelSize + 12)
+                    .padding(.bottom, 16)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+            }
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 2)
+                    .onChanged { value in
+                        handleRotationChanged(location: value.location, pivot: pivot)
+                    }
+                    .onEnded { _ in
+                        handleRotationEnded()
+                    }
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        }
+    }
+
+    private var groupedFamilies: [[QuizPencilModeViewModel.MemoInkColor]] {
+        let families = ["R", "YR", "Y", "YG", "G", "BG", "B", "BV", "RV"]
+        return families.map { family in
+            QuizPencilModeViewModel.MemoInkColor.palette
+                .filter { $0.familyCode == family }
+                .sorted { lhs, rhs in
+                    if lhs.ring == rhs.ring { return lhs.slot < rhs.slot }
+                    return lhs.ring > rhs.ring
+                }
+        }
+    }
+
+    private let fanAngleOffset: Double = -10
+
+    private var fanConfigs: [(angle: Double, radius: CGFloat, spread: CGFloat)] {
+        [
+            (-92 + fanAngleOffset, 0.32, 1.00),
+            (-74 + fanAngleOffset, 0.38, 1.02),
+            (-56 + fanAngleOffset, 0.45, 1.03),
+            (-37 + fanAngleOffset, 0.53, 1.04),
+            (-18 + fanAngleOffset, 0.61, 1.05),
+            (1 + fanAngleOffset, 0.58, 1.04),
+            (20 + fanAngleOffset, 0.51, 1.03),
+            (39 + fanAngleOffset, 0.44, 1.02),
+            (58 + fanAngleOffset, 0.37, 1.00),
+        ]
+    }
+
+    private var grayFamily: [QuizPencilModeViewModel.MemoInkColor] {
+        QuizPencilModeViewModel.MemoInkColor.palette.filter { $0.familyCode == "GRAY" }
+    }
+
+    private var topBar: some View {
+        HStack(spacing: 8) {
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundColor(AppPalette.dark.opacity(0.82))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 7)
+                .background(Color.white.opacity(0.82))
+                .clipShape(Capsule())
+            paletteModeChip(label: "COPIC", isActive: true)
+            Button(action: onClose) {
+                Image(systemName: "xmark")
+                    .font(.caption.weight(.bold))
+                    .foregroundColor(AppPalette.dark)
+                    .frame(width: 30, height: 30)
+                    .background(Color.white.opacity(0.88))
+                    .clipShape(Circle())
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private func toolWheel(size: CGFloat) -> some View {
+        ZStack {
+            Circle()
+                .fill(Color.clear)
+                .frame(width: size, height: size)
+                .overlay(Circle().stroke(Color.clear, lineWidth: 0))
+
+            ForEach(Array(QuizPencilModeViewModel.MemoToolKind.allCases.enumerated()), id: \.offset) { index, kind in
+                let angle = Angle.degrees(-105 + Double(index) * 70)
+                let radius = size * 0.34
+                let point = point(on: radius, angle: angle, center: CGPoint(x: size / 2, y: size / 2))
+                Button {
+                    onSelectTool(kind)
+                } label: {
+                    VStack(spacing: 2) {
+                        Image(systemName: kind.symbolName)
+                            .font(.system(size: 13, weight: .semibold))
+                        Text(kind.label)
+                            .font(.system(size: 9, weight: .bold))
+                    }
+                    .foregroundColor(selectedTool == kind ? .white : AppPalette.dark)
+                    .frame(width: 46, height: 46)
+                    .background(Circle().fill(selectedTool == kind ? AppPalette.primaryNew : Color.white.opacity(0.9)))
+                    .overlay(Circle().stroke(Color.white.opacity(selectedTool == kind ? 0 : 0.75), lineWidth: 1))
+                }
+                .buttonStyle(.plain)
+                .position(point)
+            }
+
+        }
+    }
+
+    private func handleRotationChanged(location: CGPoint, pivot: CGPoint) {
+        let currentAngle = angleDegrees(from: location, center: pivot)
+        if let previousAngle = lastDragAngle {
+            let delta = shortestAngleDelta(from: previousAngle, to: currentAngle)
+            let nextRotation = workingRotation + (delta * 1.7)
+            workingRotation = nextRotation
+            onRotate(nextRotation)
+        } else {
+            lastDragAngle = currentAngle
+        }
+        lastDragAngle = currentAngle
+    }
+
+    private func handleRotationEnded() {
+        lastDragAngle = nil
+    }
+
+    private func shortestAngleDelta(from previous: Double, to current: Double) -> Double {
+        var delta = current - previous
+        while delta > 180 {
+            delta -= 360
+        }
+        while delta < -180 {
+            delta += 360
+        }
+        return delta
+    }
+
+    private func fanPalette(size: CGSize, pivot: CGPoint, wheelSize: CGFloat) -> some View {
+        let tileSize = max(24, min(32, size.width * 0.048))
+        let baseLength = tileSize * 7.6
+        let sharedRotation = workingRotation / 7.5
+        return ZStack(alignment: .topLeading) {
+            ForEach(Array(groupedFamilies.enumerated()), id: \.offset) { index, family in
+                let config = fanConfigs[index]
+                let angle = config.angle + sharedRotation
+                let start = point(on: wheelSize * (1.34 + config.radius), angle: .degrees(angle), center: pivot)
+                paletteStrip(colors: family, cellSize: tileSize, familyCode: family.first?.familyCode)
+                    .frame(width: tileSize, height: baseLength * config.spread, alignment: .top)
+                    .rotationEffect(.degrees(angle), anchor: .topLeading)
+                    .position(x: start.x, y: start.y)
+            }
+
+            let grayAngle = -30 + (workingRotation / 9.0)
+            let grayStart = point(on: wheelSize * 1.10, angle: .degrees(grayAngle), center: pivot)
+            paletteStrip(colors: grayFamily, cellSize: tileSize, familyCode: "GRAY", textColor: .white.opacity(0.92))
+                .frame(width: tileSize, height: baseLength * 0.92, alignment: .top)
+                .rotationEffect(.degrees(grayAngle), anchor: .topLeading)
+                .position(x: grayStart.x, y: grayStart.y)
+        }
+        .frame(width: size.width, height: size.height, alignment: .topLeading)
+        .compositingGroup()
+        .mask(
+            LinearGradient(
+                stops: [
+                    .init(color: .white, location: 0.0),
+                    .init(color: .white, location: 0.58),
+                    .init(color: .white.opacity(0.76), location: 0.80),
+                    .init(color: .clear, location: 1.0),
+                ],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        )
+        .clipped()
+    }
+
+    private func paletteStrip(
+        colors: [QuizPencilModeViewModel.MemoInkColor],
+        cellSize: CGFloat,
+        familyCode: String?,
+        textColor: Color = AppPalette.dark
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            if let familyCode {
+                Text(familyCode)
+                    .font(.system(size: 8, weight: .black))
+                    .foregroundColor(AppPalette.dark.opacity(0.72))
+                    .padding(.leading, 4)
+                    .padding(.bottom, 2)
+            }
+            VStack(spacing: 0) {
+                ForEach(Array(colors.enumerated()), id: \.element.id) { idx, color in
+                    Button {
+                        onSelectColor(color)
+                    } label: {
+                        ZStack(alignment: .topLeading) {
+                            Rectangle()
+                                .fill(color.color)
+                            Text(color.code)
+                                .font(.system(size: idx < 2 ? 8 : 7, weight: .bold))
+                                .foregroundColor(textColor.opacity(color == selectedColor ? 1 : 0.84))
+                                .padding(.top, 4)
+                                .padding(.leading, 4)
+                            if idx == 0 || idx == colors.count - 1 || color == selectedColor {
+                                Text(color.familyCode)
+                                    .font(.system(size: 6, weight: .black))
+                                    .foregroundColor(textColor.opacity(0.7))
+                                    .padding(.trailing, 3)
+                                    .padding(.bottom, 3)
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                            }
+                        }
+                        .frame(width: cellSize, height: cellSize)
+                        .overlay(
+                            Rectangle()
+                                .stroke(color == selectedColor ? Color.white : Color.black.opacity(0.08), lineWidth: color == selectedColor ? 2 : 0.5)
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 2))
+        .shadow(color: .black.opacity(0.14), radius: 4, y: 2)
+        .rotationEffect(.degrees(-90))
+    }
+
+    private var infoStrip: some View {
+        HStack(alignment: .top, spacing: 16) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(selectedColor.name)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(AppPalette.dark)
+                Text("\(selectedColor.code) / \(selectedColor.familyCode)")
+                    .font(.caption.weight(.bold))
+                    .foregroundColor(AppPalette.primaryNew)
+            }
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text("最近使った色")
+                    .font(.caption.weight(.semibold))
+                    .foregroundColor(.secondary)
+                HStack(spacing: 8) {
+                    ForEach(recentColors.prefix(6)) { color in
+                        Button {
+                            onSelectColor(color)
+                        } label: {
+                            Circle()
+                                .fill(color.color)
+                                .frame(width: 24, height: 24)
+                                .overlay(
+                                    Circle()
+                                        .stroke(color == selectedColor ? AppPalette.primaryNew : Color.white.opacity(0.8), lineWidth: color == selectedColor ? 2.5 : 1)
+                                )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+            Spacer()
+        }
+    }
+
+    private var recentColorsBar: some View {
+        HStack(spacing: 8) {
+            Text("最近色")
+                .font(.caption.weight(.semibold))
+                .foregroundColor(.secondary)
+            ForEach(recentColors.prefix(6)) { color in
+                Button {
+                    onSelectColor(color)
+                } label: {
+                    Circle()
+                        .fill(color.color)
+                        .frame(width: 24, height: 24)
+                        .overlay(
+                            Circle()
+                                .stroke(color == selectedColor ? AppPalette.primaryNew : Color.white.opacity(0.82), lineWidth: color == selectedColor ? 2.5 : 1)
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(Color.white.opacity(0.76))
+        .clipShape(Capsule())
+    }
+
+    private func fanBackground(width: CGFloat, height: CGFloat) -> some View {
+        RoundedRectangle(cornerRadius: 34, style: .continuous)
+            .fill(
+                LinearGradient(
+                    colors: [
+                        Color.white.opacity(0.34),
+                        Color.white.opacity(0.12)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .frame(width: width, height: height)
+        .mask(
+            LinearGradient(
+                stops: [
+                    .init(color: .white, location: 0.0),
+                    .init(color: .white, location: 0.68),
+                    .init(color: .white.opacity(0.4), location: 0.88),
+                    .init(color: .clear, location: 1.0),
+                ],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 34, style: .continuous)
+                .stroke(
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(0.48),
+                            Color.white.opacity(0.18),
+                            .clear
+                        ],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    ),
+                    lineWidth: 1
+                )
+        )
+        .shadow(color: .black.opacity(0.12), radius: 18, y: 8)
+    }
+
+    private func paletteModeChip(label: String, isActive: Bool) -> some View {
+        Text(label)
+            .font(.caption.weight(.bold))
+            .foregroundColor(isActive ? .white : AppPalette.dark.opacity(0.72))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 7)
+            .background(isActive ? AppPalette.primaryNew : Color.white.opacity(0.72))
+            .clipShape(Capsule())
+            .overlay(
+                Capsule()
+                    .stroke(Color.white.opacity(isActive ? 0 : 0.6), lineWidth: 1)
+            )
+    }
+
+    private func paletteUtilityChip(symbol: String, label: String) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: symbol)
+                .font(.caption.weight(.semibold))
+            Text(label)
+                .font(.caption.weight(.semibold))
+        }
+        .foregroundColor(AppPalette.dark.opacity(0.72))
+        .padding(.horizontal, 10)
+        .padding(.vertical, 7)
+        .background(Color.white.opacity(0.7))
+        .clipShape(Capsule())
+        .overlay(
+            Capsule()
+                .stroke(Color.white.opacity(0.55), lineWidth: 1)
+        )
+    }
+
+    private func point(on radius: CGFloat, angle: Angle, center: CGPoint) -> CGPoint {
+        CGPoint(
+            x: center.x + CGFloat(cos(angle.radians)) * radius,
+            y: center.y + CGFloat(sin(angle.radians)) * radius
+        )
+    }
+
+    private func angleDegrees(from location: CGPoint, center: CGPoint) -> Double {
+        atan2(location.y - center.y, location.x - center.x) * 180 / .pi
+    }
+
+    private func normalizedAngle(_ angle: Double) -> Double {
+        let remainder = angle.truncatingRemainder(dividingBy: 360)
+        return remainder >= 0 ? remainder : remainder + 360
+    }
+}
+
+struct ArcShape: Shape {
+    let startAngle: Angle
+    let endAngle: Angle
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let radius = min(rect.width, rect.height) / 2
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        path.addArc(
+            center: center,
+            radius: radius,
+            startAngle: startAngle,
+            endAngle: endAngle,
+            clockwise: false
+        )
+        return path
     }
 }
 
