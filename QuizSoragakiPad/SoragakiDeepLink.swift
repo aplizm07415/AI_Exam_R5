@@ -1,11 +1,17 @@
 import Foundation
 
 struct QuizDeepLink {
+    enum IPadProfile: String {
+        case air
+        case mini
+    }
+
     let baseURL: URL
     let subjects: [String]
     let mode: String
     let count: Int
     let problemID: String?
+    let iPadProfile: IPadProfile?
 
     var isReviewMode: Bool {
         problemID != nil
@@ -69,16 +75,20 @@ enum AppDeepLink {
             let mode = components.queryItems?.first(where: { $0.name == "mode" })?.value ?? "random"
             let countRaw = components.queryItems?.first(where: { $0.name == "count" })?.value ?? "10"
             let count = max(1, Int(countRaw) ?? 10)
-            return .quiz(QuizDeepLink(baseURL: baseURL, subjects: subjects, mode: mode, count: count, problemID: nil))
+            let profileRaw = components.queryItems?.first(where: { $0.name == "profile" })?.value ?? ""
+            let profile = QuizDeepLink.IPadProfile(rawValue: profileRaw)
+            return .quiz(QuizDeepLink(baseURL: baseURL, subjects: subjects, mode: mode, count: count, problemID: nil, iPadProfile: profile))
         }
 
         if url.host == "quiz-review" {
             let subject = components.queryItems?.first(where: { $0.name == "subject" })?.value ?? ""
             let problemID = components.queryItems?.first(where: { $0.name == "problem" })?.value
+            let profileRaw = components.queryItems?.first(where: { $0.name == "profile" })?.value ?? ""
+            let profile = QuizDeepLink.IPadProfile(rawValue: profileRaw)
             guard !subject.isEmpty, let problemID, !problemID.isEmpty else {
                 return nil
             }
-            return .quiz(QuizDeepLink(baseURL: baseURL, subjects: [subject], mode: "review", count: 1, problemID: problemID))
+            return .quiz(QuizDeepLink(baseURL: baseURL, subjects: [subject], mode: "review", count: 1, problemID: problemID, iPadProfile: profile))
         }
 
         return nil

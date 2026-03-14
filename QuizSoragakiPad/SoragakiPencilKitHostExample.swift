@@ -3,6 +3,10 @@ import PencilKit
 import Combine
 import Network
 
+private extension UIColor {
+    static let quizInkBlack = UIColor(red: 5.0 / 255.0, green: 20.0 / 255.0, blue: 37.0 / 255.0, alpha: 1)
+}
+
 private extension Color {
     init(hex: String) {
         let cleaned = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
@@ -79,10 +83,107 @@ final class SoragakiPencilKitViewModelBridge {
 final class QuizPencilModeViewModel: ObservableObject {
     static let questionTimerDuration: TimeInterval = 120
     private static let installDateKey = "quiz_app_install_date"
+    private static let installFingerprintKey = "quiz_app_install_fingerprint"
 
     enum InteractionMode {
         case select
         case draw
+    }
+
+    enum IPadProfile: String {
+        case mini
+        case airOrLarger
+
+        var displayName: String {
+            switch self {
+            case .mini:
+                return "iPad mini"
+            case .airOrLarger:
+                return "iPad Air"
+            }
+        }
+
+        init(deepLinkProfile: QuizDeepLink.IPadProfile) {
+            switch deepLinkProfile {
+            case .air:
+                self = .airOrLarger
+            case .mini:
+                self = .mini
+            }
+        }
+
+        var memoInputHint: String {
+            switch self {
+            case .mini:
+                return "My Memo はキーボード入力を基本にして、補足欄は手書き入力で使う前提です。"
+            case .airOrLarger:
+                return "My Memo はキーボード入力に加えて、Apple Pencil の手書き文字入力も使えます。"
+            }
+        }
+    }
+
+    enum MemoCanvasTarget {
+        case explanation
+        case question
+    }
+
+    enum MemoToolKind: String, CaseIterable, Identifiable {
+        case pen
+        case marker
+        case eraser
+
+        var id: String { rawValue }
+
+        var label: String {
+            switch self {
+            case .pen:
+                return "ペン"
+            case .marker:
+                return "マーカー"
+            case .eraser:
+                return "消しゴム"
+            }
+        }
+    }
+
+    enum MemoInkColor: String, CaseIterable, Identifiable {
+        case black
+        case blue
+        case red
+        case green
+
+        var id: String { rawValue }
+
+        var color: Color {
+            switch self {
+            case .black:
+                return Color(uiColor: .quizInkBlack)
+            case .blue:
+                return Color(uiColor: .systemBlue)
+            case .red:
+                return Color(uiColor: .systemRed)
+            case .green:
+                return Color(uiColor: .systemGreen)
+            }
+        }
+
+        var uiColor: UIColor {
+            switch self {
+            case .black:
+                return .quizInkBlack
+            case .blue:
+                return .systemBlue
+            case .red:
+                return .systemRed
+            case .green:
+                return .systemGreen
+            }
+        }
+    }
+
+    struct MemoToolState: Equatable {
+        var kind: MemoToolKind = .pen
+        var color: MemoInkColor = .black
     }
 
     @Published var isLoading: Bool = false
@@ -99,13 +200,21 @@ final class QuizPencilModeViewModel: ObservableObject {
     @Published var isUpdatingReviewLater: Bool = false
     @Published var modeLabel: String = ""
     @Published var countLabel: String = ""
+    @Published var iPadProfile: IPadProfile = .airOrLarger
     @Published var canvasView = PKCanvasView()
     @Published var toolPicker = PKToolPicker()
     @Published var interactionMode: InteractionMode = .draw
+    @Published var explanationCanvasView = PKCanvasView()
+    @Published var explanationToolPicker = PKToolPicker()
+    @Published var isExplanationDrawMode: Bool = true
     @Published var extraWriteAreaHeight: CGFloat = 0
     @Published var customMemoText: String = ""
     @Published var explanationMemoCanvasView = PKCanvasView()
     @Published var questionMemoCanvasView = PKCanvasView()
+    @Published var explanationMemoToolPicker = PKToolPicker()
+    @Published var questionMemoToolPicker = PKToolPicker()
+    @Published var explanationMemoTool = MemoToolState()
+    @Published var questionMemoTool = MemoToolState()
     @Published var customExplanationMemoImageDataURL: String?
     @Published var customQuestionMemoImageDataURL: String?
     @Published var historyStats: [String: QuizHistoryStat] = [:]
@@ -174,12 +283,18 @@ final class QuizPencilModeViewModel: ObservableObject {
         isReviewMode = deepLink.isReviewMode
         modeLabel = deepLink.mode
         countLabel = "\(deepLink.count)"
+        if let deepLinkProfile = deepLink.iPadProfile {
+            iPadProfile = IPadProfile(deepLinkProfile: deepLinkProfile)
+        } else {
+            iPadProfile = detectIPadProfile()
+        }
         updateInstalledElapsedDays()
         loadPendingSyncActions()
         setupNetworkMonitor()
         prepareMainCanvas()
-        prepareMemoCanvas(explanationMemoCanvasView)
-        prepareMemoCanvas(questionMemoCanvasView)
+        prepareExplanationCanvas()
+        prepareMemoCanvas(explanationMemoCanvasView, toolState: explanationMemoTool)
+        prepareMemoCanvas(questionMemoCanvasView, toolState: questionMemoTool)
         await startQuiz()
         await processPendingSyncActionsIfNeeded()
     }
@@ -187,17 +302,28 @@ final class QuizPencilModeViewModel: ObservableObject {
     private func updateInstalledElapsedDays() {
         let defaults = UserDefaults.standard
         let now = Date()
+        let currentFingerprint = currentInstallFingerprint()
         let installDate: Date
-        if let savedDate = defaults.object(forKey: Self.installDateKey) as? Date {
+        let savedFingerprint = defaults.string(forKey: Self.installFingerprintKey)
+        if let savedDate = defaults.object(forKey: Self.installDateKey) as? Date,
+           savedFingerprint == currentFingerprint {
             installDate = savedDate
         } else {
             installDate = now
             defaults.set(installDate, forKey: Self.installDateKey)
+            defaults.set(currentFingerprint, forKey: Self.installFingerprintKey)
         }
         let startOfInstall = Calendar.current.startOfDay(for: installDate)
         let startOfNow = Calendar.current.startOfDay(for: now)
         let elapsed = Calendar.current.dateComponents([.day], from: startOfInstall, to: startOfNow).day ?? 0
         installedElapsedDays = max(0, elapsed)
+    }
+
+    private func currentInstallFingerprint() -> String {
+        let bundleURL = Bundle.main.bundleURL
+        let creationDate = (try? bundleURL.resourceValues(forKeys: [.creationDateKey]).creationDate)?
+            .timeIntervalSince1970 ?? 0
+        return "\(bundleURL.path)|\(creationDate)"
     }
 
     private func setupNetworkMonitor() {
@@ -309,6 +435,11 @@ final class QuizPencilModeViewModel: ObservableObject {
         }
         pendingSyncActions = nextQueue
         syncStatusMessage = nextQueue.isEmpty ? "未送信データの同期が完了しました。" : "一部の未送信データは引き続き保留です。"
+    }
+
+    func refreshPendingSyncState() async {
+        loadPendingSyncActions()
+        await processPendingSyncActionsIfNeeded()
     }
 
     func startQuiz() async {
@@ -587,6 +718,10 @@ final class QuizPencilModeViewModel: ObservableObject {
         canvasView.drawing = PKDrawing()
     }
 
+    func clearExplanationPencilLayer() {
+        explanationCanvasView.drawing = PKDrawing()
+    }
+
     func saveExplanationMemoDrawing() {
         guard let imageDataURL = snapshotDrawingDataURL(from: explanationMemoCanvasView) else {
             errorMessage = "解説補足の手書きがありません。"
@@ -678,8 +813,10 @@ final class QuizPencilModeViewModel: ObservableObject {
         isCorrect = false
         questionStartedAt = Date()
         interactionMode = .draw
+        isExplanationDrawMode = true
         extraWriteAreaHeight = 0
         clearPencilLayer()
+        clearExplanationPencilLayer()
         clearExplanationMemoInput()
         clearQuestionMemoInput()
         if let question = currentQuestion {
@@ -762,7 +899,15 @@ final class QuizPencilModeViewModel: ObservableObject {
         canvasView.alwaysBounceHorizontal = false
     }
 
-    private func prepareMemoCanvas(_ canvas: PKCanvasView) {
+    private func prepareExplanationCanvas() {
+        explanationCanvasView.backgroundColor = .clear
+        explanationCanvasView.isOpaque = false
+        explanationCanvasView.drawingPolicy = .pencilOnly
+        explanationCanvasView.alwaysBounceVertical = false
+        explanationCanvasView.alwaysBounceHorizontal = false
+    }
+
+    private func prepareMemoCanvas(_ canvas: PKCanvasView, toolState: MemoToolState) {
         canvas.backgroundColor = .clear
         canvas.isOpaque = false
         canvas.drawingPolicy = .anyInput
@@ -770,14 +915,74 @@ final class QuizPencilModeViewModel: ObservableObject {
         canvas.isScrollEnabled = false
         canvas.alwaysBounceVertical = false
         canvas.alwaysBounceHorizontal = false
-        canvas.tool = PKInkingTool(.pen, color: .black, width: 4)
+        canvas.tool = makeCanvasTool(from: toolState)
+    }
+
+    private func detectIPadProfile() -> IPadProfile {
+        let screenSize =
+            UIApplication.shared.connectedScenes
+                .compactMap { $0 as? UIWindowScene }
+                .first?.screen.bounds.size
+            ?? .zero
+        let shorterEdge = min(screenSize.width, screenSize.height)
+        return shorterEdge <= 744 ? .mini : .airOrLarger
+    }
+
+    private func makeCanvasTool(from state: MemoToolState) -> PKTool {
+        switch state.kind {
+        case .pen:
+            return PKInkingTool(.pen, color: state.color.uiColor, width: 4)
+        case .marker:
+            return PKInkingTool(.marker, color: state.color.uiColor, width: 12)
+        case .eraser:
+            return PKEraserTool(.vector)
+        }
+    }
+
+    private func applyMemoTool(for target: MemoCanvasTarget) {
+        switch target {
+        case .explanation:
+            explanationMemoCanvasView.tool = makeCanvasTool(from: explanationMemoTool)
+        case .question:
+            questionMemoCanvasView.tool = makeCanvasTool(from: questionMemoTool)
+        }
+    }
+
+    func setMemoToolKind(_ kind: MemoToolKind, for target: MemoCanvasTarget) {
+        switch target {
+        case .explanation:
+            explanationMemoTool.kind = kind
+        case .question:
+            questionMemoTool.kind = kind
+        }
+        applyMemoTool(for: target)
+    }
+
+    func setMemoInkColor(_ color: MemoInkColor, for target: MemoCanvasTarget) {
+        switch target {
+        case .explanation:
+            explanationMemoTool.color = color
+            if explanationMemoTool.kind == .eraser {
+                explanationMemoTool.kind = .pen
+            }
+        case .question:
+            questionMemoTool.color = color
+            if questionMemoTool.kind == .eraser {
+                questionMemoTool.kind = .pen
+            }
+        }
+        applyMemoTool(for: target)
     }
 
     private func snapshotDrawingDataURL(from canvas: PKCanvasView) -> String? {
         guard !canvas.drawing.strokes.isEmpty else { return nil }
         let size = canvas.bounds.size
         guard size.width > 0, size.height > 0 else { return nil }
-        let image = canvas.drawing.image(from: CGRect(origin: .zero, size: size), scale: 1.0)
+        let drawingBounds = canvas.drawing.bounds.insetBy(dx: -24, dy: -24)
+        let canvasBounds = CGRect(origin: .zero, size: size)
+        let captureRect = drawingBounds.intersection(canvasBounds)
+        let targetRect = captureRect.isNull || captureRect.isEmpty ? canvasBounds : captureRect
+        let image = canvas.drawing.image(from: targetRect, scale: 2.0)
         guard let pngData = image.pngData() else { return nil }
         return "data:image/png;base64,\(pngData.base64EncodedString())"
     }
@@ -842,11 +1047,17 @@ struct QuizPencilOverlayView: UIViewRepresentable {
 
 struct MemoCanvasInputView: UIViewRepresentable {
     @Binding var canvasView: PKCanvasView
+    @Binding var toolPicker: PKToolPicker
+    let isActive: Bool
 
     func makeUIView(context: Context) -> UIView {
         let container = UIView(frame: .zero)
         container.backgroundColor = .clear
         canvasView.translatesAutoresizingMaskIntoConstraints = false
+        canvasView.backgroundColor = .clear
+        canvasView.isOpaque = false
+        canvasView.drawingPolicy = .pencilOnly
+        canvasView.isUserInteractionEnabled = true
         container.addSubview(canvasView)
         NSLayoutConstraint.activate([
             canvasView.topAnchor.constraint(equalTo: container.topAnchor),
@@ -854,124 +1065,311 @@ struct MemoCanvasInputView: UIViewRepresentable {
             canvasView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
             canvasView.trailingAnchor.constraint(equalTo: container.trailingAnchor),
         ])
+        toolPicker.setVisible(false, forFirstResponder: canvasView)
+        toolPicker.addObserver(canvasView)
+        if isActive {
+            canvasView.becomeFirstResponder()
+        }
         return container
     }
 
     func updateUIView(_ uiView: UIView, context: Context) {
+        uiView.isUserInteractionEnabled = isActive
         canvasView.backgroundColor = .clear
         canvasView.isOpaque = false
-        canvasView.drawingPolicy = .anyInput
-        canvasView.isUserInteractionEnabled = true
+        canvasView.drawingPolicy = .pencilOnly
+        canvasView.isUserInteractionEnabled = isActive
+        toolPicker.setVisible(false, forFirstResponder: canvasView)
+        if isActive {
+            canvasView.becomeFirstResponder()
+        }
+    }
+}
+
+struct MemoTextEditorView: UIViewRepresentable {
+    @Binding var text: String
+    @Binding var isFocused: Bool
+    let allowsStylusHandwriting: Bool
+
+    final class MemoTextView: UITextView {
+        var allowsStylusHandwriting = true
+
+        private func shouldIgnore(_ touches: Set<UITouch>) -> Bool {
+            !allowsStylusHandwriting && touches.contains(where: { $0.type == .pencil })
+        }
+
+        override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+            guard !shouldIgnore(touches) else { return }
+            super.touchesBegan(touches, with: event)
+        }
+
+        override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+            guard !shouldIgnore(touches) else { return }
+            super.touchesMoved(touches, with: event)
+        }
+
+        override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+            guard !shouldIgnore(touches) else { return }
+            super.touchesEnded(touches, with: event)
+        }
+
+        override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+            guard !shouldIgnore(touches) else { return }
+            super.touchesCancelled(touches, with: event)
+        }
+    }
+
+    final class Coordinator: NSObject, UITextViewDelegate {
+        var parent: MemoTextEditorView
+
+        init(parent: MemoTextEditorView) {
+            self.parent = parent
+        }
+
+        func textViewDidChange(_ textView: UITextView) {
+            parent.text = textView.text
+        }
+
+        func textViewDidBeginEditing(_ textView: UITextView) {
+            parent.isFocused = true
+        }
+
+        func textViewDidEndEditing(_ textView: UITextView) {
+            parent.isFocused = false
+        }
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(parent: self)
+    }
+
+    func makeUIView(context: Context) -> MemoTextView {
+        let textView = MemoTextView(frame: .zero)
+        textView.delegate = context.coordinator
+        textView.backgroundColor = .clear
+        textView.textColor = .quizInkBlack
+        textView.font = .preferredFont(forTextStyle: .body)
+        textView.textContainerInset = UIEdgeInsets(top: 8, left: 4, bottom: 8, right: 4)
+        textView.keyboardDismissMode = .interactive
+        textView.isScrollEnabled = true
+        textView.allowsStylusHandwriting = allowsStylusHandwriting
+        return textView
+    }
+
+    func updateUIView(_ textView: MemoTextView, context: Context) {
+        if textView.text != text {
+            textView.text = text
+        }
+        textView.textColor = .quizInkBlack
+        textView.allowsStylusHandwriting = allowsStylusHandwriting
+        if isFocused, !textView.isFirstResponder {
+            textView.becomeFirstResponder()
+        } else if !isFocused, textView.isFirstResponder {
+            textView.resignFirstResponder()
+        }
     }
 }
 
 struct QuizPencilModeView: View {
+    @Environment(\.scenePhase) private var scenePhase
+
+    private enum ScrollTarget: String {
+        case top
+        case myMemo
+        case myMemoContent
+        case myMemoEditor
+        case explanationMemo
+        case explanationMemoContent
+        case questionMemo
+        case questionMemoContent
+    }
+
     let deepLink: QuizDeepLink
     @StateObject private var viewModel = QuizPencilModeViewModel()
-    @FocusState private var isMemoEditorFocused: Bool
+    @State private var isMemoEditorFocused = false
     @State private var previewImage: UIImage?
+    @State private var isMyMemoSectionExpanded = false
+    @State private var isExplanationMemoSectionExpanded = false
+    @State private var isQuestionMemoSectionExpanded = false
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 10) {
-                header
-                if viewModel.isLoading {
-                    ProgressView("問題を取得中...")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if viewModel.isSessionFinished {
-                    completionView
-                } else if let question = viewModel.currentQuestion {
-                    questionBody(question)
-                } else {
-                    Text(viewModel.errorMessage ?? "問題がありません。")
-                        .foregroundColor(.secondary)
-                        .padding()
+        GeometryReader { geometry in
+            ScrollViewReader { scrollProxy in
+                ScrollView {
+                    VStack(spacing: 10) {
+                        header
+                            .id(ScrollTarget.top)
+                        if viewModel.isLoading {
+                            ProgressView("問題を取得中...")
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        } else if viewModel.isSessionFinished {
+                            completionView
+                        } else if let question = viewModel.currentQuestion {
+                            questionBody(question, availableHeight: geometry.size.height)
+                        } else {
+                            Text(viewModel.errorMessage ?? "問題がありません。")
+                                .foregroundColor(.secondary)
+                                .padding()
+                        }
+                        if let message = viewModel.syncStatusMessage {
+                            Text(message)
+                                .font(.footnote.weight(.semibold))
+                                .foregroundColor(viewModel.pendingSyncCount > 0 ? AppPalette.caution : AppPalette.success)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.bottom, 4)
+                        }
+                        if let message = viewModel.errorMessage {
+                            Text(message)
+                                .font(.footnote)
+                                .foregroundColor(.secondary)
+                                .padding(.bottom, 4)
+                        }
+                        if let message = viewModel.completionMessage {
+                            Text(message)
+                                .font(.footnote.weight(.semibold))
+                                .foregroundColor(AppPalette.success)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 2)
+                                .padding(.bottom, 4)
+                        }
+                    }
                 }
-                if let message = viewModel.syncStatusMessage {
-                    Text(message)
-                        .font(.footnote.weight(.semibold))
-                        .foregroundColor(viewModel.pendingSyncCount > 0 ? AppPalette.caution : AppPalette.success)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.bottom, 4)
+                .padding()
+                .scrollDismissesKeyboard(.interactively)
+                .toolbar {
+                    ToolbarItemGroup(placement: .keyboard) {
+                        Spacer()
+                        Button("完了") {
+                            isMemoEditorFocused = false
+                        }
+                    }
                 }
-                if let message = viewModel.errorMessage {
-                    Text(message)
-                        .font(.footnote)
-                        .foregroundColor(.secondary)
-                        .padding(.bottom, 4)
-                }
-                if let message = viewModel.completionMessage {
-                    Text(message)
-                        .font(.footnote.weight(.semibold))
-                        .foregroundColor(AppPalette.success)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 2)
-                        .padding(.bottom, 4)
-                }
-            }
-        }
-        .padding()
-        .scrollDismissesKeyboard(.interactively)
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button("完了") {
+                .onChange(of: viewModel.currentQuestion?.id) { _, _ in
+                    collapseMemoSections()
                     isMemoEditorFocused = false
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        scrollProxy.scrollTo(ScrollTarget.top, anchor: .top)
+                    }
+                }
+                .onChange(of: isMyMemoSectionExpanded) { _, isExpanded in
+                    guard isExpanded else { return }
+                    scrollToSection(.myMemo, with: scrollProxy)
+                }
+                .onChange(of: isMemoEditorFocused) { _, isFocused in
+                    guard isFocused else { return }
+                    if !isMyMemoSectionExpanded {
+                        isMyMemoSectionExpanded = true
+                    }
+                    scrollToMemoEditor(with: scrollProxy)
+                }
+                .onChange(of: isExplanationMemoSectionExpanded) { _, isExpanded in
+                    guard isExpanded else { return }
+                    scrollToSection(.explanationMemo, with: scrollProxy)
+                }
+                .onChange(of: isQuestionMemoSectionExpanded) { _, isExpanded in
+                    guard isExpanded else { return }
+                    scrollToSection(.questionMemo, with: scrollProxy)
+                }
+                .onChange(of: scenePhase) { _, newPhase in
+                    guard newPhase == .active else { return }
+                    Task {
+                        await viewModel.refreshPendingSyncState()
+                    }
+                }
+                .task {
+                    await viewModel.configure(with: deepLink)
+                    collapseMemoSections()
                 }
             }
-        }
-        .task {
-            await viewModel.configure(with: deepLink)
         }
     }
 
     private var header: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text("iPadモード（問題演習）")
                     .font(.headline)
                     .foregroundColor(AppPalette.dark)
-                Text(viewModel.isReviewMode ? "レビュー専用モード" : "Mode: \(viewModel.modeLabel) / Count: \(viewModel.countLabel)")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                if !viewModel.isReviewMode,
-                   let question = viewModel.currentQuestion,
-                   let stat = viewModel.historyStats[question.id],
-                   stat.total > 0 {
-                    Text("直近\(stat.total)回 正答率: \(Int((Double(stat.correct) / Double(stat.total)) * 100))% (\(stat.correct)/\(stat.total))")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                } else {
-                    Text("初挑戦")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                }
-                Text("インストールから\(viewModel.installedElapsedDays)日経過")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-                HStack(spacing: 6) {
-                    Circle()
-                        .fill(viewModel.isNetworkAvailable ? AppPalette.success : AppPalette.caution)
-                        .frame(width: 8, height: 8)
-                    Text(viewModel.networkStatusText)
-                        .font(.caption2.weight(.semibold))
-                        .foregroundColor(viewModel.isNetworkAvailable ? AppPalette.success : AppPalette.caution)
-                    if viewModel.pendingSyncCount > 0 {
-                        Text("未同期\(viewModel.pendingSyncCount)件")
-                            .font(.caption2)
-                            .foregroundColor(AppPalette.caution)
-                    }
-                    if viewModel.isSyncingPendingActions {
-                        ProgressView()
-                            .scaleEffect(0.7)
-                    }
-                }
+                    .lineLimit(1)
+                Spacer(minLength: 8)
+                Text(viewModel.progressText)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(AppPalette.dark)
+                    .lineLimit(1)
             }
-            Spacer()
-            Text(viewModel.progressText)
-                .font(.subheadline)
-                .foregroundColor(AppPalette.dark)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    headerBadge(
+                        text: viewModel.isReviewMode
+                            ? "レビュー専用モード"
+                            : "Mode: \(viewModel.modeLabel) / Count: \(viewModel.countLabel)"
+                    )
+                    headerBadge(text: "端末: \(viewModel.iPadProfile.displayName)")
+                    headerBadge(text: historySummaryText)
+                    headerBadge(text: "インストールから\(viewModel.installedElapsedDays)日")
+                    networkBadge
+                }
+                .padding(.vertical, 1)
+            }
         }
+    }
+
+    private var historySummaryText: String {
+        guard !viewModel.isReviewMode,
+              let question = viewModel.currentQuestion,
+              let stat = viewModel.historyStats[question.id],
+              stat.total > 0 else {
+            return "初挑戦"
+        }
+        let correctRate = Int((Double(stat.correct) / Double(stat.total)) * 100)
+        return "直近\(stat.total)回 正答率\(correctRate)% (\(stat.correct)/\(stat.total))"
+    }
+
+    @ViewBuilder
+    private var networkBadge: some View {
+        HStack(spacing: 6) {
+            Circle()
+                .fill(viewModel.isNetworkAvailable ? AppPalette.success : AppPalette.caution)
+                .frame(width: 8, height: 8)
+            Text(viewModel.networkStatusText)
+                .font(.caption2.weight(.semibold))
+                .foregroundColor(viewModel.isNetworkAvailable ? AppPalette.success : AppPalette.caution)
+                .lineLimit(1)
+            if viewModel.pendingSyncCount > 0 {
+                Text("未同期\(viewModel.pendingSyncCount)件")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundColor(AppPalette.caution)
+                    .lineLimit(1)
+            }
+            if viewModel.isSyncingPendingActions {
+                ProgressView()
+                    .scaleEffect(0.7)
+            }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(AppPalette.white)
+        .clipShape(Capsule())
+        .overlay(
+            Capsule()
+                .stroke((viewModel.isNetworkAvailable ? AppPalette.success : AppPalette.caution).opacity(0.35), lineWidth: 1)
+        )
+    }
+
+    private func headerBadge(text: String) -> some View {
+        Text(text)
+            .font(.caption2.weight(.semibold))
+            .foregroundColor(AppPalette.dark)
+            .lineLimit(1)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(AppPalette.white)
+            .clipShape(Capsule())
+            .overlay(
+                Capsule()
+                    .stroke(AppPalette.light.opacity(0.7), lineWidth: 1)
+            )
     }
 
     private var completionView: some View {
@@ -995,7 +1393,9 @@ struct QuizPencilModeView: View {
     }
 
     @ViewBuilder
-    private func questionBody(_ question: QuizQuestion) -> some View {
+    private func questionBody(_ question: QuizQuestion, availableHeight: CGFloat) -> some View {
+        let questionAreaHeight = mainQuestionAreaHeight(availableHeight: availableHeight)
+
         VStack(spacing: 12) {
             ScrollView {
                 ZStack(alignment: .topLeading) {
@@ -1093,12 +1493,12 @@ struct QuizPencilModeView: View {
                         )
                     )
                 }
-                .frame(maxWidth: .infinity, minHeight: 560 + viewModel.extraWriteAreaHeight, alignment: .top)
+                .frame(maxWidth: .infinity, minHeight: questionAreaHeight + viewModel.extraWriteAreaHeight, alignment: .top)
                 .background(AppPalette.white)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(AppPalette.light.opacity(0.5), lineWidth: 1))
             }
-            .frame(maxWidth: .infinity, minHeight: 560, maxHeight: 560)
+            .frame(maxWidth: .infinity, minHeight: questionAreaHeight, maxHeight: questionAreaHeight)
 
             HStack {
                 Toggle(isOn: Binding(
@@ -1168,20 +1568,54 @@ struct QuizPencilModeView: View {
                     Text(viewModel.isReviewMode ? "レビュー内容" : (viewModel.isCorrect ? "正解" : "不正解"))
                         .font(.headline)
                         .foregroundColor(viewModel.isReviewMode ? AppPalette.primaryNew : (viewModel.isCorrect ? AppPalette.success : AppPalette.danger))
-                    Text(viewModel.explanationText.isEmpty ? "この問題の解説はありません。" : viewModel.explanationText)
-                        .font(.body)
-                        .foregroundColor(AppPalette.dark)
-                        .lineLimit(nil)
-                        .fixedSize(horizontal: false, vertical: true)
-                    if let memoImage = viewModel.customExplanationMemoImage {
-                        memoImageSection(title: "My Memo 解説補足", image: memoImage)
+                    ZStack(alignment: .topLeading) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(viewModel.explanationText.isEmpty ? "この問題の解説はありません。" : viewModel.explanationText)
+                                .font(.body)
+                                .foregroundColor(AppPalette.dark)
+                                .lineLimit(nil)
+                                .fixedSize(horizontal: false, vertical: true)
+                            if let memoImage = viewModel.customExplanationMemoImage {
+                                memoImageSection(title: "My Memo 解説補足", image: memoImage)
+                            }
+                            Spacer(minLength: 0)
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.top, 10)
+                        .padding(.bottom, 4)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+
+                        QuizPencilOverlayView(
+                            canvasView: $viewModel.explanationCanvasView,
+                            toolPicker: $viewModel.explanationToolPicker,
+                            isDrawMode: $viewModel.isExplanationDrawMode
+                        )
                     }
+                    .frame(maxWidth: .infinity, minHeight: 240, alignment: .topLeading)
+                    .background(AppPalette.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(AppPalette.light.opacity(0.5), lineWidth: 1))
+
                     HStack {
+                        Toggle(isOn: $viewModel.isExplanationDrawMode) {
+                            Text(viewModel.isExplanationDrawMode ? "解説手書きモード" : "解説閲覧モード")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(AppPalette.dark)
+                        }
+                        .toggleStyle(SwitchToggleStyle(tint: AppPalette.primaryNew))
+
+                        Button("解説手書きクリア") {
+                            viewModel.clearExplanationPencilLayer()
+                        }
+                        .buttonStyle(.bordered)
+
+                        Spacer()
+
                         Button("問題編集") {
                             viewModel.openProblemEditor()
                         }
                         .buttonStyle(.bordered)
-                        Spacer()
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -1194,33 +1628,82 @@ struct QuizPencilModeView: View {
                     Text("My Memo")
                         .font(.headline)
                         .foregroundColor(AppPalette.dark)
-                    Text("テキスト入力")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundColor(AppPalette.dark)
-                    TextEditor(text: $viewModel.customMemoText)
-                        .focused($isMemoEditorFocused)
-                        .frame(minHeight: 110)
-                        .padding(6)
-                        .background(AppPalette.white)
-                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(AppPalette.light.opacity(0.6), lineWidth: 1))
-                    memoHandwritingEditor(
-                        title: "解説補足手書き入力",
-                        canvasView: $viewModel.explanationMemoCanvasView,
-                        onSave: viewModel.saveExplanationMemoDrawing,
-                        onClearInput: viewModel.clearExplanationMemoInput,
-                        onClearSaved: viewModel.clearExplanationMemoImage,
-                        savedImage: viewModel.customExplanationMemoImage,
-                        savedImageTitle: "保存済みの解説補足画像"
-                    )
-                    memoHandwritingEditor(
-                        title: "問題文補足手書き入力",
-                        canvasView: $viewModel.questionMemoCanvasView,
-                        onSave: viewModel.saveQuestionMemoDrawing,
-                        onClearInput: viewModel.clearQuestionMemoInput,
-                        onClearSaved: viewModel.clearQuestionMemoImage,
-                        savedImage: viewModel.customQuestionMemoImage,
-                        savedImageTitle: "保存済みの問題文補足画像"
-                    )
+                    DisclosureGroup("My Memo", isExpanded: $isMyMemoSectionExpanded) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("テキスト入力")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundColor(AppPalette.dark)
+                            HStack(spacing: 8) {
+                                Button("完了") {
+                                    isMemoEditorFocused = false
+                                }
+                                .buttonStyle(.bordered)
+                                Button("内容クリア") {
+                                    viewModel.customMemoText = ""
+                                    isMemoEditorFocused = false
+                                }
+                                .buttonStyle(.bordered)
+                                Spacer()
+                            }
+                            MemoTextEditorView(
+                                text: $viewModel.customMemoText,
+                                isFocused: $isMemoEditorFocused,
+                                allowsStylusHandwriting: viewModel.iPadProfile == .airOrLarger
+                            )
+                                .id(ScrollTarget.myMemoEditor)
+                                .frame(minHeight: 110)
+                                .padding(6)
+                                .background(AppPalette.white)
+                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(AppPalette.light.opacity(0.6), lineWidth: 1))
+                            Text(viewModel.iPadProfile.memoInputHint)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .id(ScrollTarget.myMemoContent)
+                        .padding(.top, 6)
+                    }
+                    .id(ScrollTarget.myMemo)
+                    .tint(AppPalette.primaryNew)
+                    DisclosureGroup("解説補足", isExpanded: $isExplanationMemoSectionExpanded) {
+                        memoHandwritingEditor(
+                            title: "解説補足手書き入力",
+                            canvasView: $viewModel.explanationMemoCanvasView,
+                            toolPicker: $viewModel.explanationMemoToolPicker,
+                            isActive: isExplanationMemoSectionExpanded,
+                            toolState: viewModel.explanationMemoTool,
+                            onSelectTool: { viewModel.setMemoToolKind($0, for: .explanation) },
+                            onSelectColor: { viewModel.setMemoInkColor($0, for: .explanation) },
+                            onSave: viewModel.saveExplanationMemoDrawing,
+                            onClearInput: viewModel.clearExplanationMemoInput,
+                            onClearSaved: viewModel.clearExplanationMemoImage,
+                            savedImage: viewModel.customExplanationMemoImage,
+                            savedImageTitle: "保存済みの解説補足画像"
+                        )
+                        .id(ScrollTarget.explanationMemoContent)
+                        .padding(.top, 6)
+                    }
+                    .id(ScrollTarget.explanationMemo)
+                    .tint(AppPalette.primaryNew)
+                    DisclosureGroup("問題補足", isExpanded: $isQuestionMemoSectionExpanded) {
+                        memoHandwritingEditor(
+                            title: "問題文補足手書き入力",
+                            canvasView: $viewModel.questionMemoCanvasView,
+                            toolPicker: $viewModel.questionMemoToolPicker,
+                            isActive: isQuestionMemoSectionExpanded,
+                            toolState: viewModel.questionMemoTool,
+                            onSelectTool: { viewModel.setMemoToolKind($0, for: .question) },
+                            onSelectColor: { viewModel.setMemoInkColor($0, for: .question) },
+                            onSave: viewModel.saveQuestionMemoDrawing,
+                            onClearInput: viewModel.clearQuestionMemoInput,
+                            onClearSaved: viewModel.clearQuestionMemoImage,
+                            savedImage: viewModel.customQuestionMemoImage,
+                            savedImageTitle: "保存済みの問題文補足画像"
+                        )
+                        .id(ScrollTarget.questionMemoContent)
+                        .padding(.top, 6)
+                    }
+                    .id(ScrollTarget.questionMemo)
+                    .tint(AppPalette.primaryNew)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
@@ -1249,6 +1732,62 @@ struct QuizPencilModeView: View {
                 MemoImagePreviewScreen(image: previewImage) {
                     self.previewImage = nil
                 }
+            }
+        }
+    }
+
+    private func collapseMemoSections() {
+        isMyMemoSectionExpanded = false
+        isExplanationMemoSectionExpanded = false
+        isQuestionMemoSectionExpanded = false
+    }
+
+    private func mainQuestionAreaHeight(availableHeight: CGFloat) -> CGFloat {
+        guard !viewModel.isAnswered else {
+            return 560
+        }
+        switch viewModel.iPadProfile {
+        case .mini:
+            return max(560, availableHeight - 170)
+        case .airOrLarger:
+            return max(640, availableHeight - 220)
+        }
+    }
+
+    private func scrollToSection(_ target: ScrollTarget, with proxy: ScrollViewProxy) {
+        let contentTarget: ScrollTarget
+        switch target {
+        case .myMemo:
+            contentTarget = .myMemoContent
+        case .explanationMemo:
+            contentTarget = .explanationMemoContent
+        case .questionMemo:
+            contentTarget = .questionMemoContent
+        default:
+            contentTarget = target
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            withAnimation(.easeInOut(duration: 0.25)) {
+                proxy.scrollTo(contentTarget, anchor: .top)
+            }
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            withAnimation(.easeInOut(duration: 0.25)) {
+                proxy.scrollTo(contentTarget, anchor: .top)
+            }
+        }
+    }
+
+    private func scrollToMemoEditor(with proxy: ScrollViewProxy) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            withAnimation(.easeInOut(duration: 0.25)) {
+                proxy.scrollTo(ScrollTarget.myMemoEditor, anchor: .center)
+            }
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            withAnimation(.easeInOut(duration: 0.25)) {
+                proxy.scrollTo(ScrollTarget.myMemoEditor, anchor: .center)
             }
         }
     }
@@ -1294,6 +1833,11 @@ struct QuizPencilModeView: View {
     private func memoHandwritingEditor(
         title: String,
         canvasView: Binding<PKCanvasView>,
+        toolPicker: Binding<PKToolPicker>,
+        isActive: Bool,
+        toolState: QuizPencilModeViewModel.MemoToolState,
+        onSelectTool: @escaping (QuizPencilModeViewModel.MemoToolKind) -> Void,
+        onSelectColor: @escaping (QuizPencilModeViewModel.MemoInkColor) -> Void,
         onSave: @escaping () -> Void,
         onClearInput: @escaping () -> Void,
         onClearSaved: @escaping () -> Void,
@@ -1320,8 +1864,39 @@ struct QuizPencilModeView: View {
                 .buttonStyle(.bordered)
                 .disabled(savedImage == nil)
             }
-            MemoCanvasInputView(canvasView: canvasView)
-                .frame(minHeight: 270)
+            HStack(spacing: 8) {
+                ForEach(QuizPencilModeViewModel.MemoToolKind.allCases) { kind in
+                    Button(kind.label) {
+                        onSelectTool(kind)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(toolState.kind == kind ? AppPalette.primaryNew : AppPalette.light)
+                }
+                Spacer()
+                ForEach(QuizPencilModeViewModel.MemoInkColor.allCases) { color in
+                    Button {
+                        onSelectColor(color)
+                    } label: {
+                        Circle()
+                            .fill(color.color)
+                            .frame(width: 22, height: 22)
+                            .overlay(
+                                Circle()
+                                    .stroke(toolState.color == color ? AppPalette.primaryNew : AppPalette.light.opacity(0.5), lineWidth: 2)
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            Text("ペン・マーカー・消しゴムを切り替えられます。画像保存の動きはそのままです。")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            MemoCanvasInputView(
+                canvasView: canvasView,
+                toolPicker: toolPicker,
+                isActive: isActive
+            )
+                .frame(minHeight: 810)
                 .background(AppPalette.white)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
                 .overlay(RoundedRectangle(cornerRadius: 10).stroke(AppPalette.light.opacity(0.6), lineWidth: 1))

@@ -94,6 +94,8 @@ interface OralVivaResponse {
   memo_summary?: string | null;
 }
 
+type IpadProfile = 'air' | 'mini';
+
 function TimerProgressBar({
   durationMs,
   isActive,
@@ -671,7 +673,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     }
   };
 
-  const openIpadMode = () => {
+  const openIpadMode = (profile: IpadProfile) => {
     if (selectedSubjectNames.length === 0) {
       setError('科目を1つ以上選択してください。');
       return;
@@ -705,7 +707,8 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       `quizapp://quiz?base=${encodeURIComponent(window.location.origin)}` +
       `&${subjectQuery}` +
       `&mode=${encodeURIComponent(quizMode)}` +
-      `&count=${encodeURIComponent(String(Math.max(1, questionsToFetch)))}`;
+      `&count=${encodeURIComponent(String(Math.max(1, questionsToFetch)))}` +
+      `&profile=${encodeURIComponent(profile)}`;
     window.location.href = deepLink;
   };
 
@@ -1957,14 +1960,24 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                             {isLoading ? 'クイズ準備中...' : 'Start'}
 
                           </button>
-                          <button
-                            type="button"
-                            onClick={openIpadMode}
-                            disabled={isLoading || selectedSubjectNames.length === 0}
-                            className="mt-3 w-full py-3 px-4 border border-cyan-600 rounded-md shadow-sm text-base font-medium text-cyan-700 bg-cyan-50 hover:bg-cyan-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            iPadモード
-                          </button>
+                          <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                            <button
+                              type="button"
+                              onClick={() => openIpadMode('air')}
+                              disabled={isLoading || selectedSubjectNames.length === 0}
+                              className="w-full py-3 px-4 border border-cyan-600 rounded-md shadow-sm text-base font-medium text-cyan-700 bg-cyan-50 hover:bg-cyan-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              iPad Airモード
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => openIpadMode('mini')}
+                              disabled={isLoading || selectedSubjectNames.length === 0}
+                              className="w-full py-3 px-4 border border-sky-600 rounded-md shadow-sm text-base font-medium text-sky-700 bg-sky-50 hover:bg-sky-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              iPad miniモード
+                            </button>
+                          </div>
                           <button
                             type="button"
                             onClick={() => void startQuiz(true)}

@@ -58,6 +58,8 @@ interface OralVivaResponse {
   memo_summary?: string | null;
 }
 
+type IpadProfile = 'air' | 'mini';
+
 export default function ReviewLaterPage() {
   const navigate = useNavigate();
   const [items, setItems] = useState<ReviewLaterEntry[]>([]);
@@ -471,12 +473,13 @@ export default function ReviewLaterPage() {
     }
   };
 
-  const openIpadReview = () => {
+  const openIpadReview = (profile: IpadProfile) => {
     if (!selectedItem) return;
     const deepLink =
       `quizapp://quiz-review?base=${encodeURIComponent(window.location.origin)}` +
       `&subject=${encodeURIComponent(selectedItem.subject)}` +
-      `&problem=${encodeURIComponent(selectedItem.problem_id)}`;
+      `&problem=${encodeURIComponent(selectedItem.problem_id)}` +
+      `&profile=${encodeURIComponent(profile)}`;
     window.location.href = deepLink;
   };
 
@@ -589,10 +592,17 @@ export default function ReviewLaterPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={openIpadReview}
+                      onClick={() => openIpadReview('air')}
                       className="px-4 py-2 rounded-md bg-primary-new text-white text-sm font-medium hover:bg-blue-700"
                     >
-                      iPadアプリで開く
+                      iPad Airで開く
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => openIpadReview('mini')}
+                      className="px-4 py-2 rounded-md bg-sky-600 text-white text-sm font-medium hover:bg-sky-700"
+                    >
+                      iPad miniで開く
                     </button>
                     <button
                       type="button"

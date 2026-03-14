@@ -7,7 +7,8 @@ import LoadingSpinner from './components/LoadingSpinner';
 import SubjectVisibilityModal from './components/SubjectVisibilityModal';
 import SubjectProgress from './components/SubjectProgress';
 import { usePlans } from './hooks/usePlans';
-import { isHoliday, getMinutesUntilJstHour, getNowJstParts } from './utils/date';
+import { getMinutesUntilJstHour, getNowJstParts, getTodayYmdJst } from './utils/date';
+import { buildPlanSchedule } from './utils/planSchedule';
 const API_BASE_URL = "/api";
 const QUESTION_TIMER_MS = 2 * 60 * 1000;
 const FORCED_ANSWER_TIMER_MS = 80 * 1000;
@@ -64,11 +65,54 @@ export default function QuizPage({ subjects: allSubjects }) {
     const [error, setError] = useState('');
     const [effectStatus, setEffectStatus] = useState(null);
     const [questionStartedAt, setQuestionStartedAt] = useState(Date.now());
+    const [isScratchpadOpen, setIsScratchpadOpen] = useState(false);
+    const [adhocQuizLabel, setAdhocQuizLabel] = useState('');
+    const [isOralVivaActive, setIsOralVivaActive] = useState(false);
+    const [oralVivaStepIndex, setOralVivaStepIndex] = useState(0);
+    const [oralVivaMessages, setOralVivaMessages] = useState([]);
+    const [oralVivaInput, setOralVivaInput] = useState('');
+    const [oralVivaScores, setOralVivaScores] = useState({
+        logicality: 0,
+        specificity: 0,
+        reproducibility: 0,
+    });
+    const [oralVivaResult, setOralVivaResult] = useState(null);
+    const [isOralVivaLoading, setIsOralVivaLoading] = useState(false);
+    const [isSpeechSupported, setIsSpeechSupported] = useState(false);
+    const [isListeningSpeech, setIsListeningSpeech] = useState(false);
+    const questionTopRef = useRef(null);
+    const oralVivaMessagesEndRef = useRef(null);
+    const shuffledChoicesByQuestionRef = useRef({});
+    const prefetchedImageUrlsRef = useRef(new Set());
+    const speechRecognitionRef = useRef(null);
+    const currentQuestion = questions[currentQuestionIndex];
     const openMemoModal = (type) => {
         const content = type === 'scratchpad' ? scratchpadText : customExplanationText;
         setEditingMemo({ type, content });
     };
     const buildReviewKey = useCallback((subject, problemId) => `${subject}::${problemId}`, []);
+    const oralVivaSteps = ['root', 'refute', 'apply', 'summary'];
+    const oralVivaStepLabels = {
+        root: '根拠',
+        refute: '反証',
+        apply: '応用',
+        summary: '要約',
+    };
+    const ensureShuffledChoicesForQuestion = useCallback((question) => {
+        const existing = shuffledChoicesByQuestionRef.current[question.id];
+        if (existing && existing.length === question.choices.length) {
+            return existing;
+        }
+        const shuffled = [...question.choices];
+        for (let i = shuffled.length - 1; i > 0; i -= 1) {
+            const j = Math.floor(Math.random() * (i + 1));
+            const tmp = shuffled[i];
+            shuffled[i] = shuffled[j];
+            shuffled[j] = tmp;
+        }
+        shuffledChoicesByQuestionRef.current[question.id] = shuffled;
+        return shuffled;
+    }, []);
     const handleSaveAndCloseModal = () => {
         if (!editingMemo)
             return;
@@ -232,61 +276,18 @@ export default function QuizPage({ subjects: allSubjects }) {
     const todayRemaining = useMemo(() => {
         if (isPlansLoading)
             return { count: 0, subjects: [], plan: 0, actual: 0 };
-        const today = new Date();
-        today.setHours(0, 0, 0, 0); // Set to start of today in local timezone
-        const parseDateLocal = (dateString) => {
-            const [year, month, day] = dateString.split('-').map(Number);
-            const date = new Date(year, month - 1, day);
-            date.setHours(0, 0, 0, 0);
-            return date;
-        };
-        let cumulativePlannedTotal = 0; // Accumulates all planned questions up to today
+        const todayYmd = getTodayYmdJst();
+        const activePlans = plans.filter((p) => p.enabled);
         const targetSubjects = new Set();
-        console.log("--- Today Remaining Debug Start ---");
-        console.log("Debug: Today (local start of day):", today.toISOString());
-        console.log("Debug: Plans available:", plans.length);
-        plans.filter((p) => p.enabled).forEach((plan, planIndex) => {
-            const fromDateStr = plan.period?.from;
-            const toDateStr = plan.period?.to;
-            console.log(`Debug: Processing Plan ${planIndex + 1} - "${plan.title}" (Enabled: ${plan.enabled})`);
-            console.log(`Debug: Plan Period: From ${fromDateStr} to ${toDateStr}`);
-            if (fromDateStr && toDateStr && typeof fromDateStr === 'string' && typeof toDateStr === 'string') {
-                const planStart = parseDateLocal(fromDateStr);
-                const planEnd = parseDateLocal(toDateStr);
-                console.log(`Debug: Parsed Plan Start: ${planStart.toISOString()}, Plan End: ${planEnd.toISOString()}`);
-                let currentDate = new Date(planStart);
-                let planDailyPlanned = 0;
-                while (currentDate.getTime() <= today.getTime() && currentDate.getTime() <= planEnd.getTime()) {
-                    const dayStr = `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${currentDate.getDate().toString().padStart(2, '0')}`;
-                    const holiday = isHoliday(currentDate);
-                    let dailyGoalForCurrentDate = 0;
-                    if (plan.applyDays === 'all' || (plan.applyDays === 'holiday' && holiday) || (plan.applyDays === 'weekday' && !holiday)) {
-                        dailyGoalForCurrentDate = holiday ? plan.dailyGoal.holiday : plan.dailyGoal.weekday;
-                    }
-                    cumulativePlannedTotal += dailyGoalForCurrentDate;
-                    planDailyPlanned += dailyGoalForCurrentDate;
-                    plan.subjectNames.forEach((name) => targetSubjects.add(name));
-                    currentDate.setDate(currentDate.getDate() + 1); // Move to next day
-                }
-                console.log(`Debug: Plan ${planIndex + 1} cumulative for loop: Planned=${planDailyPlanned}`);
-            }
-            else {
-                console.log(`Debug: Plan ${planIndex + 1} - Invalid period data (from: ${fromDateStr}, to: ${toDateStr}).`);
-            }
+        activePlans.forEach((plan) => {
+            plan.subjectNames.forEach((name) => targetSubjects.add(name));
         });
-        const cumulativeActualTotal = dailySummaryAll.reduce((total, summary) => {
-            const summaryDate = parseDateLocal(summary.date);
-            if (summaryDate.getTime() <= today.getTime()) {
-                return total + summary.total_questions;
-            }
-            return total;
-        }, 0);
-        const remaining = Math.max(0, cumulativePlannedTotal - cumulativeActualTotal);
-        console.log("Debug: Final Cumulative Planned Total:", cumulativePlannedTotal);
-        console.log("Debug: Final Cumulative Actual Total:", cumulativeActualTotal);
-        console.log("Debug: Final Remaining Count:", remaining);
-        console.log("Debug: Target Subjects:", Array.from(targetSubjects));
-        console.log("--- Today Remaining Debug End ---");
+        const actualsMap = new Map(dailySummaryAll.filter(item => item.date).map(item => [item.date, item.total_questions]));
+        const schedule = buildPlanSchedule(activePlans, actualsMap, todayYmd);
+        const todayRow = schedule.rows.find((row) => row.date === todayYmd);
+        const cumulativePlannedTotal = todayRow?.planCumulative ?? 0;
+        const cumulativeActualTotal = todayRow?.actualCumulative ?? 0;
+        const remaining = todayRow ? Math.max(0, todayRow.planDaily - todayRow.actualDaily) : 0;
         return {
             count: remaining,
             subjects: Array.from(targetSubjects),
@@ -299,6 +300,43 @@ export default function QuizPage({ subjects: allSubjects }) {
             setSelectedSubjectNames(todayRemaining.subjects);
         }
     }, [quizMode, todayRemaining]);
+    useEffect(() => {
+        if (quizState !== 'setup')
+            return;
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('adhoc') !== '1')
+            return;
+        const raw = sessionStorage.getItem('adhocQuizSet');
+        if (!raw)
+            return;
+        try {
+            const parsed = JSON.parse(raw);
+            if (!Array.isArray(parsed) || parsed.length === 0) {
+                throw new Error('類題セットが空です。');
+            }
+            setQuestions(parsed);
+            setCurrentQuestionIndex(0);
+            setScore(0);
+            setIsForcedSession(false);
+            setQuizState('active');
+            setSelectedSubjectNames(Array.from(new Set(parsed.map((q) => q.subject).filter(Boolean))));
+            setAdhocQuizLabel(sessionStorage.getItem('adhocQuizLabel') || '類題演習');
+            shuffledChoicesByQuestionRef.current = {};
+            prefetchedImageUrlsRef.current = new Set();
+            resetQuestionState();
+            sessionStorage.removeItem('adhocQuizSet');
+            sessionStorage.removeItem('adhocQuizLabel');
+            params.delete('adhoc');
+            const nextUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`;
+            window.history.replaceState({}, '', nextUrl);
+        }
+        catch (e) {
+            const message = e instanceof Error ? e.message : '類題セットの読み込みに失敗しました。';
+            setError(message);
+            sessionStorage.removeItem('adhocQuizSet');
+            sessionStorage.removeItem('adhocQuizLabel');
+        }
+    }, [quizState]);
     // 科目表示制御
     const [hiddenSubjects, setHiddenSubjects] = useState(() => {
         try {
@@ -464,6 +502,9 @@ export default function QuizPage({ subjects: allSubjects }) {
                 return;
             }
             setQuestions(data.quiz_set);
+            shuffledChoicesByQuestionRef.current = {};
+            prefetchedImageUrlsRef.current = new Set();
+            setAdhocQuizLabel('');
             setCurrentQuestionIndex(0);
             setScore(0);
             setIsForcedSession(forcedSession);
@@ -477,7 +518,7 @@ export default function QuizPage({ subjects: allSubjects }) {
             setIsLoading(false);
         }
     };
-    const openIpadMode = () => {
+    const openIpadMode = (profile) => {
         if (selectedSubjectNames.length === 0) {
             setError('科目を1つ以上選択してください。');
             return;
@@ -510,7 +551,8 @@ export default function QuizPage({ subjects: allSubjects }) {
         const deepLink = `quizapp://quiz?base=${encodeURIComponent(window.location.origin)}` +
             `&${subjectQuery}` +
             `&mode=${encodeURIComponent(quizMode)}` +
-            `&count=${encodeURIComponent(String(Math.max(1, questionsToFetch)))}`;
+            `&count=${encodeURIComponent(String(Math.max(1, questionsToFetch)))}` +
+            `&profile=${encodeURIComponent(profile)}`;
         window.location.href = deepLink;
     };
     const resetQuestionState = () => {
@@ -519,6 +561,15 @@ export default function QuizPage({ subjects: allSubjects }) {
         setFeedback(null);
         setScratchpadText('');
         setCustomExplanationText('');
+        setIsScratchpadOpen(false);
+        setIsOralVivaActive(false);
+        setOralVivaStepIndex(0);
+        setOralVivaMessages([]);
+        setOralVivaInput('');
+        setOralVivaScores({ logicality: 0, specificity: 0, reproducibility: 0 });
+        setOralVivaResult(null);
+        setIsOralVivaLoading(false);
+        setIsListeningSpeech(false);
         setQuestionStartedAt(Date.now());
     };
     const estimatedCompletionText = useMemo(() => {
@@ -628,16 +679,17 @@ export default function QuizPage({ subjects: allSubjects }) {
             startQuiz(isForcedSession);
         }
     };
-    const handleSaveCustomExplanation = async () => {
+    const handleSaveCustomExplanation = async (overrideText) => {
         if (!currentQuestion)
             return;
+        const textToSave = overrideText ?? customExplanationText;
         try {
             setIsSavingCustomExplanation(true);
             const response = await fetch(`${API_BASE_URL}/problems/${currentQuestion.id}/custom-explanation`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    text: customExplanationText,
+                    text: textToSave,
                     explanation_image_data_url: currentQuestion.custom_explanation_image_data_url ?? null,
                     question_image_data_url: currentQuestion.custom_question_image_data_url ?? null,
                 }),
@@ -657,7 +709,7 @@ export default function QuizPage({ subjects: allSubjects }) {
             const updatedQuestions = questions.map((q) => q.id === currentQuestion.id
                 ? {
                     ...q,
-                    custom_explanation: customExplanationText,
+                    custom_explanation: textToSave,
                     custom_explanation_image_data_url: currentQuestion.custom_explanation_image_data_url,
                     custom_question_image_data_url: currentQuestion.custom_question_image_data_url,
                 }
@@ -672,9 +724,211 @@ export default function QuizPage({ subjects: allSubjects }) {
             setIsSavingCustomExplanation(false);
         }
     };
-    const currentQuestion = useMemo(() => questions[currentQuestionIndex], [questions, currentQuestionIndex]);
+    const callOralVivaStep = useCallback(async (step, userMessage) => {
+        if (!currentQuestion) {
+            throw new Error('問題情報が見つかりません。');
+        }
+        const response = await fetch(`${API_BASE_URL}/quiz/oral-viva/step`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                step,
+                question: {
+                    problem_id: currentQuestion.id,
+                    question_text: currentQuestion.question_text,
+                    explanation_text: feedback?.explanation?.text ?? currentQuestion.explanation?.text ?? '',
+                    correct_answer: currentQuestion.answer,
+                    selected_answer: selectedAnswer,
+                    was_correct: feedback?.correct ?? false,
+                },
+                conversation: oralVivaMessages,
+                user_message: userMessage,
+            }),
+        });
+        if (!response.ok) {
+            const payload = await response.json().catch(() => null);
+            throw new Error(payload?.detail || '口頭試問の生成に失敗しました。');
+        }
+        return response.json();
+    }, [currentQuestion, feedback, selectedAnswer, oralVivaMessages]);
+    const startOralViva = useCallback(async () => {
+        if (!currentQuestion || !isAnswered || isOralVivaLoading)
+            return;
+        setIsOralVivaLoading(true);
+        setError('');
+        setIsOralVivaActive(true);
+        setOralVivaStepIndex(0);
+        setOralVivaMessages([]);
+        setOralVivaResult(null);
+        setOralVivaScores({ logicality: 0, specificity: 0, reproducibility: 0 });
+        try {
+            const step = oralVivaSteps[0];
+            const result = await callOralVivaStep(step, '');
+            setOralVivaMessages([{ role: 'assistant', content: result.assistant_message }]);
+            setOralVivaScores(result.scores);
+        }
+        catch (e) {
+            const message = e instanceof Error ? e.message : '口頭試問の開始に失敗しました。';
+            setError(message);
+            setIsOralVivaActive(false);
+        }
+        finally {
+            setIsOralVivaLoading(false);
+        }
+    }, [currentQuestion, isAnswered, isOralVivaLoading, callOralVivaStep, oralVivaSteps]);
+    const submitOralVivaAnswer = useCallback(async () => {
+        if (!isOralVivaActive || isOralVivaLoading)
+            return;
+        const message = oralVivaInput.trim();
+        if (!message)
+            return;
+        const step = oralVivaSteps[Math.min(oralVivaStepIndex, oralVivaSteps.length - 1)];
+        setIsOralVivaLoading(true);
+        setError('');
+        const userTurn = { role: 'user', content: message };
+        setOralVivaMessages((prev) => [...prev, userTurn]);
+        setOralVivaInput('');
+        try {
+            const result = await fetch(`${API_BASE_URL}/quiz/oral-viva/step`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    step,
+                    question: {
+                        problem_id: currentQuestion?.id,
+                        question_text: currentQuestion?.question_text,
+                        explanation_text: feedback?.explanation?.text ?? currentQuestion?.explanation?.text ?? '',
+                        correct_answer: currentQuestion?.answer,
+                        selected_answer: selectedAnswer,
+                        was_correct: feedback?.correct ?? false,
+                    },
+                    conversation: [...oralVivaMessages, userTurn],
+                    user_message: message,
+                }),
+            });
+            if (!result.ok) {
+                const payload = await result.json().catch(() => null);
+                throw new Error(payload?.detail || '口頭試問の送信に失敗しました。');
+            }
+            const payload = await result.json();
+            setOralVivaMessages((prev) => [...prev, { role: 'assistant', content: payload.assistant_message }]);
+            setOralVivaScores(payload.scores);
+            if (payload.is_final_step) {
+                setOralVivaResult({
+                    improvementPoints: payload.improvement_points ?? [],
+                    miniQuizQuestion: payload.mini_quiz_question ?? '',
+                    miniQuizAnswer: payload.mini_quiz_answer ?? '',
+                });
+                if (payload.memo_summary && payload.memo_summary.trim()) {
+                    const appended = customExplanationText.trim()
+                        ? `${customExplanationText.trim()}\n\n---\n\n【口頭試問まとめ】\n${payload.memo_summary.trim()}`
+                        : `【口頭試問まとめ】\n${payload.memo_summary.trim()}`;
+                    setCustomExplanationText(appended);
+                    await handleSaveCustomExplanation(appended);
+                }
+            }
+            else {
+                setOralVivaStepIndex((prev) => Math.min(prev + 1, oralVivaSteps.length - 1));
+            }
+        }
+        catch (e) {
+            const errMsg = e instanceof Error ? e.message : '口頭試問の送信に失敗しました。';
+            setError(errMsg);
+        }
+        finally {
+            setIsOralVivaLoading(false);
+        }
+    }, [
+        isOralVivaActive,
+        isOralVivaLoading,
+        oralVivaInput,
+        oralVivaSteps,
+        oralVivaStepIndex,
+        currentQuestion,
+        feedback,
+        selectedAnswer,
+        oralVivaMessages,
+        customExplanationText,
+        handleSaveCustomExplanation,
+    ]);
+    const toggleSpeechInput = useCallback(() => {
+        const recognition = speechRecognitionRef.current;
+        if (!recognition)
+            return;
+        if (isListeningSpeech) {
+            recognition.stop();
+            setIsListeningSpeech(false);
+        }
+        else {
+            recognition.start();
+            setIsListeningSpeech(true);
+        }
+    }, [isListeningSpeech]);
+    const skipOralVivaToSummary = useCallback(async () => {
+        if (!isOralVivaActive || isOralVivaLoading)
+            return;
+        setOralVivaStepIndex(oralVivaSteps.length - 1);
+        setIsOralVivaLoading(true);
+        try {
+            const userTurn = { role: 'user', content: 'ここまでの内容を要約して終了してください。' };
+            const result = await fetch(`${API_BASE_URL}/quiz/oral-viva/step`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    step: 'summary',
+                    question: {
+                        problem_id: currentQuestion?.id,
+                        question_text: currentQuestion?.question_text,
+                        explanation_text: feedback?.explanation?.text ?? currentQuestion?.explanation?.text ?? '',
+                        correct_answer: currentQuestion?.answer,
+                        selected_answer: selectedAnswer,
+                        was_correct: feedback?.correct ?? false,
+                    },
+                    conversation: [...oralVivaMessages, userTurn],
+                    user_message: userTurn.content,
+                }),
+            });
+            if (!result.ok) {
+                const payload = await result.json().catch(() => null);
+                throw new Error(payload?.detail || '要約生成に失敗しました。');
+            }
+            const payload = await result.json();
+            setOralVivaMessages((prev) => [...prev, userTurn, { role: 'assistant', content: payload.assistant_message }]);
+            setOralVivaScores(payload.scores);
+            setOralVivaResult({
+                improvementPoints: payload.improvement_points ?? [],
+                miniQuizQuestion: payload.mini_quiz_question ?? '',
+                miniQuizAnswer: payload.mini_quiz_answer ?? '',
+            });
+            if (payload.memo_summary && payload.memo_summary.trim()) {
+                const appended = customExplanationText.trim()
+                    ? `${customExplanationText.trim()}\n\n---\n\n【口頭試問まとめ】\n${payload.memo_summary.trim()}`
+                    : `【口頭試問まとめ】\n${payload.memo_summary.trim()}`;
+                setCustomExplanationText(appended);
+                await handleSaveCustomExplanation(appended);
+            }
+        }
+        catch (e) {
+            const message = e instanceof Error ? e.message : '要約生成に失敗しました。';
+            setError(message);
+        }
+        finally {
+            setIsOralVivaLoading(false);
+        }
+    }, [
+        isOralVivaActive,
+        isOralVivaLoading,
+        oralVivaSteps.length,
+        currentQuestion,
+        feedback,
+        selectedAnswer,
+        oralVivaMessages,
+        customExplanationText,
+        handleSaveCustomExplanation,
+    ]);
     const currentReviewKey = currentQuestion ? buildReviewKey(currentQuestion.subject, currentQuestion.id) : null;
     const isCurrentQuestionReviewLater = currentReviewKey ? reviewLaterKeys.includes(currentReviewKey) : false;
+    const displayedChoices = useMemo(() => (currentQuestion ? ensureShuffledChoicesForQuestion(currentQuestion) : []), [currentQuestion, ensureShuffledChoicesForQuestion]);
     useEffect(() => {
         fetchReviewLaterItems();
     }, [fetchReviewLaterItems]);
@@ -684,15 +938,60 @@ export default function QuizPage({ subjects: allSubjects }) {
         }
     }, [currentQuestion]);
     useEffect(() => {
+        const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognitionCtor) {
+            setIsSpeechSupported(false);
+            speechRecognitionRef.current = null;
+            return;
+        }
+        setIsSpeechSupported(true);
+        const recognition = new SpeechRecognitionCtor();
+        recognition.lang = 'ja-JP';
+        recognition.interimResults = false;
+        recognition.continuous = false;
+        recognition.onresult = (event) => {
+            const transcript = event?.results?.[0]?.[0]?.transcript ?? '';
+            if (typeof transcript === 'string' && transcript.trim()) {
+                setOralVivaInput((prev) => (prev ? `${prev}\n${transcript.trim()}` : transcript.trim()));
+            }
+        };
+        recognition.onerror = () => {
+            setIsListeningSpeech(false);
+        };
+        recognition.onend = () => {
+            setIsListeningSpeech(false);
+        };
+        speechRecognitionRef.current = recognition;
+        return () => {
+            recognition.stop();
+            speechRecognitionRef.current = null;
+        };
+    }, []);
+    useEffect(() => {
+        oralVivaMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [oralVivaMessages]);
+    useEffect(() => {
+        if (isOralVivaActive)
+            return;
+        if (speechRecognitionRef.current) {
+            speechRecognitionRef.current.stop();
+        }
+        setIsListeningSpeech(false);
+    }, [isOralVivaActive]);
+    useEffect(() => {
         const handleKeyPress = (event) => {
-            if (quizState !== 'active' || (event.target instanceof HTMLTextAreaElement)) {
+            if (quizState !== 'active' ||
+                event.target instanceof HTMLTextAreaElement ||
+                event.target instanceof HTMLInputElement ||
+                event.target instanceof HTMLSelectElement ||
+                (event.target instanceof HTMLElement && event.target.isContentEditable)) {
                 return;
             }
             if (event.key >= '1' && event.key <= '9') {
                 if (!isAnswered) {
                     const choiceIndex = parseInt(event.key) - 1;
-                    if (currentQuestion && currentQuestion.choices && currentQuestion.choices[choiceIndex]) {
-                        setSelectedAnswer(currentQuestion.choices[choiceIndex].label);
+                    if (displayedChoices[choiceIndex]) {
+                        setSelectedAnswer(displayedChoices[choiceIndex].label);
                     }
                 }
             }
@@ -710,7 +1009,38 @@ export default function QuizPage({ subjects: allSubjects }) {
         return () => {
             window.removeEventListener('keydown', handleKeyPress);
         };
-    }, [quizState, isAnswered, currentQuestion, handleAnswerSubmit, handleNextQuestion, isSubmittingAnswer, isSavingCustomExplanation]);
+    }, [quizState, isAnswered, currentQuestion, displayedChoices, handleAnswerSubmit, handleNextQuestion, isSubmittingAnswer, isSavingCustomExplanation]);
+    useEffect(() => {
+        if (quizState !== 'active')
+            return;
+        const target = questionTopRef.current;
+        if (!target)
+            return;
+        window.requestAnimationFrame(() => {
+            const top = target.getBoundingClientRect().top + window.scrollY - 12;
+            window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+        });
+    }, [quizState, currentQuestionIndex, isAnswered]);
+    useEffect(() => {
+        if (quizState !== 'active' || questions.length === 0)
+            return;
+        const prefetchCount = 3;
+        const start = currentQuestionIndex + 1;
+        const end = Math.min(questions.length, start + prefetchCount);
+        for (let i = start; i < end; i += 1) {
+            const q = questions[i];
+            if (!q)
+                continue;
+            const urls = [...(q.image_urls ?? []), ...(q.explanation_image_urls ?? [])];
+            for (const url of urls) {
+                if (!url || prefetchedImageUrlsRef.current.has(url))
+                    continue;
+                prefetchedImageUrlsRef.current.add(url);
+                const img = new Image();
+                img.src = url;
+            }
+        }
+    }, [quizState, questions, currentQuestionIndex]);
     // --- Render logic for active quiz ---
     const renderActiveQuiz = () => {
         if (!currentQuestion)
@@ -726,9 +1056,12 @@ export default function QuizPage({ subjects: allSubjects }) {
             layoutType = 'answered';
         }
         const imagesComponent = hasQuestionImages ? (_jsxs("div", { className: "space-y-4", children: [(currentQuestion.image_urls || []).map((url, index) => (_jsx("img", { src: url, alt: `Question image ${index + 1}`, className: "max-w-full w-full h-auto mx-auto rounded-lg shadow-md" }, index))), currentQuestion.custom_question_image_data_url && (_jsx("button", { type: "button", onClick: () => setPreviewImageUrl(currentQuestion.custom_question_image_data_url ?? null), className: "block w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50", children: _jsx("img", { src: currentQuestion.custom_question_image_data_url, alt: "My Memo question supplement", className: "max-h-64 w-full object-contain" }) }))] })) : null;
-        const explanationComponent = isAnswered ? (_jsxs("div", { className: "bg-white rounded-xl shadow p-6 md:p-8 fade-in", children: [_jsxs("div", { className: "flex items-center gap-3 mb-4", children: [feedback?.correct ? _jsx(CheckCircleIcon, { className: "w-8 h-8 text-green-600" }) : _jsx(XCircleIcon, { className: "w-8 h-8 text-red-600" }), _jsx("h3", { className: "text-xl md:text-2xl font-bold", children: feedback?.correct ? '正解！' : '不正解' })] }), _jsx("h4", { className: "text-base md:text-lg font-semibold text-primary-new mb-2", children: "\u89E3\u8AAC" }), (currentQuestion.explanation_image_urls && currentQuestion.explanation_image_urls.length > 0) && (_jsx("div", { className: "my-4 grid grid-cols-1 gap-4", children: currentQuestion.explanation_image_urls.map((url, index) => (_jsx("img", { src: url, alt: `Explanation image ${index + 1}`, className: "max-w-full h-auto mx-auto rounded-lg shadow-md" }, index))) })), _jsx("div", { className: "prose prose-sm md:prose-base max-w-none text-gray-700", children: _jsx(ReactMarkdown, { remarkPlugins: [remarkGfm], children: feedback?.explanation?.text || '' }) }), currentQuestion.custom_explanation_image_data_url && (_jsxs("div", { className: "mt-6", children: [_jsx("h4", { className: "text-base md:text-lg font-semibold text-primary-new mb-2", children: "My Memo \u89E3\u8AAC\u88DC\u8DB3\u753B\u50CF" }), _jsx("button", { type: "button", onClick: () => setPreviewImageUrl(currentQuestion.custom_explanation_image_data_url ?? null), className: "block w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50", children: _jsx("img", { src: currentQuestion.custom_explanation_image_data_url, alt: "My Memo handwrite", className: "max-h-48 w-full object-contain" }) })] })), _jsxs("div", { className: "mt-6", children: [_jsxs("div", { className: "flex justify-between items-center mb-2", children: [_jsx("h4", { className: "text-base md:text-lg font-semibold text-primary-new", children: "My Memo" }), _jsx("button", { onClick: () => openMemoModal('customExplanation'), className: "p-1 rounded-md hover:bg-gray-200 text-gray-500 hover:text-gray-700", title: "\u62E1\u5927\u8868\u793A", children: _jsx("svg", { xmlns: "http://www.w3.org/2000/svg", width: "1em", height: "1em", viewBox: "0 0 24 24", children: _jsx("path", { fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "2", d: "M3 8V4h4m10 0h4v4M3 16v4h4m14-4h-4v4" }) }) })] }), _jsx("textarea", { value: customExplanationText, onChange: (e) => setCustomExplanationText(e.target.value), className: "w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-new focus:border-primary-new", rows: 4 })] }), _jsxs("div", { className: "mt-6 pt-4 border-t border-gray-200 flex justify-between items-center", children: [_jsx("button", { onClick: openProblemEditor, className: "px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200", children: "\u3053\u306E\u554F\u984C\u3092\u7DE8\u96C6\u3059\u308B" }), _jsx("button", { id: "next-question-button-bottom", type: "button", onClick: handleNextQuestion, disabled: isSavingCustomExplanation, className: "px-8 py-3 border border-transparent rounded-md shadow-sm text-sm md:text-base font-medium text-dark bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 disabled:cursor-not-allowed", children: currentQuestionIndex < questions.length - 1 ? '次の問題へ' : '終了' })] })] })) : null;
-        // 左カラム（問題・選択肢）
-        const QuestionColumn = () => (_jsxs("div", { className: "bg-white rounded-xl shadow p-6 md:p-8 h-full flex flex-col", children: [_jsx("p", { className: "text-base md:text-lg font-semibold text-gray-700 mb-6", children: currentQuestion.question_text }), _jsx(TimerProgressBar, { durationMs: isForcedSession ? FORCED_ANSWER_TIMER_MS : QUESTION_TIMER_MS, isActive: quizState === 'active' && !isAnswered && !isSubmittingAnswer, resetToken: `${currentQuestion.id}-${questionStartedAt}-${isForcedSession ? 'forced' : 'normal'}`, onExpire: isForcedSession ? () => void handleAnswerSubmit(true) : undefined }), _jsx("div", { className: "md:hidden my-4", children: layoutType === 'image' && imagesComponent }), _jsx("div", { className: "space-y-3", children: currentQuestion.choices.map((option, index) => {
+        const explanationComponent = isAnswered ? (_jsxs("div", { className: "bg-white rounded-xl shadow p-6 md:p-8 fade-in", children: [_jsxs("div", { className: "flex items-center gap-3 mb-4", children: [feedback?.correct ? _jsx(CheckCircleIcon, { className: "w-8 h-8 text-green-600" }) : _jsx(XCircleIcon, { className: "w-8 h-8 text-red-600" }), _jsx("h3", { className: "text-xl md:text-2xl font-bold", children: feedback?.correct ? '正解！' : '不正解' })] }), _jsx("h4", { className: "text-base md:text-lg font-semibold text-primary-new mb-2", children: "\u89E3\u8AAC" }), (currentQuestion.explanation_image_urls && currentQuestion.explanation_image_urls.length > 0) && (_jsx("div", { className: "my-4 grid grid-cols-1 gap-4", children: currentQuestion.explanation_image_urls.map((url, index) => (_jsx("img", { src: url, alt: `Explanation image ${index + 1}`, className: "max-w-full h-auto mx-auto rounded-lg shadow-md" }, index))) })), _jsx("div", { className: "prose prose-sm md:prose-base max-w-none text-gray-700", children: _jsx(ReactMarkdown, { remarkPlugins: [remarkGfm], children: feedback?.explanation?.text || '' }) }), currentQuestion.custom_explanation_image_data_url && (_jsxs("div", { className: "mt-6", children: [_jsx("h4", { className: "text-base md:text-lg font-semibold text-primary-new mb-2", children: "My Memo \u89E3\u8AAC\u88DC\u8DB3\u753B\u50CF" }), _jsx("button", { type: "button", onClick: () => setPreviewImageUrl(currentQuestion.custom_explanation_image_data_url ?? null), className: "block w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50", children: _jsx("img", { src: currentQuestion.custom_explanation_image_data_url, alt: "My Memo handwrite", className: "max-h-48 w-full object-contain" }) })] })), _jsxs("div", { className: "mt-6", children: [_jsxs("div", { className: "flex justify-between items-center mb-2", children: [_jsx("h4", { className: "text-base md:text-lg font-semibold text-primary-new", children: "My Memo" }), _jsx("button", { onClick: () => openMemoModal('customExplanation'), className: "p-1 rounded-md hover:bg-gray-200 text-gray-500 hover:text-gray-700", title: "\u62E1\u5927\u8868\u793A", children: _jsx("svg", { xmlns: "http://www.w3.org/2000/svg", width: "1em", height: "1em", viewBox: "0 0 24 24", children: _jsx("path", { fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "2", d: "M3 8V4h4m10 0h4v4M3 16v4h4m14-4h-4v4" }) }) })] }), _jsx("textarea", { value: customExplanationText, onChange: (e) => setCustomExplanationText(e.target.value), className: "w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-new focus:border-primary-new", rows: 4 })] }), _jsxs("div", { className: "mt-6 rounded-xl border border-sky-200 bg-sky-50 p-4", children: [_jsxs("div", { className: "flex flex-wrap items-center justify-between gap-2", children: [_jsx("h4", { className: "text-base md:text-lg font-semibold text-sky-900", children: "\u53E3\u982D\u8A66\u554F\u30E2\u30FC\u30C9" }), !isOralVivaActive ? (_jsx("button", { type: "button", onClick: () => void startOralViva(), disabled: isOralVivaLoading, className: "px-4 py-2 rounded-md bg-sky-700 text-white text-sm font-medium hover:bg-sky-800 disabled:bg-gray-300", children: isOralVivaLoading ? '開始中...' : '口頭試問を開始' })) : (_jsxs("div", { className: "text-right", children: [_jsxs("div", { className: "text-xs font-semibold text-sky-800", children: ["\u30B9\u30C6\u30C3\u30D7: ", oralVivaStepLabels[oralVivaSteps[Math.min(oralVivaStepIndex, oralVivaSteps.length - 1)]], " (", Math.min(oralVivaStepIndex + 1, oralVivaSteps.length), "/", oralVivaSteps.length, ")"] }), _jsx("div", { className: "text-[11px] text-sky-700", children: "\u7D42\u4E86\u6761\u4EF6: 4\u30B9\u30C6\u30C3\u30D7\u5B8C\u4E86 or \u8981\u7D04\u3078\u30B9\u30AD\u30C3\u30D7" })] }))] }), isOralVivaActive && (_jsxs("div", { className: "mt-4 space-y-3", children: [_jsx("div", { className: "grid grid-cols-1 sm:grid-cols-3 gap-2", children: [
+                                        ['論理性', oralVivaScores.logicality],
+                                        ['具体性', oralVivaScores.specificity],
+                                        ['再現性', oralVivaScores.reproducibility],
+                                    ].map(([label, value]) => (_jsxs("div", { className: "rounded-md bg-white border border-sky-200 px-3 py-2", children: [_jsxs("div", { className: "flex items-center justify-between text-xs text-sky-900 mb-1", children: [_jsx("span", { children: label }), _jsx("span", { children: value })] }), _jsx("div", { className: "h-2 rounded bg-sky-100 overflow-hidden", children: _jsx("div", { className: "h-full bg-sky-500", style: { width: `${Math.max(0, Math.min(100, value))}%` } }) })] }, label))) }), _jsxs("div", { className: "max-h-72 overflow-y-auto rounded-md border border-sky-200 bg-white p-3 space-y-2", children: [oralVivaMessages.length === 0 && (_jsx("p", { className: "text-sm text-gray-500", children: "\u958B\u59CB\u3059\u308B\u3068\u3001AI\u9762\u63A5\u5B98\u304C\u8CEA\u554F\u3057\u307E\u3059\u3002" })), oralVivaMessages.map((msg, idx) => (_jsxs("div", { className: `rounded-lg px-3 py-2 text-sm ${msg.role === 'assistant' ? 'bg-sky-100 text-sky-900' : 'bg-gray-100 text-gray-800'}`, children: [_jsx("p", { className: "text-[11px] font-semibold mb-1", children: msg.role === 'assistant' ? 'AI面接官' : 'あなた' }), _jsx("p", { className: "whitespace-pre-wrap", children: msg.content })] }, `${msg.role}-${idx}`))), _jsx("div", { ref: oralVivaMessagesEndRef })] }), !oralVivaResult && (_jsxs("div", { className: "space-y-2", children: [_jsx("textarea", { value: oralVivaInput, onChange: (e) => setOralVivaInput(e.target.value), className: "w-full p-2 border border-sky-300 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 bg-white", rows: 3, placeholder: "\u56DE\u7B54\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044\uFF08\u4EFB\u610F\u3067\u97F3\u58F0\u5165\u529B\u3082\u53EF\uFF09" }), _jsxs("div", { className: "flex flex-wrap items-center gap-2", children: [_jsx("button", { type: "button", onClick: () => void submitOralVivaAnswer(), disabled: isOralVivaLoading || !oralVivaInput.trim(), className: "px-4 py-2 rounded-md bg-sky-700 text-white text-sm font-medium hover:bg-sky-800 disabled:bg-gray-300", children: isOralVivaLoading ? '送信中...' : '送信' }), isSpeechSupported && (_jsx("button", { type: "button", onClick: toggleSpeechInput, className: `px-4 py-2 rounded-md text-sm font-medium border ${isListeningSpeech ? 'border-rose-300 bg-rose-50 text-rose-700' : 'border-sky-300 bg-white text-sky-800'}`, children: isListeningSpeech ? '音声入力停止' : '音声入力開始' })), _jsx("button", { type: "button", onClick: () => void skipOralVivaToSummary(), disabled: isOralVivaLoading, className: "px-4 py-2 rounded-md text-sm font-medium border border-sky-300 bg-white text-sky-800 hover:bg-sky-100 disabled:bg-gray-100 disabled:text-gray-400", children: "\u8981\u7D04\u3078\u30B9\u30AD\u30C3\u30D7" }), _jsx("button", { type: "button", onClick: () => setIsOralVivaActive(false), disabled: isOralVivaLoading, className: "px-4 py-2 rounded-md text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400", children: "\u53E3\u982D\u8A66\u554F\u3092\u9589\u3058\u308B" })] })] })), oralVivaResult && (_jsxs("div", { className: "rounded-md border border-sky-200 bg-white p-3 space-y-2", children: [_jsx("h5", { className: "text-sm font-semibold text-sky-900", children: "\u6700\u7D42\u30D5\u30A3\u30FC\u30C9\u30D0\u30C3\u30AF" }), _jsx("ul", { className: "list-disc pl-5 text-sm text-gray-700 space-y-1", children: oralVivaResult.improvementPoints.map((point, idx) => (_jsx("li", { children: point }, `${point}-${idx}`))) }), oralVivaResult.miniQuizQuestion && (_jsxs("div", { className: "text-sm text-gray-800", children: [_jsx("p", { className: "font-semibold", children: "\u6B21\u56DE\u78BA\u8A8D\u30DF\u30CB\u554F\u984C" }), _jsx("p", { className: "whitespace-pre-wrap", children: oralVivaResult.miniQuizQuestion })] })), oralVivaResult.miniQuizAnswer && (_jsxs("div", { className: "text-sm text-gray-700", children: [_jsx("p", { className: "font-semibold", children: "\u60F3\u5B9A\u89E3\u7B54" }), _jsx("p", { className: "whitespace-pre-wrap", children: oralVivaResult.miniQuizAnswer })] })), _jsx("p", { className: "text-xs text-gray-500", children: "\u6700\u7D42\u8981\u7D04\u306F My Memo \u306B\u81EA\u52D5\u8FFD\u8A18\u30FB\u4FDD\u5B58\u3055\u308C\u307E\u3059\u3002" })] }))] }))] }), _jsxs("div", { className: "mt-6 pt-4 border-t border-gray-200 flex justify-between items-center", children: [_jsx("button", { onClick: openProblemEditor, className: "px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200", children: "\u3053\u306E\u554F\u984C\u3092\u7DE8\u96C6\u3059\u308B" }), _jsx("button", { id: "next-question-button-bottom", type: "button", onClick: handleNextQuestion, disabled: isSavingCustomExplanation, className: "px-8 py-3 border border-transparent rounded-md shadow-sm text-sm md:text-base font-medium text-dark bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 disabled:cursor-not-allowed", children: currentQuestionIndex < questions.length - 1 ? '次の問題へ' : '終了' })] })] })) : null;
+        const questionColumn = (_jsxs("div", { className: "bg-white rounded-xl shadow p-6 md:p-8 h-full flex flex-col", children: [_jsx("p", { className: "text-base md:text-lg font-semibold text-gray-700 mb-6", children: currentQuestion.question_text }), _jsx(TimerProgressBar, { durationMs: isForcedSession ? FORCED_ANSWER_TIMER_MS : QUESTION_TIMER_MS, isActive: quizState === 'active' && !isAnswered && !isSubmittingAnswer, resetToken: `${currentQuestion.id}-${questionStartedAt}-${isForcedSession ? 'forced' : 'normal'}`, onExpire: isForcedSession ? () => void handleAnswerSubmit(true) : undefined }), _jsx("div", { className: "md:hidden my-4", children: layoutType === 'image' && imagesComponent }), _jsx("div", { className: "space-y-3", children: displayedChoices.map((option, index) => {
                         const isCorrectAnswer = option.label === currentQuestion.answer;
                         const isSelectedAnswer = option.label === selectedAnswer;
                         let buttonClass = 'bg-gray-100 hover:bg-gray-200';
@@ -744,15 +1077,15 @@ export default function QuizPage({ subjects: allSubjects }) {
                             buttonClass = 'bg-primary-new';
                         }
                         return (_jsxs("button", { type: "button", onClick: () => !isAnswered && setSelectedAnswer(option.label), disabled: isAnswered, className: `w-full text-left p-4 rounded-lg border border-transparent transition-all duration-200 text-sm md:text-base ${buttonClass}`, children: [_jsxs("span", { className: "font-bold mr-2", children: [option.label, "."] }), _jsx("span", { children: option.text })] }, index));
-                    }) }), _jsxs("div", { className: "mt-6", children: [_jsxs("div", { className: "flex justify-between items-center mb-2", children: [_jsx("label", { htmlFor: "scratchpad", className: "block text-sm font-medium text-gray-700", children: "\u30E1\u30E2\u5E33" }), _jsx("button", { onClick: () => openMemoModal('scratchpad'), className: "p-1 rounded-md hover:bg-gray-200 text-gray-500 hover:text-gray-700", title: "\u62E1\u5927\u8868\u793A", children: _jsx("svg", { xmlns: "http://www.w3.org/2000/svg", width: "1em", height: "1em", viewBox: "0 0 24 24", children: _jsx("path", { fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "2", d: "M3 8V4h4m10 0h4v4M3 16v4h4m14-4h-4v4" }) }) })] }), _jsx("textarea", { id: "scratchpad", value: scratchpadText, onChange: (e) => setScratchpadText(e.target.value), className: "w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-new focus:border-primary-new", rows: 3 }), _jsx("div", { className: "mt-3 flex justify-end", children: _jsx("button", { type: "button", onClick: () => void toggleReviewLater(), disabled: isUpdatingReviewLater, className: `px-4 py-2 rounded-md text-sm font-medium border shadow-sm transition-colors ${isCurrentQuestionReviewLater
+                    }) }), _jsxs("div", { className: "mt-6", children: [_jsxs("div", { className: "flex flex-wrap items-center justify-between gap-2 mb-2", children: [_jsx("button", { type: "button", onClick: () => setIsScratchpadOpen((prev) => !prev), className: "px-3 py-1.5 text-sm font-medium rounded-md border border-gray-300 bg-gray-50 hover:bg-gray-100", children: isScratchpadOpen ? 'メモ帳を閉じる' : 'メモ帳を開く' }), isScratchpadOpen && (_jsx("button", { onClick: () => openMemoModal('scratchpad'), className: "p-1 rounded-md hover:bg-gray-200 text-gray-500 hover:text-gray-700", title: "\u62E1\u5927\u8868\u793A", children: _jsx("svg", { xmlns: "http://www.w3.org/2000/svg", width: "1em", height: "1em", viewBox: "0 0 24 24", children: _jsx("path", { fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "2", d: "M3 8V4h4m10 0h4v4M3 16v4h4m14-4h-4v4" }) }) }))] }), isScratchpadOpen && (_jsx("textarea", { id: "scratchpad", value: scratchpadText, onChange: (e) => setScratchpadText(e.target.value), className: "w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-new focus:border-primary-new", rows: 3 })), _jsx("div", { className: "mt-3 flex justify-end", children: _jsx("button", { type: "button", onClick: () => void toggleReviewLater(), disabled: isUpdatingReviewLater, className: `px-4 py-2 rounded-md text-sm font-medium border shadow-sm transition-colors ${isCurrentQuestionReviewLater
                                     ? 'border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
                                     : 'border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100'} disabled:bg-gray-200 disabled:text-gray-500 disabled:border-gray-300 disabled:cursor-not-allowed`, children: isUpdatingReviewLater ? '更新中...' : isCurrentQuestionReviewLater ? '登録済み' : '後で確認' }) }), !isAnswered && ( // Moved "解答する" button here
                         _jsx("div", { className: "mt-6 text-center", children: _jsxs("div", { className: "flex flex-col justify-center gap-3 sm:flex-row", children: [_jsx("button", { id: "submit-answer-button", type: "button", onClick: () => void handleAnswerSubmit(), disabled: selectedAnswer === null || isSubmittingAnswer, className: "px-8 py-3 border border-transparent rounded-md shadow-sm text-sm md:text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed", children: isSubmittingAnswer ? '保存中...' : '解答する' }), _jsx("button", { type: "button", onClick: () => void handleAnswerSubmit(true, true), disabled: isSubmittingAnswer, className: "px-8 py-3 border border-amber-300 rounded-md shadow-sm text-sm md:text-base font-medium text-amber-900 bg-amber-50 hover:bg-amber-100 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed", children: isSubmittingAnswer ? '保存中...' : 'わからない' })] }) }))] }), isAnswered && ( // This div now only contains "次の問題へ" button, and retains mt-auto
                 _jsx("div", { className: "mt-auto pt-6 text-center", children: _jsx("button", { id: "next-question-button", type: "button", onClick: handleNextQuestion, disabled: isSavingCustomExplanation, className: "px-8 py-3 border border-transparent rounded-md shadow-sm text-sm md:text-base font-medium text-dark bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 disabled:cursor-not-allowed", children: currentQuestionIndex < questions.length - 1 ? '次の問題へ' : '終了' }) }))] }));
         // 右カラム（画像・解説）
-        const RightColumn = () => (_jsxs("div", { className: "space-y-8", children: [layoutType === 'image' && (_jsx("div", { className: "bg-white rounded-xl shadow p-6 md:p-8", children: imagesComponent })), explanationComponent] }));
+        const rightColumn = (_jsxs("div", { className: "space-y-8", children: [layoutType === 'image' && (_jsx("div", { className: "bg-white rounded-xl shadow p-6 md:p-8", children: imagesComponent })), explanationComponent] }));
         const progressPercentage = questions.length > 0 ? ((currentQuestionIndex + 1) / questions.length) * 100 : 0;
-        return (_jsxs("div", { className: "md:h-screen md:overflow-hidden text-sm md:text-base", children: [_jsxs("div", { className: "p-4 md:p-6", children: [_jsx("div", { className: "flex justify-end items-center mb-2", children: _jsxs("div", { className: "flex items-center gap-4", children: [isForcedSession && (_jsx("div", { className: "text-sm font-semibold text-[#e8383d] whitespace-nowrap", children: "\u5F37\u5236\u30E2\u30FC\u30C9: 80\u79D2" })), (() => {
+        return (_jsxs("div", { className: "md:h-screen md:overflow-hidden text-sm md:text-base", children: [_jsxs("div", { ref: questionTopRef, className: "p-4 md:p-6", children: [_jsx("div", { className: "flex justify-end items-center mb-2", children: _jsxs("div", { className: "flex items-center gap-4", children: [isForcedSession && (_jsx("div", { className: "text-sm font-semibold text-[#e8383d] whitespace-nowrap", children: "\u5F37\u5236\u30E2\u30FC\u30C9: 80\u79D2" })), (() => {
                                         const stats = historyStats[currentQuestion.id];
                                         if (stats && stats.total > 0) {
                                             return (_jsxs("div", { className: "text-sm text-gray-500 whitespace-nowrap", children: ["\u76F4\u8FD1", stats.total, "\u56DE \u6B63\u7B54\u7387: ", Math.round((stats.correct / stats.total) * 100), "% (", stats.correct, "/", stats.total, ")"] }));
@@ -761,7 +1094,7 @@ export default function QuizPage({ subjects: allSubjects }) {
                                             return _jsx("div", { className: "text-sm text-gray-500 whitespace-nowrap", children: "\u521D\u6311\u6226" });
                                         }
                                         return null;
-                                    })(), _jsxs("p", { className: "text-gray-500", children: ["\u554F\u984C ", currentQuestionIndex + 1, " / ", questions.length] })] }) }), _jsx("div", { className: "w-full bg-gray-200 rounded-full h-2.5", children: _jsx("div", { className: "bg-primary-new h-2.5 rounded-full transition-all duration-500", style: { width: `${progressPercentage}%` } }) })] }), _jsxs("div", { className: `
+                                    })(), adhocQuizLabel && (_jsx("span", { className: "text-xs px-2 py-1 rounded bg-emerald-100 text-emerald-800 whitespace-nowrap", children: adhocQuizLabel })), _jsxs("p", { className: "text-gray-500", children: ["\u554F\u984C ", currentQuestionIndex + 1, " / ", questions.length] })] }) }), _jsx("div", { className: "w-full bg-gray-200 rounded-full h-2.5", children: _jsx("div", { className: "bg-primary-new h-2.5 rounded-full transition-all duration-500", style: { width: `${progressPercentage}%` } }) })] }), _jsxs("div", { className: `
                 md:grid md:gap-8 md:h-[calc(100vh-120px)] // Adjusted height for progress bar
                 ${layoutType === 'image' ? 'md:grid-cols-3' : ''}
                 ${layoutType === 'answered' ? 'md:grid-cols-3' : ''}
@@ -771,12 +1104,12 @@ export default function QuizPage({ subjects: allSubjects }) {
                 ${layoutType === 'image' ? 'md:col-span-1' : ''}
                 ${layoutType === 'answered' ? 'md:col-span-1' : ''}
                 ${layoutType !== 'default' ? 'md:h-full md:overflow-y-auto' : ''}
-              `, children: _jsx(QuestionColumn, {}) }), layoutType !== 'default' && (_jsx("div", { className: `
+              `, children: questionColumn }), layoutType !== 'default' && (_jsx("div", { className: `
                   hidden md:block md:pr-6
                   ${layoutType === 'image' ? 'md:col-span-2' : ''}
                   ${layoutType === 'answered' ? 'md:col-span-2' : ''}
                   md:h-full md:overflow-y-auto
-                `, children: _jsx(RightColumn, {}) })), _jsx("div", { className: "md:hidden mt-8 px-4", children: explanationComponent })] })] }));
+                `, children: rightColumn })), _jsx("div", { className: "md:hidden mt-8 px-4", children: explanationComponent })] })] }));
     };
     return (_jsxs(_Fragment, { children: [_jsx(SubjectVisibilityModal, { isOpen: isVisibilityModalOpen, onClose: () => setIsVisibilityModalOpen(false), subjects: allSubjects, hiddenSubjects: hiddenSubjects, onHiddenSubjectsChange: handleHiddenSubjectsChange, quizMode: quizMode, subjectWeights: subjectWeights, onSubjectWeightsChange: setSubjectWeights }), effectStatus && (_jsx("div", { className: "feedback-overlay", children: _jsx("div", { className: `feedback-icon ${effectStatus} feedback-effect-animation`, children: effectStatus === 'correct' ? '○' : '×' }) })), _jsxs("div", { className: quizState === 'active' ? "w-full" : "max-w-3xl mx-auto", children: [quizState === 'setup' && ((isLoading || isPlansLoading) ? (_jsx(LoadingSpinner, {})) : (_jsxs("div", { className: "max-w-2xl mx-auto", children: [_jsxs("div", { className: "bg-white rounded-xl shadow p-8", children: [_jsxs("form", { onSubmit: (e) => e.preventDefault(), className: "space-y-6", children: [_jsxs("div", { children: [_jsxs("div", { className: "flex items-center justify-between mb-2", children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u79D1\u76EE (\u8907\u6570\u9078\u629E\u53EF)" }), _jsx("button", { onClick: () => setIsVisibilityModalOpen(true), className: "p-1 rounded-md hover:bg-gray-200", title: "\u8868\u793A\u79D1\u76EE\u306E\u5236\u5FA1", children: _jsxs("svg", { xmlns: "http://www.w3.org/2000/svg", className: "h-5 w-5 text-gray-600", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor", children: [_jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.096 2.572-1.065z" }), _jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M15 12a3 3 0 11-6 0 3 3 0 016 0z" })] }) })] }), _jsx("div", { className: "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3", children: visibleSubjects.map((s) => {
                                                             const isSelected = selectedSubjectNames.includes(s.name);
@@ -832,7 +1165,7 @@ export default function QuizPage({ subjects: allSubjects }) {
                                                             return (_jsx("button", { type: "button", onClick: () => setNumQuestions(actualButtonValue), disabled: isDisabled, className: `px-2 py-2 rounded-md text-sm font-medium transition-colors ${numQuestions === actualButtonValue && !isDisabled
                                                                     ? 'bg-primary-new text-white'
                                                                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed'}`, children: displayButtonLabel }, option.label));
-                                                        }) })] })] }), _jsxs("div", { className: "mt-6", children: [_jsxs("button", { type: "button", onClick: () => void startQuiz(), disabled: isLoading || selectedSubjectNames.length === 0, className: "w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-primary-new", children: [isLoading ? _jsx(LoaderIcon, { className: "w-5 h-5" }) : null, isLoading ? 'クイズ準備中...' : 'Start'] }), _jsx("button", { type: "button", onClick: openIpadMode, disabled: isLoading || selectedSubjectNames.length === 0, className: "mt-3 w-full py-3 px-4 border border-cyan-600 rounded-md shadow-sm text-base font-medium text-cyan-700 bg-cyan-50 hover:bg-cyan-100 disabled:opacity-50 disabled:cursor-not-allowed", children: "iPad\u30E2\u30FC\u30C9" }), _jsx("button", { type: "button", onClick: () => void startQuiz(true), disabled: isLoading || selectedSubjectNames.length === 0, className: "mt-3 w-full py-3 px-4 border border-[#e8383d] rounded-md shadow-sm text-base font-medium text-[#e8383d] bg-red-50 hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed", children: "\u5F37\u5236\u30E2\u30FC\u30C9" })] }), (error || plansError) && _jsx("p", { className: "text-danger text-sm mt-2 text-center", children: error || plansError })] }), _jsx(SubjectProgress, { selectedSubjectNames: selectedSubjectNames, quizMode: quizMode })] }))), quizState === 'finished' && (_jsxs("div", { className: "text-center max-w-lg mx-auto", children: [_jsx("h2", { className: "text-3xl font-bold text-dark mb-4", children: "\u5B8C\u4E86\uFF01" }), _jsx("div", { className: "bg-white rounded-xl shadow p-8", children: _jsx("div", { className: "flex justify-center mt-2", children: _jsx("button", { type: "button", onClick: () => {
+                                                        }) })] })] }), _jsxs("div", { className: "mt-6", children: [_jsxs("button", { type: "button", onClick: () => void startQuiz(), disabled: isLoading || selectedSubjectNames.length === 0, className: "w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-primary-new", children: [isLoading ? _jsx(LoaderIcon, { className: "w-5 h-5" }) : null, isLoading ? 'クイズ準備中...' : 'Start'] }), _jsxs("div", { className: "mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2", children: [_jsx("button", { type: "button", onClick: () => openIpadMode('air'), disabled: isLoading || selectedSubjectNames.length === 0, className: "w-full py-3 px-4 border border-cyan-600 rounded-md shadow-sm text-base font-medium text-cyan-700 bg-cyan-50 hover:bg-cyan-100 disabled:opacity-50 disabled:cursor-not-allowed", children: "iPad Air\u30E2\u30FC\u30C9" }), _jsx("button", { type: "button", onClick: () => openIpadMode('mini'), disabled: isLoading || selectedSubjectNames.length === 0, className: "w-full py-3 px-4 border border-sky-600 rounded-md shadow-sm text-base font-medium text-sky-700 bg-sky-50 hover:bg-sky-100 disabled:opacity-50 disabled:cursor-not-allowed", children: "iPad mini\u30E2\u30FC\u30C9" })] }), _jsx("button", { type: "button", onClick: () => void startQuiz(true), disabled: isLoading || selectedSubjectNames.length === 0, className: "mt-3 w-full py-3 px-4 border border-[#e8383d] rounded-md shadow-sm text-base font-medium text-[#e8383d] bg-red-50 hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed", children: "\u5F37\u5236\u30E2\u30FC\u30C9" })] }), (error || plansError) && _jsx("p", { className: "text-danger text-sm mt-2 text-center", children: error || plansError })] }), _jsx(SubjectProgress, { selectedSubjectNames: selectedSubjectNames, quizMode: quizMode })] }))), quizState === 'finished' && (_jsxs("div", { className: "text-center max-w-lg mx-auto", children: [_jsx("h2", { className: "text-3xl font-bold text-dark mb-4", children: "\u5B8C\u4E86\uFF01" }), _jsx("div", { className: "bg-white rounded-xl shadow p-8", children: _jsx("div", { className: "flex justify-center mt-2", children: _jsx("button", { type: "button", onClick: () => {
                                             setIsForcedSession(false);
                                             setQuizState('setup');
                                         }, className: "px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700", children: "\u79D1\u76EE\u9078\u629E\u306B\u9077\u79FB" }) }) })] })), quizState === 'active' && renderActiveQuiz()] }), editingMemo && (_jsx("div", { className: "fixed inset-0 bg-black bg-opacity-75 z-50 flex justify-center items-center p-4", children: _jsxs("div", { className: "bg-white rounded-lg shadow-xl w-full max-w-2xl h-3/4 flex flex-col", children: [_jsx("h3", { className: "text-lg font-bold p-4 border-b", children: editingMemo.type === 'scratchpad' ? 'メモ帳' : 'My Memo' }), _jsx("textarea", { value: editingMemo.content, onChange: (e) => setEditingMemo({ ...editingMemo, content: e.target.value }), className: "flex-grow w-full p-4 border-0 focus:ring-0 text-base" }), _jsx("div", { className: "p-4 border-t flex justify-end", children: _jsx("button", { onClick: handleSaveAndCloseModal, className: "px-6 py-2 bg-primary-new text-white rounded-lg hover:bg-blue-700", children: "\u4FDD\u5B58\u3057\u3066\u9589\u3058\u308B" }) })] }) })), previewImageUrl && (_jsxs("div", { className: "fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4", onClick: () => setPreviewImageUrl(null), children: [_jsx("button", { type: "button", className: "absolute top-4 right-4 rounded-md bg-white/10 px-3 py-2 text-sm font-medium text-white", onClick: () => setPreviewImageUrl(null), children: "\u9589\u3058\u308B" }), _jsx("img", { src: previewImageUrl, alt: "My Memo preview", className: "max-h-full max-w-full rounded-lg bg-white object-contain", onClick: (e) => e.stopPropagation() })] })), editingProblem && (_jsx("div", { className: "fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4", children: _jsxs("div", { className: "bg-white rounded-lg shadow-xl w-full max-w-4xl h-[90vh] flex flex-col", children: [_jsx("h3", { className: "text-xl font-bold p-4 border-b", children: "\u554F\u984C\u306E\u7DE8\u96C6" }), _jsxs("div", { className: "flex-grow overflow-y-auto p-6 space-y-4", children: [_jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u554F\u984C\u6587" }), _jsx("textarea", { name: "question_text", value: editingProblem.question_text, onChange: handleProblemFormChange, rows: 4, className: "mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u9078\u629E\u80A2" }), _jsx("div", { className: "space-y-2 mt-1", children: editingProblem.choices.map((choice, index) => (_jsxs("div", { className: "flex items-center gap-2", children: [_jsx("input", { type: "text", value: choice.label, onChange: (e) => handleProblemChoiceChange(index, 'label', e.target.value), className: "w-16 shadow-sm sm:text-sm border-gray-300 rounded-md" }), _jsx("input", { type: "text", value: choice.text, onChange: (e) => handleProblemChoiceChange(index, 'text', e.target.value), className: "flex-grow shadow-sm sm:text-sm border-gray-300 rounded-md" })] }, index))) })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u6B63\u89E3\u306E\u9078\u629E\u80A2\u30E9\u30D9\u30EB" }), _jsx("input", { type: "text", name: "answer", value: editingProblem.answer, onChange: handleProblemFormChange, className: "mt-1 w-32 block shadow-sm sm:text-sm border-gray-300 rounded-md" })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u30AB\u30C6\u30B4\u30EA" }), _jsx("input", { type: "text", name: "category", value: editingProblem.category || '', onChange: handleProblemFormChange, className: "mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u89E3\u8AAC" }), _jsx("textarea", { name: "explanation.text", value: editingProblem.explanation.text, onChange: handleProblemFormChange, rows: 6, className: "mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" })] })] }), _jsxs("div", { className: "p-4 border-t flex justify-end gap-4", children: [_jsx("button", { onClick: () => setEditingProblem(null), className: "px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300", children: "\u30AD\u30E3\u30F3\u30BB\u30EB" }), _jsx("button", { onClick: handleSaveChanges, className: "px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700", children: "\u5909\u66F4\u3092\u4FDD\u5B58" })] })] }) }))] }));
