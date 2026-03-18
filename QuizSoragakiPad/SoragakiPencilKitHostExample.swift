@@ -300,6 +300,8 @@ final class QuizPencilModeViewModel: ObservableObject {
     @Published var questionStartedAt: Date = Date()
     @Published var installedElapsedDays: Int = 0
     @Published var isSubmittingAnswer: Bool = false
+    @Published var isAdvancingQuestion: Bool = false
+    @Published var isSavingCustomMemo: Bool = false
     @Published var isNetworkAvailable: Bool = true
     @Published var networkStatusText: String = "ネットワーク確認中..."
     @Published var pendingSyncCount: Int = 0
@@ -339,6 +341,31 @@ final class QuizPencilModeViewModel: ObservableObject {
     var progressText: String {
         guard !questions.isEmpty else { return "0 / 0" }
         return "第\(currentIndex + 1)問 / 全\(questions.count)問"
+    }
+
+    var processingStatusText: String {
+        if isLoading {
+            return isReviewMode ? "レビュー問題を取得中" : "問題を取得中"
+        }
+        if isSubmittingAnswer {
+            return "結果アップロード中"
+        }
+        if isSavingCustomMemo && isAdvancingQuestion {
+            return isReviewMode ? "My Memo同期中" : "My Memo同期後に次問題へ遷移中"
+        }
+        if isSavingCustomMemo {
+            return "My Memo同期中"
+        }
+        if isAdvancingQuestion {
+            return currentIndex + 1 < questions.count ? "次問題へ遷移中" : "完了処理中"
+        }
+        if isUpdatingReviewLater {
+            return "後で確認を同期中"
+        }
+        if isSyncingPendingActions {
+            return "未同期データを再送中"
+        }
+        return "待機中"
     }
 
     var explanationText: String {
@@ -676,6 +703,10 @@ final class QuizPencilModeViewModel: ObservableObject {
     }
 
     func nextQuestion() async {
+        guard !isAdvancingQuestion else { return }
+        isAdvancingQuestion = true
+        defer { isAdvancingQuestion = false }
+
         if isReviewMode {
             do {
                 try await saveCustomMemoIfNeeded()
@@ -748,6 +779,8 @@ final class QuizPencilModeViewModel: ObservableObject {
            newQuestionImageDataURL == oldQuestionImageDataURL {
             return
         }
+        isSavingCustomMemo = true
+        defer { isSavingCustomMemo = false }
         do {
             try await apiClient.saveCustomExplanation(
                 problemID: question.id,
@@ -1321,6 +1354,9 @@ struct QuizPencilModeView: View {
     @StateObject private var viewModel = QuizPencilModeViewModel()
     @State private var isMemoEditorFocused = false
     @State private var previewImage: UIImage?
+    @State private var isQuestionAreaExpanded = true
+    @State private var isExplanationAreaExpanded = true
+    @State private var isMyMemoAreaExpanded = true
     @State private var isMyMemoSectionExpanded = false
     @State private var isExplanationMemoSectionExpanded = false
     @State private var isQuestionMemoSectionExpanded = false
@@ -1381,6 +1417,9 @@ struct QuizPencilModeView: View {
                     }
                     .onChange(of: viewModel.currentQuestion?.id) { _, _ in
                         collapseMemoSections()
+                        isQuestionAreaExpanded = true
+                        isExplanationAreaExpanded = true
+                        isMyMemoAreaExpanded = true
                         isMemoEditorFocused = false
                         withAnimation(.easeInOut(duration: 0.2)) {
                             scrollProxy.scrollTo(ScrollTarget.top, anchor: .top)
@@ -1414,6 +1453,9 @@ struct QuizPencilModeView: View {
                     .task {
                         await viewModel.configure(with: deepLink)
                         collapseMemoSections()
+                        isQuestionAreaExpanded = true
+                        isExplanationAreaExpanded = true
+                        isMyMemoAreaExpanded = true
                     }
                 }
 
@@ -1486,6 +1528,7 @@ struct QuizPencilModeView: View {
                     headerBadge(text: "端末: \(viewModel.iPadProfile.displayName)")
                     headerBadge(text: historySummaryText)
                     headerBadge(text: "インストールから\(viewModel.installedElapsedDays)日")
+                    headerBadge(text: "処理: \(viewModel.processingStatusText)")
                     networkBadge
                 }
                 .padding(.vertical, 1)
@@ -1575,320 +1618,337 @@ struct QuizPencilModeView: View {
         let questionAreaHeight = mainQuestionAreaHeight(availableHeight: availableHeight)
 
         VStack(spacing: 12) {
-            ScrollView {
-                ZStack(alignment: .topLeading) {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text(question.questionText)
-                            .font(.title3)
-                            .fontWeight(.semibold)
-                            .foregroundColor(AppPalette.dark)
-                            .padding(.bottom, 4)
-                        if !question.imageURLs.isEmpty || viewModel.customQuestionMemoImage != nil {
-                            VStack(alignment: .leading, spacing: 8) {
-                                ForEach(Array(question.imageURLs.enumerated()), id: \.offset) { index, path in
-                                    if let imageURL = viewModel.resolvedURL(path: path) {
-                                        AsyncImage(url: imageURL) { phase in
-                                            switch phase {
-                                            case .success(let image):
-                                                image
-                                                    .resizable()
-                                                    .scaledToFit()
-                                                    .frame(maxWidth: .infinity, minHeight: 140, maxHeight: 260)
-                                                    .padding(8)
-                                                    .background(AppPalette.white)
-                                                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                                                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(AppPalette.light.opacity(0.6), lineWidth: 1))
-                                            case .failure(_):
-                                                Text("画像\(index + 1)を読み込めませんでした。")
-                                                    .font(.footnote)
-                                                    .foregroundColor(.secondary)
-                                            default:
-                                                ProgressView()
-                                                    .frame(maxWidth: .infinity, minHeight: 140)
+            DisclosureGroup("問題文エリア", isExpanded: $isQuestionAreaExpanded) {
+                VStack(spacing: 12) {
+                    ScrollView {
+                        ZStack(alignment: .topLeading) {
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text(question.questionText)
+                                    .font(.title3)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(AppPalette.dark)
+                                    .padding(.bottom, 4)
+                                if !question.imageURLs.isEmpty || viewModel.customQuestionMemoImage != nil {
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        ForEach(Array(question.imageURLs.enumerated()), id: \.offset) { index, path in
+                                            if let imageURL = viewModel.resolvedURL(path: path) {
+                                                AsyncImage(url: imageURL) { phase in
+                                                    switch phase {
+                                                    case .success(let image):
+                                                        image
+                                                            .resizable()
+                                                            .scaledToFit()
+                                                            .frame(maxWidth: .infinity, minHeight: 140, maxHeight: 260)
+                                                            .padding(8)
+                                                            .background(AppPalette.white)
+                                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                            .overlay(RoundedRectangle(cornerRadius: 10).stroke(AppPalette.light.opacity(0.6), lineWidth: 1))
+                                                    case .failure(_):
+                                                        Text("画像\(index + 1)を読み込めませんでした。")
+                                                            .font(.footnote)
+                                                            .foregroundColor(.secondary)
+                                                    default:
+                                                        ProgressView()
+                                                            .frame(maxWidth: .infinity, minHeight: 140)
+                                                    }
+                                                }
                                             }
                                         }
+                                        if let memoImage = viewModel.customQuestionMemoImage {
+                                            memoImageSection(title: "My Memo 問題文補足", image: memoImage)
+                                        }
                                     }
+                                    .padding(.bottom, 2)
                                 }
-                                if let memoImage = viewModel.customQuestionMemoImage {
-                                    memoImageSection(title: "My Memo 問題文補足", image: memoImage)
-                                }
-                            }
-                            .padding(.bottom, 2)
-                        }
 
-                        if !viewModel.isReviewMode {
-                            TimelineView(.periodic(from: .now, by: 0.25)) { context in
-                                let ratio = viewModel.remainingTimeRatio(at: context.date)
-                                ZStack(alignment: .leading) {
-                                    Capsule()
-                                        .fill(AppPalette.light.opacity(0.35))
-                                    GeometryReader { proxy in
-                                        Capsule()
-                                            .fill(AppPalette.primaryNew.opacity(0.65))
-                                            .frame(width: proxy.size.width * ratio)
+                                if !viewModel.isReviewMode {
+                                    TimelineView(.periodic(from: .now, by: 0.25)) { context in
+                                        let ratio = viewModel.remainingTimeRatio(at: context.date)
+                                        ZStack(alignment: .leading) {
+                                            Capsule()
+                                                .fill(AppPalette.light.opacity(0.35))
+                                            GeometryReader { proxy in
+                                                Capsule()
+                                                    .fill(AppPalette.primaryNew.opacity(0.65))
+                                                    .frame(width: proxy.size.width * ratio)
+                                            }
+                                        }
+                                        .frame(height: 8)
+                                        .allowsHitTesting(false)
+                                        .accessibilityHidden(true)
                                     }
+                                    .padding(.bottom, 6)
                                 }
-                                .frame(height: 8)
-                                .allowsHitTesting(false)
-                                .accessibilityHidden(true)
-                            }
-                            .padding(.bottom, 6)
-                        }
 
-                        ForEach(question.choices) { choice in
-                            Button {
-                                viewModel.choose(choice.label)
-                            } label: {
-                                HStack(alignment: .top) {
-                                    Text("\(choice.label).")
-                                        .fontWeight(.bold)
-                                        .foregroundColor(AppPalette.dark)
-                                    Text(choice.text)
-                                        .multilineTextAlignment(.leading)
-                                        .foregroundColor(AppPalette.dark)
-                                    Spacer()
+                                ForEach(question.choices) { choice in
+                                    Button {
+                                        viewModel.choose(choice.label)
+                                    } label: {
+                                        HStack(alignment: .top) {
+                                            Text("\(choice.label).")
+                                                .fontWeight(.bold)
+                                                .foregroundColor(AppPalette.dark)
+                                            Text(choice.text)
+                                                .multilineTextAlignment(.leading)
+                                                .foregroundColor(AppPalette.dark)
+                                            Spacer()
+                                        }
+                                        .padding(10)
+                                        .background(choiceBackground(choice))
+                                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                                    }
+                                    .buttonStyle(.plain)
+                                    .disabled(viewModel.isAnswered || viewModel.isDrawMode || viewModel.isReviewMode)
                                 }
-                                .padding(10)
-                                .background(choiceBackground(choice))
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                Spacer(minLength: viewModel.extraWriteAreaHeight)
                             }
-                            .buttonStyle(.plain)
-                            .disabled(viewModel.isAnswered || viewModel.isDrawMode || viewModel.isReviewMode)
+                            .padding(.horizontal, 12)
+                            .padding(.top, 8)
+                            .padding(.bottom, 0)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+
+                            QuizPencilOverlayView(
+                                canvasView: $viewModel.canvasView,
+                                toolPicker: $viewModel.toolPicker,
+                                isDrawMode: Binding(
+                                    get: { viewModel.isDrawMode },
+                                    set: { newValue in viewModel.setInteractionMode(newValue ? .draw : .select) }
+                                )
+                            )
                         }
-                        Spacer(minLength: viewModel.extraWriteAreaHeight)
+                        .frame(maxWidth: .infinity, minHeight: questionAreaHeight + viewModel.extraWriteAreaHeight, alignment: .top)
+                        .background(AppPalette.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(AppPalette.light.opacity(0.5), lineWidth: 1))
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.top, 8)
-                    .padding(.bottom, 0)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-
-                    QuizPencilOverlayView(
-                        canvasView: $viewModel.canvasView,
-                        toolPicker: $viewModel.toolPicker,
-                        isDrawMode: Binding(
-                            get: { viewModel.isDrawMode },
-                            set: { newValue in viewModel.setInteractionMode(newValue ? .draw : .select) }
-                        )
-                    )
-                }
-                .frame(maxWidth: .infinity, minHeight: questionAreaHeight + viewModel.extraWriteAreaHeight, alignment: .top)
-                .background(AppPalette.white)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .overlay(RoundedRectangle(cornerRadius: 12).stroke(AppPalette.light.opacity(0.5), lineWidth: 1))
-            }
-            .frame(maxWidth: .infinity, minHeight: questionAreaHeight, maxHeight: questionAreaHeight)
-
-            HStack {
-                Toggle(isOn: Binding(
-                    get: { viewModel.isDrawMode },
-                    set: { newValue in viewModel.setInteractionMode(newValue ? .draw : .select) }
-                )) {
-                    Text(viewModel.isDrawMode ? "手書きモード" : "選択モード")
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .foregroundColor(AppPalette.dark)
-                }
-                .toggleStyle(SwitchToggleStyle(tint: AppPalette.primaryNew))
-
-                Button("手書きクリア") {
-                    viewModel.clearPencilLayer()
-                }
-                .buttonStyle(.bordered)
-                Button(viewModel.isMarkedForReviewLater ? "登録済み" : "後で確認") {
-                    Task { await viewModel.toggleReviewLater() }
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(viewModel.isMarkedForReviewLater ? AppPalette.success : AppPalette.caution)
-                .disabled(viewModel.isUpdatingReviewLater)
-                Button("余白+") {
-                    viewModel.expandWriteArea()
-                }
-                .buttonStyle(.bordered)
-                Button("余白-") {
-                    viewModel.shrinkWriteArea()
-                }
-                .buttonStyle(.bordered)
-
-                Spacer()
-
-                if viewModel.isReviewMode {
-                    Button("My Memo保存") {
-                        isMemoEditorFocused = false
-                        Task { await viewModel.nextQuestion() }
-                    }
-                    .buttonStyle(.borderedProminent)
-                } else if !viewModel.isAnswered {
-                    HStack(spacing: 10) {
-                        Button("解答する") {
-                            Task { await viewModel.submitAnswer() }
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(viewModel.selectedAnswer == nil || viewModel.isSubmittingAnswer)
-
-                        Button("わからない") {
-                            Task { await viewModel.submitAsUnknown() }
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(AppPalette.caution)
-                        .disabled(viewModel.isDrawMode || viewModel.isSubmittingAnswer)
-                    }
-                } else {
-                    Button(viewModel.currentIndex + 1 < viewModel.questions.count ? "次の問題へ" : "完了") {
-                        isMemoEditorFocused = false
-                        Task { await viewModel.nextQuestion() }
-                    }
-                    .buttonStyle(.borderedProminent)
-                }
-            }
-
-            if viewModel.isAnswered {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(viewModel.isReviewMode ? "レビュー内容" : (viewModel.isCorrect ? "正解" : "不正解"))
-                        .font(.headline)
-                        .foregroundColor(viewModel.isReviewMode ? AppPalette.primaryNew : (viewModel.isCorrect ? AppPalette.success : AppPalette.danger))
-                    ZStack(alignment: .topLeading) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(viewModel.explanationText.isEmpty ? "この問題の解説はありません。" : viewModel.explanationText)
-                                .font(.body)
-                                .foregroundColor(AppPalette.dark)
-                                .lineLimit(nil)
-                                .fixedSize(horizontal: false, vertical: true)
-                            if let memoImage = viewModel.customExplanationMemoImage {
-                                memoImageSection(title: "My Memo 解説補足", image: memoImage)
-                            }
-                            Spacer(minLength: 0)
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.top, 10)
-                        .padding(.bottom, 4)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-
-                        QuizPencilOverlayView(
-                            canvasView: $viewModel.explanationCanvasView,
-                            toolPicker: $viewModel.explanationToolPicker,
-                            isDrawMode: $viewModel.isExplanationDrawMode
-                        )
-                    }
-                    .frame(maxWidth: .infinity, minHeight: 240, alignment: .topLeading)
-                    .background(AppPalette.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(AppPalette.light.opacity(0.5), lineWidth: 1))
+                    .frame(maxWidth: .infinity, minHeight: questionAreaHeight, maxHeight: questionAreaHeight)
 
                     HStack {
-                        Toggle(isOn: $viewModel.isExplanationDrawMode) {
-                            Text(viewModel.isExplanationDrawMode ? "解説手書きモード" : "解説閲覧モード")
+                        Toggle(isOn: Binding(
+                            get: { viewModel.isDrawMode },
+                            set: { newValue in viewModel.setInteractionMode(newValue ? .draw : .select) }
+                        )) {
+                            Text(viewModel.isDrawMode ? "手書きモード" : "選択モード")
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
                                 .foregroundColor(AppPalette.dark)
                         }
                         .toggleStyle(SwitchToggleStyle(tint: AppPalette.primaryNew))
 
-                        Button("解説手書きクリア") {
-                            viewModel.clearExplanationPencilLayer()
+                        Button("手書きクリア") {
+                            viewModel.clearPencilLayer()
+                        }
+                        .buttonStyle(.bordered)
+                        Button(viewModel.isMarkedForReviewLater ? "登録済み" : "後で確認") {
+                            Task { await viewModel.toggleReviewLater() }
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(viewModel.isMarkedForReviewLater ? AppPalette.success : AppPalette.caution)
+                        .disabled(viewModel.isUpdatingReviewLater)
+                        Button("余白+") {
+                            viewModel.expandWriteArea()
+                        }
+                        .buttonStyle(.bordered)
+                        Button("余白-") {
+                            viewModel.shrinkWriteArea()
                         }
                         .buttonStyle(.bordered)
 
                         Spacer()
 
-                        Button("問題編集") {
-                            viewModel.openProblemEditor()
+                        if viewModel.isReviewMode {
+                            Button("My Memo保存") {
+                                isMemoEditorFocused = false
+                                Task { await viewModel.nextQuestion() }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .disabled(viewModel.isAdvancingQuestion)
+                        } else if !viewModel.isAnswered {
+                            HStack(spacing: 10) {
+                                Button("解答する") {
+                                    Task { await viewModel.submitAnswer() }
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .disabled(viewModel.selectedAnswer == nil || viewModel.isSubmittingAnswer)
+
+                                Button("わからない") {
+                                    Task { await viewModel.submitAsUnknown() }
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .tint(AppPalette.caution)
+                                .disabled(viewModel.isDrawMode || viewModel.isSubmittingAnswer)
+                            }
+                        } else {
+                            Button(viewModel.isAdvancingQuestion ? "保存中..." : (viewModel.currentIndex + 1 < viewModel.questions.count ? "次の問題へ" : "完了")) {
+                                isMemoEditorFocused = false
+                                Task { await viewModel.nextQuestion() }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .disabled(viewModel.isAdvancingQuestion)
                         }
-                        .buttonStyle(.bordered)
                     }
                 }
+            }
+            .tint(AppPalette.primaryNew)
+            .padding()
+            .background(AppPalette.white)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(RoundedRectangle(cornerRadius: 12).stroke(AppPalette.light.opacity(0.5), lineWidth: 1))
+
+            if viewModel.isAnswered {
+                DisclosureGroup("解説エリア", isExpanded: $isExplanationAreaExpanded) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(viewModel.isReviewMode ? "レビュー内容" : (viewModel.isCorrect ? "正解" : "不正解"))
+                            .font(.headline)
+                            .foregroundColor(viewModel.isReviewMode ? AppPalette.primaryNew : (viewModel.isCorrect ? AppPalette.success : AppPalette.danger))
+                        ZStack(alignment: .topLeading) {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text(viewModel.explanationText.isEmpty ? "この問題の解説はありません。" : viewModel.explanationText)
+                                    .font(.body)
+                                    .foregroundColor(AppPalette.dark)
+                                    .lineLimit(nil)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                if let memoImage = viewModel.customExplanationMemoImage {
+                                    memoImageSection(title: "My Memo 解説補足", image: memoImage)
+                                }
+                                Spacer(minLength: 0)
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.top, 10)
+                            .padding(.bottom, 4)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+
+                            QuizPencilOverlayView(
+                                canvasView: $viewModel.explanationCanvasView,
+                                toolPicker: $viewModel.explanationToolPicker,
+                                isDrawMode: $viewModel.isExplanationDrawMode
+                            )
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 240, alignment: .topLeading)
+                        .background(AppPalette.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(AppPalette.light.opacity(0.5), lineWidth: 1))
+
+                        HStack {
+                            Toggle(isOn: $viewModel.isExplanationDrawMode) {
+                                Text(viewModel.isExplanationDrawMode ? "解説手書きモード" : "解説閲覧モード")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(AppPalette.dark)
+                            }
+                            .toggleStyle(SwitchToggleStyle(tint: AppPalette.primaryNew))
+
+                            Button("解説手書きクリア") {
+                                viewModel.clearExplanationPencilLayer()
+                            }
+                            .buttonStyle(.bordered)
+
+                            Spacer()
+
+                            Button("問題編集") {
+                                viewModel.openProblemEditor()
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                    }
+                }
+                .tint(AppPalette.primaryNew)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
                 .background(AppPalette.white)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(AppPalette.light.opacity(0.5), lineWidth: 1))
 
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("My Memo")
-                        .font(.headline)
-                        .foregroundColor(AppPalette.dark)
-                    DisclosureGroup("My Memo", isExpanded: $isMyMemoSectionExpanded) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("テキスト入力")
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundColor(AppPalette.dark)
-                            HStack(spacing: 8) {
-                                Button("完了") {
-                                    isMemoEditorFocused = false
+                DisclosureGroup("My Memoエリア", isExpanded: $isMyMemoAreaExpanded) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("My Memo")
+                            .font(.headline)
+                            .foregroundColor(AppPalette.dark)
+                        DisclosureGroup("My Memo", isExpanded: $isMyMemoSectionExpanded) {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("テキスト入力")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundColor(AppPalette.dark)
+                                HStack(spacing: 8) {
+                                    Button("完了") {
+                                        isMemoEditorFocused = false
+                                    }
+                                    .buttonStyle(.bordered)
+                                    Button("内容クリア") {
+                                        viewModel.customMemoText = ""
+                                        isMemoEditorFocused = false
+                                    }
+                                    .buttonStyle(.bordered)
+                                    Spacer()
                                 }
-                                .buttonStyle(.bordered)
-                                Button("内容クリア") {
-                                    viewModel.customMemoText = ""
-                                    isMemoEditorFocused = false
-                                }
-                                .buttonStyle(.bordered)
-                                Spacer()
+                                MemoTextEditorView(
+                                    text: $viewModel.customMemoText,
+                                    isFocused: $isMemoEditorFocused,
+                                    allowsStylusHandwriting: viewModel.iPadProfile == .airOrLarger
+                                )
+                                    .id(ScrollTarget.myMemoEditor)
+                                    .frame(minHeight: 110)
+                                    .padding(6)
+                                    .background(AppPalette.white)
+                                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(AppPalette.light.opacity(0.6), lineWidth: 1))
+                                Text(viewModel.iPadProfile.memoInputHint)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
                             }
-                            MemoTextEditorView(
-                                text: $viewModel.customMemoText,
-                                isFocused: $isMemoEditorFocused,
-                                allowsStylusHandwriting: viewModel.iPadProfile == .airOrLarger
-                            )
-                                .id(ScrollTarget.myMemoEditor)
-                                .frame(minHeight: 110)
-                                .padding(6)
-                                .background(AppPalette.white)
-                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(AppPalette.light.opacity(0.6), lineWidth: 1))
-                            Text(viewModel.iPadProfile.memoInputHint)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                            .id(ScrollTarget.myMemoContent)
+                            .padding(.top, 6)
                         }
-                        .id(ScrollTarget.myMemoContent)
-                        .padding(.top, 6)
+                        .id(ScrollTarget.myMemo)
+                        .tint(AppPalette.primaryNew)
+                        DisclosureGroup("解説補足", isExpanded: $isExplanationMemoSectionExpanded) {
+                            memoHandwritingEditor(
+                                title: "解説補足手書き入力",
+                                canvasView: $viewModel.explanationMemoCanvasView,
+                                toolPicker: $viewModel.explanationMemoToolPicker,
+                                isActive: isExplanationMemoSectionExpanded,
+                                toolState: viewModel.explanationMemoTool,
+                                extraHeight: viewModel.explanationMemoExtraHeight,
+                                onSelectTool: { viewModel.setMemoToolKind($0, for: .explanation) },
+                                onOpenColorWheel: { activeMemoColorWheelTarget = .explanation },
+                                onExpandInputArea: { viewModel.expandMemoInputArea(for: .explanation) },
+                                onShrinkInputArea: { viewModel.shrinkMemoInputArea(for: .explanation) },
+                                onSave: viewModel.saveExplanationMemoDrawing,
+                                onClearInput: viewModel.clearExplanationMemoInput,
+                                onClearSaved: viewModel.clearExplanationMemoImage,
+                                savedImage: viewModel.customExplanationMemoImage,
+                                savedImageTitle: "保存済みの解説補足画像"
+                            )
+                            .id(ScrollTarget.explanationMemoContent)
+                            .padding(.top, 6)
+                        }
+                        .id(ScrollTarget.explanationMemo)
+                        .tint(AppPalette.primaryNew)
+                        DisclosureGroup("問題補足", isExpanded: $isQuestionMemoSectionExpanded) {
+                            memoHandwritingEditor(
+                                title: "問題文補足手書き入力",
+                                canvasView: $viewModel.questionMemoCanvasView,
+                                toolPicker: $viewModel.questionMemoToolPicker,
+                                isActive: isQuestionMemoSectionExpanded,
+                                toolState: viewModel.questionMemoTool,
+                                extraHeight: viewModel.questionMemoExtraHeight,
+                                onSelectTool: { viewModel.setMemoToolKind($0, for: .question) },
+                                onOpenColorWheel: { activeMemoColorWheelTarget = .question },
+                                onExpandInputArea: { viewModel.expandMemoInputArea(for: .question) },
+                                onShrinkInputArea: { viewModel.shrinkMemoInputArea(for: .question) },
+                                onSave: viewModel.saveQuestionMemoDrawing,
+                                onClearInput: viewModel.clearQuestionMemoInput,
+                                onClearSaved: viewModel.clearQuestionMemoImage,
+                                savedImage: viewModel.customQuestionMemoImage,
+                                savedImageTitle: "保存済みの問題文補足画像"
+                            )
+                            .id(ScrollTarget.questionMemoContent)
+                            .padding(.top, 6)
+                        }
+                        .id(ScrollTarget.questionMemo)
+                        .tint(AppPalette.primaryNew)
                     }
-                    .id(ScrollTarget.myMemo)
-                    .tint(AppPalette.primaryNew)
-                    DisclosureGroup("解説補足", isExpanded: $isExplanationMemoSectionExpanded) {
-                        memoHandwritingEditor(
-                            title: "解説補足手書き入力",
-                            canvasView: $viewModel.explanationMemoCanvasView,
-                            toolPicker: $viewModel.explanationMemoToolPicker,
-                            isActive: isExplanationMemoSectionExpanded,
-                            toolState: viewModel.explanationMemoTool,
-                            extraHeight: viewModel.explanationMemoExtraHeight,
-                            onSelectTool: { viewModel.setMemoToolKind($0, for: .explanation) },
-                            onOpenColorWheel: { activeMemoColorWheelTarget = .explanation },
-                            onExpandInputArea: { viewModel.expandMemoInputArea(for: .explanation) },
-                            onShrinkInputArea: { viewModel.shrinkMemoInputArea(for: .explanation) },
-                            onSave: viewModel.saveExplanationMemoDrawing,
-                            onClearInput: viewModel.clearExplanationMemoInput,
-                            onClearSaved: viewModel.clearExplanationMemoImage,
-                            savedImage: viewModel.customExplanationMemoImage,
-                            savedImageTitle: "保存済みの解説補足画像"
-                        )
-                        .id(ScrollTarget.explanationMemoContent)
-                        .padding(.top, 6)
-                    }
-                    .id(ScrollTarget.explanationMemo)
-                    .tint(AppPalette.primaryNew)
-                    DisclosureGroup("問題補足", isExpanded: $isQuestionMemoSectionExpanded) {
-                        memoHandwritingEditor(
-                            title: "問題文補足手書き入力",
-                            canvasView: $viewModel.questionMemoCanvasView,
-                            toolPicker: $viewModel.questionMemoToolPicker,
-                            isActive: isQuestionMemoSectionExpanded,
-                            toolState: viewModel.questionMemoTool,
-                            extraHeight: viewModel.questionMemoExtraHeight,
-                            onSelectTool: { viewModel.setMemoToolKind($0, for: .question) },
-                            onOpenColorWheel: { activeMemoColorWheelTarget = .question },
-                            onExpandInputArea: { viewModel.expandMemoInputArea(for: .question) },
-                            onShrinkInputArea: { viewModel.shrinkMemoInputArea(for: .question) },
-                            onSave: viewModel.saveQuestionMemoDrawing,
-                            onClearInput: viewModel.clearQuestionMemoInput,
-                            onClearSaved: viewModel.clearQuestionMemoImage,
-                            savedImage: viewModel.customQuestionMemoImage,
-                            savedImageTitle: "保存済みの問題文補足画像"
-                        )
-                        .id(ScrollTarget.questionMemoContent)
-                        .padding(.top, 6)
-                    }
-                    .id(ScrollTarget.questionMemo)
-                    .tint(AppPalette.primaryNew)
                 }
+                .tint(AppPalette.primaryNew)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
                 .background(AppPalette.white)
@@ -1936,9 +1996,6 @@ struct QuizPencilModeView: View {
     }
 
     private func mainQuestionAreaHeight(availableHeight: CGFloat) -> CGFloat {
-        guard !viewModel.isAnswered else {
-            return 560
-        }
         switch viewModel.iPadProfile {
         case .mini:
             return max(560, availableHeight - 170)
