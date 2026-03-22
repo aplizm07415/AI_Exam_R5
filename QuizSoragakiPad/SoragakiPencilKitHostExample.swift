@@ -43,6 +43,101 @@ enum AppPalette {
     static let danger = Color(hex: "#cf483e")
 }
 
+struct QuizSessionDescriptor {
+    let subjects: [String]
+    let mode: String
+    let count: Int
+    let problemID: String?
+    let iPadProfileRaw: String?
+
+    var isReviewMode: Bool {
+        problemID != nil
+    }
+}
+
+protocol QuizSessionBackend {
+    var supportsPendingSyncQueue: Bool { get }
+    var networkStatusText: String { get }
+    var isNetworkAvailable: Bool { get }
+
+    func loadQuestions(for session: QuizSessionDescriptor) async throws -> [QuizQuestion]
+    func submitHistory(problemID: String, subject: String, selectedAnswer: String, isCorrect: Bool, category: String?) async throws
+    func loadHistoryStats(problemIDs: [String], subjects: [String]) async throws -> [String: QuizHistoryStat]
+    func isReviewLater(subject: String, problemID: String) async throws -> Bool
+    func saveReviewLater(subject: String, problemID: String) async throws
+    func deleteReviewLater(subject: String, problemID: String) async throws
+    func saveCustomExplanation(problemID: String, text: String, explanationImageDataURL: String?, questionImageDataURL: String?) async throws
+    func updateProblem(subject: String, problemID: String, questionText: String, choices: [QuizChoice], answer: String, explanationText: String, category: String?) async throws -> QuizQuestion
+    func resolveURL(path: String) -> URL?
+}
+
+struct RemoteQuizSessionBackend: QuizSessionBackend {
+    let apiClient: SoragakiAPIClient
+
+    var supportsPendingSyncQueue: Bool { true }
+    var networkStatusText: String { "ネットワーク確認中..." }
+    var isNetworkAvailable: Bool { true }
+
+    func loadQuestions(for session: QuizSessionDescriptor) async throws -> [QuizQuestion] {
+        if session.isReviewMode, let subject = session.subjects.first, let problemID = session.problemID {
+            return [try await apiClient.getProblem(subject: subject, problemID: problemID)]
+        }
+        guard !session.subjects.isEmpty else {
+            throw APIError.decoding("科目が未指定です。")
+        }
+        return try await apiClient.startQuiz(
+            subjects: session.subjects,
+            mode: session.mode == "today_remaining" ? "unanswered" : session.mode,
+            count: session.count
+        )
+    }
+
+    func submitHistory(problemID: String, subject: String, selectedAnswer: String, isCorrect: Bool, category: String?) async throws {
+        try await apiClient.submitHistory(problemID: problemID, subject: subject, selectedAnswer: selectedAnswer, isCorrect: isCorrect, category: category)
+    }
+
+    func loadHistoryStats(problemIDs: [String], subjects: [String]) async throws -> [String: QuizHistoryStat] {
+        try await apiClient.getBulkHistoryStats(problemIDs: problemIDs, subjects: subjects)
+    }
+
+    func isReviewLater(subject: String, problemID: String) async throws -> Bool {
+        try await apiClient.isReviewLater(subject: subject, problemID: problemID)
+    }
+
+    func saveReviewLater(subject: String, problemID: String) async throws {
+        try await apiClient.saveReviewLater(subject: subject, problemID: problemID)
+    }
+
+    func deleteReviewLater(subject: String, problemID: String) async throws {
+        try await apiClient.deleteReviewLater(subject: subject, problemID: problemID)
+    }
+
+    func saveCustomExplanation(problemID: String, text: String, explanationImageDataURL: String?, questionImageDataURL: String?) async throws {
+        try await apiClient.saveCustomExplanation(
+            problemID: problemID,
+            text: text,
+            explanationImageDataURL: explanationImageDataURL,
+            questionImageDataURL: questionImageDataURL
+        )
+    }
+
+    func updateProblem(subject: String, problemID: String, questionText: String, choices: [QuizChoice], answer: String, explanationText: String, category: String?) async throws -> QuizQuestion {
+        try await apiClient.updateProblem(
+            subject: subject,
+            problemID: problemID,
+            questionText: questionText,
+            choices: choices,
+            answer: answer,
+            explanationText: explanationText,
+            category: category
+        )
+    }
+
+    func resolveURL(path: String) -> URL? {
+        apiClient.resolveURL(path: path)
+    }
+}
+
 struct SoragakiPencilKitHostExample: View {
     @State private var deepLink: AppDeepLink?
 
@@ -308,8 +403,8 @@ final class QuizPencilModeViewModel: ObservableObject {
     @Published var isSyncingPendingActions: Bool = false
     @Published var syncStatusMessage: String?
 
-    private var apiClient: SoragakiAPIClient?
-    private var deepLink: QuizDeepLink?
+    private var backend: (any QuizSessionBackend)?
+    private var session: QuizSessionDescriptor?
     private var originalMemoText: String = ""
     private var originalExplanationMemoImageDataURL: String?
     private var originalQuestionMemoImageDataURL: String?
@@ -382,26 +477,50 @@ final class QuizPencilModeViewModel: ObservableObject {
     }
 
     func configure(with deepLink: QuizDeepLink) async {
-        self.deepLink = deepLink
-        apiClient = SoragakiAPIClient(baseURL: deepLink.baseURL)
-        isReviewMode = deepLink.isReviewMode
-        modeLabel = deepLink.mode
-        countLabel = "\(deepLink.count)"
-        if let deepLinkProfile = deepLink.iPadProfile {
+        let session = QuizSessionDescriptor(
+            subjects: deepLink.subjects,
+            mode: deepLink.mode,
+            count: deepLink.count,
+            problemID: deepLink.problemID,
+            iPadProfileRaw: deepLink.iPadProfile?.rawValue
+        )
+        let backend = RemoteQuizSessionBackend(apiClient: SoragakiAPIClient(baseURL: deepLink.baseURL))
+        await configure(session: session, backend: backend)
+    }
+
+    func configure(session: QuizSessionDescriptor, backend: any QuizSessionBackend) async {
+        self.session = session
+        self.backend = backend
+        isReviewMode = session.isReviewMode
+        modeLabel = session.mode
+        countLabel = "\(session.count)"
+        if let raw = session.iPadProfileRaw,
+           let deepLinkProfile = QuizDeepLink.IPadProfile(rawValue: raw) {
             iPadProfile = IPadProfile(deepLinkProfile: deepLinkProfile)
         } else {
             iPadProfile = detectIPadProfile()
         }
         updateInstalledElapsedDays()
         loadPersistedMemoPaletteSettings()
-        loadPendingSyncActions()
-        setupNetworkMonitor()
+        if backend.supportsPendingSyncQueue {
+            loadPendingSyncActions()
+            setupNetworkMonitor()
+        } else {
+            pendingSyncActions = []
+            pendingSyncCount = 0
+            isNetworkAvailable = backend.isNetworkAvailable
+            networkStatusText = backend.networkStatusText
+            networkMonitor?.cancel()
+            networkMonitor = nil
+        }
         prepareMainCanvas()
         prepareExplanationCanvas()
         prepareMemoCanvas(explanationMemoCanvasView, toolState: explanationMemoTool)
         prepareMemoCanvas(questionMemoCanvasView, toolState: questionMemoTool)
         await startQuiz()
-        await processPendingSyncActionsIfNeeded()
+        if backend.supportsPendingSyncQueue {
+            await processPendingSyncActionsIfNeeded()
+        }
     }
 
     private func loadPersistedMemoPaletteSettings() {
@@ -516,7 +635,13 @@ final class QuizPencilModeViewModel: ObservableObject {
     }
 
     private func processPendingSyncActionsIfNeeded() async {
-        guard isNetworkAvailable, !isProcessingPendingActions, !pendingSyncActions.isEmpty, let apiClient else { return }
+        guard
+            let backend,
+            backend.supportsPendingSyncQueue,
+            isNetworkAvailable,
+            !isProcessingPendingActions,
+            !pendingSyncActions.isEmpty
+        else { return }
         isProcessingPendingActions = true
         isSyncingPendingActions = true
         defer {
@@ -536,10 +661,10 @@ final class QuizPencilModeViewModel: ObservableObject {
                         let selected = action.selectedAnswer,
                         let isCorrect = action.isCorrect
                     else { continue }
-                    try await apiClient.submitHistory(problemID: problemID, subject: subject, selectedAnswer: selected, isCorrect: isCorrect, category: action.category)
+                    try await backend.submitHistory(problemID: problemID, subject: subject, selectedAnswer: selected, isCorrect: isCorrect, category: action.category)
                 case "customMemo":
                     guard let problemID = action.problemID else { continue }
-                    try await apiClient.saveCustomExplanation(
+                    try await backend.saveCustomExplanation(
                         problemID: problemID,
                         text: action.memoText ?? "",
                         explanationImageDataURL: action.explanationImageDataURL,
@@ -547,10 +672,10 @@ final class QuizPencilModeViewModel: ObservableObject {
                     )
                 case "reviewLaterAdd":
                     guard let subject = action.subject, let problemID = action.problemID else { continue }
-                    try await apiClient.saveReviewLater(subject: subject, problemID: problemID)
+                    try await backend.saveReviewLater(subject: subject, problemID: problemID)
                 case "reviewLaterDelete":
                     guard let subject = action.subject, let problemID = action.problemID else { continue }
-                    try await apiClient.deleteReviewLater(subject: subject, problemID: problemID)
+                    try await backend.deleteReviewLater(subject: subject, problemID: problemID)
                 default:
                     continue
                 }
@@ -567,30 +692,16 @@ final class QuizPencilModeViewModel: ObservableObject {
     }
 
     func refreshPendingSyncState() async {
+        guard let backend, backend.supportsPendingSyncQueue else { return }
         loadPendingSyncActions()
         await processPendingSyncActionsIfNeeded()
     }
 
     func startQuiz() async {
-        guard let apiClient, let deepLink else { return }
+        guard let backend, let session else { return }
         completionMessage = nil
         isSessionFinished = false
-        if deepLink.isReviewMode, let subject = deepLink.subjects.first, let problemID = deepLink.problemID {
-            isLoading = true
-            defer { isLoading = false }
-            do {
-                let problem = try await apiClient.getProblem(subject: subject, problemID: problemID)
-                questions = [problem]
-                currentIndex = 0
-                historyStats = [:]
-                resetQuestionState()
-                await syncReviewLaterFlag()
-            } catch {
-                errorMessage = error.localizedDescription
-            }
-            return
-        }
-        guard !deepLink.subjects.isEmpty else {
+        guard !session.subjects.isEmpty else {
             errorMessage = "科目が未指定です。Webの問題演習ページから起動してください。"
             return
         }
@@ -598,15 +709,13 @@ final class QuizPencilModeViewModel: ObservableObject {
         isLoading = true
         defer { isLoading = false }
         do {
-            let loaded = try await apiClient.startQuiz(
-                subjects: deepLink.subjects,
-                mode: deepLink.mode == "today_remaining" ? "unanswered" : deepLink.mode,
-                count: deepLink.count
-            )
+            let loaded = try await backend.loadQuestions(for: session)
             questions = loaded
             currentIndex = 0
-            if !questions.isEmpty {
+            if !questions.isEmpty, !session.isReviewMode {
                 await fetchHistoryStats()
+            } else {
+                historyStats = [:]
             }
             resetQuestionState()
             await syncReviewLaterFlag()
@@ -621,12 +730,12 @@ final class QuizPencilModeViewModel: ObservableObject {
     }
 
     func submitAnswer() async {
-        guard let answer = selectedAnswer, let question = currentQuestion, !isAnswered, !isSubmittingAnswer else { return }
+        guard let backend, let answer = selectedAnswer, let question = currentQuestion, !isAnswered, !isSubmittingAnswer else { return }
         let answerIsCorrect = (answer == question.answer)
         isSubmittingAnswer = true
         defer { isSubmittingAnswer = false }
         do {
-            try await apiClient?.submitHistory(
+            try await backend.submitHistory(
                 problemID: question.id,
                 subject: question.subject,
                 selectedAnswer: answer,
@@ -662,12 +771,12 @@ final class QuizPencilModeViewModel: ObservableObject {
     }
 
     func submitAsUnknown() async {
-        guard let question = currentQuestion, !isAnswered, !isSubmittingAnswer else { return }
+        guard let backend, let question = currentQuestion, !isAnswered, !isSubmittingAnswer else { return }
         let submittedAnswer = selectedAnswer ?? ""
         isSubmittingAnswer = true
         defer { isSubmittingAnswer = false }
         do {
-            try await apiClient?.submitHistory(
+            try await backend.submitHistory(
                 problemID: question.id,
                 subject: question.subject,
                 selectedAnswer: submittedAnswer,
@@ -767,7 +876,7 @@ final class QuizPencilModeViewModel: ObservableObject {
     }
 
     func saveCustomMemoIfNeeded() async throws {
-        guard let apiClient, let question = currentQuestion else { return }
+        guard let backend, let question = currentQuestion else { return }
         let newText = customMemoText.trimmingCharacters(in: .whitespacesAndNewlines)
         let oldText = originalMemoText.trimmingCharacters(in: .whitespacesAndNewlines)
         let newExplanationImageDataURL = normalizedMemoImageDataURL(customExplanationMemoImageDataURL)
@@ -782,7 +891,7 @@ final class QuizPencilModeViewModel: ObservableObject {
         isSavingCustomMemo = true
         defer { isSavingCustomMemo = false }
         do {
-            try await apiClient.saveCustomExplanation(
+            try await backend.saveCustomExplanation(
                 problemID: question.id,
                 text: customMemoText,
                 explanationImageDataURL: newExplanationImageDataURL,
@@ -824,9 +933,9 @@ final class QuizPencilModeViewModel: ObservableObject {
     }
 
     func saveProblemEdit() async {
-        guard let apiClient, let question = currentQuestion, let draft = problemEditDraft else { return }
+        guard let backend, let question = currentQuestion, let draft = problemEditDraft else { return }
         do {
-            let updated = try await apiClient.updateProblem(
+            let updated = try await backend.updateProblem(
                 subject: question.subject,
                 problemID: question.id,
                 questionText: draft.questionText,
@@ -896,16 +1005,16 @@ final class QuizPencilModeViewModel: ObservableObject {
     }
 
     func toggleReviewLater() async {
-        guard let apiClient, let question = currentQuestion, !isUpdatingReviewLater else { return }
+        guard let backend, let question = currentQuestion, !isUpdatingReviewLater else { return }
         isUpdatingReviewLater = true
         defer { isUpdatingReviewLater = false }
         let shouldRemove = isMarkedForReviewLater
         isMarkedForReviewLater.toggle()
         do {
             if shouldRemove {
-                try await apiClient.deleteReviewLater(subject: question.subject, problemID: question.id)
+                try await backend.deleteReviewLater(subject: question.subject, problemID: question.id)
             } else {
-                try await apiClient.saveReviewLater(subject: question.subject, problemID: question.id)
+                try await backend.saveReviewLater(subject: question.subject, problemID: question.id)
             }
             syncStatusMessage = nil
         } catch {
@@ -978,10 +1087,10 @@ final class QuizPencilModeViewModel: ObservableObject {
             historyStats = [:]
             return
         }
-        guard let apiClient, let deepLink else { return }
+        guard let backend, let session else { return }
         do {
             let ids = questions.map { $0.id }
-            historyStats = try await apiClient.getBulkHistoryStats(problemIDs: ids, subjects: deepLink.subjects)
+            historyStats = try await backend.loadHistoryStats(problemIDs: ids, subjects: session.subjects)
         } catch {
             historyStats = [:]
         }
@@ -992,12 +1101,12 @@ final class QuizPencilModeViewModel: ObservableObject {
             isMarkedForReviewLater = true
             return
         }
-        guard let apiClient, let question = currentQuestion else {
+        guard let backend, let question = currentQuestion else {
             isMarkedForReviewLater = false
             return
         }
         do {
-            isMarkedForReviewLater = try await apiClient.isReviewLater(subject: question.subject, problemID: question.id)
+            isMarkedForReviewLater = try await backend.isReviewLater(subject: question.subject, problemID: question.id)
         } catch {
             isMarkedForReviewLater = false
         }
@@ -1018,7 +1127,7 @@ final class QuizPencilModeViewModel: ObservableObject {
     }
 
     func resolvedURL(path: String) -> URL? {
-        apiClient?.resolveURL(path: path)
+        backend?.resolveURL(path: path)
     }
 
     private func normalizedMemoImageDataURL(_ value: String?) -> String? {
@@ -1350,7 +1459,9 @@ struct QuizPencilModeView: View {
         case questionMemoContent
     }
 
-    let deepLink: QuizDeepLink
+    private let session: QuizSessionDescriptor
+    private let backend: any QuizSessionBackend
+    private let onFinish: (() -> Void)?
     @StateObject private var viewModel = QuizPencilModeViewModel()
     @State private var isMemoEditorFocused = false
     @State private var previewImage: UIImage?
@@ -1361,6 +1472,24 @@ struct QuizPencilModeView: View {
     @State private var isExplanationMemoSectionExpanded = false
     @State private var isQuestionMemoSectionExpanded = false
     @State private var activeMemoColorWheelTarget: QuizPencilModeViewModel.MemoCanvasTarget?
+
+    init(deepLink: QuizDeepLink) {
+        self.session = QuizSessionDescriptor(
+            subjects: deepLink.subjects,
+            mode: deepLink.mode,
+            count: deepLink.count,
+            problemID: deepLink.problemID,
+            iPadProfileRaw: deepLink.iPadProfile?.rawValue
+        )
+        self.backend = RemoteQuizSessionBackend(apiClient: SoragakiAPIClient(baseURL: deepLink.baseURL))
+        self.onFinish = nil
+    }
+
+    init(session: QuizSessionDescriptor, backend: any QuizSessionBackend, onFinish: (() -> Void)? = nil) {
+        self.session = session
+        self.backend = backend
+        self.onFinish = onFinish
+    }
 
     var body: some View {
         GeometryReader { geometry in
@@ -1450,8 +1579,12 @@ struct QuizPencilModeView: View {
                             await viewModel.refreshPendingSyncState()
                         }
                     }
+                    .onChange(of: viewModel.isSessionFinished) { _, finished in
+                        guard finished else { return }
+                        onFinish?()
+                    }
                     .task {
-                        await viewModel.configure(with: deepLink)
+                        await viewModel.configure(session: session, backend: backend)
                         collapseMemoSections()
                         isQuestionAreaExpanded = true
                         isExplanationAreaExpanded = true

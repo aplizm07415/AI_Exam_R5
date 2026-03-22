@@ -4,7 +4,7 @@ import random
 import datetime
 from pathlib import Path
 from fastapi import FastAPI, APIRouter, HTTPException, Query, Response, UploadFile, File, Form
-from pydantic import BaseModel, Field # BaseModelをインポート
+from pydantic import BaseModel, Field, ValidationError # BaseModelをインポート
 from typing import Literal, List, Optional
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -176,6 +176,65 @@ class ReviewLaterItem(BaseModel):
     problem_id: str
     created_at: str
     updated_at: str
+
+class OfflineStudyQuestionPayload(BaseModel):
+    id: str
+    subject: str
+    question_text: str
+    choices: list[dict]
+    answer: str
+    explanation: dict
+    category: Optional[str] = None
+    image_urls: list[str] = Field(default_factory=list)
+    explanation_image_urls: list[str] = Field(default_factory=list)
+    custom_explanation: Optional[str] = None
+    custom_explanation_image_data_url: Optional[str] = None
+    custom_question_image_data_url: Optional[str] = None
+
+class OfflineStudySubjectPayload(BaseModel):
+    name: str
+    questions: list[OfflineStudyQuestionPayload]
+
+class OfflineStudyInvalidQuestionPayload(BaseModel):
+    subject: str
+    problem_id: str
+    reason: str
+    raw_question_json: str
+
+class OfflineStudyPackageResponse(BaseModel):
+    downloaded_at: str
+    subjects: list[OfflineStudySubjectPayload]
+    review_later: list[ReviewLaterItem]
+    histories: dict[str, list[HistoryItem]]
+    warnings: list[str] = Field(default_factory=list)
+    invalid_questions: list[OfflineStudyInvalidQuestionPayload] = Field(default_factory=list)
+
+class OfflineStudyQuestionUpdate(BaseModel):
+    id: str
+    subject: str
+    question_text: str
+    choices: list[dict]
+    answer: str
+    explanation: dict
+    category: Optional[str] = None
+
+class OfflineStudyCustomExplanationUpdate(BaseModel):
+    problem_id: str
+    text: str = ""
+    explanation_image_data_url: Optional[str] = None
+    question_image_data_url: Optional[str] = None
+
+class OfflineStudySyncRequest(BaseModel):
+    subjects: list[OfflineStudyQuestionUpdate] = Field(default_factory=list)
+    custom_explanations: list[OfflineStudyCustomExplanationUpdate] = Field(default_factory=list)
+    review_later: list[ReviewLaterItem] = Field(default_factory=list)
+    histories: dict[str, list[HistoryItem]] = Field(default_factory=dict)
+
+class OfflineStudySyncResponse(BaseModel):
+    updated_subjects: list[str]
+    updated_custom_explanations: int
+    updated_review_later: int
+    updated_history_subjects: list[str]
 
 class QuizStartRequest(BaseModel):
     subjects: list[str]
@@ -449,6 +508,55 @@ def _save_review_later_items(items: list[ReviewLaterItem]) -> None:
         raise HTTPException(status_code=500, detail=f"Failed to save review-later items: {e}")
 
 
+def _subject_blob_payload(subject_name: str) -> tuple[bool, list[dict], dict | list]:
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+
+    blob_client = container_client.get_blob_client(subject_name)
+    if not blob_client.exists():
+        raise HTTPException(status_code=404, detail=f"Subject '{subject_name}' not found.")
+
+    raw_content = blob_client.download_blob().readall()
+    data = json.loads(raw_content)
+    is_dict_format = isinstance(data, dict) and "questions" in data
+    original_questions = data.get("questions", []) if is_dict_format else data
+    if not isinstance(original_questions, list):
+        raise HTTPException(status_code=500, detail=f"Subject '{subject_name}' has invalid question format.")
+    return is_dict_format, original_questions, data
+
+
+def _write_subject_questions(subject_name: str, questions: list[dict], base_payload: dict | list, is_dict_format: bool) -> None:
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+
+    if is_dict_format and isinstance(base_payload, dict):
+        updated_payload = dict(base_payload)
+        updated_payload["questions"] = questions
+    else:
+        updated_payload = questions
+
+    container_client.get_blob_client(subject_name).upload_blob(
+        json.dumps(updated_payload, ensure_ascii=False, indent=2),
+        overwrite=True,
+    )
+
+
+def _overwrite_blob_bytes(blob_name: str, payload: bytes) -> None:
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+
+    blob_client = container_client.get_blob_client(blob_name)
+    try:
+        if blob_client.exists():
+            blob_client.delete_blob()
+        blob_client.upload_blob(payload, overwrite=True)
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error overwriting blob {blob_name}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to overwrite blob {blob_name}: {e}")
+
+
 def _enrich_question_with_custom_explanation(question: dict) -> dict:
     enriched = question.copy()
     enriched['custom_explanation'] = ''
@@ -494,7 +602,6 @@ def _prepare_question_for_client(question: dict) -> dict:
         prepared['explanation_image_urls'] = [f"/api/images/{img_name}" for img_name in prepared['explanation']['images']]
 
     return _enrich_question_with_custom_explanation(prepared)
-
 
 def _photo_meta_blob_name(photo_id: str) -> str:
     return f"{PHOTO_META_DIR}/{photo_id}.json"
@@ -2144,6 +2251,143 @@ def export_first_missed_problems(subjects: list[str] = Query(...)):
 
     export_questions.sort(key=lambda q: (str(q.get("subject", "")), str(q.get("id", ""))))
     return {"questions": export_questions}
+
+
+@api_router.get("/offline-study/package", response_model=OfflineStudyPackageResponse)
+def get_offline_study_package(subjects: list[str] = Query(default_factory=list)):
+    """Study専用のオフライン一括取得パッケージを返す。"""
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+
+    subject_names = subjects or get_subjects()
+    package_subjects: list[OfflineStudySubjectPayload] = []
+    histories: dict[str, list[HistoryItem]] = {}
+    warnings: list[str] = []
+    invalid_questions: list[OfflineStudyInvalidQuestionPayload] = []
+
+    for subject_name in subject_names:
+        try:
+            questions = _get_all_questions_for_subject(subject_name)
+            prepared_questions: list[OfflineStudyQuestionPayload] = []
+            skipped_count = 0
+            for problem_id, question in sorted(questions.items(), key=lambda item: item[0]):
+                enriched = _prepare_question_for_client({**question, "subject": subject_name})
+                try:
+                    prepared_questions.append(OfflineStudyQuestionPayload.model_validate(enriched))
+                except ValidationError as exc:
+                    skipped_count += 1
+                    reason = exc.errors()[0]["msg"]
+                    invalid_questions.append(
+                        OfflineStudyInvalidQuestionPayload(
+                            subject=subject_name,
+                            problem_id=str(question.get("id") or problem_id),
+                            reason=reason,
+                            raw_question_json=json.dumps(question, ensure_ascii=False, indent=2, sort_keys=True),
+                        )
+                    )
+                    warnings.append(f"{subject_name}: skipped invalid problem {problem_id} ({reason})")
+            if not prepared_questions:
+                warnings.append(f"{subject_name}: no valid questions available for offline package")
+                continue
+            package_subjects.append(OfflineStudySubjectPayload(name=subject_name, questions=prepared_questions))
+            histories[subject_name] = _get_history_items_for_subject(subject_name)
+            if skipped_count:
+                warnings.append(f"{subject_name}: skipped {skipped_count} invalid question(s)")
+        except HTTPException as exc:
+            warnings.append(f"{subject_name}: {exc.detail}")
+
+    selected_subjects = {subject.name for subject in package_subjects}
+    filtered_review_later = [item for item in _load_review_later_items() if item.subject in selected_subjects]
+
+    return OfflineStudyPackageResponse(
+        downloaded_at=_now_utc_iso(),
+        subjects=package_subjects,
+        review_later=filtered_review_later,
+        histories=histories,
+        warnings=warnings,
+        invalid_questions=invalid_questions,
+    )
+
+
+@api_router.post("/offline-study/sync", response_model=OfflineStudySyncResponse)
+def sync_offline_study_package(request: OfflineStudySyncRequest):
+    """iPad オフライン学習データを blob へ反映する。"""
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+
+    updates_by_subject: dict[str, list[OfflineStudyQuestionUpdate]] = {}
+    for item in request.subjects:
+        updates_by_subject.setdefault(item.subject, []).append(item)
+
+    updated_subjects: list[str] = []
+    for subject_name, updates in updates_by_subject.items():
+        is_dict_format, original_questions, base_payload = _subject_blob_payload(subject_name)
+        updates_by_id = {item.id: item for item in updates}
+        next_questions: list[dict] = []
+        for question in original_questions:
+            normalized_q = normalize_question(question.copy())
+            existing_id = None
+            if normalized_q:
+                existing_id = normalized_q.get("id")
+            if existing_id is None:
+                existing_id = question.get("id")
+            if not normalized_q:
+                update = updates_by_id.get(existing_id) if existing_id else None
+                if update is not None:
+                    next_questions.append({
+                        "id": update.id,
+                        "question_text": update.question_text,
+                        "choices": update.choices,
+                        "answer": update.answer,
+                        "explanation": update.explanation,
+                        "category": update.category,
+                    })
+                    continue
+                next_questions.append(question)
+                continue
+            update = updates_by_id.get(existing_id)
+            if update is None:
+                next_questions.append(question)
+                continue
+            next_questions.append({
+                "id": update.id,
+                "question_text": update.question_text,
+                "choices": update.choices,
+                "answer": update.answer,
+                "explanation": update.explanation,
+                "category": update.category,
+            })
+        _write_subject_questions(subject_name, next_questions, base_payload, is_dict_format)
+        updated_subjects.append(subject_name)
+
+    for item in request.custom_explanations:
+        blob_name = f"{CUSTOM_EXPLANATIONS_DIR}/{item.problem_id}.json"
+        payload = {
+            "text": item.text,
+            "explanation_image_data_url": item.explanation_image_data_url,
+            "question_image_data_url": item.question_image_data_url,
+        }
+        container_client.get_blob_client(blob_name).upload_blob(
+            json.dumps(payload, ensure_ascii=False),
+            overwrite=True,
+        )
+
+    _save_review_later_items(request.review_later)
+
+    updated_history_subjects: list[str] = []
+    for subject_name, items in request.histories.items():
+        subject_stem = Path(subject_name).stem
+        history_blob_name = f"history/{subject_stem}.jsonl"
+        lines = "".join(item.model_dump_json() + "\n" for item in items)
+        _overwrite_blob_bytes(history_blob_name, lines.encode("utf-8"))
+        updated_history_subjects.append(subject_name)
+
+    return OfflineStudySyncResponse(
+        updated_subjects=sorted(updated_subjects),
+        updated_custom_explanations=len(request.custom_explanations),
+        updated_review_later=len(request.review_later),
+        updated_history_subjects=sorted(updated_history_subjects),
+    )
 
 
 @api_router.get("/subjects/{subject_name:path}/problems/{problem_id}")

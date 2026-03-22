@@ -82,6 +82,15 @@ TEST_CUSTOM_EXPLANATIONS = {
     }
 }
 
+TEST_REVIEW_LATER_ITEMS = [
+    {
+        "subject": "subject1.json",
+        "problem_id": "q2",
+        "created_at": "2026-03-20T00:00:00Z",
+        "updated_at": "2026-03-20T00:00:00Z",
+    }
+]
+
 # BlobClientのdownload_blobメソッドのモック
 class MockBlobDownload:
     def __init__(self, content):
@@ -101,26 +110,78 @@ def mock_fastapi_app():
         # container_client.exists() が True を返すように設定
         mock_container_client.exists.return_value = True
 
+        subject_payloads = {
+            "subject1.json": json.loads(json.dumps([q for q in TEST_EXAMS_DATA if q["subject"] == "subject1.json"])),
+            "subject2.json": json.loads(json.dumps([q for q in TEST_EXAMS_DATA if q["subject"] == "subject2.json"])),
+        }
+        history_payloads = {
+            subject: list(lines) for subject, lines in TEST_HISTORY_DATA.items()
+        }
+        custom_explanations = json.loads(json.dumps(TEST_CUSTOM_EXPLANATIONS))
+        review_later_items = json.loads(json.dumps(TEST_REVIEW_LATER_ITEMS))
+        blob_clients = {}
+
         # BlobClientのget_blob_clientメソッドのモック
         def get_blob_client_side_effect(blob_name):
+            if blob_name in blob_clients:
+                return blob_clients[blob_name]
             mock_blob_client_instance = MagicMock()
+            mock_blob_client_instance.blob_name = blob_name
+
+            def upload_blob_side_effect(data, overwrite=False):
+                if isinstance(data, bytes):
+                    payload_text = data.decode("utf-8")
+                else:
+                    payload_text = data
+
+                if blob_name.startswith("custom-explanations/") and blob_name.endswith(".json"):
+                    custom_explanations[Path(blob_name).stem] = json.loads(payload_text)
+                elif blob_name.startswith("history/") and blob_name.endswith(".jsonl"):
+                    subject_stem = Path(blob_name).stem.split("/")[-1]
+                    history_payloads[subject_stem] = [line for line in payload_text.splitlines() if line.strip()]
+                elif blob_name == "review-later/items.json":
+                    review_later_items.clear()
+                    review_later_items.extend(json.loads(payload_text))
+                elif blob_name.endswith(".json") and "/" not in blob_name:
+                    subject_payloads[blob_name] = json.loads(payload_text)
+
+            mock_blob_client_instance.upload_blob.side_effect = upload_blob_side_effect
+            def delete_blob_side_effect():
+                if blob_name.startswith("history/") and blob_name.endswith(".jsonl"):
+                    subject_stem = Path(blob_name).stem.split("/")[-1]
+                    history_payloads[subject_stem] = []
+                elif blob_name.startswith("custom-explanations/") and blob_name.endswith(".json"):
+                    problem_id = Path(blob_name).stem
+                    custom_explanations.pop(problem_id, None)
+                elif blob_name == "review-later/items.json":
+                    review_later_items.clear()
+                elif blob_name.endswith(".json") and "/" not in blob_name:
+                    subject_payloads.pop(blob_name, None)
+
+            mock_blob_client_instance.delete_blob.side_effect = delete_blob_side_effect
+            mock_blob_client_instance.append_block.side_effect = lambda payload: None
+            mock_blob_client_instance.create_append_blob.side_effect = lambda: None
             
             if blob_name.startswith("custom-explanations/") and blob_name.endswith(".json"):
                 problem_id = Path(blob_name).stem
-                explanation = TEST_CUSTOM_EXPLANATIONS.get(problem_id)
+                explanation = custom_explanations.get(problem_id)
                 mock_blob_client_instance.exists.return_value = explanation is not None
                 if explanation is not None:
                     mock_blob_client_instance.download_blob.return_value = MockBlobDownload(json.dumps(explanation))
+                else:
+                    mock_blob_client_instance.download_blob.return_value = MockBlobDownload("{}")
+            elif blob_name == "review-later/items.json":
+                mock_blob_client_instance.exists.return_value = True
+                mock_blob_client_instance.download_blob.return_value = MockBlobDownload(json.dumps(review_later_items))
             # questions blob
-            elif blob_name.endswith(".json") and not blob_name.startswith("history/"):
-                subject_name_stem = Path(blob_name).stem
-                questions_for_subject = [q for q in TEST_EXAMS_DATA if q["subject"].startswith(subject_name_stem)]
+            elif blob_name.endswith(".json") and not blob_name.startswith("history/") and "/" not in blob_name:
+                questions_for_subject = subject_payloads.get(blob_name, [])
                 mock_blob_client_instance.exists.return_value = bool(questions_for_subject)
                 mock_blob_client_instance.download_blob.return_value = MockBlobDownload(json.dumps(questions_for_subject))
             # history blob
             elif blob_name.startswith("history/") and blob_name.endswith(".jsonl"):
                 history_subject_stem = Path(blob_name).stem.split('/')[-1] # history/subject1.jsonl -> subject1
-                history_content = "\n".join(TEST_HISTORY_DATA.get(history_subject_stem, []))
+                history_content = "\n".join(history_payloads.get(history_subject_stem, []))
                 mock_blob_client_instance.exists.return_value = bool(history_content.strip())
                 mock_blob_client_instance.download_blob.return_value = MockBlobDownload(history_content)
             # plans blob (空でOK)
@@ -133,6 +194,7 @@ def mock_fastapi_app():
             else:
                 mock_blob_client_instance.exists.return_value = False
 
+            blob_clients[blob_name] = mock_blob_client_instance
             return mock_blob_client_instance
 
         mock_container_client.get_blob_client.side_effect = get_blob_client_side_effect
@@ -142,6 +204,11 @@ def mock_fastapi_app():
         from backend import main
         # `main.container_client` もモックのインスタンスを指すように設定
         main.container_client = mock_container_client
+        main._test_subject_payloads = subject_payloads
+        main._test_history_payloads = history_payloads
+        main._test_custom_explanations = custom_explanations
+        main._test_review_later_items = review_later_items
+        main._test_blob_clients = blob_clients
         
         # FastAPIアプリのインスタンスをTestClientに渡す
         with TestClient(main.app) as client:
@@ -257,6 +324,158 @@ def test_save_custom_explanation_uses_new_fields(client: TestClient):
         "explanation_image_data_url": "data:image/png;base64,ZXhwbA==",
         "question_image_data_url": "data:image/png;base64,cXVlc3Q=",
     }
+
+
+def test_get_offline_study_package(client: TestClient):
+    response = client.get("/api/offline-study/package", params={"subjects": ["subject1.json"]})
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["subjects"][0]["name"] == "subject1.json"
+    question_ids = [item["id"] for item in payload["subjects"][0]["questions"]]
+    assert "q1" in question_ids
+    question_by_id = {item["id"]: item for item in payload["subjects"][0]["questions"]}
+    assert question_by_id["q1"]["custom_explanation"] == "Saved memo"
+    assert payload["review_later"][0]["problem_id"] == "q2"
+    assert "subject1.json" in payload["histories"]
+    assert all(item["subject"] == "subject1.json" for item in payload["review_later"])
+    assert payload["invalid_questions"] == []
+
+
+def test_get_offline_study_package_skips_invalid_subject(client: TestClient, monkeypatch):
+    from backend import main
+
+    original = main._get_all_questions_for_subject
+
+    def fake_get_all_questions_for_subject(subject_name: str):
+        if subject_name == "broken.json":
+            raise main.HTTPException(status_code=500, detail="Failed to read questions from blob storage: invalid json")
+        return original(subject_name)
+
+    monkeypatch.setattr(main, "_get_all_questions_for_subject", fake_get_all_questions_for_subject)
+
+    response = client.get("/api/offline-study/package", params=[("subjects", "subject1.json"), ("subjects", "broken.json")])
+    assert response.status_code == 200
+    payload = response.json()
+    assert [item["name"] for item in payload["subjects"]] == ["subject1.json"]
+    assert payload["warnings"] == ["broken.json: Failed to read questions from blob storage: invalid json"]
+    assert "subject1.json" in payload["histories"]
+    assert "broken.json" not in payload["histories"]
+
+
+def test_get_offline_study_package_skips_invalid_question_within_subject(client: TestClient, monkeypatch):
+    from backend import main
+
+    original = main._get_all_questions_for_subject
+
+    def fake_get_all_questions_for_subject(subject_name: str):
+        items = original(subject_name)
+        if subject_name == "subject1.json":
+            items = dict(items)
+            items["broken-q"] = {
+                "id": "broken-q",
+                "question_text": "broken",
+                "choices": [{"label": "A", "text": "choice"}],
+                "answer": None,
+                "explanation": {"text": "", "images": []},
+            }
+        return items
+
+    monkeypatch.setattr(main, "_get_all_questions_for_subject", fake_get_all_questions_for_subject)
+
+    response = client.get("/api/offline-study/package", params={"subjects": ["subject1.json"]})
+    assert response.status_code == 200
+    payload = response.json()
+    question_ids = [item["id"] for item in payload["subjects"][0]["questions"]]
+    assert "broken-q" not in question_ids
+    assert any("skipped invalid problem broken-q" in warning for warning in payload["warnings"])
+    assert payload["invalid_questions"] == [
+        {
+            "subject": "subject1.json",
+            "problem_id": "broken-q",
+            "reason": "Input should be a valid string",
+            "raw_question_json": json.dumps(
+                {
+                    "id": "broken-q",
+                    "question_text": "broken",
+                    "choices": [{"label": "A", "text": "choice"}],
+                    "answer": None,
+                    "explanation": {"text": "", "images": []},
+                },
+                ensure_ascii=False,
+                indent=2,
+                sort_keys=True,
+            ),
+        }
+    ]
+
+
+def test_sync_offline_study_package(client: TestClient):
+    from backend import main
+
+    response = client.post(
+        "/api/offline-study/sync",
+        json={
+            "subjects": [
+                {
+                    "id": "q1",
+                    "subject": "subject1.json",
+                    "question_text": "Updated Question 1",
+                    "choices": [{"label": "A", "text": "Choice A updated"}],
+                    "answer": "A",
+                    "explanation": {"text": "Updated explanation", "images": []},
+                    "category": "Updated",
+                }
+            ],
+            "custom_explanations": [
+                {
+                    "problem_id": "q1",
+                    "text": "Offline memo",
+                    "explanation_image_data_url": "data:image/png;base64,b2Zm",
+                    "question_image_data_url": None,
+                }
+            ],
+            "review_later": [
+                {
+                    "subject": "subject1.json",
+                    "problem_id": "q1",
+                    "created_at": "2026-03-21T00:00:00Z",
+                    "updated_at": "2026-03-21T00:00:00Z",
+                }
+            ],
+            "histories": {
+                "subject1.json": [
+                    {
+                        "problem_id": "q1",
+                        "subject": "subject1.json",
+                        "selected_answer": "A",
+                        "is_correct": True,
+                        "answered_at": "2026-03-21T00:00:00Z",
+                        "category": "Updated",
+                    }
+                ]
+            },
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["updated_subjects"] == ["subject1.json"]
+    assert payload["updated_custom_explanations"] == 1
+    assert payload["updated_review_later"] == 1
+    assert payload["updated_history_subjects"] == ["subject1.json"]
+
+    updated_subject = main._test_subject_payloads["subject1.json"]
+    updated_q1 = next(item for item in updated_subject if item["id"] == "q1")
+    assert updated_q1["question_text"] == "Updated Question 1"
+    assert updated_q1["explanation"]["text"] == "Updated explanation"
+    assert updated_q1["category"] == "Updated"
+    assert main._test_custom_explanations["q1"]["text"] == "Offline memo"
+    assert main._test_review_later_items[0]["problem_id"] == "q1"
+    updated_history_lines = main._test_history_payloads["subject1"]
+    assert len(updated_history_lines) == 1
+    assert json.loads(updated_history_lines[0])["problem_id"] == "q1"
+    history_blob = main.container_client.get_blob_client("history/subject1.jsonl")
+    history_blob.delete_blob.assert_called_once()
 
 def test_get_unanswered_count(client: TestClient):
     """未回答の問題数を正しく取得できることをテスト"""
