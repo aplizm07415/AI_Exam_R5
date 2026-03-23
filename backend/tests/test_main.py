@@ -494,20 +494,64 @@ def test_sync_offline_study_package(client: TestClient):
     assert json.loads(updated_history_lines[-1])["problem_id"] == "q1"
 
 
+def test_get_subject_problems(client: TestClient):
+    response = client.get("/api/subjects/subject1.json/problems")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert isinstance(payload, list)
+    assert len(payload) >= 1
+    assert payload[0]["subject"] == "subject1.json"
+    assert "question_text" in payload[0]
+
+
+def test_get_problem_includes_subject(client: TestClient):
+    response = client.get("/api/subjects/subject1.json/problems/q1")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["id"] == "q1"
+    assert payload["subject"] == "subject1.json"
+
+
+def test_get_review_later_includes_question_subject(client: TestClient):
+    response = client.get("/api/review-later")
+
+    assert response.status_code == 200
+    payload = response.json()
+    first = payload[0]
+    assert first["subject"] == "subject1.json"
+    assert first["question"]["subject"] == "subject1.json"
+
+
+def test_save_review_later_rejects_missing_problem(client: TestClient):
+    response = client.post(
+        "/api/review-later",
+        json={"subject": "subject1.json", "problem_id": "missing-q"},
+    )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Problem not found."
+
+
 def test_register_review_later_history_correct_removes_item(client: TestClient):
     from backend import main
 
     response = client.post(
         "/api/review-later/subject1.json/q2/register-history",
-        json={"outcome": "correct"},
     )
 
     assert response.status_code == 204
     updated_history_lines = main._test_history_payloads["subject1"]
-    latest = json.loads(updated_history_lines[-1])
-    assert latest["problem_id"] == "q2"
-    assert latest["selected_answer"] == "B"
-    assert latest["is_correct"] is True
+    assert len(updated_history_lines) == len(TEST_HISTORY_DATA["subject1"]) + 2
+    correct_item = json.loads(updated_history_lines[-2])
+    incorrect_item = json.loads(updated_history_lines[-1])
+    assert correct_item["problem_id"] == "q2"
+    assert correct_item["selected_answer"] == "B"
+    assert correct_item["is_correct"] is True
+    assert incorrect_item["problem_id"] == "q2"
+    assert incorrect_item["selected_answer"] == "__review_later_manual_incorrect__"
+    assert incorrect_item["is_correct"] is False
     assert main._test_review_later_items == [
         {
             "subject": "subject2.json",

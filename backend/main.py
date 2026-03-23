@@ -182,9 +182,6 @@ class ReviewLaterProblemRef(BaseModel):
     problem_id: str
 
 
-class ReviewLaterHistoryRegisterRequest(BaseModel):
-    outcome: Literal["correct", "incorrect"]
-
 class OfflineStudyQuestionPayload(BaseModel):
     id: str
     subject: str
@@ -2403,7 +2400,21 @@ def get_problem(subject_name: str, problem_id: str):
     question = questions.get(problem_id)
     if not question:
         raise HTTPException(status_code=404, detail="Problem not found.")
-    return _enrich_question_with_custom_explanation(question)
+    question_with_subject = question.copy()
+    question_with_subject["subject"] = subject_name
+    return _prepare_question_for_client(question_with_subject)
+
+
+@api_router.get("/subjects/{subject_name:path}/problems")
+def get_subject_problems(subject_name: str):
+    """指定された科目の問題一覧を返す"""
+    questions = _get_all_questions_for_subject(subject_name)
+    payload: list[dict] = []
+    for _, question in sorted(questions.items(), key=lambda item: str(item[0])):
+        question_with_subject = question.copy()
+        question_with_subject["subject"] = subject_name
+        payload.append(_prepare_question_for_client(question_with_subject))
+    return payload
 
 
 @api_router.get("/review-later")
@@ -2418,7 +2429,9 @@ def get_review_later():
             questions = _get_all_questions_for_subject(item.subject)
             question = questions.get(item.problem_id)
             if question:
-                question_payload = _enrich_question_with_custom_explanation(question)
+                question_with_subject = question.copy()
+                question_with_subject["subject"] = item.subject
+                question_payload = _prepare_question_for_client(question_with_subject)
         except HTTPException as e:
             error_detail = e.detail
         except Exception as e:
@@ -2542,6 +2555,10 @@ def get_similar_questions_for_review_later(subject_name: str, problem_id: str, c
 @api_router.post("/review-later", status_code=204)
 def save_review_later(item: ReviewLaterUpsertRequest):
     """後で振り返る問題を登録する"""
+    questions = _get_all_questions_for_subject(item.subject)
+    if item.problem_id not in questions:
+        raise HTTPException(status_code=404, detail="Problem not found.")
+
     items = _load_review_later_items()
     now = _now_utc_iso()
     existing = next((x for x in items if x.subject == item.subject and x.problem_id == item.problem_id), None)
@@ -2569,8 +2586,8 @@ def delete_review_later(problem_id: str, subject: str):
 
 
 @api_router.post("/review-later/{subject_name:path}/{problem_id}/register-history", status_code=204)
-def register_review_later_history(subject_name: str, problem_id: str, payload: ReviewLaterHistoryRegisterRequest):
-    """後で確認問題に対して実績を1件追加し、登録状態を解除する。"""
+def register_review_later_history(subject_name: str, problem_id: str):
+    """後で確認問題に対して正解・誤答の実績を各1件追加し、登録状態を解除する。"""
     questions = _get_all_questions_for_subject(subject_name)
     question = questions.get(problem_id)
     if not question:
@@ -2582,28 +2599,33 @@ def register_review_later_history(subject_name: str, problem_id: str, payload: R
 
     answer = str(normalized.get("answer") or "")
     choices = normalized.get("choices") or []
-    selected_answer = answer
-    is_correct = payload.outcome == "correct"
-    if not is_correct:
-        wrong_choice = next(
-            (
-                str(choice.get("label"))
-                for choice in choices
-                if isinstance(choice, dict) and str(choice.get("label") or "") and str(choice.get("label")) != answer
-            ),
-            None,
-        )
-        selected_answer = wrong_choice or "__review_later_manual_incorrect__"
-
-    history_item = HistoryItem(
-        problem_id=problem_id,
-        subject=subject_name,
-        selected_answer=selected_answer,
-        is_correct=is_correct,
-        answered_at=datetime.datetime.now(datetime.timezone.utc),
-        category=normalized.get("category"),
-    )
-    _append_history_items([history_item])
+    wrong_choice = next(
+        (
+            str(choice.get("label"))
+            for choice in choices
+            if isinstance(choice, dict) and str(choice.get("label") or "") and str(choice.get("label")) != answer
+        ),
+        None,
+    ) or "__review_later_manual_incorrect__"
+    now = datetime.datetime.now(datetime.timezone.utc)
+    _append_history_items([
+        HistoryItem(
+            problem_id=problem_id,
+            subject=subject_name,
+            selected_answer=answer,
+            is_correct=True,
+            answered_at=now,
+            category=normalized.get("category"),
+        ),
+        HistoryItem(
+            problem_id=problem_id,
+            subject=subject_name,
+            selected_answer=wrong_choice,
+            is_correct=False,
+            answered_at=now,
+            category=normalized.get("category"),
+        ),
+    ])
 
     items = _load_review_later_items()
     filtered = [x for x in items if not (x.subject == subject_name and x.problem_id == problem_id)]
@@ -2672,7 +2694,9 @@ def update_problem(subject_name: str, problem_id: str, problem_data: dict):
         blob_client.upload_blob(json.dumps(output_data, indent=2, ensure_ascii=False), overwrite=True)
 
         # 更新後の完全な問題オブジェクトを返す
-        return original_questions[target_index]
+        updated_question = original_questions[target_index].copy()
+        updated_question["subject"] = subject_name
+        return _prepare_question_for_client(updated_question)
     except HTTPException:
         raise
     except Exception as e:

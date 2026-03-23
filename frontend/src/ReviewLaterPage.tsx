@@ -37,6 +37,8 @@ interface ReviewLaterEntry {
   error?: string | null;
 }
 
+interface SubjectProblem extends QuizQuestion {}
+
 type OralVivaStep = 'root' | 'refute' | 'apply' | 'summary';
 interface OralVivaMessage {
   role: 'assistant' | 'user';
@@ -63,13 +65,19 @@ type IpadProfile = 'air' | 'mini';
 export default function ReviewLaterPage() {
   const navigate = useNavigate();
   const [items, setItems] = useState<ReviewLaterEntry[]>([]);
+  const [subjectNames, setSubjectNames] = useState<string[]>([]);
+  const [selectedSubjectName, setSelectedSubjectName] = useState('');
+  const [subjectProblems, setSubjectProblems] = useState<SubjectProblem[]>([]);
+  const [isLoadingSubjectProblems, setIsLoadingSubjectProblems] = useState(false);
+  const [sortMode, setSortMode] = useState<'default' | 'first_missed'>('default');
+  const [firstMissedIds, setFirstMissedIds] = useState<Set<string>>(new Set());
   const [selectedKey, setSelectedKey] = useState('');
   const [editingProblem, setEditingProblem] = useState<QuizQuestion | null>(null);
   const [customExplanationText, setCustomExplanationText] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSavingProblem, setIsSavingProblem] = useState(false);
   const [isSavingMemo, setIsSavingMemo] = useState(false);
-  const [isRegisteringHistory, setIsRegisteringHistory] = useState<'' | 'correct' | 'incorrect'>('');
+  const [isRegisteringHistory, setIsRegisteringHistory] = useState(false);
   const [isFindingSimilar, setIsFindingSimilar] = useState(false);
   const [similarTopics, setSimilarTopics] = useState<string[]>([]);
   const [isOralVivaActive, setIsOralVivaActive] = useState(false);
@@ -119,15 +127,71 @@ export default function ReviewLaterPage() {
     void fetchItems();
   }, []);
 
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/subjects`);
+        if (!response.ok) {
+          throw new Error('科目一覧の取得に失敗しました。');
+        }
+        const names: string[] = await response.json();
+        const filtered = names
+          .filter((name) =>
+            name.endsWith('.json') &&
+            !name.includes('/') &&
+            name !== 'plans.json' &&
+            !name.startsWith('history/') &&
+            !name.startsWith('custom-explanations/') &&
+            !name.startsWith('soragaki/') &&
+            !name.startsWith('review-later/')
+          )
+          .sort((a, b) => a.localeCompare(b));
+        setSubjectNames(filtered);
+        setSelectedSubjectName((prev) => prev || filtered[0] || '');
+      } catch (fetchError) {
+        console.error(fetchError);
+      }
+    };
+    void fetchSubjects();
+  }, []);
+
   const selectedItem = useMemo(
     () => items.find((item) => `${item.subject}::${item.problem_id}` === selectedKey) ?? null,
     [items, selectedKey]
   );
 
-  useEffect(() => {
+  const selectedProblem = useMemo(() => {
     if (selectedItem?.question) {
-      setEditingProblem({ ...selectedItem.question });
-      setCustomExplanationText(selectedItem.question.custom_explanation || '');
+      return selectedItem.question;
+    }
+    return subjectProblems.find((problem) => `${problem.subject}::${problem.id}` === selectedKey) ?? null;
+  }, [selectedItem, subjectProblems, selectedKey]);
+
+  const reviewLaterKeySet = useMemo(
+    () => new Set(items.map((item) => `${item.subject}::${item.problem_id}`)),
+    [items]
+  );
+
+  const sortedSubjectProblems = useMemo(() => {
+    const next = [...subjectProblems];
+    if (sortMode === 'first_missed') {
+      next.sort((a, b) => {
+        const aFirstMissed = firstMissedIds.has(a.id) ? 1 : 0;
+        const bFirstMissed = firstMissedIds.has(b.id) ? 1 : 0;
+        if (aFirstMissed !== bFirstMissed) {
+          return bFirstMissed - aFirstMissed;
+        }
+        return a.id.localeCompare(b.id);
+      });
+      return next;
+    }
+    return next.sort((a, b) => a.id.localeCompare(b.id));
+  }, [subjectProblems, sortMode, firstMissedIds]);
+
+  useEffect(() => {
+    if (selectedProblem) {
+      setEditingProblem({ ...selectedProblem });
+      setCustomExplanationText(selectedProblem.custom_explanation || '');
     } else {
       setEditingProblem(null);
       setCustomExplanationText('');
@@ -139,7 +203,44 @@ export default function ReviewLaterPage() {
     setOralVivaScores({ logicality: 0, specificity: 0, reproducibility: 0 });
     setOralVivaResult(null);
     setIsOralVivaLoading(false);
-  }, [selectedItem]);
+  }, [selectedProblem]);
+
+  useEffect(() => {
+    const fetchSubjectProblems = async () => {
+      if (!selectedSubjectName) {
+        setSubjectProblems([]);
+        setFirstMissedIds(new Set());
+        return;
+      }
+      setIsLoadingSubjectProblems(true);
+      try {
+        const [problemsResponse, firstMissedResponse] = await Promise.all([
+          fetch(`${API_BASE_URL}/subjects/${encodeURIComponent(selectedSubjectName)}/problems`),
+          fetch(`${API_BASE_URL}/analytics/export/first-missed-problems?subjects=${encodeURIComponent(selectedSubjectName)}`),
+        ]);
+        if (!problemsResponse.ok) {
+          const payload = await problemsResponse.json().catch(() => null);
+          throw new Error(payload?.detail || '科目問題一覧の取得に失敗しました。');
+        }
+        const problems: SubjectProblem[] = await problemsResponse.json();
+        setSubjectProblems(problems);
+        if (firstMissedResponse.ok) {
+          const payload: { questions?: QuizQuestion[] } = await firstMissedResponse.json();
+          setFirstMissedIds(new Set((payload.questions || []).map((question) => question.id)));
+        } else {
+          setFirstMissedIds(new Set());
+        }
+      } catch (fetchError) {
+        console.error(fetchError);
+        setError(fetchError instanceof Error ? fetchError.message : '科目問題一覧の取得に失敗しました。');
+        setSubjectProblems([]);
+        setFirstMissedIds(new Set());
+      } finally {
+        setIsLoadingSubjectProblems(false);
+      }
+    };
+    void fetchSubjectProblems();
+  }, [selectedSubjectName]);
 
   const handleProblemChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     if (!editingProblem) return;
@@ -459,9 +560,10 @@ export default function ReviewLaterPage() {
     const itemToRemove = targetItem ?? selectedItem;
     if (!itemToRemove) return;
     try {
+      setIsRegisteringHistory(true);
       const response = await fetch(
-        `${API_BASE_URL}/review-later/${encodeURIComponent(itemToRemove.problem_id)}?subject=${encodeURIComponent(itemToRemove.subject)}`,
-        { method: 'DELETE' }
+        `${API_BASE_URL}/review-later/${encodeURIComponent(itemToRemove.subject)}/${encodeURIComponent(itemToRemove.problem_id)}/register-history`,
+        { method: 'POST' }
       );
       if (!response.ok) {
         const payload = await response.json().catch(() => null);
@@ -471,32 +573,34 @@ export default function ReviewLaterPage() {
     } catch (removeError) {
       console.error(removeError);
       setError(removeError instanceof Error ? removeError.message : '登録解除に失敗しました。');
+    } finally {
+      setIsRegisteringHistory(false);
     }
   };
 
-  const handleRegisterHistory = async (outcome: 'correct' | 'incorrect') => {
-    if (!selectedItem) return;
+  const handleToggleReviewLater = async (problem: SubjectProblem, enabled: boolean) => {
     try {
-      setIsRegisteringHistory(outcome);
       setError('');
       const response = await fetch(
-        `${API_BASE_URL}/review-later/${encodeURIComponent(selectedItem.subject)}/${encodeURIComponent(selectedItem.problem_id)}/register-history`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ outcome }),
-        }
+        enabled
+          ? `${API_BASE_URL}/review-later`
+          : `${API_BASE_URL}/review-later/${encodeURIComponent(problem.id)}?subject=${encodeURIComponent(problem.subject)}`,
+        enabled
+          ? {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ subject: problem.subject, problem_id: problem.id }),
+            }
+          : { method: 'DELETE' }
       );
       if (!response.ok) {
         const payload = await response.json().catch(() => null);
-        throw new Error(payload?.detail || '実績登録に失敗しました。');
+        throw new Error(payload?.detail || '後で確認の更新に失敗しました。');
       }
       await fetchItems();
-    } catch (registerError) {
-      console.error(registerError);
-      setError(registerError instanceof Error ? registerError.message : '実績登録に失敗しました。');
-    } finally {
-      setIsRegisteringHistory('');
+    } catch (toggleError) {
+      console.error(toggleError);
+      setError(toggleError instanceof Error ? toggleError.message : '後で確認の更新に失敗しました。');
     }
   };
 
@@ -547,7 +651,7 @@ export default function ReviewLaterPage() {
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <h2 className="text-3xl font-bold text-dark">後で確認</h2>
-          <p className="text-sm text-gray-500 mt-1">現在も登録状態の問題をすべて表示します。実績登録を行うと自動で登録解除されます。</p>
+          <p className="text-sm text-gray-500 mt-1">現在も登録状態の問題をすべて表示します。登録解除時に、実績を2件計上するか、未計上のまま解除するかを選べます。</p>
         </div>
         <Link to="/dashboard" className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg shadow-sm hover:bg-gray-50">
           分析ダッシュボードへ戻る
@@ -584,22 +688,13 @@ export default function ReviewLaterPage() {
                     </div>
                     <div className="mt-2 text-[11px] text-gray-400">更新: {new Date(item.updated_at).toLocaleString()}</div>
                   </button>
-                  <div className="mt-3 flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => void handleRemove(item)}
-                      className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                    >
-                      一覧で登録解除
-                    </button>
-                  </div>
                 </div>
               );
             })}
           </div>
 
           <div className="bg-white rounded-xl shadow p-6">
-            {!selectedItem || !editingProblem ? (
+            {!editingProblem ? (
               <div className="text-sm text-gray-500">表示できる問題がありません。</div>
             ) : (
               <div className="space-y-6">
@@ -611,24 +706,8 @@ export default function ReviewLaterPage() {
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
-                      onClick={() => void handleRegisterHistory('correct')}
-                      disabled={isRegisteringHistory !== ''}
-                      className="px-4 py-2 rounded-md bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:bg-gray-300"
-                    >
-                      {isRegisteringHistory === 'correct' ? '登録中...' : '正解実績を登録'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void handleRegisterHistory('incorrect')}
-                      disabled={isRegisteringHistory !== ''}
-                      className="px-4 py-2 rounded-md bg-rose-600 text-white text-sm font-medium hover:bg-rose-700 disabled:bg-gray-300"
-                    >
-                      {isRegisteringHistory === 'incorrect' ? '登録中...' : '誤答実績を登録'}
-                    </button>
-                    <button
-                      type="button"
                       onClick={() => void handleStartSimilarPractice()}
-                      disabled={isFindingSimilar || isRegisteringHistory !== ''}
+                      disabled={isFindingSimilar || isRegisteringHistory || !selectedItem}
                       className="px-4 py-2 rounded-md bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:bg-gray-300"
                     >
                       {isFindingSimilar ? '類題検索中...' : '類題出題'}
@@ -636,7 +715,7 @@ export default function ReviewLaterPage() {
                     <button
                       type="button"
                       onClick={() => openIpadReview('air')}
-                      disabled={isRegisteringHistory !== ''}
+                      disabled={isRegisteringHistory}
                       className="px-4 py-2 rounded-md bg-primary-new text-white text-sm font-medium hover:bg-blue-700"
                     >
                       iPad Airで開く
@@ -644,19 +723,47 @@ export default function ReviewLaterPage() {
                     <button
                       type="button"
                       onClick={() => openIpadReview('mini')}
-                      disabled={isRegisteringHistory !== ''}
+                      disabled={isRegisteringHistory}
                       className="px-4 py-2 rounded-md bg-sky-600 text-white text-sm font-medium hover:bg-sky-700"
                     >
                       iPad miniで開く
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => void handleRemove()}
-                      disabled={isRegisteringHistory !== ''}
-                      className="px-4 py-2 rounded-md bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200"
-                    >
-                      登録解除
-                    </button>
+                    {selectedItem && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => void handleRemove()}
+                          disabled={isRegisteringHistory}
+                          className="px-4 py-2 rounded-md bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200"
+                        >
+                          {isRegisteringHistory ? '解除中...' : '登録解除(実績2件)'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (!selectedItem) return;
+                            try {
+                              const response = await fetch(
+                                `${API_BASE_URL}/review-later/${encodeURIComponent(selectedItem.problem_id)}?subject=${encodeURIComponent(selectedItem.subject)}`,
+                                { method: 'DELETE' }
+                              );
+                              if (!response.ok) {
+                                const payload = await response.json().catch(() => null);
+                                throw new Error(payload?.detail || '登録解除に失敗しました。');
+                              }
+                              await fetchItems();
+                            } catch (removeError) {
+                              console.error(removeError);
+                              setError(removeError instanceof Error ? removeError.message : '登録解除に失敗しました。');
+                            }
+                          }}
+                          disabled={isRegisteringHistory}
+                          className="px-4 py-2 rounded-md bg-white border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50"
+                        >
+                          登録解除(実績未計上)
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
                 {similarTopics.length > 0 && (
@@ -914,6 +1021,103 @@ export default function ReviewLaterPage() {
           </div>
         </div>
       )}
+
+      <div className="bg-white rounded-xl shadow p-6 space-y-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h3 className="text-xl font-semibold text-gray-800">科目別の問題一覧</h3>
+            <p className="text-sm text-gray-500 mt-1">ここでの後で確認の登録切り替えは、実績を記録しません。</p>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <label className="text-sm text-gray-600">
+              <span className="block mb-1">科目</span>
+              <select
+                value={selectedSubjectName}
+                onChange={(event) => setSelectedSubjectName(event.target.value)}
+                className="rounded-md border border-gray-300 px-3 py-2 text-sm"
+              >
+                {subjectNames.map((subjectName) => (
+                  <option key={subjectName} value={subjectName}>
+                    {subjectName}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="text-sm text-gray-600">
+              <span className="block mb-1">並び順</span>
+              <select
+                value={sortMode}
+                onChange={(event) => setSortMode(event.target.value as 'default' | 'first_missed')}
+                className="rounded-md border border-gray-300 px-3 py-2 text-sm"
+              >
+                <option value="default">問題ID順</option>
+                <option value="first_missed">初回不正解を上位</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        {isLoadingSubjectProblems ? (
+          <LoadingSpinner />
+        ) : selectedSubjectName === '' ? (
+          <div className="text-sm text-gray-500">科目がありません。</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="border-b text-left text-gray-500">
+                  <th className="px-3 py-2">問題ID</th>
+                  <th className="px-3 py-2">カテゴリ</th>
+                  <th className="px-3 py-2">問題文</th>
+                  <th className="px-3 py-2">初回不正解</th>
+                  <th className="px-3 py-2">後で確認</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedSubjectProblems.map((problem) => {
+                  const key = `${problem.subject}::${problem.id}`;
+                  const isReviewLater = reviewLaterKeySet.has(key);
+                  return (
+                    <tr key={key} className="border-b align-top">
+                      <td className="px-3 py-2 font-medium text-gray-800">{problem.id}</td>
+                      <td className="px-3 py-2 text-gray-600">{problem.category || '-'}</td>
+                      <td className="px-3 py-2 text-gray-700">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedKey(key)}
+                          className="text-left hover:text-primary-new"
+                        >
+                          {problem.question_text}
+                        </button>
+                      </td>
+                      <td className="px-3 py-2">
+                        {firstMissedIds.has(problem.id) ? (
+                          <span className="rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800">対象</span>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2">
+                        <button
+                          type="button"
+                          onClick={() => void handleToggleReviewLater(problem, !isReviewLater)}
+                          className={`rounded-md px-3 py-1.5 text-xs font-medium ${
+                            isReviewLater
+                              ? 'bg-primary-new text-white hover:bg-blue-700'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          {isReviewLater ? '登録中' : '未登録'}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
