@@ -238,9 +238,23 @@ struct OfflineStudyListView: View {
                     }
 
                     Section("演習を開始") {
+                        if store.subjects.count > 1 {
+                            NavigationLink {
+                                OfflineStudySetupView(subjectNames: store.subjects.map(\.name), baseURLText: $baseURLText)
+                            } label: {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text("複数科目で演習")
+                                        .font(.headline)
+                                    Text("\(store.subjects.count)科目をまとめて対象にできます")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+
                         ForEach(store.subjects) { subject in
                             NavigationLink {
-                                OfflineStudySetupView(subjectName: subject.name, baseURLText: $baseURLText)
+                                OfflineStudySetupView(subjectNames: [subject.name], baseURLText: $baseURLText)
                             } label: {
                                 VStack(alignment: .leading, spacing: 6) {
                                     Text(subject.name)
@@ -266,11 +280,12 @@ struct OfflineStudyListView: View {
 
 struct OfflineStudySetupView: View {
     @EnvironmentObject private var store: OfflineStudyStore
-    let subjectName: String
+    let subjectNames: [String]
     @Binding var baseURLText: String
     @State private var selectedMode = "random"
     @State private var count = 10
     @State private var startPractice = false
+    @State private var enabledSubjects: Set<String>
 
     private let modes: [(String, String)] = [
         ("random", "ランダム"),
@@ -279,14 +294,37 @@ struct OfflineStudySetupView: View {
         ("today_remaining", "今日の残り"),
     ]
 
+    init(subjectNames: [String], baseURLText: Binding<String>) {
+        self.subjectNames = subjectNames
+        self._baseURLText = baseURLText
+        self._enabledSubjects = State(initialValue: Set(subjectNames))
+    }
+
+    private var selectableSubjects: [String] {
+        subjectNames.sorted()
+    }
+
+    private var activeSubjects: [String] {
+        selectableSubjects.filter { enabledSubjects.contains($0) }
+    }
+
+    private var subjectDisplayText: String {
+        if activeSubjects.count == 1, let only = activeSubjects.first {
+            return only
+        }
+        return "\(activeSubjects.count)科目"
+    }
+
     private var totalQuestions: Int {
-        store.subject(named: subjectName)?.questions.count ?? 0
+        activeSubjects.reduce(0) { partialResult, subjectName in
+            partialResult + (store.subject(named: subjectName)?.questions.count ?? 0)
+        }
     }
 
     var body: some View {
         Form {
             Section("演習設定") {
-                LabeledContent("科目", value: subjectName)
+                LabeledContent("科目", value: subjectDisplayText)
                 LabeledContent("ダウンロード済み問題数", value: "\(totalQuestions)問")
                 Picker("出題モード", selection: $selectedMode) {
                     ForEach(modes, id: \.0) { mode in
@@ -303,12 +341,34 @@ struct OfflineStudySetupView: View {
                 }
             }
 
+            if selectableSubjects.count > 1 {
+                Section("演習対象科目") {
+                    ForEach(selectableSubjects, id: \.self) { subject in
+                        Toggle(
+                            subject,
+                            isOn: Binding(
+                                get: { enabledSubjects.contains(subject) },
+                                set: { isEnabled in
+                                    if isEnabled {
+                                        enabledSubjects.insert(subject)
+                                    } else if enabledSubjects.count > 1 {
+                                        enabledSubjects.remove(subject)
+                                    }
+                                }
+                            )
+                        )
+                        .disabled(enabledSubjects.count == 1 && enabledSubjects.contains(subject))
+                    }
+                }
+            }
+
             Section {
                 Button("演習開始") {
                     startPractice = true
                 }
                 .buttonStyle(.borderedProminent)
                 .frame(maxWidth: .infinity, alignment: .center)
+                .disabled(activeSubjects.isEmpty || totalQuestions == 0)
             }
         }
         .navigationTitle("演習設定")
@@ -325,7 +385,7 @@ struct OfflineStudySetupView: View {
         .navigationDestination(isPresented: $startPractice) {
             OfflineSharedQuizSessionScreen(
                 session: QuizSessionDescriptor(
-                    subjects: [subjectName],
+                    subjects: activeSubjects,
                     mode: selectedMode,
                     count: count,
                     problemID: nil,
@@ -476,6 +536,7 @@ struct OfflinePendingListView: View {
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                 LabeledContent("最終同期", value: formatted(store.lastSyncedAt))
+                LabeledContent("未同期の正答率", value: formattedAccuracy(store.practiceAccuracy))
             }
 
             Section("変更問題") {
@@ -552,12 +613,17 @@ struct OfflinePendingListView: View {
     }
 
     private var syncConfirmationMessage: String {
-        "対象科目: \(store.subjects.count)件\n更新対象問題: \(store.changedProblemCount)件\n要修復問題: \(store.invalidQuestionCount)件\n実施履歴: \(store.practiceRecords.count)件\nReview Later: \(store.reviewLaterCount)件\nローカルの現在状態を正として blob を上書きします。"
+        "対象科目: \(store.subjects.count)件\n更新対象問題: \(store.changedProblemCount)件\n要修復問題: \(store.invalidQuestionCount)件\n実施履歴追加: \(store.practiceRecords.count)件\nReview Later変更: \(store.pendingRecords.filter { $0.kind == .reviewLater }.count)件\n変更がある問題IDだけを blob に反映します。未変更の既存データは保持します。"
     }
 
     private func formatted(_ date: Date?) -> String {
         guard let date else { return "なし" }
         return date.formatted(date: .numeric, time: .shortened)
+    }
+
+    private func formattedAccuracy(_ value: Double?) -> String {
+        guard let value else { return "実績なし" }
+        return String(format: "%.1f%%", value * 100)
     }
 }
 

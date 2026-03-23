@@ -48,6 +48,14 @@ final class OfflineStudyStore: ObservableObject {
     var practiceRecords: [OfflinePendingRecord] {
         pendingRecords.filter { $0.kind == .practice }
     }
+    var practiceAccuracy: Double? {
+        let records = practiceRecords.compactMap { record -> Bool? in
+            record.isCorrect
+        }
+        guard !records.isEmpty else { return nil }
+        let correctCount = records.filter { $0 }.count
+        return Double(correctCount) / Double(records.count)
+    }
     var changedProblems: [OfflineChangedProblemSummary] {
         let grouped = Dictionary(grouping: pendingRecords.filter { $0.kind != .practice }, by: { "\($0.subject)::\($0.problemID)" })
         return grouped.compactMap { problemID, records in
@@ -375,39 +383,71 @@ final class OfflineStudyStore: ObservableObject {
             let subjectsToSync = package.subjects.map(\.name)
             try appendAuditLog(kind: .syncStarted, subjects: subjectsToSync, message: "blob 同期開始")
             let client = try OfflineStudyAPIClient(baseURLText: baseURLText)
+            let changedQuestionKeys = Set(
+                pendingRecords
+                    .filter { $0.kind == .memo || $0.kind == .problemEdit || $0.kind == .problemRepair }
+                    .map { "\($0.subject)::\($0.problemID)" }
+            )
+            let changedReviewLaterKeys = Set(
+                pendingRecords
+                    .filter { $0.kind == .reviewLater }
+                    .map { "\($0.subject)::\($0.problemID)" }
+            )
             let subjects = package.subjects.flatMap { subject in
-                subject.questions.map {
-                    OfflineSyncQuestionPayload(
-                        id: $0.id,
-                        subject: $0.subject,
-                        questionText: $0.questionText,
-                        choices: $0.choices,
-                        answer: $0.answer,
-                        explanation: $0.explanation,
-                        category: $0.category
+                subject.questions.compactMap { question -> OfflineSyncQuestionPayload? in
+                    guard changedQuestionKeys.contains("\(question.subject)::\(question.id)") else { return nil }
+                    return OfflineSyncQuestionPayload(
+                        id: question.id,
+                        subject: question.subject,
+                        questionText: question.questionText,
+                        choices: question.choices,
+                        answer: question.answer,
+                        explanation: question.explanation,
+                        category: question.category
                     )
                 }
             }
             let customExplanations = package.subjects
                 .flatMap(\.questions)
-                .filter {
-                    ($0.customExplanation?.isEmpty == false)
-                    || $0.customExplanationImageDataURL != nil
-                    || $0.customQuestionImageDataURL != nil
-                }
-                .map {
-                    OfflineSyncCustomExplanationPayload(
-                        problemID: $0.id,
-                        text: $0.customExplanation ?? "",
-                        explanationImageDataURL: $0.customExplanationImageDataURL,
-                        questionImageDataURL: $0.customQuestionImageDataURL
+                .compactMap { question -> OfflineSyncCustomExplanationPayload? in
+                    guard changedQuestionKeys.contains("\(question.subject)::\(question.id)") else { return nil }
+                    return OfflineSyncCustomExplanationPayload(
+                        problemID: question.id,
+                        text: question.customExplanation ?? "",
+                        explanationImageDataURL: question.customExplanationImageDataURL,
+                        questionImageDataURL: question.customQuestionImageDataURL
                     )
+                }
+            let reviewLaterUpserts = package.reviewLater.filter { item in
+                changedReviewLaterKeys.contains("\(item.subject)::\(item.problemID)")
+            }
+            let reviewLaterUpsertKeys = Set(reviewLaterUpserts.map { "\($0.subject)::\($0.problemID)" })
+            let reviewLaterRemovals = changedReviewLaterKeys
+                .subtracting(reviewLaterUpsertKeys)
+                .compactMap { key -> OfflineReviewLaterProblemRef? in
+                    let parts = key.split(separator: "::", maxSplits: 1).map(String.init)
+                    guard parts.count == 2 else { return nil }
+                    return OfflineReviewLaterProblemRef(subject: parts[0], problemID: parts[1])
+                }
+            let histories = Dictionary(grouping: practiceRecords, by: \.subject)
+                .mapValues { records in
+                    records.map {
+                        OfflineHistoryItem(
+                            problemID: $0.problemID,
+                            subject: $0.subject,
+                            selectedAnswer: $0.selectedAnswer ?? "未回答",
+                            isCorrect: $0.isCorrect ?? false,
+                            answeredAt: ISO8601DateFormatter().string(from: $0.practicedAt),
+                            category: $0.category
+                        )
+                    }
                 }
             let payload = OfflineSyncRequestPayload(
                 subjects: subjects,
                 customExplanations: customExplanations,
-                reviewLater: package.reviewLater,
-                histories: package.histories
+                reviewLaterUpserts: reviewLaterUpserts,
+                reviewLaterRemovals: reviewLaterRemovals,
+                histories: histories
             )
             transferStatus = OfflineTransferStatus(kind: .uploading, message: "blob へアップロード中...", progress: 0.45)
             try await client.sync(payload: payload)

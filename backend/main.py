@@ -177,6 +177,14 @@ class ReviewLaterItem(BaseModel):
     created_at: str
     updated_at: str
 
+class ReviewLaterProblemRef(BaseModel):
+    subject: str
+    problem_id: str
+
+
+class ReviewLaterHistoryRegisterRequest(BaseModel):
+    outcome: Literal["correct", "incorrect"]
+
 class OfflineStudyQuestionPayload(BaseModel):
     id: str
     subject: str
@@ -227,7 +235,8 @@ class OfflineStudyCustomExplanationUpdate(BaseModel):
 class OfflineStudySyncRequest(BaseModel):
     subjects: list[OfflineStudyQuestionUpdate] = Field(default_factory=list)
     custom_explanations: list[OfflineStudyCustomExplanationUpdate] = Field(default_factory=list)
-    review_later: list[ReviewLaterItem] = Field(default_factory=list)
+    review_later_upserts: list[ReviewLaterItem] = Field(default_factory=list)
+    review_later_removals: list[ReviewLaterProblemRef] = Field(default_factory=list)
     histories: dict[str, list[HistoryItem]] = Field(default_factory=dict)
 
 class OfflineStudySyncResponse(BaseModel):
@@ -445,6 +454,27 @@ def _get_history_items_for_subject(subject_name: str) -> list[HistoryItem]:
     except Exception as e:
         print(f"Error reading history for weak area mode: {e}")
         return []
+
+
+def _history_blob_name_for_subject(subject_name: str) -> str:
+    subject_stem = Path(subject_name).stem
+    return f"history/{subject_stem}.jsonl"
+
+
+def _write_history_items_for_subject(subject_name: str, items: list[HistoryItem]) -> None:
+    history_blob_name = _history_blob_name_for_subject(subject_name)
+    lines = "".join(item.model_dump_json() + "\n" for item in items)
+    _overwrite_blob_bytes(history_blob_name, lines.encode("utf-8"))
+
+
+def _append_history_items(items: list[HistoryItem]) -> None:
+    grouped_items: dict[str, list[HistoryItem]] = {}
+    for item in items:
+        grouped_items.setdefault(item.subject, []).append(item)
+
+    for subject_name, next_items in grouped_items.items():
+        existing_items = _get_history_items_for_subject(subject_name)
+        _write_history_items_for_subject(subject_name, existing_items + next_items)
 
 # Helper to get all questions for a subject, mapped by problem_id
 def _get_all_questions_for_subject(subject_name: str) -> dict[str, dict]:
@@ -1964,70 +1994,27 @@ def get_bulk_history_stats(request: ProblemHistoryStatsRequest):
 
 @api_router.post("/history")
 def save_history(item: HistoryItem):
-    """回答履歴を科目ごとのファイルとしてAzure Blob Storageに追記保存する"""
+    """回答履歴を科目ごとのファイルとしてAzure Blob Storageに保存する"""
     if container_client is None:
         raise HTTPException(status_code=500, detail="History storage (Blob) is not configured.")
     try:
-        # item.subjectは "test-exam.json" のような形式で来るので、適切に処理
-        subject_stem = Path(item.subject).stem # 拡張子を除去 (例: "test-exam")
-        history_blob_name = f"history/{subject_stem}.jsonl"
-        
-        history_blob_client = container_client.get_blob_client(history_blob_name)
-        
-        if not history_blob_client.exists():
-            history_blob_client.create_append_blob()
-
-        line_to_append = item.model_dump_json() + "\n"
-        history_blob_client.append_block(line_to_append.encode('utf-8'))
+        _append_history_items([item])
         return {"status": "ok"}
     except Exception as e:
         print(f"ERROR saving history: {str(e)}") # コンテナログでデバッグしやすくするため
-        # エラーメッセージにBlobの種類に関する情報が含まれているかチェック
-        if "The blob type is invalid for this operation" in str(e):
-            detail_msg = f"Failed to save history. The blob 'history/{Path(item.subject).stem}.jsonl' may not be an Append Blob. Please check its type in Azure portal."
-            raise HTTPException(status_code=409, detail=detail_msg)
         raise HTTPException(status_code=500, detail=f"Failed to save history to blob: {e}")
 
 @api_router.post("/history/bulk", status_code=200)
 def save_history_bulk(items: list[HistoryItem]):
-    """回答履歴のリストを科目ごとのファイルとしてAzure Blob Storageに一括で追記保存する"""
+    """回答履歴のリストを科目ごとのファイルとしてAzure Blob Storageに一括保存する"""
     if container_client is None:
         raise HTTPException(status_code=500, detail="History storage (Blob) is not configured.")
-    
-    # Group items by subject to minimize blob operations
-    grouped_items = {}
-    for item in items:
-        subject_stem = Path(item.subject).stem
-        if subject_stem not in grouped_items:
-            grouped_items[subject_stem] = []
-        grouped_items[subject_stem].append(item)
+    try:
+        _append_history_items(items)
+    except Exception as e:
+        print(f"ERROR saving bulk history: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to save bulk history: {e}")
 
-    # Process each subject group
-    for subject_stem, subject_items in grouped_items.items():
-        try:
-            history_blob_name = f"history/{subject_stem}.jsonl"
-            history_blob_client = container_client.get_blob_client(history_blob_name)
-            
-            if not history_blob_client.exists():
-                history_blob_client.create_append_blob()
-
-            # Create a single string of all lines to append for this subject
-            lines_to_append = ""
-            for item in subject_items:
-                lines_to_append += item.model_dump_json() + "\n"
-            
-            if lines_to_append:
-                history_blob_client.append_block(lines_to_append.encode('utf-8'))
-
-        except Exception as e:
-            # If one subject fails, we might want to continue with others,
-            # but for now, we'll raise an exception for the whole batch on first failure.
-            print(f"ERROR saving bulk history for subject {subject_stem}: {str(e)}")
-            if "The blob type is invalid for this operation" in str(e):
-                detail_msg = f"Failed to save history for {subject_stem}. The blob 'history/{subject_stem}.jsonl' may not be an Append Blob."
-                raise HTTPException(status_code=409, detail=detail_msg)
-            raise HTTPException(status_code=500, detail=f"Failed to save bulk history for {subject_stem}: {e}")
-            
     return {"status": "ok", "processed_items": len(items)}
 
 def _empty_analytics_response():
@@ -2367,25 +2354,44 @@ def sync_offline_study_package(request: OfflineStudySyncRequest):
             "explanation_image_data_url": item.explanation_image_data_url,
             "question_image_data_url": item.question_image_data_url,
         }
-        container_client.get_blob_client(blob_name).upload_blob(
-            json.dumps(payload, ensure_ascii=False),
-            overwrite=True,
+        is_empty_payload = (
+            not str(item.text or "").strip()
+            and not (item.explanation_image_data_url and item.explanation_image_data_url.strip())
+            and not (item.question_image_data_url and item.question_image_data_url.strip())
         )
+        blob_client = container_client.get_blob_client(blob_name)
+        if is_empty_payload:
+            if blob_client.exists():
+                blob_client.delete_blob()
+        else:
+            blob_client.upload_blob(
+                json.dumps(payload, ensure_ascii=False),
+                overwrite=True,
+            )
 
-    _save_review_later_items(request.review_later)
+    if request.review_later_upserts or request.review_later_removals:
+        existing_review_later = _load_review_later_items()
+        next_items_by_id = {
+            (item.subject, item.problem_id): item
+            for item in existing_review_later
+        }
+        for item in request.review_later_upserts:
+            next_items_by_id[(item.subject, item.problem_id)] = item
+        for item in request.review_later_removals:
+            next_items_by_id.pop((item.subject, item.problem_id), None)
+        _save_review_later_items(list(next_items_by_id.values()))
 
     updated_history_subjects: list[str] = []
     for subject_name, items in request.histories.items():
-        subject_stem = Path(subject_name).stem
-        history_blob_name = f"history/{subject_stem}.jsonl"
-        lines = "".join(item.model_dump_json() + "\n" for item in items)
-        _overwrite_blob_bytes(history_blob_name, lines.encode("utf-8"))
+        if not items:
+            continue
+        _append_history_items(items)
         updated_history_subjects.append(subject_name)
 
     return OfflineStudySyncResponse(
         updated_subjects=sorted(updated_subjects),
         updated_custom_explanations=len(request.custom_explanations),
-        updated_review_later=len(request.review_later),
+        updated_review_later=len(request.review_later_upserts) + len(request.review_later_removals),
         updated_history_subjects=sorted(updated_history_subjects),
     )
 
@@ -2558,6 +2564,49 @@ def delete_review_later(problem_id: str, subject: str):
     """後で振り返る問題を解除する"""
     items = _load_review_later_items()
     filtered = [x for x in items if not (x.subject == subject and x.problem_id == problem_id)]
+    if len(filtered) != len(items):
+        _save_review_later_items(filtered)
+
+
+@api_router.post("/review-later/{subject_name:path}/{problem_id}/register-history", status_code=204)
+def register_review_later_history(subject_name: str, problem_id: str, payload: ReviewLaterHistoryRegisterRequest):
+    """後で確認問題に対して実績を1件追加し、登録状態を解除する。"""
+    questions = _get_all_questions_for_subject(subject_name)
+    question = questions.get(problem_id)
+    if not question:
+        raise HTTPException(status_code=404, detail="Problem not found.")
+
+    normalized = normalize_question(question.copy())
+    if not normalized:
+        raise HTTPException(status_code=500, detail="Problem format is invalid.")
+
+    answer = str(normalized.get("answer") or "")
+    choices = normalized.get("choices") or []
+    selected_answer = answer
+    is_correct = payload.outcome == "correct"
+    if not is_correct:
+        wrong_choice = next(
+            (
+                str(choice.get("label"))
+                for choice in choices
+                if isinstance(choice, dict) and str(choice.get("label") or "") and str(choice.get("label")) != answer
+            ),
+            None,
+        )
+        selected_answer = wrong_choice or "__review_later_manual_incorrect__"
+
+    history_item = HistoryItem(
+        problem_id=problem_id,
+        subject=subject_name,
+        selected_answer=selected_answer,
+        is_correct=is_correct,
+        answered_at=datetime.datetime.now(datetime.timezone.utc),
+        category=normalized.get("category"),
+    )
+    _append_history_items([history_item])
+
+    items = _load_review_later_items()
+    filtered = [x for x in items if not (x.subject == subject_name and x.problem_id == problem_id)]
     if len(filtered) != len(items):
         _save_review_later_items(filtered)
 

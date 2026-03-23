@@ -69,6 +69,7 @@ export default function ReviewLaterPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSavingProblem, setIsSavingProblem] = useState(false);
   const [isSavingMemo, setIsSavingMemo] = useState(false);
+  const [isRegisteringHistory, setIsRegisteringHistory] = useState<'' | 'correct' | 'incorrect'>('');
   const [isFindingSimilar, setIsFindingSimilar] = useState(false);
   const [similarTopics, setSimilarTopics] = useState<string[]>([]);
   const [isOralVivaActive, setIsOralVivaActive] = useState(false);
@@ -473,6 +474,32 @@ export default function ReviewLaterPage() {
     }
   };
 
+  const handleRegisterHistory = async (outcome: 'correct' | 'incorrect') => {
+    if (!selectedItem) return;
+    try {
+      setIsRegisteringHistory(outcome);
+      setError('');
+      const response = await fetch(
+        `${API_BASE_URL}/review-later/${encodeURIComponent(selectedItem.subject)}/${encodeURIComponent(selectedItem.problem_id)}/register-history`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ outcome }),
+        }
+      );
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.detail || '実績登録に失敗しました。');
+      }
+      await fetchItems();
+    } catch (registerError) {
+      console.error(registerError);
+      setError(registerError instanceof Error ? registerError.message : '実績登録に失敗しました。');
+    } finally {
+      setIsRegisteringHistory('');
+    }
+  };
+
   const openIpadReview = (profile: IpadProfile) => {
     if (!selectedItem) return;
     const deepLink =
@@ -520,7 +547,7 @@ export default function ReviewLaterPage() {
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <h2 className="text-3xl font-bold text-dark">後で確認</h2>
-          <p className="text-sm text-gray-500 mt-1">演習中に登録した問題をまとめて確認します。</p>
+          <p className="text-sm text-gray-500 mt-1">現在も登録状態の問題をすべて表示します。実績登録を行うと自動で登録解除されます。</p>
         </div>
         <Link to="/dashboard" className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg shadow-sm hover:bg-gray-50">
           分析ダッシュボードへ戻る
@@ -584,8 +611,24 @@ export default function ReviewLaterPage() {
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
+                      onClick={() => void handleRegisterHistory('correct')}
+                      disabled={isRegisteringHistory !== ''}
+                      className="px-4 py-2 rounded-md bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:bg-gray-300"
+                    >
+                      {isRegisteringHistory === 'correct' ? '登録中...' : '正解実績を登録'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleRegisterHistory('incorrect')}
+                      disabled={isRegisteringHistory !== ''}
+                      className="px-4 py-2 rounded-md bg-rose-600 text-white text-sm font-medium hover:bg-rose-700 disabled:bg-gray-300"
+                    >
+                      {isRegisteringHistory === 'incorrect' ? '登録中...' : '誤答実績を登録'}
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => void handleStartSimilarPractice()}
-                      disabled={isFindingSimilar}
+                      disabled={isFindingSimilar || isRegisteringHistory !== ''}
                       className="px-4 py-2 rounded-md bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:bg-gray-300"
                     >
                       {isFindingSimilar ? '類題検索中...' : '類題出題'}
@@ -593,6 +636,7 @@ export default function ReviewLaterPage() {
                     <button
                       type="button"
                       onClick={() => openIpadReview('air')}
+                      disabled={isRegisteringHistory !== ''}
                       className="px-4 py-2 rounded-md bg-primary-new text-white text-sm font-medium hover:bg-blue-700"
                     >
                       iPad Airで開く
@@ -600,6 +644,7 @@ export default function ReviewLaterPage() {
                     <button
                       type="button"
                       onClick={() => openIpadReview('mini')}
+                      disabled={isRegisteringHistory !== ''}
                       className="px-4 py-2 rounded-md bg-sky-600 text-white text-sm font-medium hover:bg-sky-700"
                     >
                       iPad miniで開く
@@ -607,6 +652,7 @@ export default function ReviewLaterPage() {
                     <button
                       type="button"
                       onClick={() => void handleRemove()}
+                      disabled={isRegisteringHistory !== ''}
                       className="px-4 py-2 rounded-md bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200"
                     >
                       登録解除

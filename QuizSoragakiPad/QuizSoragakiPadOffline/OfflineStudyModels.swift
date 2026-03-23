@@ -245,14 +245,26 @@ struct OfflineChangedProblemSummary: Identifiable, Hashable {
 struct OfflineSyncRequestPayload: Codable {
     let subjects: [OfflineSyncQuestionPayload]
     let customExplanations: [OfflineSyncCustomExplanationPayload]
-    let reviewLater: [OfflineReviewLaterItem]
+    let reviewLaterUpserts: [OfflineReviewLaterItem]
+    let reviewLaterRemovals: [OfflineReviewLaterProblemRef]
     let histories: [String: [OfflineHistoryItem]]
 
     enum CodingKeys: String, CodingKey {
         case subjects
         case customExplanations = "custom_explanations"
-        case reviewLater = "review_later"
+        case reviewLaterUpserts = "review_later_upserts"
+        case reviewLaterRemovals = "review_later_removals"
         case histories
+    }
+}
+
+struct OfflineReviewLaterProblemRef: Codable, Hashable {
+    let subject: String
+    let problemID: String
+
+    enum CodingKeys: String, CodingKey {
+        case subject
+        case problemID = "problem_id"
     }
 }
 

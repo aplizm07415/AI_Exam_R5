@@ -88,6 +88,12 @@ TEST_REVIEW_LATER_ITEMS = [
         "problem_id": "q2",
         "created_at": "2026-03-20T00:00:00Z",
         "updated_at": "2026-03-20T00:00:00Z",
+    },
+    {
+        "subject": "subject2.json",
+        "problem_id": "q3",
+        "created_at": "2026-03-19T00:00:00Z",
+        "updated_at": "2026-03-19T00:00:00Z",
     }
 ]
 
@@ -434,12 +440,18 @@ def test_sync_offline_study_package(client: TestClient):
                     "question_image_data_url": None,
                 }
             ],
-            "review_later": [
+            "review_later_upserts": [
                 {
                     "subject": "subject1.json",
                     "problem_id": "q1",
                     "created_at": "2026-03-21T00:00:00Z",
                     "updated_at": "2026-03-21T00:00:00Z",
+                }
+            ],
+            "review_later_removals": [
+                {
+                    "subject": "subject1.json",
+                    "problem_id": "q2",
                 }
             ],
             "histories": {
@@ -461,7 +473,7 @@ def test_sync_offline_study_package(client: TestClient):
     payload = response.json()
     assert payload["updated_subjects"] == ["subject1.json"]
     assert payload["updated_custom_explanations"] == 1
-    assert payload["updated_review_later"] == 1
+    assert payload["updated_review_later"] == 2
     assert payload["updated_history_subjects"] == ["subject1.json"]
 
     updated_subject = main._test_subject_payloads["subject1.json"]
@@ -470,12 +482,40 @@ def test_sync_offline_study_package(client: TestClient):
     assert updated_q1["explanation"]["text"] == "Updated explanation"
     assert updated_q1["category"] == "Updated"
     assert main._test_custom_explanations["q1"]["text"] == "Offline memo"
-    assert main._test_review_later_items[0]["problem_id"] == "q1"
+    assert {item["subject"] for item in main._test_review_later_items} == {"subject1.json", "subject2.json"}
+    subject1_items = [item for item in main._test_review_later_items if item["subject"] == "subject1.json"]
+    subject2_items = [item for item in main._test_review_later_items if item["subject"] == "subject2.json"]
+    assert len(subject1_items) == 1
+    assert subject1_items[0]["problem_id"] == "q1"
+    assert len(subject2_items) == 1
+    assert subject2_items[0]["problem_id"] == "q3"
     updated_history_lines = main._test_history_payloads["subject1"]
-    assert len(updated_history_lines) == 1
-    assert json.loads(updated_history_lines[0])["problem_id"] == "q1"
-    history_blob = main.container_client.get_blob_client("history/subject1.jsonl")
-    history_blob.delete_blob.assert_called_once()
+    assert len(updated_history_lines) == len(TEST_HISTORY_DATA["subject1"]) + 1
+    assert json.loads(updated_history_lines[-1])["problem_id"] == "q1"
+
+
+def test_register_review_later_history_correct_removes_item(client: TestClient):
+    from backend import main
+
+    response = client.post(
+        "/api/review-later/subject1.json/q2/register-history",
+        json={"outcome": "correct"},
+    )
+
+    assert response.status_code == 204
+    updated_history_lines = main._test_history_payloads["subject1"]
+    latest = json.loads(updated_history_lines[-1])
+    assert latest["problem_id"] == "q2"
+    assert latest["selected_answer"] == "B"
+    assert latest["is_correct"] is True
+    assert main._test_review_later_items == [
+        {
+            "subject": "subject2.json",
+            "problem_id": "q3",
+            "created_at": "2026-03-19T00:00:00Z",
+            "updated_at": "2026-03-19T00:00:00Z",
+        }
+    ]
 
 def test_get_unanswered_count(client: TestClient):
     """未回答の問題数を正しく取得できることをテスト"""
@@ -527,10 +567,22 @@ from unittest.mock import call
 @patch('backend.main.container_client')
 def test_save_history_bulk(mock_container_client, client: TestClient):
     """回答履歴の一括保存ができることをテスト"""
-    # 1. Mock a blob client that can be returned by the container client
-    mock_blob_client = MagicMock()
-    mock_container_client.get_blob_client.return_value = mock_blob_client
-    mock_blob_client.exists.return_value = True
+    subject_a_blob = MagicMock()
+    subject_a_blob.exists.return_value = True
+    subject_a_blob.download_blob.return_value = MockBlobDownload("")
+
+    subject_b_blob = MagicMock()
+    subject_b_blob.exists.return_value = True
+    subject_b_blob.download_blob.return_value = MockBlobDownload("")
+
+    def get_blob_client_side_effect(blob_name):
+        if blob_name == 'history/subjectA.jsonl':
+            return subject_a_blob
+        if blob_name == 'history/subjectB.jsonl':
+            return subject_b_blob
+        return MagicMock()
+
+    mock_container_client.get_blob_client.side_effect = get_blob_client_side_effect
 
     # 2. Prepare test data with multiple subjects
     now = datetime.now(timezone.utc)
@@ -555,22 +607,16 @@ def test_save_history_bulk(mock_container_client, client: TestClient):
     ]
     mock_container_client.get_blob_client.assert_has_calls(expected_blob_calls, any_order=True)
 
-    # 6. Assert that append_block was called with the correct grouped data
-    # Prepare the expected data for each blob
-    expected_append_data_A = (
+    expected_write_data_A = (
         items_to_save[0].model_dump_json() + "\n" +
         items_to_save[2].model_dump_json() + "\n"
     ).encode('utf-8')
 
-    expected_append_data_B = (
+    expected_write_data_B = (
         items_to_save[1].model_dump_json() + "\n"
     ).encode('utf-8')
 
-    # Check the calls made to append_block
-    append_calls = mock_blob_client.append_block.call_args_list
-    assert len(append_calls) == 2 # Called once for each subject
-
-    # The order of appends isn't guaranteed, so check for both possibilities
-    call_args_list = [args[0][0] for args in append_calls]
-    assert expected_append_data_A in call_args_list
-    assert expected_append_data_B in call_args_list
+    subject_a_blob.delete_blob.assert_called_once()
+    subject_b_blob.delete_blob.assert_called_once()
+    assert subject_a_blob.upload_blob.call_args[0][0] == expected_write_data_A
+    assert subject_b_blob.upload_blob.call_args[0][0] == expected_write_data_B
