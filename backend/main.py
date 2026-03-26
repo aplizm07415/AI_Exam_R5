@@ -165,7 +165,9 @@ class CustomExplanation(BaseModel):
     text: str
     image_data_url: Optional[str] = None
     explanation_image_data_url: Optional[str] = None
+    explanation_image_data_urls: list[str] = Field(default_factory=list)
     question_image_data_url: Optional[str] = None
+    question_image_data_urls: list[str] = Field(default_factory=list)
 
 class ReviewLaterUpsertRequest(BaseModel):
     subject: str
@@ -195,6 +197,8 @@ class OfflineStudyQuestionPayload(BaseModel):
     custom_explanation: Optional[str] = None
     custom_explanation_image_data_url: Optional[str] = None
     custom_question_image_data_url: Optional[str] = None
+    custom_explanation_image_data_urls: list[str] = Field(default_factory=list)
+    custom_question_image_data_urls: list[str] = Field(default_factory=list)
 
 class OfflineStudySubjectPayload(BaseModel):
     name: str
@@ -227,7 +231,9 @@ class OfflineStudyCustomExplanationUpdate(BaseModel):
     problem_id: str
     text: str = ""
     explanation_image_data_url: Optional[str] = None
+    explanation_image_data_urls: list[str] = Field(default_factory=list)
     question_image_data_url: Optional[str] = None
+    question_image_data_urls: list[str] = Field(default_factory=list)
 
 class OfflineStudySyncRequest(BaseModel):
     subjects: list[OfflineStudyQuestionUpdate] = Field(default_factory=list)
@@ -589,6 +595,8 @@ def _enrich_question_with_custom_explanation(question: dict) -> dict:
     enriched['custom_explanation'] = ''
     enriched['custom_explanation_image_data_url'] = None
     enriched['custom_question_image_data_url'] = None
+    enriched['custom_explanation_image_data_urls'] = []
+    enriched['custom_question_image_data_urls'] = []
     try:
         problem_id = enriched.get("id")
         if problem_id and container_client:
@@ -599,10 +607,30 @@ def _enrich_question_with_custom_explanation(question: dict) -> dict:
                 explanation_data = json.loads(content)
                 enriched['custom_explanation'] = explanation_data.get('text', '')
                 legacy_image_data_url = explanation_data.get('image_data_url')
-                explanation_image_data_url = explanation_data.get('explanation_image_data_url', legacy_image_data_url)
-                question_image_data_url = explanation_data.get('question_image_data_url')
-                enriched['custom_explanation_image_data_url'] = explanation_image_data_url if isinstance(explanation_image_data_url, str) and explanation_image_data_url.strip() else None
-                enriched['custom_question_image_data_url'] = question_image_data_url if isinstance(question_image_data_url, str) and question_image_data_url.strip() else None
+                explanation_image_data_urls = explanation_data.get('explanation_image_data_urls')
+                if not isinstance(explanation_image_data_urls, list):
+                    explanation_image_data_url = explanation_data.get('explanation_image_data_url', legacy_image_data_url)
+                    explanation_image_data_urls = [explanation_image_data_url] if isinstance(explanation_image_data_url, str) and explanation_image_data_url.strip() else []
+                else:
+                    explanation_image_data_urls = [
+                        item for item in explanation_image_data_urls
+                        if isinstance(item, str) and item.strip()
+                    ]
+
+                question_image_data_urls = explanation_data.get('question_image_data_urls')
+                if not isinstance(question_image_data_urls, list):
+                    question_image_data_url = explanation_data.get('question_image_data_url')
+                    question_image_data_urls = [question_image_data_url] if isinstance(question_image_data_url, str) and question_image_data_url.strip() else []
+                else:
+                    question_image_data_urls = [
+                        item for item in question_image_data_urls
+                        if isinstance(item, str) and item.strip()
+                    ]
+
+                enriched['custom_explanation_image_data_urls'] = explanation_image_data_urls
+                enriched['custom_question_image_data_urls'] = question_image_data_urls
+                enriched['custom_explanation_image_data_url'] = explanation_image_data_urls[0] if explanation_image_data_urls else None
+                enriched['custom_question_image_data_url'] = question_image_data_urls[0] if question_image_data_urls else None
     except Exception as e:
         problem_id_for_log = enriched.get('id', 'UNKNOWN')
         print(f"Error fetching custom explanation for problem {problem_id_for_log}: {e}")
@@ -2228,8 +2256,11 @@ def export_first_missed_problems(subjects: list[str] = Query(...)):
             question = all_questions.get(problem_id)
             if not question:
                 continue
+            first_missed_item = first_attempt_by_problem.get(problem_id)
             export_question = question.copy()
             export_question["subject"] = subject_name
+            if first_missed_item is not None:
+                export_question["first_missed_answered_at"] = first_missed_item.answered_at.isoformat()
             enriched = _enrich_question_with_custom_explanation(export_question)
             export_questions.append(enriched)
 
@@ -2346,15 +2377,31 @@ def sync_offline_study_package(request: OfflineStudySyncRequest):
 
     for item in request.custom_explanations:
         blob_name = f"{CUSTOM_EXPLANATIONS_DIR}/{item.problem_id}.json"
+        explanation_image_data_urls = [
+            value for value in item.explanation_image_data_urls
+            if isinstance(value, str) and value.strip()
+        ]
+        if not explanation_image_data_urls and item.explanation_image_data_url and item.explanation_image_data_url.strip():
+            explanation_image_data_urls = [item.explanation_image_data_url]
+
+        question_image_data_urls = [
+            value for value in item.question_image_data_urls
+            if isinstance(value, str) and value.strip()
+        ]
+        if not question_image_data_urls and item.question_image_data_url and item.question_image_data_url.strip():
+            question_image_data_urls = [item.question_image_data_url]
+
         payload = {
             "text": item.text,
-            "explanation_image_data_url": item.explanation_image_data_url,
-            "question_image_data_url": item.question_image_data_url,
+            "explanation_image_data_urls": explanation_image_data_urls,
+            "question_image_data_urls": question_image_data_urls,
+            "explanation_image_data_url": explanation_image_data_urls[0] if explanation_image_data_urls else None,
+            "question_image_data_url": question_image_data_urls[0] if question_image_data_urls else None,
         }
         is_empty_payload = (
             not str(item.text or "").strip()
-            and not (item.explanation_image_data_url and item.explanation_image_data_url.strip())
-            and not (item.question_image_data_url and item.question_image_data_url.strip())
+            and not explanation_image_data_urls
+            and not question_image_data_urls
         )
         blob_client = container_client.get_blob_client(blob_name)
         if is_empty_payload:
@@ -2639,14 +2686,33 @@ def save_custom_explanation(problem_id: str, explanation: CustomExplanation):
         raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
         
     try:
-        explanation_image_data_url = explanation.explanation_image_data_url
-        if not explanation_image_data_url and explanation.image_data_url:
-            explanation_image_data_url = explanation.image_data_url
+        explanation_image_data_urls = [
+            item for item in explanation.explanation_image_data_urls
+            if isinstance(item, str) and item.strip()
+        ]
+        if not explanation_image_data_urls:
+            explanation_image_data_url = explanation.explanation_image_data_url
+            if not explanation_image_data_url and explanation.image_data_url:
+                explanation_image_data_url = explanation.image_data_url
+            if isinstance(explanation_image_data_url, str) and explanation_image_data_url.strip():
+                explanation_image_data_urls = [explanation_image_data_url]
+
+        question_image_data_urls = [
+            item for item in explanation.question_image_data_urls
+            if isinstance(item, str) and item.strip()
+        ]
+        if not question_image_data_urls:
+            question_image_data_url = explanation.question_image_data_url
+            if isinstance(question_image_data_url, str) and question_image_data_url.strip():
+                question_image_data_urls = [question_image_data_url]
 
         normalized_payload = {
             "text": explanation.text,
-            "explanation_image_data_url": explanation_image_data_url,
-            "question_image_data_url": explanation.question_image_data_url,
+            "explanation_image_data_urls": explanation_image_data_urls,
+            "question_image_data_urls": question_image_data_urls,
+            # Keep legacy single-image keys for backward compatibility.
+            "explanation_image_data_url": explanation_image_data_urls[0] if explanation_image_data_urls else None,
+            "question_image_data_url": question_image_data_urls[0] if question_image_data_urls else None,
         }
         blob_name = f"{CUSTOM_EXPLANATIONS_DIR}/{problem_id}.json"
         blob_client = container_client.get_blob_client(blob_name)

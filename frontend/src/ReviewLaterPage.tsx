@@ -26,6 +26,9 @@ interface QuizQuestion {
   custom_explanation?: string;
   custom_explanation_image_data_url?: string | undefined;
   custom_question_image_data_url?: string | undefined;
+  custom_explanation_image_data_urls?: string[];
+  custom_question_image_data_urls?: string[];
+  first_missed_answered_at?: string;
 }
 
 interface ReviewLaterEntry {
@@ -62,6 +65,17 @@ interface OralVivaResponse {
 
 type IpadProfile = 'air' | 'mini';
 
+const getCustomImageUrls = (
+  urls: string[] | undefined,
+  legacyUrl: string | undefined,
+): string[] => {
+  const normalized = (urls ?? []).filter((url): url is string => typeof url === 'string' && url.trim().length > 0);
+  if (normalized.length > 0) {
+    return normalized;
+  }
+  return legacyUrl && legacyUrl.trim() ? [legacyUrl] : [];
+};
+
 export default function ReviewLaterPage() {
   const navigate = useNavigate();
   const [items, setItems] = useState<ReviewLaterEntry[]>([]);
@@ -71,6 +85,9 @@ export default function ReviewLaterPage() {
   const [isLoadingSubjectProblems, setIsLoadingSubjectProblems] = useState(false);
   const [sortMode, setSortMode] = useState<'default' | 'first_missed'>('default');
   const [firstMissedIds, setFirstMissedIds] = useState<Set<string>>(new Set());
+  const [firstMissedDateById, setFirstMissedDateById] = useState<Record<string, string>>({});
+  const [firstMissedDateFrom, setFirstMissedDateFrom] = useState('');
+  const [firstMissedDateTo, setFirstMissedDateTo] = useState('');
   const [selectedKey, setSelectedKey] = useState('');
   const [editingProblem, setEditingProblem] = useState<QuizQuestion | null>(null);
   const [customExplanationText, setCustomExplanationText] = useState('');
@@ -79,6 +96,7 @@ export default function ReviewLaterPage() {
   const [isSavingMemo, setIsSavingMemo] = useState(false);
   const [isRegisteringHistory, setIsRegisteringHistory] = useState(false);
   const [isFindingSimilar, setIsFindingSimilar] = useState(false);
+  const [isBulkRegisteringFirstMissed, setIsBulkRegisteringFirstMissed] = useState(false);
   const [similarTopics, setSimilarTopics] = useState<string[]>([]);
   const [isOralVivaActive, setIsOralVivaActive] = useState(false);
   const [oralVivaStepIndex, setOralVivaStepIndex] = useState(0);
@@ -159,6 +177,12 @@ export default function ReviewLaterPage() {
     () => items.find((item) => `${item.subject}::${item.problem_id}` === selectedKey) ?? null,
     [items, selectedKey]
   );
+  const questionSupplementImageUrls = editingProblem
+    ? getCustomImageUrls(editingProblem.custom_question_image_data_urls, editingProblem.custom_question_image_data_url)
+    : [];
+  const explanationSupplementImageUrls = editingProblem
+    ? getCustomImageUrls(editingProblem.custom_explanation_image_data_urls, editingProblem.custom_explanation_image_data_url)
+    : [];
 
   const selectedProblem = useMemo(() => {
     if (selectedItem?.question) {
@@ -173,7 +197,24 @@ export default function ReviewLaterPage() {
   );
 
   const sortedSubjectProblems = useMemo(() => {
-    const next = [...subjectProblems];
+    const filtered = subjectProblems.filter((problem) => {
+      if (!firstMissedDateFrom && !firstMissedDateTo) {
+        return true;
+      }
+      const firstMissedAt = firstMissedDateById[problem.id];
+      if (!firstMissedAt) {
+        return false;
+      }
+      const localDate = firstMissedAt.slice(0, 10);
+      if (firstMissedDateFrom && localDate < firstMissedDateFrom) {
+        return false;
+      }
+      if (firstMissedDateTo && localDate > firstMissedDateTo) {
+        return false;
+      }
+      return true;
+    });
+    const next = [...filtered];
     if (sortMode === 'first_missed') {
       next.sort((a, b) => {
         const aFirstMissed = firstMissedIds.has(a.id) ? 1 : 0;
@@ -186,7 +227,11 @@ export default function ReviewLaterPage() {
       return next;
     }
     return next.sort((a, b) => a.id.localeCompare(b.id));
-  }, [subjectProblems, sortMode, firstMissedIds]);
+  }, [subjectProblems, sortMode, firstMissedIds, firstMissedDateById, firstMissedDateFrom, firstMissedDateTo]);
+  const unregisteredFirstMissedProblems = useMemo(
+    () => sortedSubjectProblems.filter((problem) => firstMissedIds.has(problem.id) && !reviewLaterKeySet.has(`${problem.subject}::${problem.id}`)),
+    [sortedSubjectProblems, firstMissedIds, reviewLaterKeySet]
+  );
 
   useEffect(() => {
     if (selectedProblem) {
@@ -226,15 +271,25 @@ export default function ReviewLaterPage() {
         setSubjectProblems(problems);
         if (firstMissedResponse.ok) {
           const payload: { questions?: QuizQuestion[] } = await firstMissedResponse.json();
-          setFirstMissedIds(new Set((payload.questions || []).map((question) => question.id)));
+          const firstMissedQuestions = payload.questions || [];
+          setFirstMissedIds(new Set(firstMissedQuestions.map((question) => question.id)));
+          setFirstMissedDateById(
+            Object.fromEntries(
+              firstMissedQuestions
+                .filter((question) => question.first_missed_answered_at)
+                .map((question) => [question.id, question.first_missed_answered_at as string])
+            )
+          );
         } else {
           setFirstMissedIds(new Set());
+          setFirstMissedDateById({});
         }
       } catch (fetchError) {
         console.error(fetchError);
         setError(fetchError instanceof Error ? fetchError.message : '科目問題一覧の取得に失敗しました。');
         setSubjectProblems([]);
         setFirstMissedIds(new Set());
+        setFirstMissedDateById({});
       } finally {
         setIsLoadingSubjectProblems(false);
       }
@@ -271,95 +326,110 @@ export default function ReviewLaterPage() {
     setEditingProblem({ ...editingProblem, choices: nextChoices });
   };
 
-  const handleSaveProblem = async () => {
+  const saveProblemData = async () => {
     if (!editingProblem) return;
-    try {
-      setIsSavingProblem(true);
-      const {
-        image_urls,
-        explanation_image_urls,
-        custom_explanation,
-        custom_explanation_image_data_url,
-        custom_question_image_data_url,
-        ...payload
-      } = editingProblem;
-      const response = await fetch(
-        `${API_BASE_URL}/subjects/${encodeURIComponent(editingProblem.subject)}/problems/${encodeURIComponent(editingProblem.id)}`,
-        {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        }
-      );
-      if (!response.ok) {
-        const payload = await response.json().catch(() => null);
-        throw new Error(payload?.detail || '問題の更新に失敗しました。');
+    const {
+      image_urls,
+      explanation_image_urls,
+      custom_explanation,
+      custom_explanation_image_data_url,
+      custom_question_image_data_url,
+      custom_explanation_image_data_urls,
+      custom_question_image_data_urls,
+      ...payload
+    } = editingProblem;
+    const response = await fetch(
+      `${API_BASE_URL}/subjects/${encodeURIComponent(editingProblem.subject)}/problems/${encodeURIComponent(editingProblem.id)}`,
+      {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       }
-      const updatedProblem: QuizQuestion = await response.json();
-      setItems((prev) =>
-        prev.map((item) =>
-          item.subject === updatedProblem.subject && item.problem_id === updatedProblem.id
-            ? { ...item, question: { ...item.question, ...updatedProblem } as QuizQuestion }
-            : item
-        )
-      );
-      setEditingProblem((prev) => (prev ? { ...prev, ...updatedProblem } : prev));
+    );
+    if (!response.ok) {
+      const payload = await response.json().catch(() => null);
+      throw new Error(payload?.detail || '問題の更新に失敗しました。');
+    }
+    const updatedProblem: QuizQuestion = await response.json();
+    setItems((prev) =>
+      prev.map((item) =>
+        item.subject === updatedProblem.subject && item.problem_id === updatedProblem.id
+          ? { ...item, question: { ...item.question, ...updatedProblem } as QuizQuestion }
+          : item
+      )
+    );
+    setEditingProblem((prev) => (prev ? { ...prev, ...updatedProblem } : prev));
+  };
+
+  const saveMemoData = async () => {
+    if (!editingProblem) return;
+    const response = await fetch(`${API_BASE_URL}/problems/${encodeURIComponent(editingProblem.id)}/custom-explanation`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text: customExplanationText,
+        explanation_image_data_urls: explanationSupplementImageUrls,
+        question_image_data_urls: questionSupplementImageUrls,
+      }),
+    });
+    if (!response.ok) {
+      const payload = await response.json().catch(() => null);
+      throw new Error(payload?.detail || 'My Memo の保存に失敗しました。');
+    }
+    setItems((prev) =>
+      prev.map((item) =>
+        item.subject === editingProblem.subject && item.problem_id === editingProblem.id && item.question
+          ? {
+              ...item,
+              question: {
+                ...item.question,
+                custom_explanation: customExplanationText,
+                custom_explanation_image_data_urls: explanationSupplementImageUrls,
+                custom_question_image_data_urls: questionSupplementImageUrls,
+                custom_explanation_image_data_url: explanationSupplementImageUrls[0],
+                custom_question_image_data_url: questionSupplementImageUrls[0],
+              },
+            }
+          : item
+      )
+    );
+    setEditingProblem((prev) =>
+      prev
+        ? {
+            ...prev,
+            custom_explanation: customExplanationText,
+            custom_explanation_image_data_urls: explanationSupplementImageUrls,
+            custom_question_image_data_urls: questionSupplementImageUrls,
+            custom_explanation_image_data_url: explanationSupplementImageUrls[0],
+            custom_question_image_data_url: questionSupplementImageUrls[0],
+          }
+        : prev
+    );
+  };
+
+  const handleSaveAll = async () => {
+    if (!editingProblem || isSavingProblem || isSavingMemo) return;
+    setError('');
+    setIsSavingProblem(true);
+    setIsSavingMemo(true);
+    try {
+      await saveProblemData();
+      await saveMemoData();
     } catch (saveError) {
       console.error(saveError);
-      setError(saveError instanceof Error ? saveError.message : '問題の更新に失敗しました。');
+      setError(saveError instanceof Error ? saveError.message : '保存に失敗しました。');
     } finally {
       setIsSavingProblem(false);
+      setIsSavingMemo(false);
     }
   };
 
+  const handleSaveProblem = async () => {
+    await handleSaveAll();
+  };
+
   const handleSaveMemo = async () => {
-    if (!editingProblem) return;
-    try {
-      setIsSavingMemo(true);
-      const response = await fetch(`${API_BASE_URL}/problems/${encodeURIComponent(editingProblem.id)}/custom-explanation`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          text: customExplanationText,
-          explanation_image_data_url: editingProblem.custom_explanation_image_data_url ?? null,
-          question_image_data_url: editingProblem.custom_question_image_data_url ?? null,
-        }),
-      });
-      if (!response.ok) {
-        const payload = await response.json().catch(() => null);
-        throw new Error(payload?.detail || 'My Memo の保存に失敗しました。');
-      }
-      setItems((prev) =>
-        prev.map((item) =>
-          item.subject === editingProblem.subject && item.problem_id === editingProblem.id && item.question
-            ? {
-                ...item,
-                question: {
-                  ...item.question,
-                  custom_explanation: customExplanationText,
-                  custom_explanation_image_data_url: editingProblem.custom_explanation_image_data_url,
-                  custom_question_image_data_url: editingProblem.custom_question_image_data_url,
-                },
-              }
-            : item
-        )
-      );
-      setEditingProblem((prev) =>
-        prev
-          ? {
-              ...prev,
-              custom_explanation: customExplanationText,
-              custom_explanation_image_data_url: prev.custom_explanation_image_data_url,
-              custom_question_image_data_url: prev.custom_question_image_data_url,
-            }
-          : prev
-      );
-    } catch (saveError) {
-      console.error(saveError);
-      setError(saveError instanceof Error ? saveError.message : 'My Memo の保存に失敗しました。');
-    } finally {
-      setIsSavingMemo(false);
-    }
+    await handleSaveAll();
   };
 
   const saveMemoText = async (text: string) => {
@@ -369,8 +439,8 @@ export default function ReviewLaterPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         text,
-        explanation_image_data_url: editingProblem.custom_explanation_image_data_url ?? null,
-        question_image_data_url: editingProblem.custom_question_image_data_url ?? null,
+        explanation_image_data_urls: explanationSupplementImageUrls,
+        question_image_data_urls: questionSupplementImageUrls,
       }),
     });
     if (!response.ok) {
@@ -542,14 +612,30 @@ export default function ReviewLaterPage() {
       reader.readAsDataURL(file);
     });
 
-  const handleCustomImageUpload = async (kind: 'question' | 'explanation', file?: File) => {
-    if (!editingProblem || !file) return;
+  const handleCustomImageUpload = async (kind: 'question' | 'explanation', files?: FileList | null) => {
+    if (!editingProblem || !files || files.length === 0) return;
     try {
-      const dataUrl = await readFileAsDataUrl(file);
+      const dataUrls = await Promise.all(Array.from(files).map((file) => readFileAsDataUrl(file)));
       if (kind === 'question') {
-        setEditingProblem((prev) => (prev ? { ...prev, custom_question_image_data_url: dataUrl } : prev));
+        setEditingProblem((prev) => {
+          if (!prev) return prev;
+          const nextUrls = [...getCustomImageUrls(prev.custom_question_image_data_urls, prev.custom_question_image_data_url), ...dataUrls];
+          return {
+            ...prev,
+            custom_question_image_data_urls: nextUrls,
+            custom_question_image_data_url: nextUrls[0],
+          };
+        });
       } else {
-        setEditingProblem((prev) => (prev ? { ...prev, custom_explanation_image_data_url: dataUrl } : prev));
+        setEditingProblem((prev) => {
+          if (!prev) return prev;
+          const nextUrls = [...getCustomImageUrls(prev.custom_explanation_image_data_urls, prev.custom_explanation_image_data_url), ...dataUrls];
+          return {
+            ...prev,
+            custom_explanation_image_data_urls: nextUrls,
+            custom_explanation_image_data_url: nextUrls[0],
+          };
+        });
       }
     } catch (uploadError) {
       setError(uploadError instanceof Error ? uploadError.message : '画像の読み込みに失敗しました。');
@@ -601,6 +687,34 @@ export default function ReviewLaterPage() {
     } catch (toggleError) {
       console.error(toggleError);
       setError(toggleError instanceof Error ? toggleError.message : '後で確認の更新に失敗しました。');
+    }
+  };
+
+  const handleBulkRegisterFirstMissed = async () => {
+    if (unregisteredFirstMissedProblems.length === 0 || isBulkRegisteringFirstMissed) return;
+    try {
+      setIsBulkRegisteringFirstMissed(true);
+      setError('');
+      const responses = await Promise.all(
+        unregisteredFirstMissedProblems.map((problem) =>
+          fetch(`${API_BASE_URL}/review-later`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ subject: problem.subject, problem_id: problem.id }),
+          })
+        )
+      );
+      const failed = responses.find((response) => !response.ok);
+      if (failed) {
+        const payload = await failed.json().catch(() => null);
+        throw new Error(payload?.detail || '初回不正解問題の一括登録に失敗しました。');
+      }
+      await fetchItems();
+    } catch (bulkError) {
+      console.error(bulkError);
+      setError(bulkError instanceof Error ? bulkError.message : '初回不正解問題の一括登録に失敗しました。');
+    } finally {
+      setIsBulkRegisteringFirstMissed(false);
     }
   };
 
@@ -833,10 +947,10 @@ export default function ReviewLaterPage() {
                   <button
                     type="button"
                     onClick={() => void handleSaveProblem()}
-                    disabled={isSavingProblem}
+                    disabled={isSavingProblem || isSavingMemo}
                     className="px-5 py-2 rounded-md bg-slate-800 text-white text-sm font-medium hover:bg-slate-700 disabled:bg-gray-300"
                   >
-                    {isSavingProblem ? '保存中...' : '問題データを保存'}
+                    {isSavingProblem || isSavingMemo ? '保存中...' : '問題データを保存'}
                   </button>
                 </section>
 
@@ -854,17 +968,34 @@ export default function ReviewLaterPage() {
                       <input
                         type="file"
                         accept="image/*"
-                        onChange={(event) => void handleCustomImageUpload('question', event.target.files?.[0])}
+                        multiple
+                        onChange={(event) => void handleCustomImageUpload('question', event.target.files)}
                         className="block w-full text-sm text-gray-700 file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-slate-700 hover:file:bg-slate-200"
                       />
-                      {editingProblem.custom_question_image_data_url && (
-                        <button
-                          type="button"
-                          onClick={() => setEditingProblem((prev) => (prev ? { ...prev, custom_question_image_data_url: undefined } : prev))}
-                          className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                        >
-                          問題文補足画像を削除
-                        </button>
+                      {questionSupplementImageUrls.length > 0 && (
+                        <div className="space-y-2">
+                          {questionSupplementImageUrls.map((url, index) => (
+                            <div key={`question-supplement-${index}`} className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setEditingProblem((prev) => {
+                                  if (!prev) return prev;
+                                  const nextUrls = getCustomImageUrls(prev.custom_question_image_data_urls, prev.custom_question_image_data_url)
+                                    .filter((_, currentIndex) => currentIndex !== index);
+                                  return {
+                                    ...prev,
+                                    custom_question_image_data_urls: nextUrls,
+                                    custom_question_image_data_url: nextUrls[0],
+                                  };
+                                })}
+                                className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                              >
+                                問題文補足画像{index + 1}を削除
+                              </button>
+                              <span className="text-xs text-gray-500">画像 {index + 1}</span>
+                            </div>
+                          ))}
+                        </div>
                       )}
                     </div>
                     <div className="space-y-2">
@@ -872,27 +1003,44 @@ export default function ReviewLaterPage() {
                       <input
                         type="file"
                         accept="image/*"
-                        onChange={(event) => void handleCustomImageUpload('explanation', event.target.files?.[0])}
+                        multiple
+                        onChange={(event) => void handleCustomImageUpload('explanation', event.target.files)}
                         className="block w-full text-sm text-gray-700 file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-slate-700 hover:file:bg-slate-200"
                       />
-                      {editingProblem.custom_explanation_image_data_url && (
-                        <button
-                          type="button"
-                          onClick={() => setEditingProblem((prev) => (prev ? { ...prev, custom_explanation_image_data_url: undefined } : prev))}
-                          className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                        >
-                          解説補足画像を削除
-                        </button>
+                      {explanationSupplementImageUrls.length > 0 && (
+                        <div className="space-y-2">
+                          {explanationSupplementImageUrls.map((url, index) => (
+                            <div key={`explanation-supplement-${index}`} className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setEditingProblem((prev) => {
+                                  if (!prev) return prev;
+                                  const nextUrls = getCustomImageUrls(prev.custom_explanation_image_data_urls, prev.custom_explanation_image_data_url)
+                                    .filter((_, currentIndex) => currentIndex !== index);
+                                  return {
+                                    ...prev,
+                                    custom_explanation_image_data_urls: nextUrls,
+                                    custom_explanation_image_data_url: nextUrls[0],
+                                  };
+                                })}
+                                className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                              >
+                                解説補足画像{index + 1}を削除
+                              </button>
+                              <span className="text-xs text-gray-500">画像 {index + 1}</span>
+                            </div>
+                          ))}
+                        </div>
                       )}
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => void handleSaveMemo()}
-                    disabled={isSavingMemo}
+                    disabled={isSavingProblem || isSavingMemo}
                     className="px-5 py-2 rounded-md bg-primary-new text-white text-sm font-medium hover:bg-blue-700 disabled:bg-gray-300"
                   >
-                    {isSavingMemo ? '保存中...' : 'My Memoを保存'}
+                    {isSavingProblem || isSavingMemo ? '保存中...' : 'My Memoを保存'}
                   </button>
                   <div className="rounded-xl border border-sky-200 bg-sky-50 p-4 space-y-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">
@@ -1003,16 +1151,24 @@ export default function ReviewLaterPage() {
                       </div>
                     )}
                   </div>
-                  {editingProblem.custom_question_image_data_url && (
+                  {questionSupplementImageUrls.length > 0 && (
                     <div>
                       <div className="text-sm font-medium text-gray-700 mb-2">問題文補足画像</div>
-                      <img src={editingProblem.custom_question_image_data_url} alt="Question supplement" className="max-h-56 rounded-lg border border-gray-200 bg-gray-50" />
+                      <div className="space-y-3">
+                        {questionSupplementImageUrls.map((url, index) => (
+                          <img key={`question-preview-${index}`} src={url} alt={`Question supplement ${index + 1}`} className="max-h-56 rounded-lg border border-gray-200 bg-gray-50" />
+                        ))}
+                      </div>
                     </div>
                   )}
-                  {editingProblem.custom_explanation_image_data_url && (
+                  {explanationSupplementImageUrls.length > 0 && (
                     <div>
                       <div className="text-sm font-medium text-gray-700 mb-2">解説補足画像</div>
-                      <img src={editingProblem.custom_explanation_image_data_url} alt="Explanation supplement" className="max-h-56 rounded-lg border border-gray-200 bg-gray-50" />
+                      <div className="space-y-3">
+                        {explanationSupplementImageUrls.map((url, index) => (
+                          <img key={`explanation-preview-${index}`} src={url} alt={`Explanation supplement ${index + 1}`} className="max-h-56 rounded-lg border border-gray-200 bg-gray-50" />
+                        ))}
+                      </div>
                     </div>
                   )}
                 </section>
@@ -1028,7 +1184,7 @@ export default function ReviewLaterPage() {
             <h3 className="text-xl font-semibold text-gray-800">科目別の問題一覧</h3>
             <p className="text-sm text-gray-500 mt-1">ここでの後で確認の登録切り替えは、実績を記録しません。</p>
           </div>
-          <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
             <label className="text-sm text-gray-600">
               <span className="block mb-1">科目</span>
               <select
@@ -1054,6 +1210,34 @@ export default function ReviewLaterPage() {
                 <option value="first_missed">初回不正解を上位</option>
               </select>
             </label>
+            <label className="text-sm text-gray-600">
+              <span className="block mb-1">不正解日 From</span>
+              <input
+                type="date"
+                value={firstMissedDateFrom}
+                onChange={(event) => setFirstMissedDateFrom(event.target.value)}
+                className="rounded-md border border-gray-300 px-3 py-2 text-sm"
+              />
+            </label>
+            <label className="text-sm text-gray-600">
+              <span className="block mb-1">不正解日 To</span>
+              <input
+                type="date"
+                value={firstMissedDateTo}
+                onChange={(event) => setFirstMissedDateTo(event.target.value)}
+                className="rounded-md border border-gray-300 px-3 py-2 text-sm"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => void handleBulkRegisterFirstMissed()}
+              disabled={isBulkRegisteringFirstMissed || unregisteredFirstMissedProblems.length === 0}
+              className="rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:bg-gray-300"
+            >
+              {isBulkRegisteringFirstMissed
+                ? '一括登録中...'
+                : `表示中を一括で後で確認に登録${unregisteredFirstMissedProblems.length > 0 ? ` (${unregisteredFirstMissedProblems.length})` : ''}`}
+            </button>
           </div>
         </div>
 
@@ -1070,6 +1254,7 @@ export default function ReviewLaterPage() {
                   <th className="px-3 py-2">カテゴリ</th>
                   <th className="px-3 py-2">問題文</th>
                   <th className="px-3 py-2">初回不正解</th>
+                  <th className="px-3 py-2">初回不正解日</th>
                   <th className="px-3 py-2">後で確認</th>
                 </tr>
               </thead>
@@ -1077,6 +1262,7 @@ export default function ReviewLaterPage() {
                 {sortedSubjectProblems.map((problem) => {
                   const key = `${problem.subject}::${problem.id}`;
                   const isReviewLater = reviewLaterKeySet.has(key);
+                  const firstMissedDate = firstMissedDateById[problem.id];
                   return (
                     <tr key={key} className="border-b align-top">
                       <td className="px-3 py-2 font-medium text-gray-800">{problem.id}</td>
@@ -1096,6 +1282,9 @@ export default function ReviewLaterPage() {
                         ) : (
                           <span className="text-gray-400">-</span>
                         )}
+                      </td>
+                      <td className="px-3 py-2 text-gray-600">
+                        {firstMissedDate ? firstMissedDate.slice(0, 10) : '-'}
                       </td>
                       <td className="px-3 py-2">
                         <button

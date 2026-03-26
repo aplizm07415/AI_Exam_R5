@@ -3,6 +3,13 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import LoadingSpinner from './components/LoadingSpinner';
 const API_BASE_URL = '/api';
+const getCustomImageUrls = (urls, legacyUrl) => {
+    const normalized = (urls ?? []).filter((url) => typeof url === 'string' && url.trim().length > 0);
+    if (normalized.length > 0) {
+        return normalized;
+    }
+    return legacyUrl && legacyUrl.trim() ? [legacyUrl] : [];
+};
 export default function ReviewLaterPage() {
     const navigate = useNavigate();
     const [items, setItems] = useState([]);
@@ -12,6 +19,9 @@ export default function ReviewLaterPage() {
     const [isLoadingSubjectProblems, setIsLoadingSubjectProblems] = useState(false);
     const [sortMode, setSortMode] = useState('default');
     const [firstMissedIds, setFirstMissedIds] = useState(new Set());
+    const [firstMissedDateById, setFirstMissedDateById] = useState({});
+    const [firstMissedDateFrom, setFirstMissedDateFrom] = useState('');
+    const [firstMissedDateTo, setFirstMissedDateTo] = useState('');
     const [selectedKey, setSelectedKey] = useState('');
     const [editingProblem, setEditingProblem] = useState(null);
     const [customExplanationText, setCustomExplanationText] = useState('');
@@ -20,6 +30,7 @@ export default function ReviewLaterPage() {
     const [isSavingMemo, setIsSavingMemo] = useState(false);
     const [isRegisteringHistory, setIsRegisteringHistory] = useState(false);
     const [isFindingSimilar, setIsFindingSimilar] = useState(false);
+    const [isBulkRegisteringFirstMissed, setIsBulkRegisteringFirstMissed] = useState(false);
     const [similarTopics, setSimilarTopics] = useState([]);
     const [isOralVivaActive, setIsOralVivaActive] = useState(false);
     const [oralVivaStepIndex, setOralVivaStepIndex] = useState(0);
@@ -90,6 +101,12 @@ export default function ReviewLaterPage() {
         void fetchSubjects();
     }, []);
     const selectedItem = useMemo(() => items.find((item) => `${item.subject}::${item.problem_id}` === selectedKey) ?? null, [items, selectedKey]);
+    const questionSupplementImageUrls = editingProblem
+        ? getCustomImageUrls(editingProblem.custom_question_image_data_urls, editingProblem.custom_question_image_data_url)
+        : [];
+    const explanationSupplementImageUrls = editingProblem
+        ? getCustomImageUrls(editingProblem.custom_explanation_image_data_urls, editingProblem.custom_explanation_image_data_url)
+        : [];
     const selectedProblem = useMemo(() => {
         if (selectedItem?.question) {
             return selectedItem.question;
@@ -98,7 +115,24 @@ export default function ReviewLaterPage() {
     }, [selectedItem, subjectProblems, selectedKey]);
     const reviewLaterKeySet = useMemo(() => new Set(items.map((item) => `${item.subject}::${item.problem_id}`)), [items]);
     const sortedSubjectProblems = useMemo(() => {
-        const next = [...subjectProblems];
+        const filtered = subjectProblems.filter((problem) => {
+            if (!firstMissedDateFrom && !firstMissedDateTo) {
+                return true;
+            }
+            const firstMissedAt = firstMissedDateById[problem.id];
+            if (!firstMissedAt) {
+                return false;
+            }
+            const localDate = firstMissedAt.slice(0, 10);
+            if (firstMissedDateFrom && localDate < firstMissedDateFrom) {
+                return false;
+            }
+            if (firstMissedDateTo && localDate > firstMissedDateTo) {
+                return false;
+            }
+            return true;
+        });
+        const next = [...filtered];
         if (sortMode === 'first_missed') {
             next.sort((a, b) => {
                 const aFirstMissed = firstMissedIds.has(a.id) ? 1 : 0;
@@ -111,7 +145,8 @@ export default function ReviewLaterPage() {
             return next;
         }
         return next.sort((a, b) => a.id.localeCompare(b.id));
-    }, [subjectProblems, sortMode, firstMissedIds]);
+    }, [subjectProblems, sortMode, firstMissedIds, firstMissedDateById, firstMissedDateFrom, firstMissedDateTo]);
+    const unregisteredFirstMissedProblems = useMemo(() => sortedSubjectProblems.filter((problem) => firstMissedIds.has(problem.id) && !reviewLaterKeySet.has(`${problem.subject}::${problem.id}`)), [sortedSubjectProblems, firstMissedIds, reviewLaterKeySet]);
     useEffect(() => {
         if (selectedProblem) {
             setEditingProblem({ ...selectedProblem });
@@ -150,10 +185,15 @@ export default function ReviewLaterPage() {
                 setSubjectProblems(problems);
                 if (firstMissedResponse.ok) {
                     const payload = await firstMissedResponse.json();
-                    setFirstMissedIds(new Set((payload.questions || []).map((question) => question.id)));
+                    const firstMissedQuestions = payload.questions || [];
+                    setFirstMissedIds(new Set(firstMissedQuestions.map((question) => question.id)));
+                    setFirstMissedDateById(Object.fromEntries(firstMissedQuestions
+                        .filter((question) => question.first_missed_answered_at)
+                        .map((question) => [question.id, question.first_missed_answered_at])));
                 }
                 else {
                     setFirstMissedIds(new Set());
+                    setFirstMissedDateById({});
                 }
             }
             catch (fetchError) {
@@ -161,6 +201,7 @@ export default function ReviewLaterPage() {
                 setError(fetchError instanceof Error ? fetchError.message : '科目問題一覧の取得に失敗しました。');
                 setSubjectProblems([]);
                 setFirstMissedIds(new Set());
+                setFirstMissedDateById({});
             }
             finally {
                 setIsLoadingSubjectProblems(false);
@@ -198,80 +239,89 @@ export default function ReviewLaterPage() {
         };
         setEditingProblem({ ...editingProblem, choices: nextChoices });
     };
-    const handleSaveProblem = async () => {
+    const saveProblemData = async () => {
         if (!editingProblem)
             return;
-        try {
-            setIsSavingProblem(true);
-            const { image_urls, explanation_image_urls, custom_explanation, custom_explanation_image_data_url, custom_question_image_data_url, ...payload } = editingProblem;
-            const response = await fetch(`${API_BASE_URL}/subjects/${encodeURIComponent(editingProblem.subject)}/problems/${encodeURIComponent(editingProblem.id)}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
-            });
-            if (!response.ok) {
-                const payload = await response.json().catch(() => null);
-                throw new Error(payload?.detail || '問題の更新に失敗しました。');
+        const { image_urls, explanation_image_urls, custom_explanation, custom_explanation_image_data_url, custom_question_image_data_url, custom_explanation_image_data_urls, custom_question_image_data_urls, ...payload } = editingProblem;
+        const response = await fetch(`${API_BASE_URL}/subjects/${encodeURIComponent(editingProblem.subject)}/problems/${encodeURIComponent(editingProblem.id)}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+        if (!response.ok) {
+            const payload = await response.json().catch(() => null);
+            throw new Error(payload?.detail || '問題の更新に失敗しました。');
+        }
+        const updatedProblem = await response.json();
+        setItems((prev) => prev.map((item) => item.subject === updatedProblem.subject && item.problem_id === updatedProblem.id
+            ? { ...item, question: { ...item.question, ...updatedProblem } }
+            : item));
+        setEditingProblem((prev) => (prev ? { ...prev, ...updatedProblem } : prev));
+    };
+    const saveMemoData = async () => {
+        if (!editingProblem)
+            return;
+        const response = await fetch(`${API_BASE_URL}/problems/${encodeURIComponent(editingProblem.id)}/custom-explanation`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                text: customExplanationText,
+                explanation_image_data_urls: explanationSupplementImageUrls,
+                question_image_data_urls: questionSupplementImageUrls,
+            }),
+        });
+        if (!response.ok) {
+            const payload = await response.json().catch(() => null);
+            throw new Error(payload?.detail || 'My Memo の保存に失敗しました。');
+        }
+        setItems((prev) => prev.map((item) => item.subject === editingProblem.subject && item.problem_id === editingProblem.id && item.question
+            ? {
+                ...item,
+                question: {
+                    ...item.question,
+                    custom_explanation: customExplanationText,
+                    custom_explanation_image_data_urls: explanationSupplementImageUrls,
+                    custom_question_image_data_urls: questionSupplementImageUrls,
+                    custom_explanation_image_data_url: explanationSupplementImageUrls[0],
+                    custom_question_image_data_url: questionSupplementImageUrls[0],
+                },
             }
-            const updatedProblem = await response.json();
-            setItems((prev) => prev.map((item) => item.subject === updatedProblem.subject && item.problem_id === updatedProblem.id
-                ? { ...item, question: { ...item.question, ...updatedProblem } }
-                : item));
-            setEditingProblem((prev) => (prev ? { ...prev, ...updatedProblem } : prev));
+            : item));
+        setEditingProblem((prev) => prev
+            ? {
+                ...prev,
+                custom_explanation: customExplanationText,
+                custom_explanation_image_data_urls: explanationSupplementImageUrls,
+                custom_question_image_data_urls: questionSupplementImageUrls,
+                custom_explanation_image_data_url: explanationSupplementImageUrls[0],
+                custom_question_image_data_url: questionSupplementImageUrls[0],
+            }
+            : prev);
+    };
+    const handleSaveAll = async () => {
+        if (!editingProblem || isSavingProblem || isSavingMemo)
+            return;
+        setError('');
+        setIsSavingProblem(true);
+        setIsSavingMemo(true);
+        try {
+            await saveProblemData();
+            await saveMemoData();
         }
         catch (saveError) {
             console.error(saveError);
-            setError(saveError instanceof Error ? saveError.message : '問題の更新に失敗しました。');
+            setError(saveError instanceof Error ? saveError.message : '保存に失敗しました。');
         }
         finally {
             setIsSavingProblem(false);
-        }
-    };
-    const handleSaveMemo = async () => {
-        if (!editingProblem)
-            return;
-        try {
-            setIsSavingMemo(true);
-            const response = await fetch(`${API_BASE_URL}/problems/${encodeURIComponent(editingProblem.id)}/custom-explanation`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    text: customExplanationText,
-                    explanation_image_data_url: editingProblem.custom_explanation_image_data_url ?? null,
-                    question_image_data_url: editingProblem.custom_question_image_data_url ?? null,
-                }),
-            });
-            if (!response.ok) {
-                const payload = await response.json().catch(() => null);
-                throw new Error(payload?.detail || 'My Memo の保存に失敗しました。');
-            }
-            setItems((prev) => prev.map((item) => item.subject === editingProblem.subject && item.problem_id === editingProblem.id && item.question
-                ? {
-                    ...item,
-                    question: {
-                        ...item.question,
-                        custom_explanation: customExplanationText,
-                        custom_explanation_image_data_url: editingProblem.custom_explanation_image_data_url,
-                        custom_question_image_data_url: editingProblem.custom_question_image_data_url,
-                    },
-                }
-                : item));
-            setEditingProblem((prev) => prev
-                ? {
-                    ...prev,
-                    custom_explanation: customExplanationText,
-                    custom_explanation_image_data_url: prev.custom_explanation_image_data_url,
-                    custom_question_image_data_url: prev.custom_question_image_data_url,
-                }
-                : prev);
-        }
-        catch (saveError) {
-            console.error(saveError);
-            setError(saveError instanceof Error ? saveError.message : 'My Memo の保存に失敗しました。');
-        }
-        finally {
             setIsSavingMemo(false);
         }
+    };
+    const handleSaveProblem = async () => {
+        await handleSaveAll();
+    };
+    const handleSaveMemo = async () => {
+        await handleSaveAll();
     };
     const saveMemoText = async (text) => {
         if (!editingProblem)
@@ -281,8 +331,8 @@ export default function ReviewLaterPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 text,
-                explanation_image_data_url: editingProblem.custom_explanation_image_data_url ?? null,
-                question_image_data_url: editingProblem.custom_question_image_data_url ?? null,
+                explanation_image_data_urls: explanationSupplementImageUrls,
+                question_image_data_urls: questionSupplementImageUrls,
             }),
         });
         if (!response.ok) {
@@ -459,16 +509,34 @@ export default function ReviewLaterPage() {
         reader.onerror = () => reject(new Error('画像の読み込みに失敗しました。'));
         reader.readAsDataURL(file);
     });
-    const handleCustomImageUpload = async (kind, file) => {
-        if (!editingProblem || !file)
+    const handleCustomImageUpload = async (kind, files) => {
+        if (!editingProblem || !files || files.length === 0)
             return;
         try {
-            const dataUrl = await readFileAsDataUrl(file);
+            const dataUrls = await Promise.all(Array.from(files).map((file) => readFileAsDataUrl(file)));
             if (kind === 'question') {
-                setEditingProblem((prev) => (prev ? { ...prev, custom_question_image_data_url: dataUrl } : prev));
+                setEditingProblem((prev) => {
+                    if (!prev)
+                        return prev;
+                    const nextUrls = [...getCustomImageUrls(prev.custom_question_image_data_urls, prev.custom_question_image_data_url), ...dataUrls];
+                    return {
+                        ...prev,
+                        custom_question_image_data_urls: nextUrls,
+                        custom_question_image_data_url: nextUrls[0],
+                    };
+                });
             }
             else {
-                setEditingProblem((prev) => (prev ? { ...prev, custom_explanation_image_data_url: dataUrl } : prev));
+                setEditingProblem((prev) => {
+                    if (!prev)
+                        return prev;
+                    const nextUrls = [...getCustomImageUrls(prev.custom_explanation_image_data_urls, prev.custom_explanation_image_data_url), ...dataUrls];
+                    return {
+                        ...prev,
+                        custom_explanation_image_data_urls: nextUrls,
+                        custom_explanation_image_data_url: nextUrls[0],
+                    };
+                });
             }
         }
         catch (uploadError) {
@@ -517,6 +585,32 @@ export default function ReviewLaterPage() {
         catch (toggleError) {
             console.error(toggleError);
             setError(toggleError instanceof Error ? toggleError.message : '後で確認の更新に失敗しました。');
+        }
+    };
+    const handleBulkRegisterFirstMissed = async () => {
+        if (unregisteredFirstMissedProblems.length === 0 || isBulkRegisteringFirstMissed)
+            return;
+        try {
+            setIsBulkRegisteringFirstMissed(true);
+            setError('');
+            const responses = await Promise.all(unregisteredFirstMissedProblems.map((problem) => fetch(`${API_BASE_URL}/review-later`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ subject: problem.subject, problem_id: problem.id }),
+            })));
+            const failed = responses.find((response) => !response.ok);
+            if (failed) {
+                const payload = await failed.json().catch(() => null);
+                throw new Error(payload?.detail || '初回不正解問題の一括登録に失敗しました。');
+            }
+            await fetchItems();
+        }
+        catch (bulkError) {
+            console.error(bulkError);
+            setError(bulkError instanceof Error ? bulkError.message : '初回不正解問題の一括登録に失敗しました。');
+        }
+        finally {
+            setIsBulkRegisteringFirstMissed(false);
         }
     };
     const openIpadReview = (profile) => {
@@ -578,14 +672,37 @@ export default function ReviewLaterPage() {
                                                                     console.error(removeError);
                                                                     setError(removeError instanceof Error ? removeError.message : '登録解除に失敗しました。');
                                                                 }
-                                                            }, disabled: isRegisteringHistory, className: "px-4 py-2 rounded-md bg-white border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50", children: "\u767B\u9332\u89E3\u9664(\u5B9F\u7E3E\u672A\u8A08\u4E0A)" })] }))] })] }), similarTopics.length > 0 && (_jsxs("div", { className: "rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-900", children: ["AI\u62BD\u51FA\u30C8\u30D4\u30C3\u30AF: ", similarTopics.join(', ')] })), _jsxs("section", { className: "space-y-4", children: [_jsx("h3", { className: "text-lg font-semibold text-gray-800", children: "\u554F\u984C\u30C7\u30FC\u30BF" }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "\u554F\u984C\u6587" }), _jsx("textarea", { name: "question_text", value: editingProblem.question_text, onChange: handleProblemChange, rows: 5, className: "w-full rounded-md border border-gray-300 px-3 py-2 text-sm" })] }), _jsx("div", { className: "space-y-3", children: editingProblem.choices.map((choice, index) => (_jsxs("div", { className: "grid grid-cols-1 gap-2 md:grid-cols-[100px_minmax(0,1fr)]", children: [_jsx("input", { value: choice.label, onChange: (event) => handleChoiceChange(index, 'label', event.target.value), className: "rounded-md border border-gray-300 px-3 py-2 text-sm" }), _jsx("input", { value: choice.text, onChange: (event) => handleChoiceChange(index, 'text', event.target.value), className: "rounded-md border border-gray-300 px-3 py-2 text-sm" })] }, `${choice.label}-${index}`))) }), _jsxs("div", { className: "grid grid-cols-1 gap-4 md:grid-cols-2", children: [_jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "\u6B63\u89E3" }), _jsx("input", { name: "answer", value: editingProblem.answer, onChange: handleProblemChange, className: "w-full rounded-md border border-gray-300 px-3 py-2 text-sm" })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "\u30AB\u30C6\u30B4\u30EA" }), _jsx("input", { name: "category", value: editingProblem.category || '', onChange: handleProblemChange, className: "w-full rounded-md border border-gray-300 px-3 py-2 text-sm" })] })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "\u89E3\u8AAC" }), _jsx("textarea", { name: "explanation.text", value: editingProblem.explanation.text, onChange: handleProblemChange, rows: 6, className: "w-full rounded-md border border-gray-300 px-3 py-2 text-sm" })] }), _jsx("button", { type: "button", onClick: () => void handleSaveProblem(), disabled: isSavingProblem, className: "px-5 py-2 rounded-md bg-slate-800 text-white text-sm font-medium hover:bg-slate-700 disabled:bg-gray-300", children: isSavingProblem ? '保存中...' : '問題データを保存' })] }), _jsxs("section", { className: "space-y-4", children: [_jsx("h3", { className: "text-lg font-semibold text-gray-800", children: "My Memo" }), _jsx("textarea", { value: customExplanationText, onChange: (event) => setCustomExplanationText(event.target.value), rows: 5, className: "w-full rounded-md border border-gray-300 px-3 py-2 text-sm" }), _jsxs("div", { className: "grid grid-cols-1 gap-4 md:grid-cols-2", children: [_jsxs("div", { className: "space-y-2", children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u554F\u984C\u6587\u88DC\u8DB3\u753B\u50CF\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9" }), _jsx("input", { type: "file", accept: "image/*", onChange: (event) => void handleCustomImageUpload('question', event.target.files?.[0]), className: "block w-full text-sm text-gray-700 file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-slate-700 hover:file:bg-slate-200" }), editingProblem.custom_question_image_data_url && (_jsx("button", { type: "button", onClick: () => setEditingProblem((prev) => (prev ? { ...prev, custom_question_image_data_url: undefined } : prev)), className: "rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50", children: "\u554F\u984C\u6587\u88DC\u8DB3\u753B\u50CF\u3092\u524A\u9664" }))] }), _jsxs("div", { className: "space-y-2", children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u89E3\u8AAC\u88DC\u8DB3\u753B\u50CF\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9" }), _jsx("input", { type: "file", accept: "image/*", onChange: (event) => void handleCustomImageUpload('explanation', event.target.files?.[0]), className: "block w-full text-sm text-gray-700 file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-slate-700 hover:file:bg-slate-200" }), editingProblem.custom_explanation_image_data_url && (_jsx("button", { type: "button", onClick: () => setEditingProblem((prev) => (prev ? { ...prev, custom_explanation_image_data_url: undefined } : prev)), className: "rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50", children: "\u89E3\u8AAC\u88DC\u8DB3\u753B\u50CF\u3092\u524A\u9664" }))] })] }), _jsx("button", { type: "button", onClick: () => void handleSaveMemo(), disabled: isSavingMemo, className: "px-5 py-2 rounded-md bg-primary-new text-white text-sm font-medium hover:bg-blue-700 disabled:bg-gray-300", children: isSavingMemo ? '保存中...' : 'My Memoを保存' }), _jsxs("div", { className: "rounded-xl border border-sky-200 bg-sky-50 p-4 space-y-3", children: [_jsxs("div", { className: "flex flex-wrap items-center justify-between gap-2", children: [_jsx("h4", { className: "text-sm font-semibold text-sky-900", children: "\u53E3\u982D\u8A66\u554F\u30E2\u30FC\u30C9" }), !isOralVivaActive ? (_jsx("button", { type: "button", onClick: () => void startOralViva(), disabled: isOralVivaLoading, className: "px-3 py-1.5 rounded-md bg-sky-700 text-white text-xs font-medium hover:bg-sky-800 disabled:bg-gray-300", children: isOralVivaLoading ? '開始中...' : '口頭試問を開始' })) : (_jsxs("div", { className: "text-right", children: [_jsxs("p", { className: "text-xs font-semibold text-sky-900", children: ["\u30B9\u30C6\u30C3\u30D7: ", oralVivaStepLabels[oralVivaSteps[Math.min(oralVivaStepIndex, oralVivaSteps.length - 1)]], " (", Math.min(oralVivaStepIndex + 1, oralVivaSteps.length), "/", oralVivaSteps.length, ")"] }), _jsx("p", { className: "text-[11px] text-sky-700", children: "\u7D42\u4E86\u6761\u4EF6: 4\u30B9\u30C6\u30C3\u30D7\u5B8C\u4E86 or \u8981\u7D04\u3078\u30B9\u30AD\u30C3\u30D7" })] }))] }), isOralVivaActive && (_jsxs("div", { className: "space-y-3", children: [_jsx("div", { className: "grid grid-cols-1 md:grid-cols-3 gap-2", children: [
+                                                            }, disabled: isRegisteringHistory, className: "px-4 py-2 rounded-md bg-white border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50", children: "\u767B\u9332\u89E3\u9664(\u5B9F\u7E3E\u672A\u8A08\u4E0A)" })] }))] })] }), similarTopics.length > 0 && (_jsxs("div", { className: "rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-900", children: ["AI\u62BD\u51FA\u30C8\u30D4\u30C3\u30AF: ", similarTopics.join(', ')] })), _jsxs("section", { className: "space-y-4", children: [_jsx("h3", { className: "text-lg font-semibold text-gray-800", children: "\u554F\u984C\u30C7\u30FC\u30BF" }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "\u554F\u984C\u6587" }), _jsx("textarea", { name: "question_text", value: editingProblem.question_text, onChange: handleProblemChange, rows: 5, className: "w-full rounded-md border border-gray-300 px-3 py-2 text-sm" })] }), _jsx("div", { className: "space-y-3", children: editingProblem.choices.map((choice, index) => (_jsxs("div", { className: "grid grid-cols-1 gap-2 md:grid-cols-[100px_minmax(0,1fr)]", children: [_jsx("input", { value: choice.label, onChange: (event) => handleChoiceChange(index, 'label', event.target.value), className: "rounded-md border border-gray-300 px-3 py-2 text-sm" }), _jsx("input", { value: choice.text, onChange: (event) => handleChoiceChange(index, 'text', event.target.value), className: "rounded-md border border-gray-300 px-3 py-2 text-sm" })] }, `${choice.label}-${index}`))) }), _jsxs("div", { className: "grid grid-cols-1 gap-4 md:grid-cols-2", children: [_jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "\u6B63\u89E3" }), _jsx("input", { name: "answer", value: editingProblem.answer, onChange: handleProblemChange, className: "w-full rounded-md border border-gray-300 px-3 py-2 text-sm" })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "\u30AB\u30C6\u30B4\u30EA" }), _jsx("input", { name: "category", value: editingProblem.category || '', onChange: handleProblemChange, className: "w-full rounded-md border border-gray-300 px-3 py-2 text-sm" })] })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "\u89E3\u8AAC" }), _jsx("textarea", { name: "explanation.text", value: editingProblem.explanation.text, onChange: handleProblemChange, rows: 6, className: "w-full rounded-md border border-gray-300 px-3 py-2 text-sm" })] }), _jsx("button", { type: "button", onClick: () => void handleSaveProblem(), disabled: isSavingProblem || isSavingMemo, className: "px-5 py-2 rounded-md bg-slate-800 text-white text-sm font-medium hover:bg-slate-700 disabled:bg-gray-300", children: isSavingProblem || isSavingMemo ? '保存中...' : '問題データを保存' })] }), _jsxs("section", { className: "space-y-4", children: [_jsx("h3", { className: "text-lg font-semibold text-gray-800", children: "My Memo" }), _jsx("textarea", { value: customExplanationText, onChange: (event) => setCustomExplanationText(event.target.value), rows: 5, className: "w-full rounded-md border border-gray-300 px-3 py-2 text-sm" }), _jsxs("div", { className: "grid grid-cols-1 gap-4 md:grid-cols-2", children: [_jsxs("div", { className: "space-y-2", children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u554F\u984C\u6587\u88DC\u8DB3\u753B\u50CF\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9" }), _jsx("input", { type: "file", accept: "image/*", multiple: true, onChange: (event) => void handleCustomImageUpload('question', event.target.files), className: "block w-full text-sm text-gray-700 file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-slate-700 hover:file:bg-slate-200" }), questionSupplementImageUrls.length > 0 && (_jsx("div", { className: "space-y-2", children: questionSupplementImageUrls.map((url, index) => (_jsxs("div", { className: "flex items-center gap-2", children: [_jsxs("button", { type: "button", onClick: () => setEditingProblem((prev) => {
+                                                                            if (!prev)
+                                                                                return prev;
+                                                                            const nextUrls = getCustomImageUrls(prev.custom_question_image_data_urls, prev.custom_question_image_data_url)
+                                                                                .filter((_, currentIndex) => currentIndex !== index);
+                                                                            return {
+                                                                                ...prev,
+                                                                                custom_question_image_data_urls: nextUrls,
+                                                                                custom_question_image_data_url: nextUrls[0],
+                                                                            };
+                                                                        }), className: "rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50", children: ["\u554F\u984C\u6587\u88DC\u8DB3\u753B\u50CF", index + 1, "\u3092\u524A\u9664"] }), _jsxs("span", { className: "text-xs text-gray-500", children: ["\u753B\u50CF ", index + 1] })] }, `question-supplement-${index}`))) }))] }), _jsxs("div", { className: "space-y-2", children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u89E3\u8AAC\u88DC\u8DB3\u753B\u50CF\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9" }), _jsx("input", { type: "file", accept: "image/*", multiple: true, onChange: (event) => void handleCustomImageUpload('explanation', event.target.files), className: "block w-full text-sm text-gray-700 file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-slate-700 hover:file:bg-slate-200" }), explanationSupplementImageUrls.length > 0 && (_jsx("div", { className: "space-y-2", children: explanationSupplementImageUrls.map((url, index) => (_jsxs("div", { className: "flex items-center gap-2", children: [_jsxs("button", { type: "button", onClick: () => setEditingProblem((prev) => {
+                                                                            if (!prev)
+                                                                                return prev;
+                                                                            const nextUrls = getCustomImageUrls(prev.custom_explanation_image_data_urls, prev.custom_explanation_image_data_url)
+                                                                                .filter((_, currentIndex) => currentIndex !== index);
+                                                                            return {
+                                                                                ...prev,
+                                                                                custom_explanation_image_data_urls: nextUrls,
+                                                                                custom_explanation_image_data_url: nextUrls[0],
+                                                                            };
+                                                                        }), className: "rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50", children: ["\u89E3\u8AAC\u88DC\u8DB3\u753B\u50CF", index + 1, "\u3092\u524A\u9664"] }), _jsxs("span", { className: "text-xs text-gray-500", children: ["\u753B\u50CF ", index + 1] })] }, `explanation-supplement-${index}`))) }))] })] }), _jsx("button", { type: "button", onClick: () => void handleSaveMemo(), disabled: isSavingProblem || isSavingMemo, className: "px-5 py-2 rounded-md bg-primary-new text-white text-sm font-medium hover:bg-blue-700 disabled:bg-gray-300", children: isSavingProblem || isSavingMemo ? '保存中...' : 'My Memoを保存' }), _jsxs("div", { className: "rounded-xl border border-sky-200 bg-sky-50 p-4 space-y-3", children: [_jsxs("div", { className: "flex flex-wrap items-center justify-between gap-2", children: [_jsx("h4", { className: "text-sm font-semibold text-sky-900", children: "\u53E3\u982D\u8A66\u554F\u30E2\u30FC\u30C9" }), !isOralVivaActive ? (_jsx("button", { type: "button", onClick: () => void startOralViva(), disabled: isOralVivaLoading, className: "px-3 py-1.5 rounded-md bg-sky-700 text-white text-xs font-medium hover:bg-sky-800 disabled:bg-gray-300", children: isOralVivaLoading ? '開始中...' : '口頭試問を開始' })) : (_jsxs("div", { className: "text-right", children: [_jsxs("p", { className: "text-xs font-semibold text-sky-900", children: ["\u30B9\u30C6\u30C3\u30D7: ", oralVivaStepLabels[oralVivaSteps[Math.min(oralVivaStepIndex, oralVivaSteps.length - 1)]], " (", Math.min(oralVivaStepIndex + 1, oralVivaSteps.length), "/", oralVivaSteps.length, ")"] }), _jsx("p", { className: "text-[11px] text-sky-700", children: "\u7D42\u4E86\u6761\u4EF6: 4\u30B9\u30C6\u30C3\u30D7\u5B8C\u4E86 or \u8981\u7D04\u3078\u30B9\u30AD\u30C3\u30D7" })] }))] }), isOralVivaActive && (_jsxs("div", { className: "space-y-3", children: [_jsx("div", { className: "grid grid-cols-1 md:grid-cols-3 gap-2", children: [
                                                                 ['論理性', oralVivaScores.logicality],
                                                                 ['具体性', oralVivaScores.specificity],
                                                                 ['再現性', oralVivaScores.reproducibility],
-                                                            ].map(([label, value]) => (_jsxs("div", { className: "rounded-md border border-sky-200 bg-white px-2 py-2", children: [_jsxs("div", { className: "flex justify-between text-xs text-sky-900 mb-1", children: [_jsx("span", { children: label }), _jsx("span", { children: value })] }), _jsx("div", { className: "h-2 rounded bg-sky-100 overflow-hidden", children: _jsx("div", { className: "h-full bg-sky-500", style: { width: `${Math.max(0, Math.min(100, value))}%` } }) })] }, label))) }), _jsx("div", { className: "max-h-64 overflow-y-auto rounded-md border border-sky-200 bg-white p-2 space-y-2", children: oralVivaMessages.map((msg, idx) => (_jsxs("div", { className: `rounded-md px-2 py-1 text-sm ${msg.role === 'assistant' ? 'bg-sky-100 text-sky-900' : 'bg-gray-100 text-gray-800'}`, children: [_jsx("p", { className: "text-[11px] font-semibold", children: msg.role === 'assistant' ? 'AI面接官' : 'あなた' }), _jsx("p", { className: "whitespace-pre-wrap", children: msg.content })] }, `${msg.role}-${idx}`))) }), !oralVivaResult && (_jsxs("div", { className: "space-y-2", children: [_jsx("textarea", { value: oralVivaInput, onChange: (event) => setOralVivaInput(event.target.value), rows: 3, className: "w-full rounded-md border border-sky-300 px-3 py-2 text-sm bg-white", placeholder: "\u56DE\u7B54\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044" }), _jsxs("div", { className: "flex flex-wrap gap-2", children: [_jsx("button", { type: "button", onClick: () => void submitOralViva(), disabled: isOralVivaLoading || !oralVivaInput.trim(), className: "px-3 py-1.5 rounded-md bg-sky-700 text-white text-xs font-medium hover:bg-sky-800 disabled:bg-gray-300", children: isOralVivaLoading ? '送信中...' : '送信' }), _jsx("button", { type: "button", onClick: () => void skipToSummary(), disabled: isOralVivaLoading, className: "px-3 py-1.5 rounded-md border border-sky-300 bg-white text-sky-900 text-xs font-medium hover:bg-sky-100 disabled:bg-gray-100 disabled:text-gray-400", children: "\u8981\u7D04\u3078\u30B9\u30AD\u30C3\u30D7" }), _jsx("button", { type: "button", onClick: () => setIsOralVivaActive(false), disabled: isOralVivaLoading, className: "px-3 py-1.5 rounded-md border border-gray-300 bg-white text-gray-700 text-xs font-medium hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400", children: "\u53E3\u982D\u8A66\u554F\u3092\u9589\u3058\u308B" })] })] })), oralVivaResult && (_jsxs("div", { className: "rounded-md border border-sky-200 bg-white p-3 space-y-2", children: [_jsx("h5", { className: "text-sm font-semibold text-sky-900", children: "\u6700\u7D42\u30D5\u30A3\u30FC\u30C9\u30D0\u30C3\u30AF" }), _jsx("ul", { className: "list-disc pl-5 text-sm text-gray-700 space-y-1", children: oralVivaResult.improvementPoints.map((point, idx) => (_jsx("li", { children: point }, `${point}-${idx}`))) }), oralVivaResult.miniQuizQuestion && (_jsxs("p", { className: "text-sm text-gray-800 whitespace-pre-wrap", children: ["\u6B21\u56DE\u78BA\u8A8D\u30DF\u30CB\u554F\u984C: ", oralVivaResult.miniQuizQuestion] })), oralVivaResult.miniQuizAnswer && (_jsxs("p", { className: "text-sm text-gray-700 whitespace-pre-wrap", children: ["\u60F3\u5B9A\u89E3\u7B54: ", oralVivaResult.miniQuizAnswer] })), _jsx("p", { className: "text-xs text-gray-500", children: "\u6700\u7D42\u8981\u7D04\u306F My Memo \u306B\u81EA\u52D5\u8FFD\u8A18\u30FB\u4FDD\u5B58\u3055\u308C\u307E\u3059\u3002" })] }))] }))] }), editingProblem.custom_question_image_data_url && (_jsxs("div", { children: [_jsx("div", { className: "text-sm font-medium text-gray-700 mb-2", children: "\u554F\u984C\u6587\u88DC\u8DB3\u753B\u50CF" }), _jsx("img", { src: editingProblem.custom_question_image_data_url, alt: "Question supplement", className: "max-h-56 rounded-lg border border-gray-200 bg-gray-50" })] })), editingProblem.custom_explanation_image_data_url && (_jsxs("div", { children: [_jsx("div", { className: "text-sm font-medium text-gray-700 mb-2", children: "\u89E3\u8AAC\u88DC\u8DB3\u753B\u50CF" }), _jsx("img", { src: editingProblem.custom_explanation_image_data_url, alt: "Explanation supplement", className: "max-h-56 rounded-lg border border-gray-200 bg-gray-50" })] }))] })] })) })] })), _jsxs("div", { className: "bg-white rounded-xl shadow p-6 space-y-4", children: [_jsxs("div", { className: "flex flex-col gap-3 md:flex-row md:items-end md:justify-between", children: [_jsxs("div", { children: [_jsx("h3", { className: "text-xl font-semibold text-gray-800", children: "\u79D1\u76EE\u5225\u306E\u554F\u984C\u4E00\u89A7" }), _jsx("p", { className: "text-sm text-gray-500 mt-1", children: "\u3053\u3053\u3067\u306E\u5F8C\u3067\u78BA\u8A8D\u306E\u767B\u9332\u5207\u308A\u66FF\u3048\u306F\u3001\u5B9F\u7E3E\u3092\u8A18\u9332\u3057\u307E\u305B\u3093\u3002" })] }), _jsxs("div", { className: "flex flex-col gap-3 sm:flex-row", children: [_jsxs("label", { className: "text-sm text-gray-600", children: [_jsx("span", { className: "block mb-1", children: "\u79D1\u76EE" }), _jsx("select", { value: selectedSubjectName, onChange: (event) => setSelectedSubjectName(event.target.value), className: "rounded-md border border-gray-300 px-3 py-2 text-sm", children: subjectNames.map((subjectName) => (_jsx("option", { value: subjectName, children: subjectName }, subjectName))) })] }), _jsxs("label", { className: "text-sm text-gray-600", children: [_jsx("span", { className: "block mb-1", children: "\u4E26\u3073\u9806" }), _jsxs("select", { value: sortMode, onChange: (event) => setSortMode(event.target.value), className: "rounded-md border border-gray-300 px-3 py-2 text-sm", children: [_jsx("option", { value: "default", children: "\u554F\u984CID\u9806" }), _jsx("option", { value: "first_missed", children: "\u521D\u56DE\u4E0D\u6B63\u89E3\u3092\u4E0A\u4F4D" })] })] })] })] }), isLoadingSubjectProblems ? (_jsx(LoadingSpinner, {})) : selectedSubjectName === '' ? (_jsx("div", { className: "text-sm text-gray-500", children: "\u79D1\u76EE\u304C\u3042\u308A\u307E\u305B\u3093\u3002" })) : (_jsx("div", { className: "overflow-x-auto", children: _jsxs("table", { className: "min-w-full text-sm", children: [_jsx("thead", { children: _jsxs("tr", { className: "border-b text-left text-gray-500", children: [_jsx("th", { className: "px-3 py-2", children: "\u554F\u984CID" }), _jsx("th", { className: "px-3 py-2", children: "\u30AB\u30C6\u30B4\u30EA" }), _jsx("th", { className: "px-3 py-2", children: "\u554F\u984C\u6587" }), _jsx("th", { className: "px-3 py-2", children: "\u521D\u56DE\u4E0D\u6B63\u89E3" }), _jsx("th", { className: "px-3 py-2", children: "\u5F8C\u3067\u78BA\u8A8D" })] }) }), _jsx("tbody", { children: sortedSubjectProblems.map((problem) => {
+                                                            ].map(([label, value]) => (_jsxs("div", { className: "rounded-md border border-sky-200 bg-white px-2 py-2", children: [_jsxs("div", { className: "flex justify-between text-xs text-sky-900 mb-1", children: [_jsx("span", { children: label }), _jsx("span", { children: value })] }), _jsx("div", { className: "h-2 rounded bg-sky-100 overflow-hidden", children: _jsx("div", { className: "h-full bg-sky-500", style: { width: `${Math.max(0, Math.min(100, value))}%` } }) })] }, label))) }), _jsx("div", { className: "max-h-64 overflow-y-auto rounded-md border border-sky-200 bg-white p-2 space-y-2", children: oralVivaMessages.map((msg, idx) => (_jsxs("div", { className: `rounded-md px-2 py-1 text-sm ${msg.role === 'assistant' ? 'bg-sky-100 text-sky-900' : 'bg-gray-100 text-gray-800'}`, children: [_jsx("p", { className: "text-[11px] font-semibold", children: msg.role === 'assistant' ? 'AI面接官' : 'あなた' }), _jsx("p", { className: "whitespace-pre-wrap", children: msg.content })] }, `${msg.role}-${idx}`))) }), !oralVivaResult && (_jsxs("div", { className: "space-y-2", children: [_jsx("textarea", { value: oralVivaInput, onChange: (event) => setOralVivaInput(event.target.value), rows: 3, className: "w-full rounded-md border border-sky-300 px-3 py-2 text-sm bg-white", placeholder: "\u56DE\u7B54\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044" }), _jsxs("div", { className: "flex flex-wrap gap-2", children: [_jsx("button", { type: "button", onClick: () => void submitOralViva(), disabled: isOralVivaLoading || !oralVivaInput.trim(), className: "px-3 py-1.5 rounded-md bg-sky-700 text-white text-xs font-medium hover:bg-sky-800 disabled:bg-gray-300", children: isOralVivaLoading ? '送信中...' : '送信' }), _jsx("button", { type: "button", onClick: () => void skipToSummary(), disabled: isOralVivaLoading, className: "px-3 py-1.5 rounded-md border border-sky-300 bg-white text-sky-900 text-xs font-medium hover:bg-sky-100 disabled:bg-gray-100 disabled:text-gray-400", children: "\u8981\u7D04\u3078\u30B9\u30AD\u30C3\u30D7" }), _jsx("button", { type: "button", onClick: () => setIsOralVivaActive(false), disabled: isOralVivaLoading, className: "px-3 py-1.5 rounded-md border border-gray-300 bg-white text-gray-700 text-xs font-medium hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400", children: "\u53E3\u982D\u8A66\u554F\u3092\u9589\u3058\u308B" })] })] })), oralVivaResult && (_jsxs("div", { className: "rounded-md border border-sky-200 bg-white p-3 space-y-2", children: [_jsx("h5", { className: "text-sm font-semibold text-sky-900", children: "\u6700\u7D42\u30D5\u30A3\u30FC\u30C9\u30D0\u30C3\u30AF" }), _jsx("ul", { className: "list-disc pl-5 text-sm text-gray-700 space-y-1", children: oralVivaResult.improvementPoints.map((point, idx) => (_jsx("li", { children: point }, `${point}-${idx}`))) }), oralVivaResult.miniQuizQuestion && (_jsxs("p", { className: "text-sm text-gray-800 whitespace-pre-wrap", children: ["\u6B21\u56DE\u78BA\u8A8D\u30DF\u30CB\u554F\u984C: ", oralVivaResult.miniQuizQuestion] })), oralVivaResult.miniQuizAnswer && (_jsxs("p", { className: "text-sm text-gray-700 whitespace-pre-wrap", children: ["\u60F3\u5B9A\u89E3\u7B54: ", oralVivaResult.miniQuizAnswer] })), _jsx("p", { className: "text-xs text-gray-500", children: "\u6700\u7D42\u8981\u7D04\u306F My Memo \u306B\u81EA\u52D5\u8FFD\u8A18\u30FB\u4FDD\u5B58\u3055\u308C\u307E\u3059\u3002" })] }))] }))] }), questionSupplementImageUrls.length > 0 && (_jsxs("div", { children: [_jsx("div", { className: "text-sm font-medium text-gray-700 mb-2", children: "\u554F\u984C\u6587\u88DC\u8DB3\u753B\u50CF" }), _jsx("div", { className: "space-y-3", children: questionSupplementImageUrls.map((url, index) => (_jsx("img", { src: url, alt: `Question supplement ${index + 1}`, className: "max-h-56 rounded-lg border border-gray-200 bg-gray-50" }, `question-preview-${index}`))) })] })), explanationSupplementImageUrls.length > 0 && (_jsxs("div", { children: [_jsx("div", { className: "text-sm font-medium text-gray-700 mb-2", children: "\u89E3\u8AAC\u88DC\u8DB3\u753B\u50CF" }), _jsx("div", { className: "space-y-3", children: explanationSupplementImageUrls.map((url, index) => (_jsx("img", { src: url, alt: `Explanation supplement ${index + 1}`, className: "max-h-56 rounded-lg border border-gray-200 bg-gray-50" }, `explanation-preview-${index}`))) })] }))] })] })) })] })), _jsxs("div", { className: "bg-white rounded-xl shadow p-6 space-y-4", children: [_jsxs("div", { className: "flex flex-col gap-3 md:flex-row md:items-end md:justify-between", children: [_jsxs("div", { children: [_jsx("h3", { className: "text-xl font-semibold text-gray-800", children: "\u79D1\u76EE\u5225\u306E\u554F\u984C\u4E00\u89A7" }), _jsx("p", { className: "text-sm text-gray-500 mt-1", children: "\u3053\u3053\u3067\u306E\u5F8C\u3067\u78BA\u8A8D\u306E\u767B\u9332\u5207\u308A\u66FF\u3048\u306F\u3001\u5B9F\u7E3E\u3092\u8A18\u9332\u3057\u307E\u305B\u3093\u3002" })] }), _jsxs("div", { className: "flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end", children: [_jsxs("label", { className: "text-sm text-gray-600", children: [_jsx("span", { className: "block mb-1", children: "\u79D1\u76EE" }), _jsx("select", { value: selectedSubjectName, onChange: (event) => setSelectedSubjectName(event.target.value), className: "rounded-md border border-gray-300 px-3 py-2 text-sm", children: subjectNames.map((subjectName) => (_jsx("option", { value: subjectName, children: subjectName }, subjectName))) })] }), _jsxs("label", { className: "text-sm text-gray-600", children: [_jsx("span", { className: "block mb-1", children: "\u4E26\u3073\u9806" }), _jsxs("select", { value: sortMode, onChange: (event) => setSortMode(event.target.value), className: "rounded-md border border-gray-300 px-3 py-2 text-sm", children: [_jsx("option", { value: "default", children: "\u554F\u984CID\u9806" }), _jsx("option", { value: "first_missed", children: "\u521D\u56DE\u4E0D\u6B63\u89E3\u3092\u4E0A\u4F4D" })] })] }), _jsxs("label", { className: "text-sm text-gray-600", children: [_jsx("span", { className: "block mb-1", children: "\u4E0D\u6B63\u89E3\u65E5 From" }), _jsx("input", { type: "date", value: firstMissedDateFrom, onChange: (event) => setFirstMissedDateFrom(event.target.value), className: "rounded-md border border-gray-300 px-3 py-2 text-sm" })] }), _jsxs("label", { className: "text-sm text-gray-600", children: [_jsx("span", { className: "block mb-1", children: "\u4E0D\u6B63\u89E3\u65E5 To" }), _jsx("input", { type: "date", value: firstMissedDateTo, onChange: (event) => setFirstMissedDateTo(event.target.value), className: "rounded-md border border-gray-300 px-3 py-2 text-sm" })] }), _jsx("button", { type: "button", onClick: () => void handleBulkRegisterFirstMissed(), disabled: isBulkRegisteringFirstMissed || unregisteredFirstMissedProblems.length === 0, className: "rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:bg-gray-300", children: isBulkRegisteringFirstMissed
+                                            ? '一括登録中...'
+                                            : `表示中を一括で後で確認に登録${unregisteredFirstMissedProblems.length > 0 ? ` (${unregisteredFirstMissedProblems.length})` : ''}` })] })] }), isLoadingSubjectProblems ? (_jsx(LoadingSpinner, {})) : selectedSubjectName === '' ? (_jsx("div", { className: "text-sm text-gray-500", children: "\u79D1\u76EE\u304C\u3042\u308A\u307E\u305B\u3093\u3002" })) : (_jsx("div", { className: "overflow-x-auto", children: _jsxs("table", { className: "min-w-full text-sm", children: [_jsx("thead", { children: _jsxs("tr", { className: "border-b text-left text-gray-500", children: [_jsx("th", { className: "px-3 py-2", children: "\u554F\u984CID" }), _jsx("th", { className: "px-3 py-2", children: "\u30AB\u30C6\u30B4\u30EA" }), _jsx("th", { className: "px-3 py-2", children: "\u554F\u984C\u6587" }), _jsx("th", { className: "px-3 py-2", children: "\u521D\u56DE\u4E0D\u6B63\u89E3" }), _jsx("th", { className: "px-3 py-2", children: "\u521D\u56DE\u4E0D\u6B63\u89E3\u65E5" }), _jsx("th", { className: "px-3 py-2", children: "\u5F8C\u3067\u78BA\u8A8D" })] }) }), _jsx("tbody", { children: sortedSubjectProblems.map((problem) => {
                                         const key = `${problem.subject}::${problem.id}`;
                                         const isReviewLater = reviewLaterKeySet.has(key);
-                                        return (_jsxs("tr", { className: "border-b align-top", children: [_jsx("td", { className: "px-3 py-2 font-medium text-gray-800", children: problem.id }), _jsx("td", { className: "px-3 py-2 text-gray-600", children: problem.category || '-' }), _jsx("td", { className: "px-3 py-2 text-gray-700", children: _jsx("button", { type: "button", onClick: () => setSelectedKey(key), className: "text-left hover:text-primary-new", children: problem.question_text }) }), _jsx("td", { className: "px-3 py-2", children: firstMissedIds.has(problem.id) ? (_jsx("span", { className: "rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800", children: "\u5BFE\u8C61" })) : (_jsx("span", { className: "text-gray-400", children: "-" })) }), _jsx("td", { className: "px-3 py-2", children: _jsx("button", { type: "button", onClick: () => void handleToggleReviewLater(problem, !isReviewLater), className: `rounded-md px-3 py-1.5 text-xs font-medium ${isReviewLater
+                                        const firstMissedDate = firstMissedDateById[problem.id];
+                                        return (_jsxs("tr", { className: "border-b align-top", children: [_jsx("td", { className: "px-3 py-2 font-medium text-gray-800", children: problem.id }), _jsx("td", { className: "px-3 py-2 text-gray-600", children: problem.category || '-' }), _jsx("td", { className: "px-3 py-2 text-gray-700", children: _jsx("button", { type: "button", onClick: () => setSelectedKey(key), className: "text-left hover:text-primary-new", children: problem.question_text }) }), _jsx("td", { className: "px-3 py-2", children: firstMissedIds.has(problem.id) ? (_jsx("span", { className: "rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800", children: "\u5BFE\u8C61" })) : (_jsx("span", { className: "text-gray-400", children: "-" })) }), _jsx("td", { className: "px-3 py-2 text-gray-600", children: firstMissedDate ? firstMissedDate.slice(0, 10) : '-' }), _jsx("td", { className: "px-3 py-2", children: _jsx("button", { type: "button", onClick: () => void handleToggleReviewLater(problem, !isReviewLater), className: `rounded-md px-3 py-1.5 text-xs font-medium ${isReviewLater
                                                             ? 'bg-primary-new text-white hover:bg-blue-700'
                                                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`, children: isReviewLater ? '登録中' : '未登録' }) })] }, key));
                                     }) })] }) }))] })] }));

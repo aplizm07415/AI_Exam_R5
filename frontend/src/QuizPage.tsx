@@ -47,6 +47,8 @@ interface QuizQuestion {
   custom_explanation?: string;
   custom_explanation_image_data_url?: string | undefined;
   custom_question_image_data_url?: string | undefined;
+  custom_explanation_image_data_urls?: string[];
+  custom_question_image_data_urls?: string[];
 }
 
 interface Subject {
@@ -95,6 +97,17 @@ interface OralVivaResponse {
 }
 
 type IpadProfile = 'air' | 'mini';
+
+const getCustomImageUrls = (
+  urls: string[] | undefined,
+  legacyUrl: string | undefined,
+): string[] => {
+  const normalized = (urls ?? []).filter((url): url is string => typeof url === 'string' && url.trim().length > 0);
+  if (normalized.length > 0) {
+    return normalized;
+  }
+  return legacyUrl && legacyUrl.trim() ? [legacyUrl] : [];
+};
 
 function TimerProgressBar({
   durationMs,
@@ -202,6 +215,12 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   const prefetchedImageUrlsRef = useRef<Set<string>>(new Set());
   const speechRecognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const currentQuestion = questions[currentQuestionIndex];
+  const currentQuestionImageDataUrls = currentQuestion
+    ? getCustomImageUrls(currentQuestion.custom_question_image_data_urls, currentQuestion.custom_question_image_data_url)
+    : [];
+  const currentExplanationImageDataUrls = currentQuestion
+    ? getCustomImageUrls(currentQuestion.custom_explanation_image_data_urls, currentQuestion.custom_explanation_image_data_url)
+    : [];
 
   const openMemoModal = (type: 'scratchpad' | 'customExplanation') => {
     const content = type === 'scratchpad' ? scratchpadText : customExplanationText;
@@ -285,6 +304,8 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
         custom_explanation,
         custom_explanation_image_data_url,
         custom_question_image_data_url,
+        custom_explanation_image_data_urls,
+        custom_question_image_data_urls,
         ...payload
       } = editingProblem;
       
@@ -850,8 +871,8 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           text: textToSave,
-          explanation_image_data_url: currentQuestion.custom_explanation_image_data_url ?? null,
-          question_image_data_url: currentQuestion.custom_question_image_data_url ?? null,
+          explanation_image_data_urls: currentExplanationImageDataUrls,
+          question_image_data_urls: currentQuestionImageDataUrls,
         }),
       });
 
@@ -872,8 +893,10 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
           ? {
               ...q,
               custom_explanation: textToSave,
-              custom_explanation_image_data_url: currentQuestion.custom_explanation_image_data_url,
-              custom_question_image_data_url: currentQuestion.custom_question_image_data_url,
+              custom_explanation_image_data_urls: currentExplanationImageDataUrls,
+              custom_question_image_data_urls: currentQuestionImageDataUrls,
+              custom_explanation_image_data_url: currentExplanationImageDataUrls[0],
+              custom_question_image_data_url: currentQuestionImageDataUrls[0],
             }
           : q
       );
@@ -1256,7 +1279,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       if (!currentQuestion) return null;
   
       const hasQuestionImages = (currentQuestion.image_urls && currentQuestion.image_urls.length > 0)
-        || Boolean(currentQuestion.custom_question_image_data_url);
+        || currentQuestionImageDataUrls.length > 0;
   
       // レイアウトの決定ロジック
       let layoutType: 'image' | 'answered' | 'default' = 'default';
@@ -1271,19 +1294,20 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
           {(currentQuestion.image_urls || []).map((url: string, index: number) => (
             <img key={index} src={url} alt={`Question image ${index + 1}`} className="max-w-full w-full h-auto mx-auto rounded-lg shadow-md" />
           ))}
-          {currentQuestion.custom_question_image_data_url && (
+          {currentQuestionImageDataUrls.map((url, index) => (
             <button
+              key={`custom-question-${index}`}
               type="button"
-              onClick={() => setPreviewImageUrl(currentQuestion.custom_question_image_data_url ?? null)}
+              onClick={() => setPreviewImageUrl(url)}
               className="block w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50"
             >
               <img
-                src={currentQuestion.custom_question_image_data_url}
-                alt="My Memo question supplement"
+                src={url}
+                alt={`My Memo question supplement ${index + 1}`}
                 className="max-h-64 w-full object-contain"
               />
             </button>
-          )}
+          ))}
         </div>
       ) : null;
   
@@ -1304,20 +1328,25 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
           <div className="prose prose-sm md:prose-base max-w-none text-gray-700">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{feedback?.explanation?.text || ''}</ReactMarkdown>
           </div>
-          {currentQuestion.custom_explanation_image_data_url && (
+          {currentExplanationImageDataUrls.length > 0 && (
             <div className="mt-6">
               <h4 className="text-base md:text-lg font-semibold text-primary-new mb-2">My Memo 解説補足画像</h4>
-              <button
-                type="button"
-                onClick={() => setPreviewImageUrl(currentQuestion.custom_explanation_image_data_url ?? null)}
-                className="block w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50"
-              >
-                <img
-                  src={currentQuestion.custom_explanation_image_data_url}
-                  alt="My Memo handwrite"
-                  className="max-h-48 w-full object-contain"
-                />
-              </button>
+              <div className="space-y-3">
+                {currentExplanationImageDataUrls.map((url, index) => (
+                  <button
+                    key={`custom-explanation-${index}`}
+                    type="button"
+                    onClick={() => setPreviewImageUrl(url)}
+                    className="block w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50"
+                  >
+                    <img
+                      src={url}
+                      alt={`My Memo handwrite ${index + 1}`}
+                      className="max-h-48 w-full object-contain"
+                    />
+                  </button>
+                ))}
+              </div>
             </div>
           )}
           <div className="mt-6">

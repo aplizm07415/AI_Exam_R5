@@ -12,6 +12,13 @@ import { buildPlanSchedule } from './utils/planSchedule';
 const API_BASE_URL = "/api";
 const QUESTION_TIMER_MS = 2 * 60 * 1000;
 const FORCED_ANSWER_TIMER_MS = 80 * 1000;
+const getCustomImageUrls = (urls, legacyUrl) => {
+    const normalized = (urls ?? []).filter((url) => typeof url === 'string' && url.trim().length > 0);
+    if (normalized.length > 0) {
+        return normalized;
+    }
+    return legacyUrl && legacyUrl.trim() ? [legacyUrl] : [];
+};
 function TimerProgressBar({ durationMs, isActive, resetToken, onExpire, }) {
     const [remainingRatio, setRemainingRatio] = useState(1);
     const expireHandledRef = useRef(false);
@@ -86,6 +93,12 @@ export default function QuizPage({ subjects: allSubjects }) {
     const prefetchedImageUrlsRef = useRef(new Set());
     const speechRecognitionRef = useRef(null);
     const currentQuestion = questions[currentQuestionIndex];
+    const currentQuestionImageDataUrls = currentQuestion
+        ? getCustomImageUrls(currentQuestion.custom_question_image_data_urls, currentQuestion.custom_question_image_data_url)
+        : [];
+    const currentExplanationImageDataUrls = currentQuestion
+        ? getCustomImageUrls(currentQuestion.custom_explanation_image_data_urls, currentQuestion.custom_explanation_image_data_url)
+        : [];
     const openMemoModal = (type) => {
         const content = type === 'scratchpad' ? scratchpadText : customExplanationText;
         setEditingMemo({ type, content });
@@ -159,7 +172,7 @@ export default function QuizPage({ subjects: allSubjects }) {
         if (!editingProblem)
             return;
         try {
-            const { image_urls, explanation_image_urls, custom_explanation, custom_explanation_image_data_url, custom_question_image_data_url, ...payload } = editingProblem;
+            const { image_urls, explanation_image_urls, custom_explanation, custom_explanation_image_data_url, custom_question_image_data_url, custom_explanation_image_data_urls, custom_question_image_data_urls, ...payload } = editingProblem;
             const response = await fetch(`/api/subjects/${encodeURIComponent(editingProblem.subject)}/problems/${encodeURIComponent(editingProblem.id)}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -690,8 +703,8 @@ export default function QuizPage({ subjects: allSubjects }) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     text: textToSave,
-                    explanation_image_data_url: currentQuestion.custom_explanation_image_data_url ?? null,
-                    question_image_data_url: currentQuestion.custom_question_image_data_url ?? null,
+                    explanation_image_data_urls: currentExplanationImageDataUrls,
+                    question_image_data_urls: currentQuestionImageDataUrls,
                 }),
             });
             if (!response.ok) {
@@ -710,8 +723,10 @@ export default function QuizPage({ subjects: allSubjects }) {
                 ? {
                     ...q,
                     custom_explanation: textToSave,
-                    custom_explanation_image_data_url: currentQuestion.custom_explanation_image_data_url,
-                    custom_question_image_data_url: currentQuestion.custom_question_image_data_url,
+                    custom_explanation_image_data_urls: currentExplanationImageDataUrls,
+                    custom_question_image_data_urls: currentQuestionImageDataUrls,
+                    custom_explanation_image_data_url: currentExplanationImageDataUrls[0],
+                    custom_question_image_data_url: currentQuestionImageDataUrls[0],
                 }
                 : q);
             setQuestions(updatedQuestions);
@@ -1046,7 +1061,7 @@ export default function QuizPage({ subjects: allSubjects }) {
         if (!currentQuestion)
             return null;
         const hasQuestionImages = (currentQuestion.image_urls && currentQuestion.image_urls.length > 0)
-            || Boolean(currentQuestion.custom_question_image_data_url);
+            || currentQuestionImageDataUrls.length > 0;
         // レイアウトの決定ロジック
         let layoutType = 'default';
         if (hasQuestionImages) {
@@ -1055,8 +1070,8 @@ export default function QuizPage({ subjects: allSubjects }) {
         else if (isAnswered) {
             layoutType = 'answered';
         }
-        const imagesComponent = hasQuestionImages ? (_jsxs("div", { className: "space-y-4", children: [(currentQuestion.image_urls || []).map((url, index) => (_jsx("img", { src: url, alt: `Question image ${index + 1}`, className: "max-w-full w-full h-auto mx-auto rounded-lg shadow-md" }, index))), currentQuestion.custom_question_image_data_url && (_jsx("button", { type: "button", onClick: () => setPreviewImageUrl(currentQuestion.custom_question_image_data_url ?? null), className: "block w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50", children: _jsx("img", { src: currentQuestion.custom_question_image_data_url, alt: "My Memo question supplement", className: "max-h-64 w-full object-contain" }) }))] })) : null;
-        const explanationComponent = isAnswered ? (_jsxs("div", { className: "bg-white rounded-xl shadow p-6 md:p-8 fade-in", children: [_jsxs("div", { className: "flex items-center gap-3 mb-4", children: [feedback?.correct ? _jsx(CheckCircleIcon, { className: "w-8 h-8 text-green-600" }) : _jsx(XCircleIcon, { className: "w-8 h-8 text-red-600" }), _jsx("h3", { className: "text-xl md:text-2xl font-bold", children: feedback?.correct ? '正解！' : '不正解' })] }), _jsx("h4", { className: "text-base md:text-lg font-semibold text-primary-new mb-2", children: "\u89E3\u8AAC" }), (currentQuestion.explanation_image_urls && currentQuestion.explanation_image_urls.length > 0) && (_jsx("div", { className: "my-4 grid grid-cols-1 gap-4", children: currentQuestion.explanation_image_urls.map((url, index) => (_jsx("img", { src: url, alt: `Explanation image ${index + 1}`, className: "max-w-full h-auto mx-auto rounded-lg shadow-md" }, index))) })), _jsx("div", { className: "prose prose-sm md:prose-base max-w-none text-gray-700", children: _jsx(ReactMarkdown, { remarkPlugins: [remarkGfm], children: feedback?.explanation?.text || '' }) }), currentQuestion.custom_explanation_image_data_url && (_jsxs("div", { className: "mt-6", children: [_jsx("h4", { className: "text-base md:text-lg font-semibold text-primary-new mb-2", children: "My Memo \u89E3\u8AAC\u88DC\u8DB3\u753B\u50CF" }), _jsx("button", { type: "button", onClick: () => setPreviewImageUrl(currentQuestion.custom_explanation_image_data_url ?? null), className: "block w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50", children: _jsx("img", { src: currentQuestion.custom_explanation_image_data_url, alt: "My Memo handwrite", className: "max-h-48 w-full object-contain" }) })] })), _jsxs("div", { className: "mt-6", children: [_jsxs("div", { className: "flex justify-between items-center mb-2", children: [_jsx("h4", { className: "text-base md:text-lg font-semibold text-primary-new", children: "My Memo" }), _jsx("button", { onClick: () => openMemoModal('customExplanation'), className: "p-1 rounded-md hover:bg-gray-200 text-gray-500 hover:text-gray-700", title: "\u62E1\u5927\u8868\u793A", children: _jsx("svg", { xmlns: "http://www.w3.org/2000/svg", width: "1em", height: "1em", viewBox: "0 0 24 24", children: _jsx("path", { fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "2", d: "M3 8V4h4m10 0h4v4M3 16v4h4m14-4h-4v4" }) }) })] }), _jsx("textarea", { value: customExplanationText, onChange: (e) => setCustomExplanationText(e.target.value), className: "w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-new focus:border-primary-new", rows: 4 })] }), _jsxs("div", { className: "mt-6 rounded-xl border border-sky-200 bg-sky-50 p-4", children: [_jsxs("div", { className: "flex flex-wrap items-center justify-between gap-2", children: [_jsx("h4", { className: "text-base md:text-lg font-semibold text-sky-900", children: "\u53E3\u982D\u8A66\u554F\u30E2\u30FC\u30C9" }), !isOralVivaActive ? (_jsx("button", { type: "button", onClick: () => void startOralViva(), disabled: isOralVivaLoading, className: "px-4 py-2 rounded-md bg-sky-700 text-white text-sm font-medium hover:bg-sky-800 disabled:bg-gray-300", children: isOralVivaLoading ? '開始中...' : '口頭試問を開始' })) : (_jsxs("div", { className: "text-right", children: [_jsxs("div", { className: "text-xs font-semibold text-sky-800", children: ["\u30B9\u30C6\u30C3\u30D7: ", oralVivaStepLabels[oralVivaSteps[Math.min(oralVivaStepIndex, oralVivaSteps.length - 1)]], " (", Math.min(oralVivaStepIndex + 1, oralVivaSteps.length), "/", oralVivaSteps.length, ")"] }), _jsx("div", { className: "text-[11px] text-sky-700", children: "\u7D42\u4E86\u6761\u4EF6: 4\u30B9\u30C6\u30C3\u30D7\u5B8C\u4E86 or \u8981\u7D04\u3078\u30B9\u30AD\u30C3\u30D7" })] }))] }), isOralVivaActive && (_jsxs("div", { className: "mt-4 space-y-3", children: [_jsx("div", { className: "grid grid-cols-1 sm:grid-cols-3 gap-2", children: [
+        const imagesComponent = hasQuestionImages ? (_jsxs("div", { className: "space-y-4", children: [(currentQuestion.image_urls || []).map((url, index) => (_jsx("img", { src: url, alt: `Question image ${index + 1}`, className: "max-w-full w-full h-auto mx-auto rounded-lg shadow-md" }, index))), currentQuestionImageDataUrls.map((url, index) => (_jsx("button", { type: "button", onClick: () => setPreviewImageUrl(url), className: "block w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50", children: _jsx("img", { src: url, alt: `My Memo question supplement ${index + 1}`, className: "max-h-64 w-full object-contain" }) }, `custom-question-${index}`)))] })) : null;
+        const explanationComponent = isAnswered ? (_jsxs("div", { className: "bg-white rounded-xl shadow p-6 md:p-8 fade-in", children: [_jsxs("div", { className: "flex items-center gap-3 mb-4", children: [feedback?.correct ? _jsx(CheckCircleIcon, { className: "w-8 h-8 text-green-600" }) : _jsx(XCircleIcon, { className: "w-8 h-8 text-red-600" }), _jsx("h3", { className: "text-xl md:text-2xl font-bold", children: feedback?.correct ? '正解！' : '不正解' })] }), _jsx("h4", { className: "text-base md:text-lg font-semibold text-primary-new mb-2", children: "\u89E3\u8AAC" }), (currentQuestion.explanation_image_urls && currentQuestion.explanation_image_urls.length > 0) && (_jsx("div", { className: "my-4 grid grid-cols-1 gap-4", children: currentQuestion.explanation_image_urls.map((url, index) => (_jsx("img", { src: url, alt: `Explanation image ${index + 1}`, className: "max-w-full h-auto mx-auto rounded-lg shadow-md" }, index))) })), _jsx("div", { className: "prose prose-sm md:prose-base max-w-none text-gray-700", children: _jsx(ReactMarkdown, { remarkPlugins: [remarkGfm], children: feedback?.explanation?.text || '' }) }), currentExplanationImageDataUrls.length > 0 && (_jsxs("div", { className: "mt-6", children: [_jsx("h4", { className: "text-base md:text-lg font-semibold text-primary-new mb-2", children: "My Memo \u89E3\u8AAC\u88DC\u8DB3\u753B\u50CF" }), _jsx("div", { className: "space-y-3", children: currentExplanationImageDataUrls.map((url, index) => (_jsx("button", { type: "button", onClick: () => setPreviewImageUrl(url), className: "block w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50", children: _jsx("img", { src: url, alt: `My Memo handwrite ${index + 1}`, className: "max-h-48 w-full object-contain" }) }, `custom-explanation-${index}`))) })] })), _jsxs("div", { className: "mt-6", children: [_jsxs("div", { className: "flex justify-between items-center mb-2", children: [_jsx("h4", { className: "text-base md:text-lg font-semibold text-primary-new", children: "My Memo" }), _jsx("button", { onClick: () => openMemoModal('customExplanation'), className: "p-1 rounded-md hover:bg-gray-200 text-gray-500 hover:text-gray-700", title: "\u62E1\u5927\u8868\u793A", children: _jsx("svg", { xmlns: "http://www.w3.org/2000/svg", width: "1em", height: "1em", viewBox: "0 0 24 24", children: _jsx("path", { fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "2", d: "M3 8V4h4m10 0h4v4M3 16v4h4m14-4h-4v4" }) }) })] }), _jsx("textarea", { value: customExplanationText, onChange: (e) => setCustomExplanationText(e.target.value), className: "w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-new focus:border-primary-new", rows: 4 })] }), _jsxs("div", { className: "mt-6 rounded-xl border border-sky-200 bg-sky-50 p-4", children: [_jsxs("div", { className: "flex flex-wrap items-center justify-between gap-2", children: [_jsx("h4", { className: "text-base md:text-lg font-semibold text-sky-900", children: "\u53E3\u982D\u8A66\u554F\u30E2\u30FC\u30C9" }), !isOralVivaActive ? (_jsx("button", { type: "button", onClick: () => void startOralViva(), disabled: isOralVivaLoading, className: "px-4 py-2 rounded-md bg-sky-700 text-white text-sm font-medium hover:bg-sky-800 disabled:bg-gray-300", children: isOralVivaLoading ? '開始中...' : '口頭試問を開始' })) : (_jsxs("div", { className: "text-right", children: [_jsxs("div", { className: "text-xs font-semibold text-sky-800", children: ["\u30B9\u30C6\u30C3\u30D7: ", oralVivaStepLabels[oralVivaSteps[Math.min(oralVivaStepIndex, oralVivaSteps.length - 1)]], " (", Math.min(oralVivaStepIndex + 1, oralVivaSteps.length), "/", oralVivaSteps.length, ")"] }), _jsx("div", { className: "text-[11px] text-sky-700", children: "\u7D42\u4E86\u6761\u4EF6: 4\u30B9\u30C6\u30C3\u30D7\u5B8C\u4E86 or \u8981\u7D04\u3078\u30B9\u30AD\u30C3\u30D7" })] }))] }), isOralVivaActive && (_jsxs("div", { className: "mt-4 space-y-3", children: [_jsx("div", { className: "grid grid-cols-1 sm:grid-cols-3 gap-2", children: [
                                         ['論理性', oralVivaScores.logicality],
                                         ['具体性', oralVivaScores.specificity],
                                         ['再現性', oralVivaScores.reproducibility],

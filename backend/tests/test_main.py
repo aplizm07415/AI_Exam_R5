@@ -236,7 +236,9 @@ def test_start_quiz_includes_custom_explanation_image(client: TestClient):
     question_by_id = {q["id"]: q for q in data["quiz_set"]}
     assert question_by_id["q1"]["custom_explanation"] == "Saved memo"
     assert question_by_id["q1"]["custom_explanation_image_data_url"] == "data:image/png;base64,ZmFrZQ=="
+    assert question_by_id["q1"]["custom_explanation_image_data_urls"] == ["data:image/png;base64,ZmFrZQ=="]
     assert question_by_id["q1"]["custom_question_image_data_url"] is None
+    assert question_by_id["q1"]["custom_question_image_data_urls"] == []
 
 def test_start_quiz_unanswered_mode(client: TestClient):
     """unansweredモードでクイズを開始できることをテスト (q4は未回答)"""
@@ -317,8 +319,14 @@ def test_save_custom_explanation_uses_new_fields(client: TestClient):
         "/api/problems/q1/custom-explanation",
         json={
             "text": "updated memo",
-            "explanation_image_data_url": "data:image/png;base64,ZXhwbA==",
-            "question_image_data_url": "data:image/png;base64,cXVlc3Q=",
+            "explanation_image_data_urls": [
+                "data:image/png;base64,ZXhwbA==",
+                "data:image/png;base64,ZXhwbDI=",
+            ],
+            "question_image_data_urls": [
+                "data:image/png;base64,cXVlc3Q=",
+                "data:image/png;base64,cXVlc3Qy",
+            ],
         },
     )
 
@@ -327,6 +335,14 @@ def test_save_custom_explanation_uses_new_fields(client: TestClient):
     saved_payload = json.loads(upload_arg)
     assert saved_payload == {
         "text": "updated memo",
+        "explanation_image_data_urls": [
+            "data:image/png;base64,ZXhwbA==",
+            "data:image/png;base64,ZXhwbDI=",
+        ],
+        "question_image_data_urls": [
+            "data:image/png;base64,cXVlc3Q=",
+            "data:image/png;base64,cXVlc3Qy",
+        ],
         "explanation_image_data_url": "data:image/png;base64,ZXhwbA==",
         "question_image_data_url": "data:image/png;base64,cXVlc3Q=",
     }
@@ -341,6 +357,7 @@ def test_get_offline_study_package(client: TestClient):
     assert "q1" in question_ids
     question_by_id = {item["id"]: item for item in payload["subjects"][0]["questions"]}
     assert question_by_id["q1"]["custom_explanation"] == "Saved memo"
+    assert question_by_id["q1"]["custom_explanation_image_data_urls"] == ["data:image/png;base64,ZmFrZQ=="]
     assert payload["review_later"][0]["problem_id"] == "q2"
     assert "subject1.json" in payload["histories"]
     assert all(item["subject"] == "subject1.json" for item in payload["review_later"])
@@ -436,8 +453,11 @@ def test_sync_offline_study_package(client: TestClient):
                 {
                     "problem_id": "q1",
                     "text": "Offline memo",
-                    "explanation_image_data_url": "data:image/png;base64,b2Zm",
-                    "question_image_data_url": None,
+                    "explanation_image_data_urls": [
+                        "data:image/png;base64,b2Zm",
+                        "data:image/png;base64,b2ZmMg==",
+                    ],
+                    "question_image_data_urls": [],
                 }
             ],
             "review_later_upserts": [
@@ -482,6 +502,10 @@ def test_sync_offline_study_package(client: TestClient):
     assert updated_q1["explanation"]["text"] == "Updated explanation"
     assert updated_q1["category"] == "Updated"
     assert main._test_custom_explanations["q1"]["text"] == "Offline memo"
+    assert main._test_custom_explanations["q1"]["explanation_image_data_urls"] == [
+        "data:image/png;base64,b2Zm",
+        "data:image/png;base64,b2ZmMg==",
+    ]
     assert {item["subject"] for item in main._test_review_later_items} == {"subject1.json", "subject2.json"}
     subject1_items = [item for item in main._test_review_later_items if item["subject"] == "subject1.json"]
     subject2_items = [item for item in main._test_review_later_items if item["subject"] == "subject2.json"]
