@@ -25,6 +25,8 @@ RUN pip install --no-cache-dir -r backend/requirements.txt
 COPY backend ./backend
 # 試験問題のJSONファイルをコピー
 COPY exams ./exams
+# 二次試験特化用データセットをコピー
+COPY secondary_exam_dataset ./secondary_exam_dataset
 
 # ビルド済みのフロントエンドファイルをコピー
 COPY --from=frontend-build /app/frontend/dist ./frontend/dist

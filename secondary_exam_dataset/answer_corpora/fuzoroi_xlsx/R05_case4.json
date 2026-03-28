@@ -1,0 +1,1148 @@
+{
+  "source_path": "/Users/developer/★中小企業診断士_二次試験/2.ふぞろいメンバー再現答案_（２０２３）.xlsx",
+  "year_label": "R05",
+  "case_no": 4,
+  "sheet_name": "事例Ⅳ",
+  "source_pdf_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2023.pdf",
+  "source_pdf_blob_path": "second-pdf-mondai/case4_2023.pdf",
+  "headers": [
+    "メンバー",
+    "【事例Ⅳ】得点",
+    "【事例Ⅳ】第１問(設問１)①(a)優れていると考えられる財務指標の名称",
+    "【事例Ⅳ】第１問(設問１)①(b)優れていると考えられる財務指標の値",
+    "【事例Ⅳ】前項の単位",
+    "【事例Ⅳ】第１問(設問１)②(a)優れていると考えられる財務指標の名称",
+    "【事例Ⅳ】第1問(設問１)②(b)優れていると考えられる財務指標の値",
+    "【事例Ⅳ】前項の単位",
+    "【事例Ⅳ】第１問(設問１)③(a)課題を示すと考えられる財務指標の名称",
+    "【事例Ⅳ】第１問(設問１)③(b)課題を示すと考えられる財務指標の値",
+    "【事例Ⅳ】前項の単位",
+    "【事例Ⅳ】第１問(設問２)問題",
+    "【事例Ⅳ】第２問(設問１)(a)利益額",
+    "【事例Ⅳ】第２問(設問１)(b)計算過程",
+    "【事例Ⅳ】第２問(設問２)(a)利益額",
+    "【事例Ⅳ】第２問(設問２)(b)計算過程",
+    "【事例Ⅳ】第３問(設問１)(a)買取価格",
+    "【事例Ⅳ】第３問(設問１)(b)計算過程",
+    "【事例Ⅳ】第３問(設問２)(a)年間キャッシュフロー",
+    "【事例Ⅳ】第３問(設問２)(b)計算過程",
+    "【事例Ⅳ】第３問(設問２)(c)回収期間",
+    "【事例Ⅳ】第３問(設問３)(a)正味現在価値",
+    "【事例Ⅳ】第３問(設問３)(b)計算過程",
+    "【事例Ⅳ】第４問"
+  ],
+  "submission_count": 8,
+  "score_stats": {
+    "count": 8,
+    "min": 60,
+    "max": 74,
+    "median": 70.0,
+    "mean": 67.75
+  },
+  "submissions": [
+    {
+      "member": "たくま",
+      "total_score": 70,
+      "answers": [
+        {
+          "column_index": 2,
+          "header": "【事例Ⅳ】第１問(設問１)①(a)優れていると考えられる財務指標の名称",
+          "answer_text": "売上高総利益率",
+          "char_count": 7
+        },
+        {
+          "column_index": 3,
+          "header": "【事例Ⅳ】第１問(設問１)①(b)優れていると考えられる財務指標の値",
+          "answer_text": "59.59",
+          "char_count": 5
+        },
+        {
+          "column_index": 4,
+          "header": "【事例Ⅳ】前項の単位",
+          "answer_text": "％",
+          "char_count": 1
+        },
+        {
+          "column_index": 5,
+          "header": "【事例Ⅳ】第１問(設問１)②(a)優れていると考えられる財務指標の名称",
+          "answer_text": "棚卸資産回転率",
+          "char_count": 7
+        },
+        {
+          "column_index": 6,
+          "header": "【事例Ⅳ】第1問(設問１)②(b)優れていると考えられる財務指標の値",
+          "answer_text": "33.409999999999997",
+          "char_count": 18
+        },
+        {
+          "column_index": 7,
+          "header": "【事例Ⅳ】前項の単位",
+          "answer_text": "回",
+          "char_count": 1
+        },
+        {
+          "column_index": 8,
+          "header": "【事例Ⅳ】第１問(設問１)③(a)課題を示すと考えられる財務指標の名称",
+          "answer_text": "１人当たり営業利益率",
+          "char_count": 10
+        },
+        {
+          "column_index": 9,
+          "header": "【事例Ⅳ】第１問(設問１)③(b)課題を示すと考えられる財務指標の値",
+          "answer_text": "457.64",
+          "char_count": 6
+        },
+        {
+          "column_index": 10,
+          "header": "【事例Ⅳ】前項の単位",
+          "answer_text": "万円/人",
+          "char_count": 4
+        },
+        {
+          "column_index": 11,
+          "header": "【事例Ⅳ】第１問(設問２)問題",
+          "answer_text": "売上高は同業他社と同等だが人件費や広告宣伝費、外注費が高いことにより労働生産性が高く、設備投資による減価償却費も高いため、1人当たりの収益性が劣っている。",
+          "char_count": 77
+        },
+        {
+          "column_index": 12,
+          "header": "【事例Ⅳ】第２問(設問１)(a)利益額",
+          "answer_text": "2840000",
+          "char_count": 7
+        },
+        {
+          "column_index": 13,
+          "header": "【事例Ⅳ】第２問(設問１)(b)計算過程",
+          "answer_text": "A、Bの限界利益率を求める\nA：7800-1600-2400＝3800、B：10000-800-4800＝4400\nそれぞれの時間当たり限界利益率を求める\nA：3800/2＝1900、B：4400/4＝1100\n以上よりAのみを販売する3800＊3600/2-4000000＝2840000",
+          "char_count": 145
+        },
+        {
+          "column_index": 14,
+          "header": "【事例Ⅳ】第２問(設問２)(a)利益額",
+          "answer_text": "空欄",
+          "char_count": 2
+        },
+        {
+          "column_index": 15,
+          "header": "【事例Ⅳ】第２問(設問２)(b)計算過程",
+          "answer_text": "ｘ+ｙ＝6000、Ａだけ場合6000/4＝1500個、Ｂだけの場合6000/2＝3000個の販売が可能\n労働時間の制限からＡは最大1500個、Ｂは最大900個の販売が可能",
+          "char_count": 85
+        },
+        {
+          "column_index": 16,
+          "header": "【事例Ⅳ】第３問(設問１)(a)買取価格",
+          "answer_text": "412500",
+          "char_count": 6
+        },
+        {
+          "column_index": 17,
+          "header": "【事例Ⅳ】第３問(設問１)(b)計算過程",
+          "answer_text": "買取価格をｘとするとｘ*0.02＝6000+7500*0.3、ｘ＝412500",
+          "char_count": 39
+        },
+        {
+          "column_index": 18,
+          "header": "【事例Ⅳ】第３問(設問２)(a)年間キャッシュフロー",
+          "answer_text": "9685850",
+          "char_count": 7
+        },
+        {
+          "column_index": 19,
+          "header": "【事例Ⅳ】第３問(設問２)(b)計算過程",
+          "answer_text": "（600000*20-10000-4500-4320000）*（1-0.3）＋4320000＝9685850",
+          "char_count": 54
+        },
+        {
+          "column_index": 20,
+          "header": "【事例Ⅳ】第３問(設問２)(c)回収期間",
+          "answer_text": "7.43",
+          "char_count": 4
+        },
+        {
+          "column_index": 21,
+          "header": "【事例Ⅳ】第３問(設問３)(a)正味現在価値",
+          "answer_text": "空欄",
+          "char_count": 2
+        },
+        {
+          "column_index": 22,
+          "header": "【事例Ⅳ】第３問(設問３)(b)計算過程",
+          "answer_text": "キャッシュフローはそれぞれ\n2－6年目9685850円、7－11年目1500000円、12－16年目\t1500000円なので\n9685850*4.2124＋1500000*4.2124*0.7473＋1500000*4.2124*0.7475*0.7475",
+          "char_count": 128
+        },
+        {
+          "column_index": 23,
+          "header": "【事例Ⅳ】第４問",
+          "answer_text": "リスクは①海外市場向けの販売で為替が変動する、②ノウハウ不足により良質な車の買取が出来ず売り上げが伸びない。対応策は①ドルのプットオプションを購入する、②買取基準を設定し良質な車を買い取る。",
+          "char_count": 95
+        }
+      ]
+    },
+    {
+      "member": "たくろう",
+      "total_score": 70,
+      "answers": [
+        {
+          "column_index": 2,
+          "header": "【事例Ⅳ】第１問(設問１)①(a)優れていると考えられる財務指標の名称",
+          "answer_text": "売上高営業利益率",
+          "char_count": 8
+        },
+        {
+          "column_index": 3,
+          "header": "【事例Ⅳ】第１問(設問１)①(b)優れていると考えられる財務指標の値",
+          "answer_text": "23.95",
+          "char_count": 5
+        },
+        {
+          "column_index": 4,
+          "header": "【事例Ⅳ】前項の単位",
+          "answer_text": "％",
+          "char_count": 1
+        },
+        {
+          "column_index": 5,
+          "header": "【事例Ⅳ】第１問(設問１)②(a)優れていると考えられる財務指標の名称",
+          "answer_text": "固定長期適合率",
+          "char_count": 7
+        },
+        {
+          "column_index": 6,
+          "header": "【事例Ⅳ】第1問(設問１)②(b)優れていると考えられる財務指標の値",
+          "answer_text": "55.1",
+          "char_count": 4
+        },
+        {
+          "column_index": 7,
+          "header": "【事例Ⅳ】前項の単位",
+          "answer_text": "％",
+          "char_count": 1
+        },
+        {
+          "column_index": 8,
+          "header": "【事例Ⅳ】第１問(設問１)③(a)課題を示すと考えられる財務指標の名称",
+          "answer_text": "有形固定資産回転率",
+          "char_count": 9
+        },
+        {
+          "column_index": 9,
+          "header": "【事例Ⅳ】第１問(設問１)③(b)課題を示すと考えられる財務指標の値",
+          "answer_text": "6.12",
+          "char_count": 4
+        },
+        {
+          "column_index": 10,
+          "header": "【事例Ⅳ】前項の単位",
+          "answer_text": "回",
+          "char_count": 1
+        },
+        {
+          "column_index": 11,
+          "header": "【事例Ⅳ】第１問(設問２)問題",
+          "answer_text": "再現不可",
+          "char_count": 4
+        },
+        {
+          "column_index": 12,
+          "header": "【事例Ⅳ】第２問(設問１)(a)利益額",
+          "answer_text": "2840000",
+          "char_count": 7
+        },
+        {
+          "column_index": 13,
+          "header": "【事例Ⅳ】第２問(設問１)(b)計算過程",
+          "answer_text": "概略こんな感じです⇒１時間単位の限界利益を算出し、AとBを比較。Aが高いので、Aのみ作成",
+          "char_count": 44
+        },
+        {
+          "column_index": 14,
+          "header": "【事例Ⅳ】第２問(設問２)(a)利益額",
+          "answer_text": "2200000",
+          "char_count": 7
+        },
+        {
+          "column_index": 15,
+          "header": "【事例Ⅳ】第２問(設問２)(b)計算過程",
+          "answer_text": "Aの生産量をa、Bの生産量をbとして、アルミの制約と時間の制約の方程式を２つ作成\n4kg×a+2kg×b＝60002時間×a+4時間×b＝3600これを解き、a、bを算出",
+          "char_count": 85
+        },
+        {
+          "column_index": 16,
+          "header": "【事例Ⅳ】第３問(設問１)(a)買取価格",
+          "answer_text": "675000",
+          "char_count": 6
+        },
+        {
+          "column_index": 17,
+          "header": "【事例Ⅳ】第３問(設問１)(b)計算過程",
+          "answer_text": "再現不可",
+          "char_count": 4
+        },
+        {
+          "column_index": 18,
+          "header": "【事例Ⅳ】第３問(設問２)(a)年間キャッシュフロー",
+          "answer_text": "2493000",
+          "char_count": 7
+        },
+        {
+          "column_index": 19,
+          "header": "【事例Ⅳ】第３問(設問２)(b)計算過程",
+          "answer_text": "再現不可：後から振り返ると月間で算出したような気がします。文章で、（収益-費用）×（1-税率）+非資金支出と書いておきました",
+          "char_count": 62
+        },
+        {
+          "column_index": 20,
+          "header": "【事例Ⅳ】第３問(設問２)(c)回収期間",
+          "answer_text": "再現不可",
+          "char_count": 4
+        },
+        {
+          "column_index": 21,
+          "header": "【事例Ⅳ】第３問(設問３)(a)正味現在価値",
+          "answer_text": "再現不可",
+          "char_count": 4
+        },
+        {
+          "column_index": 22,
+          "header": "【事例Ⅳ】第３問(設問３)(b)計算過程",
+          "answer_text": "再現不可",
+          "char_count": 4
+        },
+        {
+          "column_index": 23,
+          "header": "【事例Ⅳ】第４問",
+          "answer_text": "為替リスクと貸倒リスク。為替予約やプットオプションでヘッジ。保険加入や取引先の与信管理の強化",
+          "char_count": 46
+        }
+      ]
+    },
+    {
+      "member": "あきか",
+      "total_score": 60,
+      "answers": [
+        {
+          "column_index": 2,
+          "header": "【事例Ⅳ】第１問(設問１)①(a)優れていると考えられる財務指標の名称",
+          "answer_text": "売上高総利益率",
+          "char_count": 7
+        },
+        {
+          "column_index": 3,
+          "header": "【事例Ⅳ】第１問(設問１)①(b)優れていると考えられる財務指標の値",
+          "answer_text": "59.59",
+          "char_count": 5
+        },
+        {
+          "column_index": 4,
+          "header": "【事例Ⅳ】前項の単位",
+          "answer_text": "％",
+          "char_count": 1
+        },
+        {
+          "column_index": 5,
+          "header": "【事例Ⅳ】第１問(設問１)②(a)優れていると考えられる財務指標の名称",
+          "answer_text": "棚卸資産回転率",
+          "char_count": 7
+        },
+        {
+          "column_index": 6,
+          "header": "【事例Ⅳ】第1問(設問１)②(b)優れていると考えられる財務指標の値",
+          "answer_text": "33.409999999999997",
+          "char_count": 18
+        },
+        {
+          "column_index": 7,
+          "header": "【事例Ⅳ】前項の単位",
+          "answer_text": "回",
+          "char_count": 1
+        },
+        {
+          "column_index": 8,
+          "header": "【事例Ⅳ】第１問(設問１)③(a)課題を示すと考えられる財務指標の名称",
+          "answer_text": "有形固定資産回転率",
+          "char_count": 9
+        },
+        {
+          "column_index": 9,
+          "header": "【事例Ⅳ】第１問(設問１)③(b)課題を示すと考えられる財務指標の値",
+          "answer_text": "6.12",
+          "char_count": 4
+        },
+        {
+          "column_index": 10,
+          "header": "【事例Ⅳ】前項の単位",
+          "answer_text": "回",
+          "char_count": 1
+        },
+        {
+          "column_index": 11,
+          "header": "【事例Ⅳ】第１問(設問２)問題",
+          "answer_text": "明らかに劣る点は、有形固定資産回転率が低く設備効率が低い点である。売上高がほぼ同程度であるのに対し、有形固定資産の金額はB社が約2倍多く、売上に寄与していない。",
+          "char_count": 80
+        },
+        {
+          "column_index": 12,
+          "header": "【事例Ⅳ】第２問(設問１)(a)利益額",
+          "answer_text": "2840000",
+          "char_count": 7
+        },
+        {
+          "column_index": 13,
+          "header": "【事例Ⅳ】第２問(設問１)(b)計算過程",
+          "answer_text": "3,600時間が上限の時、Aは最大1800個、Bは最大900個生産可能。\nAを1,800個作ると、1個あたり変動利益3,800×1,800−固定費4,000,000＝2,840,000",
+          "char_count": 92
+        },
+        {
+          "column_index": 14,
+          "header": "【事例Ⅳ】第２問(設問２)(a)利益額",
+          "answer_text": "1700000",
+          "char_count": 7
+        },
+        {
+          "column_index": 15,
+          "header": "【事例Ⅳ】第２問(設問２)(b)計算過程",
+          "answer_text": "アルミニウム6,000kg上限の時Aは最大1,500個、Bは最大3,000個生産可能。\n設問1と合わせると、Aは最大1,500個、Bは最大900個生産可能。\nA、Bの生産量をそれぞれx、yとすると\n4x＋2y＝6,000、2x＋4y＝3,600\n上記よりAを1500個生産すると3,800×1,500−4,000,000＝1,700,000",
+          "char_count": 170
+        },
+        {
+          "column_index": 16,
+          "header": "【事例Ⅳ】第３問(設問１)(a)買取価格",
+          "answer_text": "20250000",
+          "char_count": 8
+        },
+        {
+          "column_index": 17,
+          "header": "【事例Ⅳ】第３問(設問１)(b)計算過程",
+          "answer_text": "自社で点検すると、30台×6000＋30台×5250＋30台×2250＝405,000\n1台x円で購入し、30台委託すると0.6xとなるので\n0.6x＝405,000よりx＝67500030台分だと20,250,000",
+          "char_count": 109
+        },
+        {
+          "column_index": 18,
+          "header": "【事例Ⅳ】第３問(設問２)(a)年間キャッシュフロー",
+          "answer_text": "再現不可",
+          "char_count": 4
+        },
+        {
+          "column_index": 19,
+          "header": "【事例Ⅳ】第３問(設問２)(b)計算過程",
+          "answer_text": "減価償却費は（7200万円−720万円）÷15年＝432万年／年\n20台増加すると追加の点検費用は14500円×20台＝290000",
+          "char_count": 66
+        },
+        {
+          "column_index": 20,
+          "header": "【事例Ⅳ】第３問(設問２)(c)回収期間",
+          "answer_text": "再現不可",
+          "char_count": 4
+        },
+        {
+          "column_index": 21,
+          "header": "【事例Ⅳ】第３問(設問３)(a)正味現在価値",
+          "answer_text": "空欄",
+          "char_count": 2
+        },
+        {
+          "column_index": 22,
+          "header": "【事例Ⅳ】第３問(設問３)(b)計算過程",
+          "answer_text": "空欄",
+          "char_count": 2
+        },
+        {
+          "column_index": 23,
+          "header": "【事例Ⅳ】第４問",
+          "answer_text": "リスクは①海外市場中心のため為替リスク発生②当該事業のノウハウ不足により不採算化・赤字の恐れがある。対応策は①為替予約やオプション取引の活用②海外進出に詳しい人材の採用や社内教育によりリスクを低減する。",
+          "char_count": 101
+        }
+      ]
+    },
+    {
+      "member": "はやと",
+      "total_score": 61,
+      "answers": [
+        {
+          "column_index": 2,
+          "header": "【事例Ⅳ】第１問(設問１)①(a)優れていると考えられる財務指標の名称",
+          "answer_text": "売上高総利益率",
+          "char_count": 7
+        },
+        {
+          "column_index": 3,
+          "header": "【事例Ⅳ】第１問(設問１)①(b)優れていると考えられる財務指標の値",
+          "answer_text": "59.59",
+          "char_count": 5
+        },
+        {
+          "column_index": 4,
+          "header": "【事例Ⅳ】前項の単位",
+          "answer_text": "％",
+          "char_count": 1
+        },
+        {
+          "column_index": 5,
+          "header": "【事例Ⅳ】第１問(設問１)②(a)優れていると考えられる財務指標の名称",
+          "answer_text": "流動比率",
+          "char_count": 4
+        },
+        {
+          "column_index": 6,
+          "header": "【事例Ⅳ】第1問(設問１)②(b)優れていると考えられる財務指標の値",
+          "answer_text": "368.82",
+          "char_count": 6
+        },
+        {
+          "column_index": 7,
+          "header": "【事例Ⅳ】前項の単位",
+          "answer_text": "％",
+          "char_count": 1
+        },
+        {
+          "column_index": 8,
+          "header": "【事例Ⅳ】第１問(設問１)③(a)課題を示すと考えられる財務指標の名称",
+          "answer_text": "従業員一人当たりの売上高",
+          "char_count": 12
+        },
+        {
+          "column_index": 9,
+          "header": "【事例Ⅳ】第１問(設問１)③(b)課題を示すと考えられる財務指標の値",
+          "answer_text": "1952.17",
+          "char_count": 7
+        },
+        {
+          "column_index": 10,
+          "header": "【事例Ⅳ】前項の単位",
+          "answer_text": "万円",
+          "char_count": 2
+        },
+        {
+          "column_index": 11,
+          "header": "【事例Ⅳ】第１問(設問２)問題",
+          "answer_text": "従業員一人当たりの売上高が低く生産性が低い。要因は事業多角化により管理部門が重複している点と中古車販売事業のノウハウが不足しており期待している売上が出ていない。",
+          "char_count": 80
+        },
+        {
+          "column_index": 12,
+          "header": "【事例Ⅳ】第２問(設問１)(a)利益額",
+          "answer_text": "2840000",
+          "char_count": 7
+        },
+        {
+          "column_index": 13,
+          "header": "【事例Ⅳ】第２問(設問１)(b)計算過程",
+          "answer_text": "製品A：7800-(4kg×400)-(2h×1200)=3800/2h=1900円/h\n製品B：10,000-(2kg×400)-(4h×1200)=4400/4h=1100円/h\n\n利益を最大にするセールスミックス：1900円/h×3600h＝6,840,000\n\n利益額：6,840,000-4,000,000=2,840,000",
+          "char_count": 168
+        },
+        {
+          "column_index": 14,
+          "header": "【事例Ⅳ】第２問(設問２)(a)利益額",
+          "answer_text": "空欄",
+          "char_count": 2
+        },
+        {
+          "column_index": 15,
+          "header": "【事例Ⅳ】第２問(設問２)(b)計算過程",
+          "answer_text": "4x+2y=6000",
+          "char_count": 10
+        },
+        {
+          "column_index": 16,
+          "header": "【事例Ⅳ】第３問(設問１)(a)買取価格",
+          "answer_text": "675000",
+          "char_count": 6
+        },
+        {
+          "column_index": 17,
+          "header": "【事例Ⅳ】第３問(設問１)(b)計算過程",
+          "answer_text": "X×２％≦1.35\nX≦67.5",
+          "char_count": 16
+        },
+        {
+          "column_index": 18,
+          "header": "【事例Ⅳ】第３問(設問２)(a)年間キャッシュフロー",
+          "answer_text": "空欄",
+          "char_count": 2
+        },
+        {
+          "column_index": 19,
+          "header": "【事例Ⅳ】第３問(設問２)(b)計算過程",
+          "answer_text": "減価償却費：7200万円×０.９÷１５＝４３２万円\n２〜５年目CF：",
+          "char_count": 34
+        },
+        {
+          "column_index": 20,
+          "header": "【事例Ⅳ】第３問(設問２)(c)回収期間",
+          "answer_text": "空欄",
+          "char_count": 2
+        },
+        {
+          "column_index": 21,
+          "header": "【事例Ⅳ】第３問(設問３)(a)正味現在価値",
+          "answer_text": "空欄",
+          "char_count": 2
+        },
+        {
+          "column_index": 22,
+          "header": "【事例Ⅳ】第３問(設問３)(b)計算過程",
+          "answer_text": "空欄",
+          "char_count": 2
+        },
+        {
+          "column_index": 23,
+          "header": "【事例Ⅳ】第４問",
+          "answer_text": "①為替変動リスクが考えられる。対策としてはオプション取引や為替予約を活用し変動リスクを回避する。②カントリーリスクが考えられる。政治状態の悪化により代金回収が不可となる。信用取引や保険を活用する。",
+          "char_count": 98
+        }
+      ]
+    },
+    {
+      "member": "しゅうと",
+      "total_score": 72,
+      "answers": [
+        {
+          "column_index": 2,
+          "header": "【事例Ⅳ】第１問(設問１)①(a)優れていると考えられる財務指標の名称",
+          "answer_text": "売上高総利益率",
+          "char_count": 7
+        },
+        {
+          "column_index": 3,
+          "header": "【事例Ⅳ】第１問(設問１)①(b)優れていると考えられる財務指標の値",
+          "answer_text": "59.58",
+          "char_count": 5
+        },
+        {
+          "column_index": 4,
+          "header": "【事例Ⅳ】前項の単位",
+          "answer_text": "%",
+          "char_count": 1
+        },
+        {
+          "column_index": 5,
+          "header": "【事例Ⅳ】第１問(設問１)②(a)優れていると考えられる財務指標の名称",
+          "answer_text": "流動比率",
+          "char_count": 4
+        },
+        {
+          "column_index": 6,
+          "header": "【事例Ⅳ】第1問(設問１)②(b)優れていると考えられる財務指標の値",
+          "answer_text": "368.82",
+          "char_count": 6
+        },
+        {
+          "column_index": 7,
+          "header": "【事例Ⅳ】前項の単位",
+          "answer_text": "%",
+          "char_count": 1
+        },
+        {
+          "column_index": 8,
+          "header": "【事例Ⅳ】第１問(設問１)③(a)課題を示すと考えられる財務指標の名称",
+          "answer_text": "有形固定資産回転率",
+          "char_count": 9
+        },
+        {
+          "column_index": 9,
+          "header": "【事例Ⅳ】第１問(設問１)③(b)課題を示すと考えられる財務指標の値",
+          "answer_text": "6.12",
+          "char_count": 4
+        },
+        {
+          "column_index": 10,
+          "header": "【事例Ⅳ】前項の単位",
+          "answer_text": "回",
+          "char_count": 1
+        },
+        {
+          "column_index": 11,
+          "header": "【事例Ⅳ】第１問(設問２)問題",
+          "answer_text": "回",
+          "char_count": 1
+        },
+        {
+          "column_index": 12,
+          "header": "【事例Ⅳ】第２問(設問１)(a)利益額",
+          "answer_text": "28400000円",
+          "char_count": 9
+        },
+        {
+          "column_index": 13,
+          "header": "【事例Ⅳ】第２問(設問１)(b)計算過程",
+          "answer_text": "再現不可",
+          "char_count": 4
+        },
+        {
+          "column_index": 14,
+          "header": "【事例Ⅳ】第２問(設問２)(a)利益額",
+          "answer_text": "22000000円",
+          "char_count": 9
+        },
+        {
+          "column_index": 15,
+          "header": "【事例Ⅳ】第２問(設問２)(b)計算過程",
+          "answer_text": "再現不可",
+          "char_count": 4
+        },
+        {
+          "column_index": 16,
+          "header": "【事例Ⅳ】第３問(設問１)(a)買取価格",
+          "answer_text": "412500円",
+          "char_count": 7
+        },
+        {
+          "column_index": 17,
+          "header": "【事例Ⅳ】第３問(設問１)(b)計算過程",
+          "answer_text": "再現不可",
+          "char_count": 4
+        },
+        {
+          "column_index": 18,
+          "header": "【事例Ⅳ】第３問(設問２)(a)年間キャッシュフロー",
+          "answer_text": "再現不可",
+          "char_count": 4
+        },
+        {
+          "column_index": 19,
+          "header": "【事例Ⅳ】第３問(設問２)(b)計算過程",
+          "answer_text": "再現不可",
+          "char_count": 4
+        },
+        {
+          "column_index": 20,
+          "header": "【事例Ⅳ】第３問(設問２)(c)回収期間",
+          "answer_text": "再現不可",
+          "char_count": 4
+        },
+        {
+          "column_index": 21,
+          "header": "【事例Ⅳ】第３問(設問３)(a)正味現在価値",
+          "answer_text": "再現不可",
+          "char_count": 4
+        },
+        {
+          "column_index": 22,
+          "header": "【事例Ⅳ】第３問(設問３)(b)計算過程",
+          "answer_text": "再現不可",
+          "char_count": 4
+        },
+        {
+          "column_index": 23,
+          "header": "【事例Ⅳ】第４問",
+          "answer_text": "借入金の増加により安全性低下と利息負担増加による収益性の低下リスクがある。借入金が増えすぎないようにするマネジメントが必要である。",
+          "char_count": 65
+        }
+      ]
+    },
+    {
+      "member": "さとしん",
+      "total_score": 73,
+      "answers": [
+        {
+          "column_index": 2,
+          "header": "【事例Ⅳ】第１問(設問１)①(a)優れていると考えられる財務指標の名称",
+          "answer_text": "売上高総利益率",
+          "char_count": 7
+        },
+        {
+          "column_index": 3,
+          "header": "【事例Ⅳ】第１問(設問１)①(b)優れていると考えられる財務指標の値",
+          "answer_text": "59.59",
+          "char_count": 5
+        },
+        {
+          "column_index": 4,
+          "header": "【事例Ⅳ】前項の単位",
+          "answer_text": "%",
+          "char_count": 1
+        },
+        {
+          "column_index": 5,
+          "header": "【事例Ⅳ】第１問(設問１)②(a)優れていると考えられる財務指標の名称",
+          "answer_text": "棚卸資産回転率",
+          "char_count": 7
+        },
+        {
+          "column_index": 6,
+          "header": "【事例Ⅳ】第1問(設問１)②(b)優れていると考えられる財務指標の値",
+          "answer_text": "33.409999999999997",
+          "char_count": 18
+        },
+        {
+          "column_index": 7,
+          "header": "【事例Ⅳ】前項の単位",
+          "answer_text": "回",
+          "char_count": 1
+        },
+        {
+          "column_index": 8,
+          "header": "【事例Ⅳ】第１問(設問１)③(a)課題を示すと考えられる財務指標の名称",
+          "answer_text": "従業員一人当たり営業利益",
+          "char_count": 12
+        },
+        {
+          "column_index": 9,
+          "header": "【事例Ⅳ】第１問(設問１)③(b)課題を示すと考えられる財務指標の値",
+          "answer_text": "695.6",
+          "char_count": 5
+        },
+        {
+          "column_index": 10,
+          "header": "【事例Ⅳ】前項の単位",
+          "answer_text": "万円",
+          "char_count": 2
+        },
+        {
+          "column_index": 11,
+          "header": "【事例Ⅳ】第１問(設問２)問題",
+          "answer_text": "同業他社と比較し人件費が2倍以上かかっており、従業員一人当たり営業利益が低い。従業員数は増加させず、新たな事業等により売上を増加させることが課題である。",
+          "char_count": 76
+        },
+        {
+          "column_index": 12,
+          "header": "【事例Ⅳ】第２問(設問１)(a)利益額",
+          "answer_text": "2,840,000円",
+          "char_count": 10
+        },
+        {
+          "column_index": 13,
+          "header": "【事例Ⅳ】第２問(設問１)(b)計算過程",
+          "answer_text": "製品ごとの限界利益は\n製品A：7,800円-（400円×4kg）-(1,200円×2h）＝3,800円\n製品B：10,000円-（400円×2kg）-（1,200円×4h）＝4,400円\n製品ごとの1時間当たりの限界利益は\n製品A：3,800円÷2h=1,900円\n製品B：4,400円÷4h=1,100円\nよって、製品Aを3,600時間となるまで生産する。\n3,800円×（3,600h÷2）-4,000,000円=2,840,000円",
+          "char_count": 219
+        },
+        {
+          "column_index": 14,
+          "header": "【事例Ⅳ】第２問(設問２)(a)利益額",
+          "answer_text": "2,200,000円",
+          "char_count": 10
+        },
+        {
+          "column_index": 15,
+          "header": "【事例Ⅳ】第２問(設問２)(b)計算過程",
+          "answer_text": "制約条件は\n①4A＋2B≦6,000\n②2A＋4B≦3,600\n\n①、②を解くと\nA=1,400B=200\n\n製品ごとの限界利益は\n製品A：3,800円製品B：4,400円\n\nよって利益は\n1,400個×3,800円＋200個×4,400円-4,000,000円=2,200,000円",
+          "char_count": 142
+        },
+        {
+          "column_index": 16,
+          "header": "【事例Ⅳ】第３問(設問１)(a)買取価格",
+          "answer_text": "675,000円",
+          "char_count": 8
+        },
+        {
+          "column_index": 17,
+          "header": "【事例Ⅳ】第３問(設問１)(b)計算過程",
+          "answer_text": "中古車の買取価格をxとすると\n30x×0.02<(6,000＋7,500）×30\n0.6x＜405,000\nx<675,000",
+          "char_count": 63
+        },
+        {
+          "column_index": 18,
+          "header": "【事例Ⅳ】第３問(設問２)(a)年間キャッシュフロー",
+          "answer_text": "15,660,000円",
+          "char_count": 11
+        },
+        {
+          "column_index": 19,
+          "header": "【事例Ⅳ】第３問(設問２)(b)計算過程",
+          "answer_text": "中古車1台あたりの利益60万-50万=10万\n中古車販売の年間利益10万×20台×12月=2,400万\n年間の点検整備費(10,000円＋4,500円）×20台×12月=348万\n年間の減価償却費(7,200万×0.9)÷15年=432万\n年間キャッシュフローは\n(2,400万-348万-432万）×(1-0.3)＋432万=1,566万",
+          "char_count": 170
+        },
+        {
+          "column_index": 20,
+          "header": "【事例Ⅳ】第３問(設問２)(c)回収期間",
+          "answer_text": "4.60年",
+          "char_count": 5
+        },
+        {
+          "column_index": 21,
+          "header": "【事例Ⅳ】第３問(設問３)(a)正味現在価値",
+          "answer_text": "空欄",
+          "char_count": 2
+        },
+        {
+          "column_index": 22,
+          "header": "【事例Ⅳ】第３問(設問３)(b)計算過程",
+          "answer_text": "150万×4.2124=631.86万",
+          "char_count": 19
+        },
+        {
+          "column_index": 23,
+          "header": "【事例Ⅳ】第４問",
+          "answer_text": "リスクは①為替変動により円高で収益が低下する②海外展開のノウハウ不足により売上鈍化。マネジメントは①為替予約やプットオプションの購入②外部コンサルタントにマネジメントを委託、以上でリスクヘッジする。",
+          "char_count": 99
+        }
+      ]
+    },
+    {
+      "member": "いっけー",
+      "total_score": 74,
+      "answers": [
+        {
+          "column_index": 2,
+          "header": "【事例Ⅳ】第１問(設問１)①(a)優れていると考えられる財務指標の名称",
+          "answer_text": "売上高総利益率",
+          "char_count": 7
+        },
+        {
+          "column_index": 3,
+          "header": "【事例Ⅳ】第１問(設問１)①(b)優れていると考えられる財務指標の値",
+          "answer_text": "59.59",
+          "char_count": 5
+        },
+        {
+          "column_index": 4,
+          "header": "【事例Ⅳ】前項の単位",
+          "answer_text": "%",
+          "char_count": 1
+        },
+        {
+          "column_index": 5,
+          "header": "【事例Ⅳ】第１問(設問１)②(a)優れていると考えられる財務指標の名称",
+          "answer_text": "流動比率",
+          "char_count": 4
+        },
+        {
+          "column_index": 6,
+          "header": "【事例Ⅳ】第1問(設問１)②(b)優れていると考えられる財務指標の値",
+          "answer_text": "368.82",
+          "char_count": 6
+        },
+        {
+          "column_index": 7,
+          "header": "【事例Ⅳ】前項の単位",
+          "answer_text": "％",
+          "char_count": 1
+        },
+        {
+          "column_index": 8,
+          "header": "【事例Ⅳ】第１問(設問１)③(a)課題を示すと考えられる財務指標の名称",
+          "answer_text": "有形固定資産回転率",
+          "char_count": 9
+        },
+        {
+          "column_index": 9,
+          "header": "【事例Ⅳ】第１問(設問１)③(b)課題を示すと考えられる財務指標の値",
+          "answer_text": "6.12",
+          "char_count": 4
+        },
+        {
+          "column_index": 10,
+          "header": "【事例Ⅳ】前項の単位",
+          "answer_text": "回",
+          "char_count": 1
+        },
+        {
+          "column_index": 11,
+          "header": "【事例Ⅳ】第１問(設問２)問題",
+          "answer_text": "ビジネスの拡大に伴い、長期借入金が多く、営業外費用が多い面では、収益性と安全性が低い。有形固定資産がうまく活用できていないため、効率性も低い。",
+          "char_count": 71
+        },
+        {
+          "column_index": 12,
+          "header": "【事例Ⅳ】第２問(設問１)(a)利益額",
+          "answer_text": "2840000円",
+          "char_count": 8
+        },
+        {
+          "column_index": 13,
+          "header": "【事例Ⅳ】第２問(設問１)(b)計算過程",
+          "answer_text": "製品A1個の利益＝7800-4×400-2×1200=3800円\n製品B1個の利益＝10000-2×400-4×1200=4400円\n4hあたり、製品Aは2個、製品Bは1個のため、\n利益は7600円と4400円となり、製品Aだけを作る方が良い。\nよって利益＝3600÷2×3800-4000000=2840000円",
+          "char_count": 157
+        },
+        {
+          "column_index": 14,
+          "header": "【事例Ⅳ】第２問(設問２)(a)利益額",
+          "answer_text": "2200000円",
+          "char_count": 8
+        },
+        {
+          "column_index": 15,
+          "header": "【事例Ⅳ】第２問(設問２)(b)計算過程",
+          "answer_text": "製品Aをx個、製品Bをy個作るとすると、\n材料：4x+2y<6000\n作業時間：2x+4y<3600\nよって最大となるのは、x=1400,y=200のときであり、\n利益は3800×1400+4400×200-4000000=",
+          "char_count": 112
+        },
+        {
+          "column_index": 16,
+          "header": "【事例Ⅳ】第３問(設問１)(a)買取価格",
+          "answer_text": "412500円",
+          "char_count": 7
+        },
+        {
+          "column_index": 17,
+          "header": "【事例Ⅳ】第３問(設問１)(b)計算過程",
+          "answer_text": "自社で作ると\n(6000+7500)×30=405000円\n固定費は、7500×0.7×30=157500円\nよって買取価格をxとすると、\nＤ社に任せたとき＝x×0.02×30+157500\n＝0.6x+157500\n0.6x+157500=405000円\nX=412500円",
+          "char_count": 138
+        },
+        {
+          "column_index": 18,
+          "header": "【事例Ⅳ】第３問(設問２)(a)年間キャッシュフロー",
+          "answer_text": "37458000円",
+          "char_count": 9
+        },
+        {
+          "column_index": 19,
+          "header": "【事例Ⅳ】第３問(設問２)(b)計算過程",
+          "answer_text": "売上/月＝60×50=3000万円\n取得原価/月＝50×50=2500万円\n30台まで修理費/月＝(6000+7500)×30=40.5万円\n20代修理費/月＝(10000+4500)×20=29万円\n減価償却費/月＝7200×0.9÷15÷12=36万円\n税金/月＝(3000-2500-40.5-29-36)×0.3=118.35万円\nよってCF＝(3000-2500-40.5-29-118.35)×12=3745.8万円",
+          "char_count": 214
+        },
+        {
+          "column_index": 20,
+          "header": "【事例Ⅳ】第３問(設問２)(c)回収期間",
+          "answer_text": "1.92年",
+          "char_count": 5
+        },
+        {
+          "column_index": 21,
+          "header": "【事例Ⅳ】第３問(設問３)(a)正味現在価値",
+          "answer_text": "空欄",
+          "char_count": 2
+        },
+        {
+          "column_index": 22,
+          "header": "【事例Ⅳ】第３問(設問３)(b)計算過程",
+          "answer_text": "取得費用/年＝50×50×12=3000万円\n売上/年＝30000+150=30150万円\nよって-30000+(30150-30000)×4.2124+30000×0.7473\n＝-6949.14万円",
+          "char_count": 101
+        },
+        {
+          "column_index": 23,
+          "header": "【事例Ⅳ】第４問",
+          "answer_text": "リスクは①海外向けの販売での為替の変動による売上の減少と、②借入金増加に伴う、安全性の低下。マネジメントは①為替予約をすることで変動リスクを抑え、②返済を考えた資金繰りを行うべきである。",
+          "char_count": 93
+        }
+      ]
+    },
+    {
+      "member": "えとえん",
+      "total_score": 62,
+      "answers": [
+        {
+          "column_index": 2,
+          "header": "【事例Ⅳ】第１問(設問１)①(a)優れていると考えられる財務指標の名称",
+          "answer_text": "売上高総利益率",
+          "char_count": 7
+        },
+        {
+          "column_index": 3,
+          "header": "【事例Ⅳ】第１問(設問１)①(b)優れていると考えられる財務指標の値",
+          "answer_text": "59.59",
+          "char_count": 5
+        },
+        {
+          "column_index": 4,
+          "header": "【事例Ⅳ】前項の単位",
+          "answer_text": "％",
+          "char_count": 1
+        },
+        {
+          "column_index": 5,
+          "header": "【事例Ⅳ】第１問(設問１)②(a)優れていると考えられる財務指標の名称",
+          "answer_text": "棚卸資産回転率",
+          "char_count": 7
+        },
+        {
+          "column_index": 6,
+          "header": "【事例Ⅳ】第1問(設問１)②(b)優れていると考えられる財務指標の値",
+          "answer_text": "33.409999999999997",
+          "char_count": 18
+        },
+        {
+          "column_index": 7,
+          "header": "【事例Ⅳ】前項の単位",
+          "answer_text": "回",
+          "char_count": 1
+        },
+        {
+          "column_index": 8,
+          "header": "【事例Ⅳ】第１問(設問１)③(a)課題を示すと考えられる財務指標の名称",
+          "answer_text": "一人あたり装備率",
+          "char_count": 8
+        },
+        {
+          "column_index": 9,
+          "header": "【事例Ⅳ】第１問(設問１)③(b)課題を示すと考えられる財務指標の値",
+          "answer_text": "318.79000000000002",
+          "char_count": 18
+        },
+        {
+          "column_index": 10,
+          "header": "【事例Ⅳ】前項の単位",
+          "answer_text": "万円/人",
+          "char_count": 4
+        },
+        {
+          "column_index": 11,
+          "header": "【事例Ⅳ】第１問(設問２)問題",
+          "answer_text": "D社は、生産性が他社と比べて劣っており、その要因は、有形固定資産が他社の2倍程度だが、従業員数が２.3倍であり、固定資産が有効活用できていないためである。",
+          "char_count": 77
+        },
+        {
+          "column_index": 12,
+          "header": "【事例Ⅳ】第２問(設問１)(a)利益額",
+          "answer_text": "2840000",
+          "char_count": 7
+        },
+        {
+          "column_index": 13,
+          "header": "【事例Ⅳ】第２問(設問１)(b)計算過程",
+          "answer_text": "再現不可",
+          "char_count": 4
+        },
+        {
+          "column_index": 14,
+          "header": "【事例Ⅳ】第２問(設問２)(a)利益額",
+          "answer_text": "2200000",
+          "char_count": 7
+        },
+        {
+          "column_index": 15,
+          "header": "【事例Ⅳ】第２問(設問２)(b)計算過程",
+          "answer_text": "再現不可",
+          "char_count": 4
+        },
+        {
+          "column_index": 16,
+          "header": "【事例Ⅳ】第３問(設問１)(a)買取価格",
+          "answer_text": "675000",
+          "char_count": 6
+        },
+        {
+          "column_index": 17,
+          "header": "【事例Ⅳ】第３問(設問１)(b)計算過程",
+          "answer_text": "再現不可",
+          "char_count": 4
+        },
+        {
+          "column_index": 18,
+          "header": "【事例Ⅳ】第３問(設問２)(a)年間キャッシュフロー",
+          "answer_text": "空欄",
+          "char_count": 2
+        },
+        {
+          "column_index": 19,
+          "header": "【事例Ⅳ】第３問(設問２)(b)計算過程",
+          "answer_text": "空欄",
+          "char_count": 2
+        },
+        {
+          "column_index": 20,
+          "header": "【事例Ⅳ】第３問(設問２)(c)回収期間",
+          "answer_text": "空欄",
+          "char_count": 2
+        },
+        {
+          "column_index": 21,
+          "header": "【事例Ⅳ】第３問(設問３)(a)正味現在価値",
+          "answer_text": "空欄",
+          "char_count": 2
+        },
+        {
+          "column_index": 22,
+          "header": "【事例Ⅳ】第３問(設問３)(b)計算過程",
+          "answer_text": "空欄",
+          "char_count": 2
+        },
+        {
+          "column_index": 23,
+          "header": "【事例Ⅳ】第４問",
+          "answer_text": "リスクは、①為替変動リスク②物価変動リスクである。マネジメントは①為替予約やオプション取引でリスクに備える②物価安の国で購入し、物価高の国で販売することである。",
+          "char_count": 80
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,4109 @@
+{
+  "year_label": "R04",
+  "case_no": 1,
+  "case_label": "R04年度事例1",
+  "source_pdf_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2022.pdf",
+  "source_pdf_blob_path": "second-pdf-mondai/case1_2022.pdf",
+  "submission_count": 77,
+  "questions": [
+    {
+      "question_no": 1,
+      "points": 20,
+      "heading_text": "第１問（配点20点）",
+      "answer_count": 77,
+      "score_stats": {
+        "count": 77,
+        "min": 28,
+        "max": 94,
+        "median": 59,
+        "mean": 58.7
+      },
+      "answer_char_stats": {
+        "count": 77,
+        "min": 76,
+        "max": 100,
+        "median": 99,
+        "mean": 97.64
+      },
+      "exemplars": {
+        "high": [
+          {
+            "post_id": 11583,
+            "score": 94,
+            "published_at": "2023-06-24",
+            "answer_text": "強みは①経験豊富な従業員との連携で栽培品種拡大③有機野菜販売業者の助言で最終消費者の求める野菜を生産したこと。弱みは①従業員の役割分担が不明確で繁閑の需給調整ができていない②採用難と定着率の低さ。"
+          },
+          {
+            "post_id": 11531,
+            "score": 90,
+            "published_at": "2023-06-24",
+            "answer_text": "強みは①農業経験豊富な従業員の連携で取扱品種が多い②有機野菜販売業者の指導を受け有機JASとJGAPを取得③製品開発力が高い事。弱みは①従業員役割分担が不明確で教育体制も未整備②従業員の定着率が低い事"
+          },
+          {
+            "post_id": 11551,
+            "score": 81,
+            "published_at": "2023-06-24",
+            "answer_text": "強みは①有機JASやJGAP認証取得の苺や野菜の栽培ノウハウ②地元の菓子メーカーと共同開発商品の商品力。弱みは①明確な役割分担が無く、需給調整出来ていない②新規の人員確保ができず定着率も悪いこと。"
+          },
+          {
+            "post_id": 11601,
+            "score": 80,
+            "published_at": "2023-06-24",
+            "answer_text": "強みは①農業経験が豊富な従業員の連携②サツマイモを使った洋菓子の認知度の高さ③有機JAS等の認証取得弱みは①繁閑に応じた人員の効率的な活用ができていない②従業員の定着率の低さ③不明確な役割分担"
+          },
+          {
+            "post_id": 11487,
+            "score": 79,
+            "published_at": "2023-06-24",
+            "answer_text": "強みは①高い農業生産技術に基づく高品質で高付加価値な生産物②有機野菜の認証③人と環境に配慮するコンセプト。弱みは①従業員が定着しない②職人気質で明確な役割分担がない④繁閑により人員の過不足あり。"
+          }
+        ],
+        "middle": [
+          {
+            "post_id": 11497,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": "強みは①従業員の農業経験と作り方へのこだわりによる、高品質な野菜、贈答用の洋菓子の人気と知名度。弱みは、①従業員の確保と定着ができていないこと、②天候や季節需給調整ができていないこと、である。"
+          },
+          {
+            "post_id": 11599,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": "強みは①農業経験豊富な従業員保有②有機JAＳ、JGAP認証で差別化③地元菓子メーカ\nーと共同開発製品人気。弱みは①季節的な繁閑に対応不足②経営者のノウハウ暗黙知の\nまま③従業員定着悪く新規人材確保困難"
+          },
+          {
+            "post_id": 11513,
+            "score": 59,
+            "published_at": "2023-06-24",
+            "answer_text": "強みは現経営者と従業員の豊富な農業経験による野菜生産能力と販路拡大・他社連携可能な常務の営業力である。弱みは従業員役割分担不明確で従業員定着が悪く新規就農者確保困難で季節の業務繁閑への対応力不足である"
+          },
+          {
+            "post_id": 11521,
+            "score": 59,
+            "published_at": "2023-06-24",
+            "answer_text": "強みは①人にやさしく環境にやさしい農業という理念の下、有機JASとJGAP認証を受けた②洋菓子が人気で地域の新たな特産品として認知度を高めた。弱みは経営の複雑化に対応できておらず従業員の定着率が悪い。"
+          },
+          {
+            "post_id": 11579,
+            "score": 59,
+            "published_at": "2023-06-24",
+            "answer_text": "強みは①人気の高い贈答用果物や農作物とお菓子作り②需要に対応できるハウス2棟③有機JSとJGP認証保有。弱みは①季節的な繁閑への人手管理力不足②価格競争の影響を受けやすいビジネス構造③従業員の定着力"
+          }
+        ],
+        "low": [
+          {
+            "post_id": 11432,
+            "score": 28,
+            "published_at": "2023-06-22",
+            "answer_text": "強みは、有機野菜の販売業者を活用してアドバイスを反映した最終消費者が求める野菜作りを行える学習能力である。弱みは、栽培品種の拡大により価格競争の影響を受け、新規就農者等の人的資源に乏しいことである。"
+          },
+          {
+            "post_id": 11426,
+            "score": 34,
+            "published_at": "2023-06-21",
+            "answer_text": "強みは、現経営者・従業員間や地元菓子メーカーとの間の連携で生まれる洋菓子等の認知度高い商品。弱みは①人手不足による生産力不足②大手中食業者への売上依存による開発力不足③季節的繁閑による人員過不足。"
+          },
+          {
+            "post_id": 11443,
+            "score": 36,
+            "published_at": "2023-06-22",
+            "answer_text": "強みは1作り方にこだわった野菜の栽培、2最終消費者が求める野菜作りで JASとJGAP を認証、弱みは1従業員間で明確な役割分担がなされていない事、2従業員の定 着率が悪く、新規就農者の確保が困難。"
+          },
+          {
+            "post_id": 11505,
+            "score": 37,
+            "published_at": "2023-06-24",
+            "answer_text": "強みは、①先代経営者から資金面の支援を受けハウスを建設し、②A社の苺が人気を博し贈答用として地元百貨店で販売された事。弱みは、①従業員の明確な役割分担がなく人員過不足が発生し、②人材の定着率が低い事。"
+          },
+          {
+            "post_id": 11517,
+            "score": 37,
+            "published_at": "2023-06-24",
+            "answer_text": "強みは、有機JASとJGAPの認証を受けたこと、地元菓子メーカーとの良好な関係性があること。弱みは、①仕事が標準化されてなく、役割分担が不明確であり、②季節の繁閑差があり、③従業員の定着が悪い。"
+          }
+        ]
+      },
+      "answers": [
+        {
+          "input_no": 1,
+          "post_id": 11583,
+          "score": 94,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11583",
+          "answer_text": "強みは①経験豊富な従業員との連携で栽培品種拡大③有機野菜販売業者の助言で最終消費者の求める野菜を生産したこと。弱みは①従業員の役割分担が不明確で繁閑の需給調整ができていない②採用難と定着率の低さ。",
+          "subquestions": []
+        },
+        {
+          "input_no": 2,
+          "post_id": 11531,
+          "score": 90,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11531",
+          "answer_text": "強みは①農業経験豊富な従業員の連携で取扱品種が多い②有機野菜販売業者の指導を受け有機JASとJGAPを取得③製品開発力が高い事。弱みは①従業員役割分担が不明確で教育体制も未整備②従業員の定着率が低い事",
+          "subquestions": []
+        },
+        {
+          "input_no": 3,
+          "post_id": 11551,
+          "score": 81,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11551",
+          "answer_text": "強みは①有機JASやJGAP認証取得の苺や野菜の栽培ノウハウ②地元の菓子メーカーと共同開発商品の商品力。弱みは①明確な役割分担が無く、需給調整出来ていない②新規の人員確保ができず定着率も悪いこと。",
+          "subquestions": []
+        },
+        {
+          "input_no": 4,
+          "post_id": 11601,
+          "score": 80,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11601",
+          "answer_text": "強みは①農業経験が豊富な従業員の連携②サツマイモを使った洋菓子の認知度の高さ③有機JAS等の認証取得弱みは①繁閑に応じた人員の効率的な活用ができていない②従業員の定着率の低さ③不明確な役割分担",
+          "subquestions": []
+        },
+        {
+          "input_no": 5,
+          "post_id": 11487,
+          "score": 79,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11487",
+          "answer_text": "強みは①高い農業生産技術に基づく高品質で高付加価値な生産物②有機野菜の認証③人と環境に配慮するコンセプト。弱みは①従業員が定着しない②職人気質で明確な役割分担がない④繁閑により人員の過不足あり。",
+          "subquestions": []
+        },
+        {
+          "input_no": 6,
+          "post_id": 11509,
+          "score": 75,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11509",
+          "answer_text": "強みは①経験豊富な従業員の連携により高品質の苺や豊富な品種の商品の保有②ＪＡＳ等認証取得③地元との連携による共同開発力。弱みは役割分担不足の不備で季節変動への人員調整ができず②従業員の定着が不足。",
+          "subquestions": []
+        },
+        {
+          "input_no": 7,
+          "post_id": 11573,
+          "score": 74,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11573",
+          "answer_text": "強みは①有期JASとJGAPの承認受けた野菜②人気がある苺③特産品として認知度ある洋菓子④農業経験豊富な従業員。弱みは①役割分担不明瞭②繁閑期の要員過剰と不足，③新規就農員の確保，定着が困難。",
+          "subquestions": []
+        },
+        {
+          "input_no": 8,
+          "post_id": 11585,
+          "score": 74,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11585",
+          "answer_text": "強みは、①施設園芸用ハウスを複数保有している事。②作り方にこだわった野菜やJAS・JGAP認証がある事。弱みは、①仕事のマニュアルがない事や役割分担がない事。②人員の繫閑期の調整不足や定着率が悪い事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 9,
+          "post_id": 11535,
+          "score": 71,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11535",
+          "answer_text": "強みは、①農業経験豊富な従業員②地元菓子メーカーとの共同開発した商品の人気と知名度③有機JASとJGAPの認証。弱みは、①従業員の役割分担が不明確②繁閑の差による人手不足と人の余剰。",
+          "subquestions": []
+        },
+        {
+          "input_no": 10,
+          "post_id": 11575,
+          "score": 71,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11575",
+          "answer_text": "強み：作り方にこだわった野菜（苺・サツマイモ等）の品質、地元の菓子メーカーとの連携、百貨店や有機債の販売業者などの販路。弱み：研修制度や労働環境が整備されておらず人材確保や定着率に問題あり。",
+          "subquestions": []
+        },
+        {
+          "input_no": 11,
+          "post_id": 11519,
+          "score": 70,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11519",
+          "answer_text": "強みは➀現経営者や農業経験者の豊富な生産ノウハウ②大手流通業の経験ある常務の販売業者・メーカーとの関係構築力の２人３脚の経営。弱みは➀人材育成の制度がない②繁閑に応じた人材活用ができず③定着率が悪い。",
+          "subquestions": []
+        },
+        {
+          "input_no": 12,
+          "post_id": 11541,
+          "score": 70,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11541",
+          "answer_text": "強みは①人気のある贈答用果物である苺②JASとJGAPの認証を受けた野菜③贈答用として人気の洋菓子。弱みは①従業員の繁閑対応、役割分担ができていないこと②品質と出荷が不安定なこと。",
+          "subquestions": []
+        },
+        {
+          "input_no": 13,
+          "post_id": 11553,
+          "score": 70,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11553",
+          "answer_text": "強みは、①定評のある苺やサツマイモ、有機野菜の認証、菓子メーカーと共同開発した洋菓子、家族経営の一体感と意思決定の速さ。弱みは、人材の確保と定着、需給対応力の低さ、役割がる不明確な組織体制。",
+          "subquestions": []
+        },
+        {
+          "input_no": 14,
+          "post_id": 11483,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11483",
+          "answer_text": "強みは、経験豊富な従業員の連携力、常務の販売先開拓力、最終消費者が求める有機JAＳとJGAP認証、贈答用の特産品としての認知度。弱みは、繁閑に対する人手調整が不足し、従業員の定着も悪い点。",
+          "subquestions": []
+        },
+        {
+          "input_no": 15,
+          "post_id": 11493,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11493",
+          "answer_text": "強みは①農業の経験と高い技術でJASやJGAPの認証②作り方にこだわる野菜の品揃え③有機野菜の販売業社との関係性④洋菓子の共同開発。弱みは①組織管理力②人材管理力③従業員の定着率④需給調整力である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 16,
+          "post_id": 11507,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11507",
+          "answer_text": "強みは①環境変化への柔軟な対応力、②有機野菜の生産技術と関連認証、③地元菓子メーカーとの協力関係及び洋菓子の特産品としての知名度。弱みは①明確な役割分担の不在、②従業員の定着率の低さである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 17,
+          "post_id": 11515,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11515",
+          "answer_text": "強みは①大手流通業に勤めていた常務の営業力②有機 JAS を取得した品質管理力③地元洋菓子メーカーと開発した洋菓子の高い認知度、弱みは①繁閑差が大きく繁忙期は人手が足りない一方閑散期は人手不足が発生。",
+          "subquestions": []
+        },
+        {
+          "input_no": 18,
+          "post_id": 11428,
+          "score": 68,
+          "published_at": "2023-06-21",
+          "url": "https://www.aas-clover.com/tokyoblog/11428",
+          "answer_text": "強みは①糖度が高く形状や色合いの良い人気の苺②こだわりの野菜の栽培方法②有機JAS等の認証④認知度の高い共同開発した洋菓子。弱みは①収穫時期の違いによる繁閑や突発的対応の多さ②人材の確保が難しい事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 19,
+          "post_id": 11491,
+          "score": 68,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11491",
+          "answer_text": "強みは、１有機JASとJGAPの承認を受けたこだわりの野菜と果物２農業経験豊富な従業員３菓子メーカーとの共同開発の成功。弱みは、１役割分担が不明確２繁閑差の需給調整が困難３人材確保が容易でないこと。",
+          "subquestions": []
+        },
+        {
+          "input_no": 20,
+          "post_id": 11587,
+          "score": 68,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11587",
+          "answer_text": "強みは①高品質な作物や他社連携による高付加価値商品、②最終消費者に訴求できる有機JASとJGAP、③農業経験豊かな従業員。弱みは①従業員間の不明確な役割分担②需給調整の難しさ、③従業員の定着率の悪さ。",
+          "subquestions": []
+        },
+        {
+          "input_no": 21,
+          "post_id": 11477,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11477",
+          "answer_text": "強みは家族経営で培った模倣困難性の高い農業ノウハウからJAS 等取得し苺や洋菓子等の関連多角化で他社と差別化できる開発力。弱みは経営が複雑化し役割分担が不明確で新規就農者の定着等組織対応力の未熟さ。",
+          "subquestions": []
+        },
+        {
+          "input_no": 22,
+          "post_id": 11501,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11501",
+          "answer_text": "強みは、最終消費者が求める野菜作りと公的認証、地元の洋菓子メーカーとの共同開発、弱みは、マニュアルの準備不足、役割分担が不明確であること、従業員の定着率の低さ等の組織運営能力の低さである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 23,
+          "post_id": 11511,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11511",
+          "answer_text": "強みは、①有機ＪＡＳやＪＧＡＰの認証を受けている点、菓子メーカーと共同開発の洋菓子が人気な点。弱みは、①現経営者が職人気質で、従業員間の役割分担不明確な点、②従業員・新規就農者の定着・確保が難しい点。",
+          "subquestions": []
+        },
+        {
+          "input_no": 24,
+          "post_id": 11577,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11577",
+          "answer_text": "強みは、有機JASとJGAPの認証を受けた人と環境にやさしい野菜づくり、メーカー共同開発の洋菓子の認知度の高さ。弱みは、明確な役割分担のできていない組織、従業員の定着の悪さ、季節的な需給調整の難しさ。",
+          "subquestions": []
+        },
+        {
+          "input_no": 25,
+          "post_id": 11430,
+          "score": 66,
+          "published_at": "2023-06-22",
+          "url": "https://www.aas-clover.com/tokyoblog/11430",
+          "answer_text": "強みは①作り方に拘った野菜栽培で品種を増やし、JAS や JGAP の認証を受け②地元菓子メーカーとの共同開発で洋菓子の認知度を高めた。弱みは、業務の役割が明確でなく、従業員の定着が悪い事である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 26,
+          "post_id": 11533,
+          "score": 66,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11533",
+          "answer_text": "強みは①戦前より代々続く農家、②糖度が高く高品質な苺、③経験豊富な従業員、④大手流通業経験の弟、⑤有機JASとJGAPの認証、⑥サツマイモ。弱みは①職人気質、②正社員の多さ、③従業員が定着しないこと。",
+          "subquestions": []
+        },
+        {
+          "input_no": 27,
+          "post_id": 11559,
+          "score": 66,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11559",
+          "answer_text": "強みは農業経験豊富な現経営者や従業員によるフルーツや野菜の高度な栽培技術や地元菓子メーカーとの共同開発した特産品の知名度。弱みは季節的な繁閑で人手が余ることや、人材の確保が困難で従業員の定着が悪いこと",
+          "subquestions": []
+        },
+        {
+          "input_no": 28,
+          "post_id": 11569,
+          "score": 66,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11569",
+          "answer_text": "強みは、水稲、苺、野菜と栽培品種を増やし、加工に事業を拡大し、有機JAS認証等技術の向上に努め、百貨店等販路開拓を実現。弱みは、季節の繁閑により従業員配置が困難なこと、従業員の動機付けや定着率が低い。",
+          "subquestions": []
+        },
+        {
+          "input_no": 29,
+          "post_id": 11563,
+          "score": 64,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11563",
+          "answer_text": "強みは①豊富な従業員が連携し、作り方にこだわった野菜栽培力②有機野菜の販売業者や菓子メーカーとの連携③標準の取得。弱みは①需給調整に問題があり、人件費が高いこと②従業員のモラールが低く定着が悪いこと",
+          "subquestions": []
+        },
+        {
+          "input_no": 30,
+          "post_id": 11571,
+          "score": 64,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11571",
+          "answer_text": "強みは、糖度の高い苺、農業経験が豊富な従業員、有機JAS等の認証、地域の特産品として認知度の高い洋菓子。弱みは、従業員の定着が悪く、需給調整の問題あり。",
+          "subquestions": []
+        },
+        {
+          "input_no": 31,
+          "post_id": 11603,
+          "score": 63,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11603",
+          "answer_text": "強みは最終消費者が求める野菜作りで有機JASとJGAPの認証取得。作り方にこだわった野菜で地域の特産品となる洋菓子の共同開発。弱みは従業員が定着せず人材確保できずに繁閑に応じた柔軟な対応ができない事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 32,
+          "post_id": 11549,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11549",
+          "answer_text": "強みは人気を博した苺や有機野菜の生産ノウハウと地元菓子メーカーの活用で洋菓子を開\n発でき、地元百貨店を販路に持つこと。弱みは繁忙期は人出が足らず、閑散期は人出が余\nるという非効率な組織体制。",
+          "subquestions": []
+        },
+        {
+          "input_no": 33,
+          "post_id": 11593,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11593",
+          "answer_text": "強みは、①地元菓子メーカーとの共同開発品が人気、②サツマイモの品質力、③従業員の農業経験が豊富。弱みは、①従業員の役割分担が不明確、②繁閑に応じた需給調整や販路開拓力、④人材確保に難航し定着率が低い。",
+          "subquestions": []
+        },
+        {
+          "input_no": 34,
+          "post_id": 11421,
+          "score": 61,
+          "published_at": "2023-06-21",
+          "url": "https://www.aas-clover.com/tokyoblog/11421",
+          "answer_text": "強みは①経営者と従業員の連携力②最終消費者が求める野菜作りと有機jas・jgapの認証③洋菓子店と特産品開発。弱みは①業務が標準化されず教育体制の不整備②役割分担が不明確③採用難と定着率低いこと。",
+          "subquestions": []
+        },
+        {
+          "input_no": 35,
+          "post_id": 11561,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11561",
+          "answer_text": "強みは①高糖度で色合い良い苺②最終消費者求める有機野菜栽培方法③地元菓子メーカーと開発した上品な甘さのサツマイモ洋菓子認知度。弱みは①不明確な役割分担、新参溶け込みにくい組織で定着率悪い②受給調整問題",
+          "subquestions": []
+        },
+        {
+          "input_no": 36,
+          "post_id": 11565,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11565",
+          "answer_text": "強みは、有機JASとJGAP認証による顧客ニーズに即した野菜作りと製品開発力で取引先の信頼を得て販路を拡大したこと。弱みは、従業員管理が不十分で従業員の帰属意識が低く定着しないことである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 37,
+          "post_id": 11497,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11497",
+          "answer_text": "強みは①従業員の農業経験と作り方へのこだわりによる、高品質な野菜、贈答用の洋菓子の人気と知名度。弱みは、①従業員の確保と定着ができていないこと、②天候や季節需給調整ができていないこと、である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 38,
+          "post_id": 11599,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11599",
+          "answer_text": "強みは①農業経験豊富な従業員保有②有機JAＳ、JGAP認証で差別化③地元菓子メーカ\nーと共同開発製品人気。弱みは①季節的な繁閑に対応不足②経営者のノウハウ暗黙知の\nまま③従業員定着悪く新規人材確保困難",
+          "subquestions": []
+        },
+        {
+          "input_no": 39,
+          "post_id": 11513,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11513",
+          "answer_text": "強みは現経営者と従業員の豊富な農業経験による野菜生産能力と販路拡大・他社連携可能な常務の営業力である。弱みは従業員役割分担不明確で従業員定着が悪く新規就農者確保困難で季節の業務繁閑への対応力不足である",
+          "subquestions": []
+        },
+        {
+          "input_no": 40,
+          "post_id": 11521,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11521",
+          "answer_text": "強みは①人にやさしく環境にやさしい農業という理念の下、有機JASとJGAP認証を受けた②洋菓子が人気で地域の新たな特産品として認知度を高めた。弱みは経営の複雑化に対応できておらず従業員の定着率が悪い。",
+          "subquestions": []
+        },
+        {
+          "input_no": 41,
+          "post_id": 11579,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11579",
+          "answer_text": "強みは①人気の高い贈答用果物や農作物とお菓子作り②需要に対応できるハウス2棟③有機JSとJGP認証保有。弱みは①季節的な繁閑への人手管理力不足②価格競争の影響を受けやすいビジネス構造③従業員の定着力",
+          "subquestions": []
+        },
+        {
+          "input_no": 42,
+          "post_id": 11591,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11591",
+          "answer_text": "強みは①農業経験豊富な従業員がいること②贈答品として対応できる品質の高さ③有機ＪＡＳやＪＧＡＰの認証取得、弱みは①従業員間の役割分担不明確②繁忙期の人手不足と閑散期の人員余剰③従業員が定着しないこと。",
+          "subquestions": []
+        },
+        {
+          "input_no": 43,
+          "post_id": 11567,
+          "score": 58,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11567",
+          "answer_text": "強みは①糖度の高い苺やこだわり野菜、地元の菓子メーカと共同開発した洋菓子等の商品力、②有機JAS等の品質力、③農業経験豊富な従業員。弱みは①人材育成体制の未整備や不明確な役割分担、②従業員の人材不足。",
+          "subquestions": []
+        },
+        {
+          "input_no": 44,
+          "post_id": 11475,
+          "score": 56,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11475",
+          "answer_text": "経験豊富な従業員間、経営者とその弟、地元菓子メーカとの間、でノウハウを連携し商品や取引先を拡大できたが、職人気質の経営者や不安定な需給と地域に溶け込みづらい環境から、従業員の育成と定着が不十分である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 45,
+          "post_id": 11555,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11555",
+          "answer_text": "強みは外部環境の変化に対応し、新品種開発力が高く、コンセプト明確化や他社との連携等で顧客開拓力が強いこと。弱みは、職人気質な風土や役割分担、人員配置の不適切さにより人材の定着や帰属意識が低いこと。",
+          "subquestions": []
+        },
+        {
+          "input_no": 46,
+          "post_id": 11435,
+          "score": 54,
+          "published_at": "2023-06-22",
+          "url": "https://www.aas-clover.com/tokyoblog/11435",
+          "answer_text": "強みは①最終消費者が求めるこだわりの野菜の栽培販売で差別化したこと、②菓子メーカーと連携して共同開発したこと。弱みは農業業務の特殊性に由来する需給調整等により人材が定着せず、帰属意識が低いことである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 47,
+          "post_id": 11481,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11481",
+          "answer_text": "強みは①有機JASとJGAPの認証②作り方にこだわった野菜の栽培③地元菓子メーカーと連携した人気商品。弱みは①新規就農者の確保②従業員間で明確な役割分担がない③繁閑期で人員の需給調整が出来ない。",
+          "subquestions": []
+        },
+        {
+          "input_no": 48,
+          "post_id": 11503,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11503",
+          "answer_text": "強みは①消費者が求めるこだわりの野菜生産、②県外需要に対応する生産力、③公的認証の保有、④コラボ洋菓子の人気。弱みは①人事制度が未成熟で非効率な運営、教育システムが未整備、②従業員定着率が低い。",
+          "subquestions": []
+        },
+        {
+          "input_no": 49,
+          "post_id": 11523,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11523",
+          "answer_text": "強みは、最終消費者が求める野菜作り行ったことで有機JASとJGAPの認証を受けたことや、サツマイモ菓子の認知度が高いことで、弱みは、収穫時期の違いによる需給調整能力の低さや、従業員の定着率が低いこと。",
+          "subquestions": []
+        },
+        {
+          "input_no": 50,
+          "post_id": 11539,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11539",
+          "answer_text": "強みは①人気を博す苺やさつまいもの商品力、②有機JAS等の認証取得、③地域の農業者や菓子メーカーとの関係性、④地元百貨店からの引き合い。弱みは①需給調整への対応不足、②帰属意識の高い従業員が少ない。",
+          "subquestions": []
+        },
+        {
+          "input_no": 51,
+          "post_id": 11595,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11595",
+          "answer_text": "強みは、①現経営者を含め農業経験が豊富な従業員、②有機JASとJGAP認証、③地元菓子メーカーと開発した洋菓子の認知度が高い。弱みは、①組織統制が取れておらず、品質と出荷不安、②従業員の定着率が低い。",
+          "subquestions": []
+        },
+        {
+          "input_no": 52,
+          "post_id": 11479,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11479",
+          "answer_text": "強みは①農業経験の豊富さ②高品質で好評な苺やサツマイモ、 特産品として認知度高い洋菓子等製品、弱みは①新規就農者獲得・定着の難しさ②役割分担のなさ③需給調整。",
+          "subquestions": []
+        },
+        {
+          "input_no": 53,
+          "post_id": 11547,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11547",
+          "answer_text": "強みは、農業経験が豊富な従業員が連携することでこだわりの野菜を生産し、地元菓子メーカーとの共同開発した野菜を使った特産品の認知度が高いこと。弱みは、人材が不足しており、採用後の定着率が低いこと。",
+          "subquestions": []
+        },
+        {
+          "input_no": 54,
+          "post_id": 11581,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11581",
+          "answer_text": "強みは、①人気を博す糖度が高く大粒の苺、②農業生産工程管理の認証、③地元菓子メーカーとの共同開発である。弱みは、①従業員の定着率が悪い、②繁閑に応じた役割分担、③人材の確保ができないこと。",
+          "subquestions": []
+        },
+        {
+          "input_no": 55,
+          "post_id": 11441,
+          "score": 52,
+          "published_at": "2023-06-22",
+          "url": "https://www.aas-clover.com/tokyoblog/11441",
+          "answer_text": "強みは、経験豊富な従業員による作り方にこだわった野菜・果物、特産品の洋菓子で差別化し、百貨店や販売業者の販売チャネルを有する点。弱みは、人材が確保できず、組織運営が効率的でない点。",
+          "subquestions": []
+        },
+        {
+          "input_no": 56,
+          "post_id": 11589,
+          "score": 52,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11589",
+          "answer_text": "強みは販売業者を獲得し最終消費者の求めるこだわりの野菜の栽培で有機JASとJGAPの認証、共同開発で人気商品の販売。弱みは従業員間で明確な役割分担がされず、季節的な繁閑があり、従業員の定着率が悪い。",
+          "subquestions": []
+        },
+        {
+          "input_no": 57,
+          "post_id": 11489,
+          "score": 51,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11489",
+          "answer_text": "強みは①有機JASとJGAPの認証②こだわり商品の認知度の高さ③農業経験豊富な従業員④コンセプトで差別化で弱みは①従業員の離職率が高い②従業員間での役割分担が不明確③経営者と常務が高齢④見て盗めの方針",
+          "subquestions": []
+        },
+        {
+          "input_no": 58,
+          "post_id": 11499,
+          "score": 51,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11499",
+          "answer_text": "強みは経営者一族や従業員の持つ経験やノウハウの活用、外部連携による共同開発等で認知度を向上させ業容拡大を図ったこと。弱みは業容拡大に伴う従業員の効率配置、新規就農者の確保や定着化が図れなかったこと。",
+          "subquestions": []
+        },
+        {
+          "input_no": 59,
+          "post_id": 11485,
+          "score": 50,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11485",
+          "answer_text": "強みは、①経験豊富な経営者や従業員により②環境に良い高品質な農産物を多品種栽培し③地域で認知度の高い人気商品を開発できる商品開発力。弱みは、従業員の明確な役割分担しておらず、新規就労者確保が難しい点。",
+          "subquestions": []
+        },
+        {
+          "input_no": 60,
+          "post_id": 11545,
+          "score": 50,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11545",
+          "answer_text": "強みは、農業経験が豊富な従業員との連携、販売業者と連携した顧客ニーズの収集力、地元菓子メーカーと商品開発できる関係性。弱みは、業務が非標準化、役割分担が不明瞭、閑散期が発生すること、従業員定着率の悪さ",
+          "subquestions": []
+        },
+        {
+          "input_no": 61,
+          "post_id": 11557,
+          "score": 49,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11557",
+          "answer_text": "強みは①有機JASとJGAPの認証を受け②地元菓子メーカーと共同で人気商品の洋菓子を開発し販売。弱みは①従業員間で明確な役割分担がなされず②従業員の定着が悪く、新規就農者の確保が困難な事等である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 62,
+          "post_id": 11439,
+          "score": 47,
+          "published_at": "2023-06-22",
+          "url": "https://www.aas-clover.com/tokyoblog/11439",
+          "answer_text": "強みは①現経営者農業経験の豊富さ、こだわりの野菜栽培技術有機JASとJGAP認証あり。②地元での人気商品、認知度が高い点。弱みは①付加価値が低く価格競争になりやすい②従業員間で明確な役割分担がない点。",
+          "subquestions": []
+        },
+        {
+          "input_no": 63,
+          "post_id": 11437,
+          "score": 46,
+          "published_at": "2023-06-22",
+          "url": "https://www.aas-clover.com/tokyoblog/11437",
+          "answer_text": "強みは①農業経験が豊富な従業員の存在②人と環境にやさしい農業の有機JASとJGAP認証の取得③共同開発洋菓子に高い認知度。弱みは、①仕事の明確な役割分担なく標準化教育がない②中途・新卒の定着率が低い。",
+          "subquestions": []
+        },
+        {
+          "input_no": 64,
+          "post_id": 11527,
+          "score": 46,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11527",
+          "answer_text": "強みは①こだわりの野菜栽培、②菓子メーカーとの共同開発製品が人気なこと、③有機ＪＡＳとＪＧＡＰ認証。弱みは①繁閑差が大きく、うまく人手をやりくりできていない、②従業員が定着しないこと。",
+          "subquestions": []
+        },
+        {
+          "input_no": 65,
+          "post_id": 11597,
+          "score": 45,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11597",
+          "answer_text": "強みは①農業経験豊富な従業員と社長の存在，②ＪＡＳ，ＪＧＡＰの認証③共同製品の人気商品，④商品開発が可能。弱みは①新規農従者確保できていない，②需給調整による人手不足・人出余り，③ノウハウの暗黙知化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 66,
+          "post_id": 11537,
+          "score": 44,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11537",
+          "answer_text": "強みは①有機野菜の販売業者の存在②地元メーカーとの共同開発品が地域の新たな特産品としての高い認知度。弱みは①経営が複雑化し役割分担がされていない②帰属意識の高い従業員の確保が難しく従業員の定着が悪い。",
+          "subquestions": []
+        },
+        {
+          "input_no": 67,
+          "post_id": 11605,
+          "score": 44,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11605",
+          "answer_text": "強みは、➀現経営者を含めた農業経験が豊富な従業員の存在、➁地域の特産品として認知度の高い洋菓子の存在。弱みは、➀現経営者の職人気質な仕事の進め方、➁長く働き続けてくれる人材が確保できないこと。である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 68,
+          "post_id": 11525,
+          "score": 43,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11525",
+          "answer_text": "強みは①有機JAS等の認証を受け高い糖度等の苺や作り方にこだわった野菜の生産力、②贈答用洋菓子の開発力、弱みは職人気質な現経営者の人材育成力不足、②季節的な繁閑の人材調整力不足や③人材の定着不足である",
+          "subquestions": []
+        },
+        {
+          "input_no": 69,
+          "post_id": 11529,
+          "score": 43,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11529",
+          "answer_text": "強みは①農業経験豊富な社長と従業員の連携②こだわりの野菜栽培による製品開発展開需要に応じて設備投資③販売店やメーカとの連携。弱みは①従業員の指導・獲得・定着化難②役割が不明確③繁閑に対応できていない。",
+          "subquestions": []
+        },
+        {
+          "input_no": 70,
+          "post_id": 11607,
+          "score": 43,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11607",
+          "answer_text": "強みは、有機JASとJGAPの認証取得、菓子メーカーと連携し共同開発した洋菓子が地域の新たな特産品として認知度を高めたこと、弱みは明確な役割分担がされず、従業員の定着が悪く新規就農者確保が難しいこと。",
+          "subquestions": []
+        },
+        {
+          "input_no": 71,
+          "post_id": 11495,
+          "score": 38,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11495",
+          "answer_text": "強みは、糖度が高く人気の苺、農業経験豊富な現経営者と従業員、有機ＪＡＳとＪＧＡＰ認証、栽培品種の多さ、百貨店からの引き合い。弱みは、従業員間の役割分担が不明確、新規就業者、帰属意識の高い従業員の少なさ",
+          "subquestions": []
+        },
+        {
+          "input_no": 72,
+          "post_id": 11505,
+          "score": 37,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11505",
+          "answer_text": "強みは、①先代経営者から資金面の支援を受けハウスを建設し、②A社の苺が人気を博し贈答用として地元百貨店で販売された事。弱みは、①従業員の明確な役割分担がなく人員過不足が発生し、②人材の定着率が低い事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 73,
+          "post_id": 11517,
+          "score": 37,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11517",
+          "answer_text": "強みは、有機JASとJGAPの認証を受けたこと、地元菓子メーカーとの良好な関係性があること。弱みは、①仕事が標準化されてなく、役割分担が不明確であり、②季節の繁閑差があり、③従業員の定着が悪い。",
+          "subquestions": []
+        },
+        {
+          "input_no": 74,
+          "post_id": 11543,
+          "score": 37,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11543",
+          "answer_text": "強みは①有機JASやJGAP認証を受けていること②コンセプトが明確であること③有機野菜の販売業者がいること。弱みは①従業員の定着率が悪いこと②従業員間の明確な役割分担がないこと③繁閑差が大きいこと",
+          "subquestions": []
+        },
+        {
+          "input_no": 75,
+          "post_id": 11443,
+          "score": 36,
+          "published_at": "2023-06-22",
+          "url": "https://www.aas-clover.com/tokyoblog/11443",
+          "answer_text": "強みは1作り方にこだわった野菜の栽培、2最終消費者が求める野菜作りで JASとJGAP を認証、弱みは1従業員間で明確な役割分担がなされていない事、2従業員の定 着率が悪く、新規就農者の確保が困難。",
+          "subquestions": []
+        },
+        {
+          "input_no": 76,
+          "post_id": 11426,
+          "score": 34,
+          "published_at": "2023-06-21",
+          "url": "https://www.aas-clover.com/tokyoblog/11426",
+          "answer_text": "強みは、現経営者・従業員間や地元菓子メーカーとの間の連携で生まれる洋菓子等の認知度高い商品。弱みは①人手不足による生産力不足②大手中食業者への売上依存による開発力不足③季節的繁閑による人員過不足。",
+          "subquestions": []
+        },
+        {
+          "input_no": 77,
+          "post_id": 11432,
+          "score": 28,
+          "published_at": "2023-06-22",
+          "url": "https://www.aas-clover.com/tokyoblog/11432",
+          "answer_text": "強みは、有機野菜の販売業者を活用してアドバイスを反映した最終消費者が求める野菜作りを行える学習能力である。弱みは、栽培品種の拡大により価格競争の影響を受け、新規就農者等の人的資源に乏しいことである。",
+          "subquestions": []
+        }
+      ]
+    },
+    {
+      "question_no": 2,
+      "points": 20,
+      "heading_text": "第２問（配点20点）",
+      "answer_count": 77,
+      "score_stats": {
+        "count": 77,
+        "min": 28,
+        "max": 94,
+        "median": 59,
+        "mean": 58.7
+      },
+      "answer_char_stats": {
+        "count": 77,
+        "min": 78,
+        "max": 100,
+        "median": 99,
+        "mean": 97.43
+      },
+      "exemplars": {
+        "high": [
+          {
+            "post_id": 11583,
+            "score": 94,
+            "published_at": "2023-06-24",
+            "answer_text": "農作業を標準化し、未経験者でも技術習得しやすくする②地元イベントに会社として参加し、一体感を高めると共に地域との関係を深める③学生向けインターンシップで仕事や経営理念への理解を深めてもらうこと。"
+          },
+          {
+            "post_id": 11531,
+            "score": 90,
+            "published_at": "2023-06-24",
+            "answer_text": "施策は①就労体験やインターンシップ制度を設け事業の理解を促す事②業務の標準化を行い、OJTを行う等教育体制を整える事③地域の農業関係者との交流機会を提供する事。以上で新規就労者を増やし定着率を高める。"
+          },
+          {
+            "post_id": 11551,
+            "score": 81,
+            "published_at": "2023-06-24",
+            "answer_text": "施策は①成果報酬型制度によりモラール向上②柔軟な勤務時間に対応➂地域の農業関係者や社内での交流を積極的に行い士気を高め④インターンでの実務体験➄外国人等求人の多様化し、新規就農者獲得と定着化を図る。"
+          },
+          {
+            "post_id": 11601,
+            "score": 80,
+            "published_at": "2023-06-24",
+            "answer_text": "施策は①新規就農者と農業関係者が交流する地域イベント開催による関係性の構築②会社のビジョン共有による帰属意識の醸成、モラール向上③シフト勤務や非コア業務の外注によるワークライフバランスの充実"
+          },
+          {
+            "post_id": 11487,
+            "score": 79,
+            "published_at": "2023-06-24",
+            "answer_text": "施策は①シフト制導入など働きやすい環境の整備②採用活動で会社のコンセプト訴求③農業未経験者への教育充実④地域の農業関係者との関係構築サポート、により帰属意識を高めて定着率向上し必要な人材を確保する。"
+          }
+        ],
+        "middle": [
+          {
+            "post_id": 11497,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": "A社は、①契約形態毎の権限と責任を明確にして、定時内や繁忙期のみといった勤務を可能にして、主婦を獲得すべき、②農業関係者との交流会を開き、関係性を構築して帰属意識とモラールを高め定着を図るべき。"
+          },
+          {
+            "post_id": 11599,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": "獲得の施策は①農業の面白さややりがいを訴求②仕事内容について実態の詳細説明し、\n入社後のギャップなくす。定着の施策は①従業員の役割分担明確化②業務のマニュアル\n化③OJＴ、能力開発実施、でモラール向上"
+          },
+          {
+            "post_id": 11513,
+            "score": 59,
+            "published_at": "2023-06-24",
+            "answer_text": "施策は、①役割分担の明確化、②品種ごとの生産グループに分け有能な就農者に一部権限委譲、③生産した野菜の顧客からの評判を社内共有、以上により従業員のモチベーションを向上し、会社への帰属意識の向上を図る。"
+          },
+          {
+            "post_id": 11521,
+            "score": 59,
+            "published_at": "2023-06-24",
+            "answer_text": "施策は①現経営者の仕事ノウハウを形式知化しOJTを通し教育し能力向上を図る②従業員の役割分担の明確化、柔軟な勤務体制の導入③地域の農業関係者と定期的な交流会実施等で士気向上と帰属意識を高め定着率改善。"
+          },
+          {
+            "post_id": 11579,
+            "score": 59,
+            "published_at": "2023-06-24",
+            "answer_text": "①役割分担を明確にし体系化し②仕事内容をOJTと標準化・マニュアル化することで働きやすい環境を整備する③農業大学生に職場体験をしてもらい入社後のすれ違いをなくす。以上で、新規就農者を獲得し定着力を向上"
+          }
+        ],
+        "low": [
+          {
+            "post_id": 11432,
+            "score": 28,
+            "published_at": "2023-06-22",
+            "answer_text": "地域の農業関係者と協業することにより、繁忙期と閑散期の差に対応する。地域の女性や高齢者を雇用し、公正な賃金制度を導入し、能力開発を行うことで動機付けを図る。"
+          },
+          {
+            "post_id": 11426,
+            "score": 34,
+            "published_at": "2023-06-21",
+            "answer_text": "従業員の定着率や帰属意識を高めるために、①自然災害や季節的繁閑に応じて柔軟に雇用調整し②役割分担を明確化した上でOJTや研修で教育し③定期会議等で交流を促し従業員間の連携を強化すべき。"
+          },
+          {
+            "post_id": 11443,
+            "score": 36,
+            "published_at": "2023-06-22",
+            "answer_text": "助言は1従業員間で明確な役割分担を行い、帰属意識を高め、2長期的な視点での公正・公 平な評価、3社内表彰制度や職務拡大の実施、4OJT や研修会等の施策を行う。従業員満足度を高め士気や定着率向上。"
+          },
+          {
+            "post_id": 11505,
+            "score": 37,
+            "published_at": "2023-06-24",
+            "answer_text": "A社は、①シフト制による柔軟な勤務体制を整備し、②応援体制を整えることで突発的な事項に対応し、③インターンシップ制を導入して学生のミスマッチを解消し、④成果主義制度を導入して士気向上を図ること。"
+          },
+          {
+            "post_id": 11517,
+            "score": 37,
+            "published_at": "2023-06-24",
+            "answer_text": "施策は、①季節の繁閑に応じた休暇制度を導入する、②社長からビジョンの説明を行い、役割分担を明確にする、③仕事の標準化を図るとともに、正社員はコア業務に専念する体制を構築し、モラール向上を図る。"
+          }
+        ]
+      },
+      "answers": [
+        {
+          "input_no": 1,
+          "post_id": 11583,
+          "score": 94,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11583",
+          "answer_text": "農作業を標準化し、未経験者でも技術習得しやすくする②地元イベントに会社として参加し、一体感を高めると共に地域との関係を深める③学生向けインターンシップで仕事や経営理念への理解を深めてもらうこと。",
+          "subquestions": []
+        },
+        {
+          "input_no": 2,
+          "post_id": 11531,
+          "score": 90,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11531",
+          "answer_text": "施策は①就労体験やインターンシップ制度を設け事業の理解を促す事②業務の標準化を行い、OJTを行う等教育体制を整える事③地域の農業関係者との交流機会を提供する事。以上で新規就労者を増やし定着率を高める。",
+          "subquestions": []
+        },
+        {
+          "input_no": 3,
+          "post_id": 11551,
+          "score": 81,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11551",
+          "answer_text": "施策は①成果報酬型制度によりモラール向上②柔軟な勤務時間に対応➂地域の農業関係者や社内での交流を積極的に行い士気を高め④インターンでの実務体験➄外国人等求人の多様化し、新規就農者獲得と定着化を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 4,
+          "post_id": 11601,
+          "score": 80,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11601",
+          "answer_text": "施策は①新規就農者と農業関係者が交流する地域イベント開催による関係性の構築②会社のビジョン共有による帰属意識の醸成、モラール向上③シフト勤務や非コア業務の外注によるワークライフバランスの充実",
+          "subquestions": []
+        },
+        {
+          "input_no": 5,
+          "post_id": 11487,
+          "score": 79,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11487",
+          "answer_text": "施策は①シフト制導入など働きやすい環境の整備②採用活動で会社のコンセプト訴求③農業未経験者への教育充実④地域の農業関係者との関係構築サポート、により帰属意識を高めて定着率向上し必要な人材を確保する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 6,
+          "post_id": 11509,
+          "score": 75,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11509",
+          "answer_text": "①人と環境にやさしいというコンセプトの明確化②就農体験やインターンシップの実施③OJT研修等教育制度の充実④キャリアプランの明確化⑤時短制度の導入等働きやすさの訴求、でモラールを向上し帰属意識を高める",
+          "subquestions": []
+        },
+        {
+          "input_no": 7,
+          "post_id": 11573,
+          "score": 74,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11573",
+          "answer_text": "①役割や命令系統を体制図により明確化，②業務内容や関係者との関係構築に係るOJT導入，③シフト制の導入，④新規品種生産の社内公募と表彰導入により，新規就農者のモラール向上させ獲得定着を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 8,
+          "post_id": 11585,
+          "score": 74,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11585",
+          "answer_text": "施策は、農業の体験やインターンシップ等で魅力や面白さを伝達して、人材獲得する。マニュアル化や丁寧な仕事の教育、OJTを行い、経営陣が現場で意思疎通を図る。地域の農業関係者との交流を深め、定着を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 9,
+          "post_id": 11535,
+          "score": 71,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11535",
+          "answer_text": "施策は、①従業員の技術を形式知化し、マニュアル化、マニュアルを基にした教育を実施し、モチベー ションを向上させる②地域の農業関係者との交流の機会を設け、関係を築き、従業員満足向上で、定着化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 10,
+          "post_id": 11575,
+          "score": 71,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11575",
+          "answer_text": "研修制度や、働き易いシフト体制などを整備し、若手に魅力的な飲食等で人材獲得を図る。研修や役割分担の明確化等で働き易くして、地域の農業関係者との交流で関係を深める、意提案評価で欲向上により定着を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 11,
+          "post_id": 11519,
+          "score": 70,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11519",
+          "answer_text": "必要施策は➀農作業をマニュアル化しOJTで未経験者の育成を制度化②季節繁閑に応じ休暇や労働時間の変更等柔軟な勤務体系の整備③農業大学校卒業者へ生産管理等の権限委譲に取組む事。士気向上にて定着率を高める",
+          "subquestions": []
+        },
+        {
+          "input_no": 12,
+          "post_id": 11541,
+          "score": 70,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11541",
+          "answer_text": "施策は①短時間勤務等を導入し勤務時間の柔軟化を図る②採用時に突発的な対応を経営者が説明し納得性を高める③農業関係者との交流の場を設ける④従業員に権限委譲することで士気の向上を図り帰属意識を高める。",
+          "subquestions": []
+        },
+        {
+          "input_no": 13,
+          "post_id": 11553,
+          "score": 70,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11553",
+          "answer_text": "①農業大学に農業体験や食品開発体験を提案し、②直営店や食品加工品製造のノンコア業務をマニュアル化しパート従業員にまかせ、③農業関係者との関係構築をＯＪＴする。以上で、動機付け要因と衛生要因を強化する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 14,
+          "post_id": 11483,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11483",
+          "answer_text": "役割分担について権限を委譲し、菓子メーカーと連携し共同開発ノウハウを育成し、地域の農業関係者との交流を深める事で新たな品種の生産を図り組織活性化を促し、就農者のモチベーション向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 15,
+          "post_id": 11493,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11493",
+          "answer_text": "施策は①県の農業大学校と連携して現経営者が講義や実習を受け入れる②地域の農業関係者との交流を強化して新卒や農業未経験者の仲介を行い、帰属意識を高める。③地元の農家の支援を得て、労働環境を改善する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 16,
+          "post_id": 11507,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11507",
+          "answer_text": "施策は、①柔軟な勤務体系の導入、②農業関係者との関係を作る為のイベント企画、③農業未経験者へのОＪＴ等、教育訓練の提供。以上を通して、帰属意識とモラールを向上させ、定着率を向上させる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 17,
+          "post_id": 11515,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11515",
+          "answer_text": "施策は①農業大学校の卒業生に対し、フレックス制等の労務管理が整備され、若手が開発業務を経験できるという魅力を伝え新規就農者を獲得し②地域のイベント等に積極的に参加し交流する事で士気向上させ定着を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 18,
+          "post_id": 11428,
+          "score": 68,
+          "published_at": "2023-06-21",
+          "url": "https://www.aas-clover.com/tokyoblog/11428",
+          "answer_text": "獲得面では、人にやさしく環境にやさしい農業というコンセプトを前面に出し採用する事。定着面では①教育体制の整備②役割の明確化③地域の農業関係者との意思疎通を円滑にする事で、士気向上と組織活性化を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 19,
+          "post_id": 11491,
+          "score": 68,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11491",
+          "answer_text": "施策は、従業員の積極的な提案を促す制度を設け従業員の動機付けを図り、地域の農業関係者との交流会や共同作業を実施し新参者が定着し易い風土を作ること。突発的対応時の手当等、給与面の整備を行う。",
+          "subquestions": []
+        },
+        {
+          "input_no": 20,
+          "post_id": 11587,
+          "score": 68,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11587",
+          "answer_text": "施策は①突発的な対応が必要な際は残業代を上乗せする②地元の農業関係者との交流会で、地域への溶け込みを促す③業務を標準化し、OJTでの能力開発を行う。以てモラールと帰属意識を向上させ、採用者定着を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 21,
+          "post_id": 11477,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11477",
+          "answer_text": "施策は①現経営者の業務をマニュアル化しOJTで役割分担を明確化し、業務の専門性を発揮し能力の向上、②地域の農業関係者との定期的な交流会を通じ、コンセプトの浸透と地域活性化に資する帰属意識の高揚を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 22,
+          "post_id": 11501,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11501",
+          "answer_text": "必要な施策は①繁閑に応じた柔軟な勤務体系の整備、②マニュアルの準備、③計画的なOJT、④従業員の能力に応じた配置、⑤就農前のインターンシップの実施、等を通じて新規就農者の獲得と定着を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 23,
+          "post_id": 11511,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11511",
+          "answer_text": "①従業員ごとの役割を明確化した人材配置を行うこと、②業務・人材育成ノウハウをマニュアル化し、標準化すること、③社内コミュニケーションを活性化させること。これらにより従業員のモラール向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 24,
+          "post_id": 11577,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11577",
+          "answer_text": "従業員の作業を標準化し、マニュアル化することで各人の役割を明確にし、未経験者でも作業ができる体制をつくる。その上でインターンシップで就農体験させ地域の関係づくりを行い、新規就農者を獲得し定着させる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 25,
+          "post_id": 11430,
+          "score": 66,
+          "published_at": "2023-06-22",
+          "url": "https://www.aas-clover.com/tokyoblog/11430",
+          "answer_text": "施策は①業務内容の標準化を行い②OJT での教育を図り、作業の習得を早め③意思疎通のとりやすい職場整備④就労前のインターンシップで職場を知ってもらい相互理解の上での採用、長期的な定着を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 26,
+          "post_id": 11533,
+          "score": 66,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11533",
+          "answer_text": "施策は①公正公平な評価で賃金を上げ、②経験者とのOJTで育成を図り、③適正な配置で士気の向上を図り、④部門間のコミュニケーションを強化し、⑤若手からの提案を受け入れることで定着し獲得を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 27,
+          "post_id": 11559,
+          "score": 66,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11559",
+          "answer_text": "地域に根ざした農業を目指していることを伝え職務コミットメントを高める。地域の農業関係者との交流や研修会を行い、地域に溶け込みやすくする。突発的対応時における公正な賃金制度を導入しモチベーションを高める",
+          "subquestions": []
+        },
+        {
+          "input_no": 28,
+          "post_id": 11569,
+          "score": 66,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11569",
+          "answer_text": "季節雇用や栽培品種ごとの契約雇用など、多様な働き方を容認するとともに、地域農業関係者との技術研修機会を設け地域での交流機会を創出し、農業大学校のインターン受け入れを行うなど、人材を早期に育成する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 29,
+          "post_id": 11563,
+          "score": 64,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11563",
+          "answer_text": "①時短勤務を導入し労働環境を改善する②休日対応に割増賃金を導入しモラール向上する③農業未経験者に熟練者がOJTを行い能力向上する④地域農業関係者との関係構築を支援し定着を図る",
+          "subquestions": []
+        },
+        {
+          "input_no": 30,
+          "post_id": 11571,
+          "score": 64,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11571",
+          "answer_text": "施策は、従業員間の役割分担を明確化し、パートや中途採用等多様な人材に対し成果に合った公正な評価制度を導入し組織を活性化、動機付け。農作業を標準化しOJTで従業員を育成、需給を調整し安定した品質で出荷。",
+          "subquestions": []
+        },
+        {
+          "input_no": 31,
+          "post_id": 11603,
+          "score": 63,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11603",
+          "answer_text": "①農業関係者の関係作りの為業務繁閑時の応援体制構築②農業の面白さや直営店での最終消費者との触れ合いや食品加工が行えることを訴求し農業未経験者にも門を広き人材獲得③配置転換で職務充実できる事で定着を狙う",
+          "subquestions": []
+        },
+        {
+          "input_no": 32,
+          "post_id": 11549,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11549",
+          "answer_text": "地域の農業関係者への外部研修で地域へ溶け込ませるととも育成を図り、希望に応じた計画的な配置転換、裁量の付与などで内発的動機付け\nをし、突発的な対応を公正に評価することでモチベーション向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 33,
+          "post_id": 11593,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11593",
+          "answer_text": "施策は、①共同開発等、外部との連携を推進、②マニュアル化や役割分担明確化、③柔軟な勤務体系導入。④社員教育で能力開発。以上で組織活性化と士気向上を行い、新規就農者を確保し地域連携強化で定着率を高める。",
+          "subquestions": []
+        },
+        {
+          "input_no": 34,
+          "post_id": 11421,
+          "score": 61,
+          "published_at": "2023-06-21",
+          "url": "https://www.aas-clover.com/tokyoblog/11421",
+          "answer_text": "施策は①農業大学校と関係性深め、インターンシップ受入②作業のマニュアル化と教育、役割分担明確化③地域農業者と交流会④残業や突発対応の手当⑤社内交流で帰属意識を高めることで、新規採用し定着率向上。",
+          "subquestions": []
+        },
+        {
+          "input_no": 35,
+          "post_id": 11561,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11561",
+          "answer_text": "施策は①業務手順の標準化、OJTによる技能習得体制構築②役割分担を明確し、繁閑に応じ、パートを活用した柔軟な生産体制構築③組織変革の必要性を伝え、地域として新参者が溶け込みやすい環境作りで組織活性化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 36,
+          "post_id": 11565,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11565",
+          "answer_text": "インターンシップでＡ社の魅力を発信しつつ、役割分担の明確化、フレックス勤務を導入し、研修OJTで近接同質性、相互依存性を高め、農業経験者との意思疎通の場を設けて帰属意識を向上させて獲得定着を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 37,
+          "post_id": 11497,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11497",
+          "answer_text": "A社は、①契約形態毎の権限と責任を明確にして、定時内や繁忙期のみといった勤務を可能にして、主婦を獲得すべき、②農業関係者との交流会を開き、関係性を構築して帰属意識とモラールを高め定着を図るべき。",
+          "subquestions": []
+        },
+        {
+          "input_no": 38,
+          "post_id": 11599,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11599",
+          "answer_text": "獲得の施策は①農業の面白さややりがいを訴求②仕事内容について実態の詳細説明し、\n入社後のギャップなくす。定着の施策は①従業員の役割分担明確化②業務のマニュアル\n化③OJＴ、能力開発実施、でモラール向上",
+          "subquestions": []
+        },
+        {
+          "input_no": 39,
+          "post_id": 11513,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11513",
+          "answer_text": "施策は、①役割分担の明確化、②品種ごとの生産グループに分け有能な就農者に一部権限委譲、③生産した野菜の顧客からの評判を社内共有、以上により従業員のモチベーションを向上し、会社への帰属意識の向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 40,
+          "post_id": 11521,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11521",
+          "answer_text": "施策は①現経営者の仕事ノウハウを形式知化しOJTを通し教育し能力向上を図る②従業員の役割分担の明確化、柔軟な勤務体制の導入③地域の農業関係者と定期的な交流会実施等で士気向上と帰属意識を高め定着率改善。",
+          "subquestions": []
+        },
+        {
+          "input_no": 41,
+          "post_id": 11579,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11579",
+          "answer_text": "①役割分担を明確にし体系化し②仕事内容をOJTと標準化・マニュアル化することで働きやすい環境を整備する③農業大学生に職場体験をしてもらい入社後のすれ違いをなくす。以上で、新規就農者を獲得し定着力を向上",
+          "subquestions": []
+        },
+        {
+          "input_no": 42,
+          "post_id": 11591,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11591",
+          "answer_text": "施策は①ＯＪＴを活用した人材育成②フレックス制等を導入して時間に柔軟な労働環境の整備③「人にやさしく、環境にやさしい農業」のコンセプト共有による組織の一体感の醸成である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 43,
+          "post_id": 11567,
+          "score": 58,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11567",
+          "answer_text": "A社は①雇用面でフレックス勤務や副業人材の採用、②報酬面で突発対応への割増賃金制度、③配置面で直営店との計画的な配置転換、④育成面で地域の農業関係者との合同研修の実施等で新規就農者の獲得と定着を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 44,
+          "post_id": 11475,
+          "score": 56,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11475",
+          "answer_text": "直営店での接客を通じて地元の消費者との接点を増やし、帰属意識を高める。生産部門では経験者から農業指導をする場を設け、能力開発に努める。突発的な対応への公正な評価を行い、従業員の動機づけにつなげる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 45,
+          "post_id": 11555,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11555",
+          "answer_text": "新規就農者の採用時に農業の業務内容を丁寧に説明し、納得性を高め離職を防止する。またOJＴ制度の導入や経営者と共に地域農業関係者と会う等、未経験者の能力開発を図り、帰属意識を高める取り組みを実施する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 46,
+          "post_id": 11435,
+          "score": 54,
+          "published_at": "2023-06-22",
+          "url": "https://www.aas-clover.com/tokyoblog/11435",
+          "answer_text": "施策は、①ベテラン従業員によるＯＪＴの実施、②食品加工など希望に応じた職務拡大により、雇用を安定化させること、③担当野菜の新商品開発など従業員への権限委譲により士気を高め、定着率を向上させる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 47,
+          "post_id": 11481,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11481",
+          "answer_text": "農業体験会を実施して農業の面白さを自覚してもらい新規就農者を獲得する。新規就農者が地域農業に溶け込めるよう定期交流会を開く。従業員間で明確な役割分担を行う。突発対応は班を作り持ち回りで対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 48,
+          "post_id": 11503,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11503",
+          "answer_text": "施策は①農業未経験者に対するOJT等、教育システムの導入、②スポット勤務、変形労働勤務の活用、③社員の役割を明確化、④社員交流イベントの開催により意思疎通を円滑化、士気向上、帰属意識を高める。",
+          "subquestions": []
+        },
+        {
+          "input_no": 49,
+          "post_id": 11523,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11523",
+          "answer_text": "「人にやさしく、環境にやさしい農業」というコンセプトを明確にした上で、従業員の役割を明確にし帰属意識を高める。また、地元農家や農協と連携し、イベントを通して従業員との関係を強化し、定着率を高める。",
+          "subquestions": []
+        },
+        {
+          "input_no": 50,
+          "post_id": 11539,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11539",
+          "answer_text": "①役割を明確化すると共に業務や作業を標準化、労働環境を整備、②外部研修で農業者との関係性を確立、③給与や手当を見直し待遇を改善。以上でやる気とモラールを向上させ帰属意識の高い従業員を確保する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 51,
+          "post_id": 11595,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11595",
+          "answer_text": "施策は、①従業員の役割分担を明確にし、パート従業員を有効活用して環境整備を行う、②地域の農業関係者と交流の場を設け、関係性の強化、③ビジョンを明確化、意思疎通を増やし、貢献意欲、帰属意識の向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 52,
+          "post_id": 11479,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11479",
+          "answer_text": "施策は①新規就農者向けメンター制度導入②県の農業大学校卒業生やＩ・Ｕターン希望者に対し定時出社・退社は難しいが面白い仕事な事、自社ノウハウやコンセプト、 認知度高い製品等強みを訴求、 獲得と定着図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 53,
+          "post_id": 11547,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11547",
+          "answer_text": "施策は①経営ビジョンの明確化により、社員の帰属意識を高める②新卒社員の教育の実施、社員の配置転換により社内交流し、組織の活性化と定着率向上を図る③効率的な役割分担により、人手不足を解消すること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 54,
+          "post_id": 11581,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11581",
+          "answer_text": "施策は、現経営者が感じた農業の面白さやコンセプトを伝え人材を確保する。また、①ワークライフバランスや働きやすい職場環境を整え、③農業関係者にあいさつ回りを行い、従業員の帰属意識を高め人材の定着を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 55,
+          "post_id": 11441,
+          "score": 52,
+          "published_at": "2023-06-22",
+          "url": "https://www.aas-clover.com/tokyoblog/11441",
+          "answer_text": "①農業の仕事の現実を伝えたうえで、Ａ社のコンセプトに共感する帰属意識の高い人材を広く県内外から募集する。➁中途採用者をＯＪＴ担当者に任命して組織社会化を図る。③閑散期に能力開発をすすめる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 56,
+          "post_id": 11589,
+          "score": 52,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11589",
+          "answer_text": "施策は従業員間で明確な役割分担し作業の標準化の上経験豊富な従業員が教育し能力向上、地元の農協と連携し地域の農業関係者と交流イベントの企画、農業大学校の学生を入社前にパート従業員として入社させ士気向上。",
+          "subquestions": []
+        },
+        {
+          "input_no": 57,
+          "post_id": 11489,
+          "score": 51,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11489",
+          "answer_text": "①地域の農業関係者との交流強化②残業や休日の突発的な対応に対する手厚い手当の導入③OJTなどにより若手への技術承継④上記を訴求した採用活動。以上で関係者との関係強化と士気向上で就農者の獲得と定着を図る",
+          "subquestions": []
+        },
+        {
+          "input_no": 58,
+          "post_id": 11499,
+          "score": 51,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11499",
+          "answer_text": "①インターンシップ等で幅広い外部人材に対しA社の魅力を訴求し②経営理念や組織目標を明確にし③共に過ごす時間を増やして意思疎通を活性化し一体感や凝集性を高め、④意思決定にも参加化させて士気を向上させる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 59,
+          "post_id": 11485,
+          "score": 50,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11485",
+          "answer_text": "人にやさしく環境に優しい農業というコンセプトや門外漢でも活躍できる点を訴求し、農業大学校卒業性以外の卒業生を対象とした新卒採用を行うことで、幅広い人材を獲得し適正な人材配置でモラールを考慮し定着図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 60,
+          "post_id": 11545,
+          "score": 50,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11545",
+          "answer_text": "施策は、従業員間の役割分担を明確にすること、災害時に互いに助け合う仕組み作り、地域の農業関係者に溶け込み易い文化・風土を構築、農業の楽しさを教えること。以上で、帰属意識を高め定着化を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 61,
+          "post_id": 11557,
+          "score": 49,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11557",
+          "answer_text": "施作はフレキシブルな勤務体制や公正な評価制度を導入。OJTでの人材の育成や新規就農者とのコミュニケーションを深める場を設けて、社内での連帯感を醸成し、帰属意識の高い従業員を確保していく。",
+          "subquestions": []
+        },
+        {
+          "input_no": 62,
+          "post_id": 11439,
+          "score": 47,
+          "published_at": "2023-06-22",
+          "url": "https://www.aas-clover.com/tokyoblog/11439",
+          "answer_text": "助言は①県の農業大学校と連携し農業体験授業を行い、農業の特性を理解してもらい、一体感醸成で新参者の獲得②新参者と地域の農業関係者が円滑な交流の場を設け、目標達成、帰属意欲を高め、長く働き続け定着させる",
+          "subquestions": []
+        },
+        {
+          "input_no": 63,
+          "post_id": 11437,
+          "score": 46,
+          "published_at": "2023-06-22",
+          "url": "https://www.aas-clover.com/tokyoblog/11437",
+          "answer_text": "施策は①人と環境にやさしい農業の企業ビジョンを説明し共感獲得②中途や大卒の農業未経験者への教育制度整備③仕事の内容役割を説明④繁閑に合わせた柔軟な勤務時間制度や若手意見提案制度導入で帰属意識を高める。",
+          "subquestions": []
+        },
+        {
+          "input_no": 64,
+          "post_id": 11527,
+          "score": 46,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11527",
+          "answer_text": "必要な施策は①柔軟な働き方ができるよう制度を整え、採用する、②突発的な対応に適正な報酬や代休制度を導入する、③地域の農業者との交流の場を設けること。以上より、モチベーションを向上・帰属意識を高める。",
+          "subquestions": []
+        },
+        {
+          "input_no": 65,
+          "post_id": 11597,
+          "score": 45,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11597",
+          "answer_text": "施策は，①農業関係者との交流深める②繁閑に応じた柔軟な労務環境の整備③役割分担の明確化④Ａ社の歴史・組織理念の訴求⑤研修制度充実⑥暗黙知の形式知化である。これにより，帰属意識・能力・士気を向上させる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 66,
+          "post_id": 11537,
+          "score": 44,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11537",
+          "answer_text": "施策は①これまでの正社員と賃金などの差はあるが定時出社、定時退社できる制度を作り、新規就農者を獲得すると共に②従業員からの提案を上手に取り入れ、モラールを向上させ、帰属意識を高め、定着を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 67,
+          "post_id": 11605,
+          "score": 44,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11605",
+          "answer_text": "施策は、➀能力の向上を図る。具体的には、OJT、OFF-JTで使用する業務マニュアルを作成しノウハウを伝える。➁モラール向上を図る。具体的には、提案制度、表彰制度を設け自分の考えを実現する場を与える。",
+          "subquestions": []
+        },
+        {
+          "input_no": 68,
+          "post_id": 11525,
+          "score": 43,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11525",
+          "answer_text": "A社は、①県の農業大学校の卒業生などの新卒採用、農業未経験者の中途採用を行い、②突発対応を評価する評価制度やフレックスタイム制など柔軟な勤務体系、③ＯＪＴで農業知識を習得させモラール向上し人材確保する",
+          "subquestions": []
+        },
+        {
+          "input_no": 69,
+          "post_id": 11529,
+          "score": 43,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11529",
+          "answer_text": "地元の農家と連携してインターンなどを活用し研修等を実施、仕事の魅力を訴求して新規就農者を獲得、獲得後も農家との交流できる機会を設ける。仕事の役割を明確化し管理することで個人の予定希望に対応し定着を図る",
+          "subquestions": []
+        },
+        {
+          "input_no": 70,
+          "post_id": 11607,
+          "score": 43,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11607",
+          "answer_text": "施策は、①直営店に隣接する作業場の作り手や栽培方法を見せ、農業体験で農業の面白さを自覚させ獲得する、②従業間での明確な役割分担、定時の出退勤を認め、新規就農者が溶け込みやすい関係を作り定着させること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 71,
+          "post_id": 11495,
+          "score": 38,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11495",
+          "answer_text": "①生産技術研修の充実②コンセプトを社内に共有し、役割分担を明確にして体制整備③業務を区分し、季節的な繁閑に応じノンコア業務にパート社員を活用④繁閑に応じた配置転換。労働時間を含む就業環境改善し士気向上",
+          "subquestions": []
+        },
+        {
+          "input_no": 72,
+          "post_id": 11505,
+          "score": 37,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11505",
+          "answer_text": "A社は、①シフト制による柔軟な勤務体制を整備し、②応援体制を整えることで突発的な事項に対応し、③インターンシップ制を導入して学生のミスマッチを解消し、④成果主義制度を導入して士気向上を図ること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 73,
+          "post_id": 11517,
+          "score": 37,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11517",
+          "answer_text": "施策は、①季節の繁閑に応じた休暇制度を導入する、②社長からビジョンの説明を行い、役割分担を明確にする、③仕事の標準化を図るとともに、正社員はコア業務に専念する体制を構築し、モラール向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 74,
+          "post_id": 11543,
+          "score": 37,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11543",
+          "answer_text": "施策は①新規就農者に対しコンセプトを共有する研修を行い、帰属意識を高める②組織構造を定めて役割を明確化し、士気向上させる③評価制度を定めてハードな対応を評価するなどを行い、新規就農者を獲得し定着。",
+          "subquestions": []
+        },
+        {
+          "input_no": 75,
+          "post_id": 11443,
+          "score": 36,
+          "published_at": "2023-06-22",
+          "url": "https://www.aas-clover.com/tokyoblog/11443",
+          "answer_text": "助言は1従業員間で明確な役割分担を行い、帰属意識を高め、2長期的な視点での公正・公 平な評価、3社内表彰制度や職務拡大の実施、4OJT や研修会等の施策を行う。従業員満足度を高め士気や定着率向上。",
+          "subquestions": []
+        },
+        {
+          "input_no": 76,
+          "post_id": 11426,
+          "score": 34,
+          "published_at": "2023-06-21",
+          "url": "https://www.aas-clover.com/tokyoblog/11426",
+          "answer_text": "従業員の定着率や帰属意識を高めるために、①自然災害や季節的繁閑に応じて柔軟に雇用調整し②役割分担を明確化した上でOJTや研修で教育し③定期会議等で交流を促し従業員間の連携を強化すべき。",
+          "subquestions": []
+        },
+        {
+          "input_no": 77,
+          "post_id": 11432,
+          "score": 28,
+          "published_at": "2023-06-22",
+          "url": "https://www.aas-clover.com/tokyoblog/11432",
+          "answer_text": "地域の農業関係者と協業することにより、繁忙期と閑散期の差に対応する。地域の女性や高齢者を雇用し、公正な賃金制度を導入し、能力開発を行うことで動機付けを図る。",
+          "subquestions": []
+        }
+      ]
+    },
+    {
+      "question_no": 3,
+      "points": 20,
+      "heading_text": "第３問（配点20点）",
+      "answer_count": 77,
+      "score_stats": {
+        "count": 77,
+        "min": 28,
+        "max": 94,
+        "median": 59,
+        "mean": 58.7
+      },
+      "answer_char_stats": {
+        "count": 77,
+        "min": 64,
+        "max": 100,
+        "median": 96,
+        "mean": 94.68
+      },
+      "exemplars": {
+        "high": [
+          {
+            "post_id": 11583,
+            "score": 94,
+            "published_at": "2023-06-24",
+            "answer_text": "中食業者の厳しい要求に対応し、信頼関係を維持しながら、依存度を下げていく。具体的には②新品種の生産に資源配分する②直営店や食品加工などの強化することで、中食業者以外からの売上を増やしていく。"
+          },
+          {
+            "post_id": 11531,
+            "score": 90,
+            "published_at": "2023-06-24",
+            "answer_text": "厳しい要求水準を満たし、共同開発等を通じて高付加価値製品を提供して良好な関係を維持するべきである。過度な売上依存を避けるため、新規取引先の開拓や他事業の拡充も図り経営リスク分散を図る。"
+          },
+          {
+            "post_id": 11551,
+            "score": 81,
+            "published_at": "2023-06-24",
+            "answer_text": "大手中食業者と取引を継続しつつ、高い要求水準に対応していくことでノウハウ蓄積し、自社工場や直営店の強化に活かし売上増加や新規開拓を図る。大手中食業者への依存度を下げることで経営リスクを低減させる。"
+          },
+          {
+            "post_id": 11601,
+            "score": 80,
+            "published_at": "2023-06-24",
+            "answer_text": "要求に応えるだけでなく双方向のコミュニケーションを図りニーズを収集することで新商品の開発・提案を行う強固な関係。一方、売上依存割合は新分野へ挑戦することで減らし、経営リスクを回避することを助言する。"
+          },
+          {
+            "post_id": 11487,
+            "score": 79,
+            "published_at": "2023-06-24",
+            "answer_text": "直営店で収集したニーズを活用し提案型、高付加価値型の取引により関係性を強化して一定の売上を確保する一方、他社との取引や新たな品種の生産に経営資源を投入し、X社取引への依存を解消する。"
+          }
+        ],
+        "middle": [
+          {
+            "post_id": 11497,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": "A社は、良好な関係を維持して安定的な収益とノウハウの蓄積を行う一方で、他社や直営店といった販売チャネルを開拓し、大手中食業者に依存しすぎず、売り手の交渉力を発揮できる対等な関係を構築すべき、である。"
+          },
+          {
+            "post_id": 11599,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": "直営店で収集した顧客ニーズや中食業者のニーズに合致した新製品を開発し、積極的提案\nすることで取引強化図り、互恵関係構築する。また複数の中食業者との取引関係を築き、経\n営リスクの分散を図る。"
+          },
+          {
+            "post_id": 11513,
+            "score": 59,
+            "published_at": "2023-06-24",
+            "answer_text": "大手中食業者が求める厳しい要求水準へ対応することで取引拡大し安定的な収益を上げるべきである。有機栽培のノウハウ向上、就農者の確保、新品種の開発を推進し、安定した品質と出荷をできる体制を構築する。"
+          },
+          {
+            "post_id": 11521,
+            "score": 59,
+            "published_at": "2023-06-24",
+            "answer_text": "蓄積した対応能力を活かし、大手中食業者には専任担当者を配置し、対応する事で業務効率化を図る。余った余力を新たな品種の生産や直営店、食品加工に経営資源を注力し売上依存脱却と経営リスク分散を図る。"
+          },
+          {
+            "post_id": 11579,
+            "score": 59,
+            "published_at": "2023-06-24",
+            "answer_text": "一方的な要求を対応する関係から、デリバリー需要への対応等事業を拡大するパートナー関係を構築する。蓄積した対応能力を更に高めるため、消費者の声を反映しやすい関係を構築しシナジー創出し売上向上を図る。"
+          }
+        ],
+        "low": [
+          {
+            "post_id": 11432,
+            "score": 28,
+            "published_at": "2023-06-22",
+            "answer_text": "戦略的提携関係を構築し、企業結合度を高め取引関係を強化する。作り手や栽培方法が見える化された商品開発などオープンイノベーションを行い組織活性化を図り、大手中食業者の要求水準に応え、組織学習を促進する。"
+          },
+          {
+            "post_id": 11426,
+            "score": 34,
+            "published_at": "2023-06-21",
+            "answer_text": "大手中食業者への売上依存から脱却し経営リスクを分散させるべき。そのために①デリバリー需要を基に同社との取引関係を維持しつつ②作り手や栽培方法が見える化された商品を訴求し、同社以外との取引を増やすべき。"
+          },
+          {
+            "post_id": 11443,
+            "score": 36,
+            "published_at": "2023-06-22",
+            "answer_text": "助言は、1連携を高める為、アライアンスを締結、2売上高を依存している為、大手中食業 者以外への取引拡大を行い、リスク分散を図る事、3新たな品種を生産する為の余力を確保 する事。"
+          },
+          {
+            "post_id": 11505,
+            "score": 37,
+            "published_at": "2023-06-24",
+            "answer_text": "A社は、①大手中食業者の要求水準に対応しノウハウを蓄積していくことで対応力を高めていくこと、②対等な協力関係を構築し、デリバリー需要を取り込むことで収益の拡大を図っていくことである。"
+          },
+          {
+            "post_id": 11517,
+            "score": 37,
+            "published_at": "2023-06-24",
+            "answer_text": "助言は、依存度を上げずに、対等な関係を築くことである。自社栽培の新鮮で旬な野菜を使った総菜を後継者のノウハウや菓子メーカーとの共同開発により提供し、食の安全志向を訴求することで交渉力を高める。"
+          }
+        ]
+      },
+      "answers": [
+        {
+          "input_no": 1,
+          "post_id": 11583,
+          "score": 94,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11583",
+          "answer_text": "中食業者の厳しい要求に対応し、信頼関係を維持しながら、依存度を下げていく。具体的には②新品種の生産に資源配分する②直営店や食品加工などの強化することで、中食業者以外からの売上を増やしていく。",
+          "subquestions": []
+        },
+        {
+          "input_no": 2,
+          "post_id": 11531,
+          "score": 90,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11531",
+          "answer_text": "厳しい要求水準を満たし、共同開発等を通じて高付加価値製品を提供して良好な関係を維持するべきである。過度な売上依存を避けるため、新規取引先の開拓や他事業の拡充も図り経営リスク分散を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 3,
+          "post_id": 11551,
+          "score": 81,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11551",
+          "answer_text": "大手中食業者と取引を継続しつつ、高い要求水準に対応していくことでノウハウ蓄積し、自社工場や直営店の強化に活かし売上増加や新規開拓を図る。大手中食業者への依存度を下げることで経営リスクを低減させる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 4,
+          "post_id": 11601,
+          "score": 80,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11601",
+          "answer_text": "要求に応えるだけでなく双方向のコミュニケーションを図りニーズを収集することで新商品の開発・提案を行う強固な関係。一方、売上依存割合は新分野へ挑戦することで減らし、経営リスクを回避することを助言する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 5,
+          "post_id": 11487,
+          "score": 79,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11487",
+          "answer_text": "直営店で収集したニーズを活用し提案型、高付加価値型の取引により関係性を強化して一定の売上を確保する一方、他社との取引や新たな品種の生産に経営資源を投入し、X社取引への依存を解消する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 6,
+          "post_id": 11509,
+          "score": 75,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11509",
+          "answer_text": "下請けでない対等な取引関係を築くべき。具体的には①商品価値に応じた適正価格の設定②顧客ニーズを踏まえた新商品の提案③業務提携の実施、以上によりシナジーを発揮し、差別化し、依存度上昇是正にも留意する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 7,
+          "post_id": 11573,
+          "score": 74,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11573",
+          "answer_text": "取引集中によるリスク回避や要望への対応不可低減のため，対過度な取引拡大は避ける。一方，既存戦力で対応可能である，直営店で得たニーズを踏まえた中食メニューを提案することで，信頼維持と売上向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 8,
+          "post_id": 11585,
+          "score": 74,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11585",
+          "answer_text": "大手との取引依存を下げて、人と環境にやさしいコンセプトを軸に直営店や飲食サービス、複数の業者との取引を拡大していく。高付加価値な野菜や商品を武器に、常務の経験やツテを生かして、後継者と営業をしていく。",
+          "subquestions": []
+        },
+        {
+          "input_no": 9,
+          "post_id": 11535,
+          "score": 71,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11535",
+          "answer_text": "大手中食業者との信頼関係を活かし、大手中食業者から顧客ニーズを収集し、新しい品種の開発を行 う、協力関係を構築する。大手中食業者への依存度 を低下させるため、その他販売先との関係も強化する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 10,
+          "post_id": 11575,
+          "score": 71,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11575",
+          "answer_text": "対応に忙殺されている為、①需要の予測精度向上で計画的な受注ができるよう依頼する②設備投資や人の支援を依頼する。又、新たな品種の生産に生きる声を聞かせてもらう等、相互利益が得られるよう関係を強化する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 11,
+          "post_id": 11519,
+          "score": 70,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11519",
+          "answer_text": "Ａ社の高品質な野菜生産力を活かした加工品を共同開発し、高まる食の安全志向の需要を獲得する。ニーズを把握する中食業者と野菜生産者のＡ社との相乗効果にて売上拡大を図る。外部資源の活用で人手不足を解消する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 12,
+          "post_id": 11541,
+          "score": 70,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11541",
+          "answer_text": "蓄積した対応能力を活かしつつ厳しい要求水準に対応しながら段階的に依存割合を減らしていくべき。理由は①依存割合が高いと経営リスクが高い②経営資源を開発等にまわし新品種の生産をして会社を成長させるため。",
+          "subquestions": []
+        },
+        {
+          "input_no": 13,
+          "post_id": 11553,
+          "score": 70,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11553",
+          "answer_text": "① 今後も大手中食業者との関係を長期に継続しつつ、②取引を通じた対応能力として消費者ニーズの把握を行い、製品開発に役立て、③大手中食業者以外の卸先や直営店の売上を相対的に向上させていく。",
+          "subquestions": []
+        },
+        {
+          "input_no": 14,
+          "post_id": 11483,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11483",
+          "answer_text": "大手中食業者への依存度を低下させる。経験豊富な従業員の連携力や開発力、常務の販売先開拓力、有機JASとJGAP認証を活用し新たな取引先を開拓する事で大手中食業者の対応を削減し新品種の生産に資源集中する",
+          "subquestions": []
+        },
+        {
+          "input_no": 15,
+          "post_id": 11493,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11493",
+          "answer_text": "取引依存関係を脱却すべきである。①取引先を増やしして、取引依存を減らす。②交渉力を高めて対応過多の状態を脱却する、③新たな品種の生産により差別化する④互恵関係を構築する、ことである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 16,
+          "post_id": 11507,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11507",
+          "answer_text": "Ｃ社の特色ある食材と食品加工技術を活かし、高付加価値で差別化された惣菜をＸ社と提案、共同開発をする。Ｘ社との協業で蓄積したノウハウを還流し、自社ブランドの開発を行い、長期的には一社への依存を漸減する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 17,
+          "post_id": 11515,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11515",
+          "answer_text": "A社は①直接取引により高い要求水準に対応して信頼を得ながら②食品加工分野の総菜商品等を大手中食業者だけでなく、複数の業者に販売し依存度を低減する事で経営リスクの分散を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 18,
+          "post_id": 11428,
+          "score": 68,
+          "published_at": "2023-06-21",
+          "url": "https://www.aas-clover.com/tokyoblog/11428",
+          "answer_text": "大手中食業者からの厳しい要求水準に応える事で対応能力を蓄積、深化させ、これを強みとして新たな市場の開拓を行い大手中食業者の依存度を下げ、新たな品種の生産を行う事。以上で、経営リスクを分散させる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 19,
+          "post_id": 11491,
+          "score": 68,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11491",
+          "answer_text": "大手中食業者へ円滑な対応が出来るよう社内管理体制を強化し、売上維持に努め関係性を継続する。一方、一社依存を回避するため現状以上の売上高の拡大は避け、中食業者に配慮しつつ新規取引先の獲得を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 20,
+          "post_id": 11587,
+          "score": 68,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11587",
+          "answer_text": "継続的で安定した取引関係を構築すべき。①デリバリー需要も踏まえ、厳しい要求に応え続け、対応能力を更に増し②食の安全の高まりを受け作り手や栽培方法が見える化された商品を更に訴求し、一定の取引を確保する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 21,
+          "post_id": 11477,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11477",
+          "answer_text": "互恵関係とし①有機野菜業者の成功にならい直接取引で最終消費者の収集ニーズを分析し強みの顧客対応力を強化し、②デリバリー需要の機会を捉え新しい収益の柱を追加して関連多角化で相乗効果と経営リスク分散する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 22,
+          "post_id": 11501,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11501",
+          "answer_text": "A社は大手中食業者を通じてA社のコンセプトや認証をもつことを最終消費者に訴求する。最終消費者のニーズを確認することで大手中食業者と協同で食品の共同開発を進める。大手中食業者と人員の融通を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 23,
+          "post_id": 11511,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11511",
+          "answer_text": "大手中食業者とは、売上依存の脱却を図りつつ、②顧客ニーズを活用した共同製品開発を行う。以上により、①経営リスクを分散しつつ、売上向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 24,
+          "post_id": 11577,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11577",
+          "answer_text": "大手中食業界の厳しい要求に合わせるため野菜の品質を高め、一年中安定した出荷ができる体制づくりを行う。一方で売上の依存割合を抑えるため、蓄積したノウハウを生かして新規取引先を開拓していく。",
+          "subquestions": []
+        },
+        {
+          "input_no": 25,
+          "post_id": 11430,
+          "score": 66,
+          "published_at": "2023-06-22",
+          "url": "https://www.aas-clover.com/tokyoblog/11430",
+          "answer_text": "①大手中食業者の要求に応じ生産管理能力を高め②デリバリー需要を機会と捉え、共同開発、販売体制の構築、③一方で売上依存度を下げ、事業リスクの分散しつつ、④信頼関係を高め、長期的な取引関係を築く事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 26,
+          "post_id": 11533,
+          "score": 66,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11533",
+          "answer_text": "助言は①厳しい要求水準に対応しつづける品質管理部門の設置、②事業譲渡を受け入れた有機販売事業との連携強化で組織の一体化を醸成し、③新たな品種生産の開発に取り組むことで、取引関係の強化を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 27,
+          "post_id": 11559,
+          "score": 66,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11559",
+          "answer_text": "大手中食業者と協業し戦略的提携関係を構築する。自社栽培の野菜やフルーツに特化した惣菜製品を製造し協業先のニーズを活かし製品に改良する。協業先の販路での販売拡大を通じて地域に根ざした農業を実現していく。",
+          "subquestions": []
+        },
+        {
+          "input_no": 28,
+          "post_id": 11569,
+          "score": 66,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11569",
+          "answer_text": "中食需要の伸びとA社の有機JAS認証の強みを活かし、中食事業者からは製造技術やニーズを反映した商品開発ノウハウを教授し、A社は新たな栽培品種の増加や直営店を活かした試作を行うといった戦略的な関係性。",
+          "subquestions": []
+        },
+        {
+          "input_no": 29,
+          "post_id": 11563,
+          "score": 64,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11563",
+          "answer_text": "複数の取引先を開拓し、大手中食業者に依存しすぎず、自社からも提案を行い対等な関係性を構築する。理由は①リスク分散を図るため②新たな品種生産に取り組む時間を作り付加価値向上を図るため。",
+          "subquestions": []
+        },
+        {
+          "input_no": 30,
+          "post_id": 11571,
+          "score": 64,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11571",
+          "answer_text": "取引は継続し安定した収入は得るが、要求水準が厳しすぎるのものに関しては断るなど、依存を抑制し経営資源分散を回避。新たな品種の生産や飲食サービス業や新たな分野の開拓に取り組む。顧客ニーズを収集。",
+          "subquestions": []
+        },
+        {
+          "input_no": 31,
+          "post_id": 11603,
+          "score": 63,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11603",
+          "answer_text": "作り手や栽培方法が見える化した新品種の生産を行い食の安全性を訴求して販売量拡大。デリバリー需要や人気の惣菜等でも取引を獲得する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 32,
+          "post_id": 11549,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11549",
+          "answer_text": "大手中食業者との関係を提携・協業に発展させ対応力のさらなる向上を図り、食の安全の高まりに合う製品を開発する。地元農協や複数の卸業者にも販路を広げ大手中食業者の売上依存度を下げ、経営リスクを低減する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 33,
+          "post_id": 11593,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11593",
+          "answer_text": "大手中小業者以外との取引を増やし、依存度を低下させ、A社の交渉力を高める。X社とは、惣菜品等の高付加価値商品の取引を増やし、高収益化する。以上で余力を創出し、新品種の生産を行い、売上拡大を行う。",
+          "subquestions": []
+        },
+        {
+          "input_no": 34,
+          "post_id": 11421,
+          "score": 61,
+          "published_at": "2023-06-21",
+          "url": "https://www.aas-clover.com/tokyoblog/11421",
+          "answer_text": "取引関係は①食品加工の知識・ノウハウを教えてもらい②顧客ニーズ収集し、最終消費者の求める品種の生産や惣菜商品の共同開発を行っていく。関係性を強化し、見える化された商品で差別化を図っていく。",
+          "subquestions": []
+        },
+        {
+          "input_no": 35,
+          "post_id": 11561,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11561",
+          "answer_text": "大手中食業者と定期情報共有し、学習機会を活用し、デリバリー需要等に対し、要求水準を超える対応力を付け、互恵関係を築く一方で、安定関係を維持するため、依存度を下げ、他の中食業者とも取引関係を構築すべき。",
+          "subquestions": []
+        },
+        {
+          "input_no": 36,
+          "post_id": 11565,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11565",
+          "answer_text": "食の安全志向の高まりを背景に取引先の厳しい要求水準に応え工場倉庫を活用した生産体制で繁閑に対応して生産可能なPB商品を提案し、取引先の売上向上に貢献しつつ自社の収益と販路を拡大しつつ取引依存を減らす。",
+          "subquestions": []
+        },
+        {
+          "input_no": 37,
+          "post_id": 11497,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11497",
+          "answer_text": "A社は、良好な関係を維持して安定的な収益とノウハウの蓄積を行う一方で、他社や直営店といった販売チャネルを開拓し、大手中食業者に依存しすぎず、売り手の交渉力を発揮できる対等な関係を構築すべき、である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 38,
+          "post_id": 11599,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11599",
+          "answer_text": "直営店で収集した顧客ニーズや中食業者のニーズに合致した新製品を開発し、積極的提案\nすることで取引強化図り、互恵関係構築する。また複数の中食業者との取引関係を築き、経\n営リスクの分散を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 39,
+          "post_id": 11513,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11513",
+          "answer_text": "大手中食業者が求める厳しい要求水準へ対応することで取引拡大し安定的な収益を上げるべきである。有機栽培のノウハウ向上、就農者の確保、新品種の開発を推進し、安定した品質と出荷をできる体制を構築する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 40,
+          "post_id": 11521,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11521",
+          "answer_text": "蓄積した対応能力を活かし、大手中食業者には専任担当者を配置し、対応する事で業務効率化を図る。余った余力を新たな品種の生産や直営店、食品加工に経営資源を注力し売上依存脱却と経営リスク分散を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 41,
+          "post_id": 11579,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11579",
+          "answer_text": "一方的な要求を対応する関係から、デリバリー需要への対応等事業を拡大するパートナー関係を構築する。蓄積した対応能力を更に高めるため、消費者の声を反映しやすい関係を構築しシナジー創出し売上向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 42,
+          "post_id": 11591,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11591",
+          "answer_text": "取引関係としては①大手中食業者との取引量は極力維持する一方で②大手中食業者以外の取引先を開拓する③直営店や食品加工分野への専任者を配置する。これにより、一社に強く依存する状況を回避する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 43,
+          "post_id": 11567,
+          "score": 58,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11567",
+          "answer_text": "A社は、①大手中食業者からの厳しい要求水準への対応でノウハウの蓄積、②直接取引による顧客ニーズの収集、③売上高の依存割合増加に対して、取引依存の回避といった取引関係を築き、経営の安定化を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 44,
+          "post_id": 11475,
+          "score": 56,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11475",
+          "answer_text": "大手中食業者への売上の依存割合が多い現状を改善して最終消費者への販売量を増やす。顧客との接点を増やし、ニーズの収集と新しい品種や商品の開発につなげる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 45,
+          "post_id": 11555,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11555",
+          "answer_text": "短期的には売上維持の為、現状の関係を継続するが、新規事業が成長し売上依存度が低下した際は、農作物や食品加工品の一方的な販売関係から共同した食品加工品開発を実施する等パートナー関係を構築する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 46,
+          "post_id": 11435,
+          "score": 54,
+          "published_at": "2023-06-22",
+          "url": "https://www.aas-clover.com/tokyoblog/11435",
+          "answer_text": "大手中食業者との取引量を増やすべきではない。理由は、①新たな品種の生産など多角化に経営資源を配分して当業者への依存度を低下させるため、②人材を確保・育成して、A社の組織を再構築するためである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 47,
+          "post_id": 11481,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11481",
+          "answer_text": "強みである有機JASとJGAPを活かしてこだわりの野菜の栽培を強化して高付加価値化し、高い要求水準に対応するノウハウを蓄積することで差別化し、低価格競争を避けて安定受注を得る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 48,
+          "post_id": 11503,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11503",
+          "answer_text": "要求に応え安定的な取引を維持するとともに①自社栽培の新品種の野菜を開発し売込・提案、②連携や共同開発を行い、シナジー効果を発揮する。一方で、培った対応能力で新規顧客開拓を行い、依存度を高めすぎない。",
+          "subquestions": []
+        },
+        {
+          "input_no": 49,
+          "post_id": 11523,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11523",
+          "answer_text": "今後は、直営店や食品加工の分野に経営資源を集中させると同時に、大手中小業者への依存度を下げリスク分散を図るため、販売量を維持しながら、対応能力の蓄積も維持し、自社製品の開発に生かす。",
+          "subquestions": []
+        },
+        {
+          "input_no": 50,
+          "post_id": 11539,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11539",
+          "answer_text": "新たな品種開発のため、①要求水準の引き下げを要請、②高付加価値化し受注量を削減しつつ収益を維持。③余力を生みつつ収益を維持し依存リスクを回避。以上のため信頼関係を構築し継続的な取引関係を築いていく。",
+          "subquestions": []
+        },
+        {
+          "input_no": 51,
+          "post_id": 11595,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11595",
+          "answer_text": "取引関係は、維持して外部学習機会の機会として活用しつつ依存回避を行う。具体的には、①直営店や他の卸売業者の関係を高め、取引先の分散を行う、②地域の転作農家と連携して新品種の生産を行う。",
+          "subquestions": []
+        },
+        {
+          "input_no": 52,
+          "post_id": 11479,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11479",
+          "answer_text": "大手中食業者に対し ①蓄積した対応能力を活用し業務を効率化する事で水準を維持・向上した対応を行う一方 ② 余力を生み出し新品種の生産に人員を充てる事で、 一社依存からの脱却を図るべき。",
+          "subquestions": []
+        },
+        {
+          "input_no": 53,
+          "post_id": 11547,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11547",
+          "answer_text": "助言は、大手企業との取引で得たノウハウやA社の強みを生かし、営業力強化により新規顧客を開拓する。これにより他社との取引割合を増やすことでX社の売り上げ依存度を低下させ、経営リスク分散を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 54,
+          "post_id": 11581,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11581",
+          "answer_text": "A社は、①大手中食業者とアライアンスを締結し関係性強化を図り、安定的な収益の確保と取引中止防ぐ。\n②経営リスク分散を図るために、蓄積した対応能力を生かし、経営資源を集中させ新規顧客を獲得する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 55,
+          "post_id": 11441,
+          "score": 52,
+          "published_at": "2023-06-22",
+          "url": "https://www.aas-clover.com/tokyoblog/11441",
+          "answer_text": "取引関係をＡ社が学習して組織能力を構築する機会として、顧客の声に基づく商品改良のための情報収集の手段として活用する。その為、業者から全国の顧客の声をふまえた厳しい要求水準を伝えてもらう。",
+          "subquestions": []
+        },
+        {
+          "input_no": 56,
+          "post_id": 11589,
+          "score": 52,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11589",
+          "answer_text": "助言は自社栽培の新鮮で旬な野菜やフルーツを使った総菜商品を大手中食業者と共同開発を行い、デリバリー商品として販売する。大手中食業者から顧客ニーズを収集し製品開発や改良を行う事で売上拡大し関係性強化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 57,
+          "post_id": 11489,
+          "score": 51,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11489",
+          "answer_text": "①大手中食企業へ主体的に商品提案や共同開発を行いシナジーの創出と関係性強化を図る一方で、②売上依存度と対応への負担が増加しすぎないよう管理し、経営リスクの分散と他事業への経営資源活用を図る",
+          "subquestions": []
+        },
+        {
+          "input_no": 58,
+          "post_id": 11499,
+          "score": 51,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11499",
+          "answer_text": "大手中食業者からの要求水準に対応し、安定取引関係を継続させるとともに、蓄積した対応能力を活かし販路拡大による大手中食業者からの依存脱却を図り、価格交渉力を強化し、信頼性を向上させる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 59,
+          "post_id": 11485,
+          "score": 50,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11485",
+          "answer_text": "大手中食業者との取引を通じて対応能力を蓄積することに加え、強みである商品開発力を活かし新規開発した製品を提案するような双方向的な学習関係を結ぶことで受注を拡充していく。",
+          "subquestions": []
+        },
+        {
+          "input_no": 60,
+          "post_id": 11545,
+          "score": 50,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11545",
+          "answer_text": "A社は、大手中食業社との関係は維持する。取引で培った対応能力などのノウハウを活用して、他社の取引先を開拓し拡大や新たな品種の生産を行う。これにより、依存体質を減少し経営リスクを分散する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 61,
+          "post_id": 11557,
+          "score": 49,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11557",
+          "answer_text": "大手中食業者への対応能力を強化して発展的な関係を構築する。ただし、直営店や食品加工の分野、新たな品種の生産などにも注力していき、新しい販路を開拓することで、大手中食業社への依存を回避する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 62,
+          "post_id": 11439,
+          "score": 47,
+          "published_at": "2023-06-22",
+          "url": "https://www.aas-clover.com/tokyoblog/11439",
+          "answer_text": "助言は①大手中食業者と取引で蓄積された対応力とJASとJGAPの認証を訴求する新販路開拓、過度依存の回避。②既存の大手中食業者に、食の安全性志向に向け作り方や栽培が見える化の商品を開発し提案すること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 63,
+          "post_id": 11437,
+          "score": 46,
+          "published_at": "2023-06-22",
+          "url": "https://www.aas-clover.com/tokyoblog/11437",
+          "answer_text": "①安定的収入の柱とするも取引依存リスクを低下させ②消費者ニーズや品質管理ノウハウを学び③販売ルートを活用し自社栽培の新鮮野菜のサンドイッチや総菜商品の認知を向上、長期的に連携し安定した取引関係を築く。",
+          "subquestions": []
+        },
+        {
+          "input_no": 64,
+          "post_id": 11527,
+          "score": 46,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11527",
+          "answer_text": "大手中食業者の要望に応えるだけでなく、①自社からの製品を提案する、②他の取引先を開拓し依存度を下げることで、下請け体質からの脱却を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 65,
+          "post_id": 11597,
+          "score": 45,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11597",
+          "answer_text": "取引関係は，①蓄積された対応能力や大手中食業者との取引実績②新たな品種の開発で独自商品を開発③営業力を強化することで，他の業者との新規取引開拓し，大手中食業者の依存状態を解消して経営リスクを回避する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 66,
+          "post_id": 11537,
+          "score": 44,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11537",
+          "answer_text": "継続的に要求に応えることで対応能力が向上し、信頼を得て、中食やデリバリー需要の消費者ニーズを教えてもらい商品開発に活かす。大手中食業者に一部業務を負担してもらい新たな品種の生産を行い、売上拡大を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 67,
+          "post_id": 11605,
+          "score": 44,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11605",
+          "answer_text": "大手中食業者との協力関係を深めていくべきである。➀大手中食業者の持つ顧客情報を活用し新たな品種の開発に生かす。➁大手中食業者からの厳しい要求水準を満たし、蓄積してきた対応能力をより向上させる。である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 68,
+          "post_id": 11525,
+          "score": 43,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11525",
+          "answer_text": "A社は、①大手中食業者の厳しい要求に応え対応ノウハウを蓄積し、②デリバリー需要を取り込み共同開発等、シナジー発揮の一方、③新品種開発等で新販路を開拓し経営リスクを分散させ、依存しない取引関係を構築する",
+          "subquestions": []
+        },
+        {
+          "input_no": 69,
+          "post_id": 11529,
+          "score": 43,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11529",
+          "answer_text": "新品種の開発の時間を適切に確保し大手中食業者以外の取引先も増やすことで、大手中食業者に対しての取引条件の交渉力を高めると共に、売上を１社依存でなくし集中による経営リスクを軽減させる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 70,
+          "post_id": 11607,
+          "score": 43,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11607",
+          "answer_text": "助言は、①カフェで取得した消費者の声をもとに開発した商品を中食業者に提供する、②新たな品種の野菜を生産し、販売する、③地域の特産品である菓子メーカーと共同開発した洋菓子も販売しシナジー発揮を図ること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 71,
+          "post_id": 11495,
+          "score": 38,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11495",
+          "answer_text": "安定的な収益の柱として取引を継続するものの、大手中食業者への対応は他の取引先と同等のものとする。新たな品種の生産や大手中食業者以外への対応もあわせて行うことで、大手中食業者への依存度を下げ、経営安定化",
+          "subquestions": []
+        },
+        {
+          "input_no": 72,
+          "post_id": 11505,
+          "score": 37,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11505",
+          "answer_text": "A社は、①大手中食業者の要求水準に対応しノウハウを蓄積していくことで対応力を高めていくこと、②対等な協力関係を構築し、デリバリー需要を取り込むことで収益の拡大を図っていくことである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 73,
+          "post_id": 11517,
+          "score": 37,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11517",
+          "answer_text": "助言は、依存度を上げずに、対等な関係を築くことである。自社栽培の新鮮で旬な野菜を使った総菜を後継者のノウハウや菓子メーカーとの共同開発により提供し、食の安全志向を訴求することで交渉力を高める。",
+          "subquestions": []
+        },
+        {
+          "input_no": 74,
+          "post_id": 11543,
+          "score": 37,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11543",
+          "answer_text": "大手中食業者の要求を満たしながら対応能力を蓄積しつつ自社工場からの卸しを増やし、取引業者を増やして依存度を下げ、リスク分散する。また蓄積した対応能力で対応量を減らし、生産にも注力できるようにする。",
+          "subquestions": []
+        },
+        {
+          "input_no": 75,
+          "post_id": 11443,
+          "score": 36,
+          "published_at": "2023-06-22",
+          "url": "https://www.aas-clover.com/tokyoblog/11443",
+          "answer_text": "助言は、1連携を高める為、アライアンスを締結、2売上高を依存している為、大手中食業 者以外への取引拡大を行い、リスク分散を図る事、3新たな品種を生産する為の余力を確保 する事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 76,
+          "post_id": 11426,
+          "score": 34,
+          "published_at": "2023-06-21",
+          "url": "https://www.aas-clover.com/tokyoblog/11426",
+          "answer_text": "大手中食業者への売上依存から脱却し経営リスクを分散させるべき。そのために①デリバリー需要を基に同社との取引関係を維持しつつ②作り手や栽培方法が見える化された商品を訴求し、同社以外との取引を増やすべき。",
+          "subquestions": []
+        },
+        {
+          "input_no": 77,
+          "post_id": 11432,
+          "score": 28,
+          "published_at": "2023-06-22",
+          "url": "https://www.aas-clover.com/tokyoblog/11432",
+          "answer_text": "戦略的提携関係を構築し、企業結合度を高め取引関係を強化する。作り手や栽培方法が見える化された商品開発などオープンイノベーションを行い組織活性化を図り、大手中食業者の要求水準に応え、組織学習を促進する。",
+          "subquestions": []
+        }
+      ]
+    },
+    {
+      "question_no": 4,
+      "points": 40,
+      "heading_text": "第４問（配点40点）",
+      "answer_count": 77,
+      "score_stats": {
+        "count": 77,
+        "min": 28,
+        "max": 94,
+        "median": 59,
+        "mean": 58.7
+      },
+      "answer_char_stats": {
+        "count": 0,
+        "min": null,
+        "max": null,
+        "median": null,
+        "mean": null
+      },
+      "exemplars": {
+        "high": [
+          {
+            "post_id": 11583,
+            "score": 94,
+            "published_at": "2023-06-24",
+            "answer_text": ""
+          },
+          {
+            "post_id": 11531,
+            "score": 90,
+            "published_at": "2023-06-24",
+            "answer_text": ""
+          },
+          {
+            "post_id": 11551,
+            "score": 81,
+            "published_at": "2023-06-24",
+            "answer_text": ""
+          },
+          {
+            "post_id": 11601,
+            "score": 80,
+            "published_at": "2023-06-24",
+            "answer_text": ""
+          },
+          {
+            "post_id": 11487,
+            "score": 79,
+            "published_at": "2023-06-24",
+            "answer_text": ""
+          }
+        ],
+        "middle": [
+          {
+            "post_id": 11497,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": ""
+          },
+          {
+            "post_id": 11599,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": ""
+          },
+          {
+            "post_id": 11513,
+            "score": 59,
+            "published_at": "2023-06-24",
+            "answer_text": ""
+          },
+          {
+            "post_id": 11521,
+            "score": 59,
+            "published_at": "2023-06-24",
+            "answer_text": ""
+          },
+          {
+            "post_id": 11579,
+            "score": 59,
+            "published_at": "2023-06-24",
+            "answer_text": ""
+          }
+        ],
+        "low": [
+          {
+            "post_id": 11432,
+            "score": 28,
+            "published_at": "2023-06-22",
+            "answer_text": ""
+          },
+          {
+            "post_id": 11426,
+            "score": 34,
+            "published_at": "2023-06-21",
+            "answer_text": ""
+          },
+          {
+            "post_id": 11443,
+            "score": 36,
+            "published_at": "2023-06-22",
+            "answer_text": ""
+          },
+          {
+            "post_id": 11505,
+            "score": 37,
+            "published_at": "2023-06-24",
+            "answer_text": ""
+          },
+          {
+            "post_id": 11517,
+            "score": 37,
+            "published_at": "2023-06-24",
+            "answer_text": ""
+          }
+        ]
+      },
+      "answers": [
+        {
+          "input_no": 1,
+          "post_id": 11583,
+          "score": 94,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11583",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①機能別組織に移行し、役割分担の明確化で専門性を高める②新分野に専任担当を置き、新分野の探索を促す。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "①常務の娘に直営店以外も統括させ、全社的視点を身につけさせることで経営者としての実力をつける②若手への権限移譲を進め、商品開発力を強化すると共にモチベーションを向上させ、定着率を高めることにつなげる。"
+            }
+          ]
+        },
+        {
+          "input_no": 2,
+          "post_id": 11531,
+          "score": 90,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11531",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①直営店事業②食品加工事業③有機野菜の生産販売事業の事業部制組織とし、各事業の専門性を高めるべき"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "まず常務の娘を直営店の事業部長とし経営の経験を積ませ育成する。他事業も経験させ全社的な理解を深めさせる。次に段階的に権限を移譲していく。人員配置は従業員の希望を取り込める制度を構築し、組織活性化を図る"
+            }
+          ]
+        },
+        {
+          "input_no": 3,
+          "post_id": 11551,
+          "score": 81,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11551",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "A社は、共同開発や自社工場、食品加工の開発部門や苺や野菜の栽培部門等、専門性を高める機能別組織とする"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "若手従業員を部門長としその下にパート従業員を配置し、A社後継者が全体を管理する人員配置とする。現経営者が補佐として助言できるような組織体制とし段階的に権限委譲を行い、若手従業員とA社後継者の育成を行う"
+            }
+          ]
+        },
+        {
+          "input_no": 4,
+          "post_id": 11601,
+          "score": 80,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11601",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "生産・販売・商品開発等に分業した事業部制組織を構築し、従業員の役割分担や責任を明確化するよう助言する"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "①後継者の役員登用、積極的な商品開発提案を行う若手従業員への権限委譲により次世代の経営者・現場リーダーの育成を行う。②繁閑に各事業部に適性な人員配置を行い人材の効率的な活用、役割分担の明確化を図る"
+            }
+          ]
+        },
+        {
+          "input_no": 5,
+          "post_id": 11487,
+          "score": 79,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11487",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "農業分野と直営店・食品加工分野を別組織とし、専任化により専門性向上し、役割分担を明確化する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "まず常務の権限を委譲し、経験を積みながら農業の知識を強化する。直営店は若手従業員を責任者に抜擢して委譲し、後継者は経営に専念する。農業分野も責任者を任命し、権限委譲すると共に後継者の教育係とする。"
+            }
+          ]
+        },
+        {
+          "input_no": 6,
+          "post_id": 11509,
+          "score": 75,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11509",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "直営店、工場、商品開発等を部門化する。専門性と意思決定速度を高め、部門間の情報共有にも留意する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "権限委譲面では①人と環境にやさしいコンセプトの明確化②業務の標準化と技能承継③新たな挑戦を促し、内発的動機付けする。人員面で①正社員化②計画的な異動③若手の管理職登用で、士気向上と組織活性化する。"
+            }
+          ]
+        },
+        {
+          "input_no": 7,
+          "post_id": 11573,
+          "score": 74,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11573",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "事業部制組織を構築すべき。理由は，①後継者の育成，②分野ごとの責任権限明確化とスピードアップ。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "①農業関係や取引先との接点構築②ノウハウの標準化・マニュアル化を通じ，徐々に権限移譲。③必要要員見える化し適正要員配置，④親族以外も管理職に登用する人員配置により従業員の士気向上と定着を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 8,
+          "post_id": 11585,
+          "score": 74,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11585",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "助言は、経営が複雑化した為、事業部制組織を構築して、権限委譲して、迅速な対応や挑戦出来るようにする。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "助言は、若手従業員に責任や権限を与え、既存の発想や考えに捉われない事業の展開、挑戦をさせて、士気向上させる。後継者が様々な事業の現場で働き、能力をみて、責任者に登用や事業間異動で組織活性化させる。"
+            }
+          ]
+        },
+        {
+          "input_no": 9,
+          "post_id": 11535,
+          "score": 71,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11535",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "事業部制組織を構築すべき。兼任をやめ、農業、商品開発、直営店運営を事業部化し、専門化し事業を展開。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "後継者の強みを活かせる商品開発部門の部門長を任せ、権限を委譲し、経営スキルを身につけさせる。若手従業員を後継者の配下とし、関係性を構築し、 将来的に各事業部で後継者を支える社員になるよう育成。"
+            }
+          ]
+        },
+        {
+          "input_no": 10,
+          "post_id": 11575,
+          "score": 71,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11575",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "機能別組織を検討。生産部、販売部や総務部等で兼務や人事的課題を解決し、専門性を高め、組織力を向上。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "権限委譲：娘が経験をもつ販売部の責任者とし、マネジメント力の育成を図る。生産は徐々に教育する。人員配置：初めは、娘の周りを若手で固め、管理し易いようにする。次に流動性を高め、情報共有で強みを強化する。"
+            }
+          ]
+        },
+        {
+          "input_no": 11,
+          "post_id": 11519,
+          "score": 70,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11519",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "農業生産、加工品、飲食等直営店の機能別組織とする。部門専門性を高め統一的な組織行動で新分野挑戦を図る"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "➀後継者に農業部門の経験等を積ませＡ社全体の視点を養成、経営者から権限を段階的に委譲し経営ノウハウを継承、②若手従業員を各部門の定期配置転換によりノウハウ蓄積と能力開発に取組む事で、組織の活性化を図る"
+            }
+          ]
+        },
+        {
+          "input_no": 12,
+          "post_id": 11541,
+          "score": 70,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11541",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "分野別の事業部制組織を構築すべき。理由は経営者の負担を減らし顧客のニーズに迅速な意思決定をするため。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "①若手従業員に併設店でのニーズ収集や都市部顧客へのPRについて権限委譲することで士気を向上させ新分野への挑戦の基盤を構築する②A社全体で人員配置を行い繁閑対応を図り対応力を向上させ組織活性化を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 13,
+          "post_id": 11553,
+          "score": 70,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11553",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "作つけ、食品開発、食品加工製造、直営店等の役割を明確化し、権限と責任範囲を明確にした機能別組織とする"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "①機能別に必要な能力、適正、評価基準を明確にし、②導入の際は社員の納得性に留意し、③能力のある人材を適材適所に、必要な権限と共に配置する。以上により役割を明確にした体制にする事で後継者中心の体制にする"
+            }
+          ]
+        },
+        {
+          "input_no": 14,
+          "post_id": 11483,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11483",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "農業部門や飲食サービス部門の部門別組織を構築する。各部門の専門性を高め顧客ニーズに対応する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "各部門を任せられる人材を育成し後継者は全体を俯瞰できる体制する。人材の流動性を高め情報共有することで組織活性化を図ると共に人手不足を補い、若手の提案や後継者の商品開発経験を活用し製品開発を強化する。"
+            }
+          ]
+        },
+        {
+          "input_no": 15,
+          "post_id": 11493,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11493",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "生産、直営、加工、飲食等の事業部制組織を構築する。迅速に顧客対応し、経営責任明確化し専門性を高める。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "①後継者は、ジョブローテーションで事業全体の管理経験を積む②地元農家の協力を得て、人手を増やして、兼任をやめる③従業員を事業に集中させて専門性を高める④優秀な人材を管理者として権限移譲し組織を活性化。"
+            }
+          ]
+        },
+        {
+          "input_no": 16,
+          "post_id": 11507,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11507",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "業界特性に応じた最適な人的資源管理の実施、環境変化への迅速な対応の為、別法人化するべきである。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "権限移譲は段階的に行うと共に、人材等でのバックアップ体制を構築する。人材配置は能力に応じた公平・公正なものとし適材適所を優先、非親族の登用も含めて行うことで、組織のモラール維持向上を図るべきである"
+            }
+          ]
+        },
+        {
+          "input_no": 17,
+          "post_id": 11515,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11515",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "A社は事業分野や販路を拡大する為、迅速な意思決定ができ役割分担が明確な機能別組織にすべきである。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "現経営者は①後継者の店舗マネジメントや商品開発経験を活かし権限委譲を進め②若手の提案を取り入れ OJT 等で育成し③各部門の責任者として人員配置を行い後継者に次期経営者として経験を積ませて承継を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 18,
+          "post_id": 11428,
+          "score": 68,
+          "published_at": "2023-06-21",
+          "url": "https://www.aas-clover.com/tokyoblog/11428",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "農業と、直営店や食品加工を部門として分離させ、兼任を専任とする事で、専門性を高める。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "経験のない農業については社長が統括し、直営店、食品加工については後継者をトップとして地域の農業未経験者等の採用、育成を行い、ニーズ収集をし商品開発に繋げる体制とする。部門間の調整は社長と後継者で行う。"
+            }
+          ]
+        },
+        {
+          "input_no": 19,
+          "post_id": 11491,
+          "score": 68,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11491",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "機能別組織を構築するべき。理由は、役割が明確化でき専門的視点を持つことで効率的な人材補充が可能な為。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "現経営者の仕事のノウハウを形式知化し、後継者へ濃密な指導を通じ権限移譲を進め育成を図る。また、企業コンセプトを浸透させ、積極的な提案制度を設け従業員の能力開発を促進し、適材適所の配置を行う。"
+            }
+          ]
+        },
+        {
+          "input_no": 20,
+          "post_id": 11587,
+          "score": 68,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11587",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "農業生産部門と直営店・食品加工部門の責任を分化させ、独立して意思決定を行える事業部型の組織を構築。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "①各部門に商品企画や生産等の権限を委譲し、従業員に部門の仕事に集中させる②後継者に両部門の長を経験させる③部門間の異動制度も取入れ、組織活性化を図る。以て、迅速な意思決定と後継者育成を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 21,
+          "post_id": 11477,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11477",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "事業部制組織とし直営店部は飲食等と相乗効果狙い食品加工部は新品種生産のノウハウ集め専門性を発揮する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "権限委譲は①各部門の管理者人材を計画的体系的なOJT で育て②常務の娘の店舗運営、商品開発力を活用し、人員配置は①パート従業員で繁閑の需給調整し②正社員の商品提案強化で内発的動機づけし組織活性化する。"
+            }
+          ]
+        },
+        {
+          "input_no": 22,
+          "post_id": 11501,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11501",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "A社は機能別組織を構築する。後継者をトップとし商品開発部等の組織を作り、従業員の専門性を高める。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "A社は現経営者から会社経営を後継者に、商品開発の権限を若手従業員に委譲する。専門部を設置し、能力や希望に応じた適材適所の配置等を進め世代交代を進めることで、新たな分野への挑戦を助言する。"
+            }
+          ]
+        },
+        {
+          "input_no": 23,
+          "post_id": 11511,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11511",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "開発・生産・店舗運営等の部門を設置し、従業員館の役割分担を明確化した機能別組織を構築すべきである。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "権限移譲について、農業関係の業務については、現経営者が顧問としてアドバイスすることで後継者を支える。人員配置について、生産・開発部門には農業経験豊富な従業員を置き、店舗運営部門には新規入社者を置く。"
+            }
+          ]
+        },
+        {
+          "input_no": 24,
+          "post_id": 11577,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11577",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "従業員を専門化し、少ない人員で効率よく業務する事を目的に、生産と販売を分けた機能別組織を構築する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "後継者を販売の統括として権限委譲し、マネジメントを経験させながら社長や常務のノウハウを継承していく。人での足りない販売部門は地元からの採用を強化し、雇用を創出することで地域貢献をはたしていく。"
+            }
+          ]
+        },
+        {
+          "input_no": 25,
+          "post_id": 11430,
+          "score": 66,
+          "published_at": "2023-06-22",
+          "url": "https://www.aas-clover.com/tokyoblog/11430",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "事業部制組織を構築する。①責任者への権限移譲②利益責任の明確化、市場ニーズに迅速な対応をする"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "①常務の娘と経営に携わり、ノウハウや技能承継を行う。②後継者としての経験を積ませ③地元企業や取引先の引き継ぎ④ジョブローテーションや CDP で権限移譲と適正な人員配置で組織活性化を図る"
+            }
+          ]
+        },
+        {
+          "input_no": 26,
+          "post_id": 11533,
+          "score": 66,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11533",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "助言は、生産、卸販売、直営店、総務経理などの機能別組織にし、専門性を強化して対応力の強化を図る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "施策はA社後継者に対し①直営店のリーダーとなる人材を登用し、②全社を見渡せる立場にして現経営者がサポートし、③適正な人員配置で後継者としての経営を身に着けさせ、組織の活性化と人材の育成を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 27,
+          "post_id": 11559,
+          "score": 66,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11559",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "開発や生産、営業などの機能別組織を構築する。重複資源の分散を回避し、専門性を高め自社製品の開発を行う"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "後継者の業務において後進を育成する。現社長が全体を俯瞰できる経営体制を構築し、後継者を経営側に配置転換し経営の一部を権限委譲する。計画的に後継者を育成し、全体を管理できる体制を構築し事業承継する。"
+            }
+          ]
+        },
+        {
+          "input_no": 28,
+          "post_id": 11569,
+          "score": 66,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11569",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "管理部門や生産部門は機能別組織をベースとして経営資源分散を防ぎ、直営店部門は事業部制とする。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "直営店事業は若手従業員から後継人材を育成し、常務の娘が全社を俯瞰できる体制を構築する。商品開発経験者の採用や、希望に添った計画的な配置転換を行い、組織的対応力を高めて従業員を動機付け組織を活性化する。"
+            }
+          ]
+        },
+        {
+          "input_no": 29,
+          "post_id": 11563,
+          "score": 64,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11563",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "農業、直営店経営、自社加工、新規事業部を設立し、専門性を高め人員不足解消、農業と新規事業に集中する"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "経験豊富な従業員や現経営者、常務がサポートしながら、後継者は各部順番に担当し①業務の把握②社内外との関係性構築を行う。5年後に経営者として引き継ぎ権限委譲し、適切な人員を事業統括に配置し、事業拡大する"
+            }
+          ]
+        },
+        {
+          "input_no": 30,
+          "post_id": 11571,
+          "score": 64,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11571",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "人材の流動性を確保し全社で情報共有でき、顧客ニーズに柔軟に対応でき全社的に相乗効果がある。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "店舗マネジメントや商品開発ができる者を育成し、後継者の権限を委譲して後継者が全社を統括できる体制を整備。農業に詳しい者をサポートとして配置し、農業と飲食サービス業で相乗効果を得られる体制にする。"
+            }
+          ]
+        },
+        {
+          "input_no": 31,
+          "post_id": 11603,
+          "score": 63,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11603",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "機能を生産・加工・販売部に分け知識や専門性を高めつつ業務繁閑時には応援体制の取れるマトリックス組織。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "人員配置は業務の標準化書面化しCDP での教育体制を整え業務の繁閑に応じて柔軟に対応できる様にする。権限委譲は顧客ニーズや自然相手になる為、即応可能とする事で活性化を狙う。"
+            }
+          ]
+        },
+        {
+          "input_no": 32,
+          "post_id": 11549,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11549",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "機能別組織を構築する。従業員間で役割分担を明確にし、専門性を高めて、Ａ社全体の組織力を強化する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "部門間の計画的配置転換により人材を流動化し組織を活性化する。直営店を任せる人材を育成し、権限を委譲することで常務の娘がＡ社全体を俯瞰できる体制を構築し、後継者としての育成を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 33,
+          "post_id": 11593,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11593",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "消費者のニーズ収集力を強化し、商品改良・開発に反映させる体制を構築する。消費者との接点を増やす。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "現経営者の業務に段階的に関わらせ、経営管理能力を開発し、徐々に権限移譲を行う。初めは、店舗マネジメント力や商品開発力が発揮できる配置とし、若手従業員の教育を行わせて定着率を高め、事業承継を円滑に行う。"
+            }
+          ]
+        },
+        {
+          "input_no": 34,
+          "post_id": 11421,
+          "score": 61,
+          "published_at": "2023-06-21",
+          "url": "https://www.aas-clover.com/tokyoblog/11421",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "今後は事業に適した人材採用し、利益責任の明確化、意思決定迅速化のために事業部制組織を採用する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "今後は①後継者にマネジメント業務を経験させ経営者育成②従業員の役割分担を明確化、商品や育成品種の選定を任せ部門長の育成③後継者中心に組織横断的なチームを作り新分野に挑戦し、組織の活性化を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 35,
+          "post_id": 11561,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11561",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "業容の拡大に対し、事業部制にし、業務負荷を低減、各分野の専門性高め、利益責任を明確化し、新規事業拡大"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "近づく事業承継に対し、常務の娘に各事業分野を兼務させ、経営ノウハウ取得、全社を包括する能力を養成する。また娘の負荷を軽減するため、各分野への経験者配置、同族以外の有能人材の幹部登用し、持続的拡大を図る"
+            }
+          ]
+        },
+        {
+          "input_no": 36,
+          "post_id": 11565,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11565",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "柔軟な発想で商品開発ができ、迅速な対応ができるマトリックス組織を構築、従業員の職務分担を可能とする。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "後継者を含めたOJTとジョブローテーションで能力向上を図り、研修制度を設けマネージャー層を育成、納得感のある報酬制度で動機付けを図りつつ、責任と権限範囲を明確にした権限移譲で意思決定の質をあげる。"
+            }
+          ]
+        },
+        {
+          "input_no": 37,
+          "post_id": 11497,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11497",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "自社開発商品と中食業者向け商品を分け事業部制組織とすることで、商品開発力と対応力を向上させるべき。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "A社は、①後継者から若手従業員に直営店の運営を権限移譲し、経営に注力できるようにする、②生産と販売を統合し、経営者と専務の直下に後継者を配置することで、農業を含めて経営ノウハウを獲得させるべき。"
+            }
+          ]
+        },
+        {
+          "input_no": 38,
+          "post_id": 11599,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11599",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "直営店事業、食品加工事業、農作物生産事業、による機能別組織を構築して、専門性やノウ\nハウを蓄積する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "権限移譲は①新たな品質の生産方法②直営店における新製品開発③地元メーカーとの共同開発、で行いモラール向上図る。人員配置はノンコア業務で事業部間を超えてパート社員活用し季節的繁閑の人手不足に対応する"
+            }
+          ]
+        },
+        {
+          "input_no": 39,
+          "post_id": 11513,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11513",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "生産と販売を別部門とする機能別組織とするべきである。専門性を高め、規模の経済性を発揮する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "就農者の中から直営店や食品加工業務への希望者を募り、人手不足を解消する。有能な若手を育成し直営店を統括させることで、後継者の日常業務負担を軽減し戦略的意思決定に注力させ、次期経営者として育成する。"
+            }
+          ]
+        },
+        {
+          "input_no": 40,
+          "post_id": 11521,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11521",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "事業部制を組織する。生産部と直営店サービス部を設立し、業務に集中させ専門性の発揮と対応力強化を図る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "人員配置は後継者に直営店サービス部長を任命する。前職の店舗マネジメントや商品開発の業務経験を活かし事業展開に係る権限を委譲、経営に参画させる。戦略的意思決定を通し後継者としての自覚と成長を促す。"
+            }
+          ]
+        },
+        {
+          "input_no": 41,
+          "post_id": 11579,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11579",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "消費者の声や若手従業員の声が反映しやすく、新たな挑戦意欲を高めるフラットな組織構造にすべきである。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "後継者に店舗マネジメントだけではなく農業のイロハを現経営者が教え、序々に権限を委譲し、新たな分野に挑戦しやすい基盤を構築する。若手やパート社員にも権限を与え、業務に専任できるよう人員配置を行う。"
+            }
+          ]
+        },
+        {
+          "input_no": 42,
+          "post_id": 11591,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11591",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "組織構造としては農業を基盤とした事業と直営店や食品加工の事業の２つを中心とした機能別組織を構築する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "方策は①直営店や食品加工で実績ある者に店や事業を任せる②消費者の声を生かすため商品開発の担当者を配置する③外部調達先の安定と加工食品の卸先拡大のため営業の担当者を配置することである。"
+            }
+          ]
+        },
+        {
+          "input_no": 43,
+          "post_id": 11567,
+          "score": 58,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11567",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "A社は①新分野進出のため新事業専門部署の設置、②迅速な意思決定のため製品毎の事業部制組織導入を図る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "A社は①権限面で新商品開発や新事業に対する若手従業員への権限移譲や、②人員配置面で商品毎の適正な配置転換や農業経験豊富な幹部社員の配置等で士気向上、組織活性化を図り、後継者を中心とした組織体制にする。"
+            }
+          ]
+        },
+        {
+          "input_no": 44,
+          "post_id": 11475,
+          "score": 56,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11475",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "直営店経営をＡ社後継者をトップとした別部門化し、生産部門から独立して人員管理や事業展開を可能にする。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "後継者が全社を見渡せるよう、生産と直営店をそれぞれ統括できる人材に権限移譲し、育成する。従業員を部門ごとの専任にしつつ、計画的な配置転換を進めて、能力開発を含めた組織活性化を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 45,
+          "post_id": 11555,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11555",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "農業部や販売部等の機能別組織を構築する。新事業の人手不足を解消し、成長を図り、新たな収益源とする。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "後継者を農業部門に配属し、現経営者により農業のイロハの技術承継を図り、修得度に応じ、段階的に権限委譲を図る。人員配置は農業の繁忙に応じ、流動的とし、新事業や新品種開発に十分な人員を投入する。"
+            }
+          ]
+        },
+        {
+          "input_no": 46,
+          "post_id": 11435,
+          "score": 54,
+          "published_at": "2023-06-22",
+          "url": "https://www.aas-clover.com/tokyoblog/11435",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "事業部制組織にするべきである。理由は、①従業員の役割を明確化し②消費者の声に柔軟に対応するため。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "後継者については、経験のある飲食サービス事業を権限委譲し、後継者として育成した後、全体の経営を承継する。従業員については、就農者採用を基本として、従業員の希望に応じて兼任してもらう人員配置を行う。"
+            }
+          ]
+        },
+        {
+          "input_no": 47,
+          "post_id": 11481,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11481",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①後継者育成のためにマネジメント経験が可能で②人材流動性のある組織とする。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "A社後継者に直営店を運営する権限を与えて、利益責任、意思決定、人事政策を通じたマネジメント経験を積ませる。人員配置は人的流動性に配慮しながら希望に沿った配置とすることでモラールの向上、定着化を目指す。"
+            }
+          ]
+        },
+        {
+          "input_no": 48,
+          "post_id": 11503,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11503",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①若手が提案しやすいフラットな組織、②新たな事業の専門部署を設置、新たな事業により他社と差別化。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "権限委譲は①若手への権限委譲、②新規事業部門に必要な権限を付与。人員配置は①事業承継を円滑に進めるため現経営者やベテランを若手とセットで配置、②消費者ニーズの収集、新品種開発部門を強化し組織活性化。"
+            }
+          ]
+        },
+        {
+          "input_no": 49,
+          "post_id": 11523,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11523",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "生産部、販売営業部など部門を設置する。部門長に権限委譲し、迅速で柔軟な対応ができる組織を構築する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "現状の提案制度に評価制度を導入する。計画的・段階的に必要な役職を設けて優秀者を配置していく。役職に応じた権限移譲や教育を行い、5年後には、後継者が大所高所から全てを統括できるようにする。"
+            }
+          ]
+        },
+        {
+          "input_no": 50,
+          "post_id": 11539,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11539",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "直営店と製造加工部門を独立させ権限移譲し、迅速な意思決定と利益責任の明確化を確立、専門性を発揮する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "①後継者へ段階的な権限移譲を実施し組織文化を改革、②新卒採用と優秀な若手を昇進させ組織活性化、③現社長から従業員へ承継を伝え一体感を醸成、④現社長を会長とし後継者の支援体制を確立し人材を有効活用する。"
+            }
+          ]
+        },
+        {
+          "input_no": 51,
+          "post_id": 11595,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11595",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "農業栽培部門、直営店・食品加工部門の事業部別組織とし、迅速な意思決定、後継者育成を図る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "権限委譲は、段階的に後継者の成長や能力に応じて行い、後継者の育成や実績をつくり円滑な事業承継を行う。人員配置はベテランと若手の混成編成として、後継者の不足する農業知識を補い、組織の活性・一体化を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 52,
+          "post_id": 11479,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11479",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "直営店や食品加工等、役割分担を明確化する一方、需給調整に対応できる流動的な組織。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "助言は ①直営店の新商品や飲食サービス導入等、提案を行う若手従業員等を評価し積極的に権限委譲し ② 農業経験や能力に応じ適材適所な人員配置を行う事で組織活性化し、 新分野に挑戦できる体制とすべき。"
+            }
+          ]
+        },
+        {
+          "input_no": 53,
+          "post_id": 11547,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11547",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "直営店や食品加工分野の専門性を高め、人材の流動性を確保し外部環境変化に柔軟に対応できる組織を構築。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "助言は①新卒社員を教育し、店舗責任者とすることで権限委譲し、士気向上を図る②希望部署への配置転換により貢献意欲の向上と組織を活性化することで社内人材のチャレンジ精神を醸成し、新事業分野に挑戦する。"
+            }
+          ]
+        },
+        {
+          "input_no": 54,
+          "post_id": 11581,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11581",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "事業部制組織を構築する。理由は、世代交代の為に経営経験を積ませ次期後継者育成や迅速な意思決定のため。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "A社は①後継者の店舗マネジメントや商品開発の経験を活かし、現経営者のノウハウや理念を段階的に権限委譲する。また、②能力に応じた効率的な人員配置や提案した人間を責任者に置き、組織体制を整え差別化する。"
+            }
+          ]
+        },
+        {
+          "input_no": 55,
+          "post_id": 11441,
+          "score": 52,
+          "published_at": "2023-06-22",
+          "url": "https://www.aas-clover.com/tokyoblog/11441",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "従業員間の役割分担を明確にし、規模の経済性の働く機能別組織とし、限られた人員で効率的な組織運営を行う"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "直営店の若手から後継者の右腕となる人材を育成して権限委譲し、後継者が全社を俯瞰できる組織体制を構築する。事業間のローテーションで人材の流動化を図り、組織対応力の向上とともに、組織の活性化をすすめる。"
+            }
+          ]
+        },
+        {
+          "input_no": 56,
+          "post_id": 11589,
+          "score": 52,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11589",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "農業と直営店、食品加工で定期的な配置転換を行い需要の変動に対応、顧客ニーズを共有し連携力強化。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "助言は①後継者に農業分野の経験を積ませ、現経営者が生産を常務取締役がその他経営管理のノウハウを伝達、②農業、直営店、食品加工に責任者を配置して権限委譲し、後継者が全社的経営に集中できる体制の構築。"
+            }
+          ]
+        },
+        {
+          "input_no": 57,
+          "post_id": 11489,
+          "score": 51,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11489",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "事業部別組織で権限委譲してマネジメント経験させ、流動的な人手管理で後継育成と経営資源の効率活用を図る"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "直営店事業部を独立し、後継者をトップに据えマネジメントを経験させ、①専任の従業員を能力によって適正配置し②若手からの提案を公募し責任者として事業の権限移譲をすることで後継の育成とともに事業の拡大を図る"
+            }
+          ]
+        },
+        {
+          "input_no": 58,
+          "post_id": 11499,
+          "score": 51,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11499",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "プロジェクトチームを構築し部門横断的な人材やノウハウの活用で組織を活性化し、開発力を高め多角化する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "権限委譲では①後継者の能力の把握や②適正な評価とサポート体制の構築を行い、③自社を客観視したチャレンジ精神のある後継者に育成する。人員配置では適材適所を見極めた配置を行い、士気を向上。"
+            }
+          ]
+        },
+        {
+          "input_no": 59,
+          "post_id": 11485,
+          "score": 50,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11485",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "農業や直営店、食品加工等幅広く分野展開しているが、明確な役割分担がないため事業別組織とし明確化した。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "社内コンペによる評価やインセンティブを与えつつ能力のある若手従業員の積極的登用による権限委譲を行い、兼務を是正しつつ配置転換による全社的視点を持つ幹部候補者の育成を行い円滑な事業承継を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 60,
+          "post_id": 11545,
+          "score": 50,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11545",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "商品開発や新たな品種の生産を企画する組織を加えた機能別組織にする。閑散期の稼働平準化や専門性を高める"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "A社社長は、常務に対して経営ノウハウを同行育成する。店舗マネジメントや商品開発だけではなく、農業にも配置し経験を積む。従業員から商品開発提案、ニーズ収集が出来る様に権限移譲をし迅速な意思決定を実現。"
+            }
+          ]
+        },
+        {
+          "input_no": 61,
+          "post_id": 11557,
+          "score": 49,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11557",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "直営店を任せられる人材を育成し、常務の娘がA社の後継者として全体を俯瞰できる体制を構築する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "飲食サービスでの消費者ニーズや若手従業員からの提案を商品開発等に反映できるよう現場に権限移譲し、能力や従業員の意向に沿った配置転換を行うことで、組織対応力強化、組織活性化、モラール向上を図る"
+            }
+          ]
+        },
+        {
+          "input_no": 62,
+          "post_id": 11439,
+          "score": 47,
+          "published_at": "2023-06-22",
+          "url": "https://www.aas-clover.com/tokyoblog/11439",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①後継者のマネジメントや商品開発の専門性を発揮でき②生産と直営店社員の権責を明確にする組織構造の構築"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "助言は①若手社員に、飲食店で消費者の接点よりニーズを収集し、直営店の商品開発の権限委譲し、モラール向上を図る。②生産と販売の社員を定期、計画的に配置を行い、生産の専門知識と販売の対応力を高める事。"
+            }
+          ]
+        },
+        {
+          "input_no": 63,
+          "post_id": 11437,
+          "score": 46,
+          "published_at": "2023-06-22",
+          "url": "https://www.aas-clover.com/tokyoblog/11437",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "有機野菜の栽培・直営店・食品加工・カフェの責任者を選任し事業部制で社長が全体を統括意思決定を迅速化。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "社長自ら現場での従業員の能力を見極め②事業の責任者の利益責任を明確化③教育研修により適材適所に配置し権限を委譲。有機野菜のシナジー効果を事業間で発揮し、高付加価値差別化で地域に根差した企業を目指す。"
+            }
+          ]
+        },
+        {
+          "input_no": 64,
+          "post_id": 11527,
+          "score": 46,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11527",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "人材の流動性を高められるような構造を構築し、業務量を平準化して、人材を有効活用する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "後継者にマネジメント能力を身に着けさせるため、複数の部門を担当させる。さらに直営店での顧客ニーズを収集し、新たな製品開発のための体制を整える。以上より、権限を委譲し、事業を発展させ、次世代に繋げる。"
+            }
+          ]
+        },
+        {
+          "input_no": 65,
+          "post_id": 11597,
+          "score": 45,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11597",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "顧客ニーズを収集し新規商品開発できる体制，(2)研修や人的不足解消で対応能力を高める体制を構築する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "①流動的な人的配置で人的不足解消②見守りできる体制③経営者の経験を形式知化④取引先・既存従業員の理解を得る⑤研修制度による能力向上⑥営業力を高めて新製品開発するなどにより後継者育成を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 66,
+          "post_id": 11537,
+          "score": 44,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11537",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "これまでの兼務体制を見直し、事業部制組織にすることで適した人材の採用・育成が可能となり、定着を図る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "事業部制組織のもと常務の娘に権限委譲し直営店を統括させ次期経営者としての経験を積ませる。人員配置面では、若手従業員に一部権限委譲し提案を活発化させモラール向上、消費者との接点を増やし、売上拡大を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 67,
+          "post_id": 11605,
+          "score": 44,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11605",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "事業部制組織を構築すべきである。➀環境の変化に速やかに対応する。➁部門を任せ後継者を育成する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "権限委譲は、後継者に事業部制組織の一部門の運営責任を持たせ、マネジメント経験を積ませることで進める。人員配置は、各部門の繁閑を計画的に管理し、人手が余っている部門から足りない部門に機動的に配置する。"
+            }
+          ]
+        },
+        {
+          "input_no": 68,
+          "post_id": 11525,
+          "score": 43,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11525",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "A社は①食品加工等を事業部制組織化する一方、②ニーズの共有や人材の応援体制ができる組織構造を構築する"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "A社は、①権限移譲面で、直営店や食品加工等の新たな分野の権限移譲により次世代の管理者を育成し、②配置面で、農業知識に捉われずに希望や能力等に応じて若手を開発業務や直営店等へ適正配置し、世代交代を進める"
+            }
+          ]
+        },
+        {
+          "input_no": 69,
+          "post_id": 11529,
+          "score": 43,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11529",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "事業部制組織的な構造を築き直営店の経営をより下層に権限委譲をすることで、迅速意思決定、柔軟対応を実現"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "娘に直営店の経営について権限委譲を進める。採用活動に関しても権限委譲していく。新規採用した従業員を娘の考えも踏まえ直営店に配置させ、組織文化の継承と共に、組織活性化を図る。後継者育成も。"
+            }
+          ]
+        },
+        {
+          "input_no": 70,
+          "post_id": 11607,
+          "score": 43,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11607",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "季節的な人材の繁閑の需給変動に対応し、農業と直営店の部門間の人材の流動性を確保した組織、多能工化。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "助言は、①後継者に直営店と商品開発分野を権限委譲し、経営者としての育成を図る、②季節的な人材の繁閑の変動に対応して従業員やパート従業員を飲食サービスと農業で流動的な人員配置を行うことである。"
+            }
+          ]
+        },
+        {
+          "input_no": 71,
+          "post_id": 11495,
+          "score": 38,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11495",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "事業部制組織とすべき。①直営店運営で常務娘の次期後継者育成②利益責任明確化③迅速な意思決定の為。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "飲食サービス業経験しかない常務娘に現経営者の生産ノウハウ、常務の販売・経営管理ノウハウを承継するため①教育を充実させながら段階的に権限委譲②常務娘の周りに各分野のノウハウを持つ人員を配置する。"
+            }
+          ]
+        },
+        {
+          "input_no": 72,
+          "post_id": 11505,
+          "score": 37,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11505",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "A社は、新たな品種の開発を行うため事業部制組織を採用し意思決定を迅速にし収益の拡大を図っていくこと。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "現経営者は、①直営店で消費者ニーズを収集し、若手従業員の提案を採用し商品開発の権限を現場に委譲し②社員とパートのチーム制にし、地元菓子メーカーと共同開発を進め、時間をかけて後継者に承継を図っていく事。"
+            }
+          ]
+        },
+        {
+          "input_no": 73,
+          "post_id": 11517,
+          "score": 37,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11517",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "組織構造は、直営店を常務の娘に任せた事業別組織とし、商品開発と販売を強化する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "権限委譲は、直営店のマネジメントを任せ、経営の経験を積ませること。人員配置は、①まずは、繁閑の差による余剰の人員を活用し、②直営店専属の新規採用を進めることで、段階的に後継者中心の組織体制を構築する。"
+            }
+          ]
+        },
+        {
+          "input_no": 74,
+          "post_id": 11543,
+          "score": 37,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11543",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "事業部制組織を構築する。理由は、世代交代を見据え後継者を中心に全社観を育成し、権限委譲するため。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "①各部門に後継者を中心とした若手従業員を配置し、ベテランからのOJTで育成し、段階的に権限委譲する②非正規雇用を増やしてノンコア業務を担当させ、若手従業員の業務を減らし、コア業務に集中させる。"
+            }
+          ]
+        },
+        {
+          "input_no": 75,
+          "post_id": 11443,
+          "score": 36,
+          "published_at": "2023-06-22",
+          "url": "https://www.aas-clover.com/tokyoblog/11443",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "助言は、若手社員からの提案を上手に取り入れる為、横串に差したマトリックス組織とし組 織活性化を図る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "助言は、円滑な事業承継を進める為、1直営店への権限移譲を行い、意思決定の迅速化や収 集した顧客ニーズを収集して製品開発に活かす事、2OJT 等の教育により業務の繁閑に応 じた配置を行い人手不足に対応。"
+            }
+          ]
+        },
+        {
+          "input_no": 76,
+          "post_id": 11426,
+          "score": 34,
+          "published_at": "2023-06-21",
+          "url": "https://www.aas-clover.com/tokyoblog/11426",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "従業員間の連携による開発力を活かしつつ需要へ柔軟に対応するために人材流動化した事業部制組織とすべき。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "後進育成のために、A社後継者を事業部長とすべき。事業部間の人材の流動性を確保し、人材・情報の共有で新商品開発に活かすべき。以上の体制で顧客ニーズを収集しながら商品開発に反映し、新規分野に進出すべき。"
+            }
+          ]
+        },
+        {
+          "input_no": 77,
+          "post_id": 11432,
+          "score": 28,
+          "published_at": "2023-06-22",
+          "url": "https://www.aas-clover.com/tokyoblog/11432",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "人手不足に対応するため、人材の流動性が高い組織構造を構築し、効率的な経営管理体制を構築する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "直営店を任せられる後進を育成し、Ａ社後継者がＡ社全体を俯瞰し、組織的対応ができる経営体制を構築する。生産と直営店などの組織間における計画的な配置転換により職務拡大を図ることで人手不足に対応する。"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

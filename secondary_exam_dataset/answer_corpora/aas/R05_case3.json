@@ -1,0 +1,4795 @@
+{
+  "year_label": "R05",
+  "case_no": 3,
+  "case_label": "R05年度事例3",
+  "source_pdf_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2023.pdf",
+  "source_pdf_blob_path": "second-pdf-mondai/case3_2023.pdf",
+  "submission_count": 93,
+  "questions": [
+    {
+      "question_no": 1,
+      "points": 10,
+      "heading_text": "第１問（配点10点）",
+      "answer_count": 93,
+      "score_stats": {
+        "count": 93,
+        "min": 34,
+        "max": 78,
+        "median": 58,
+        "mean": 58.02
+      },
+      "answer_char_stats": {
+        "count": 93,
+        "min": 20,
+        "max": 41,
+        "median": 39,
+        "mean": 38.46
+      },
+      "exemplars": {
+        "high": [
+          {
+            "post_id": 13781,
+            "score": 78,
+            "published_at": "2024-05-02",
+            "answer_text": "販売先料理長からの依頼で多品種少量個別生産に対応し、工場管理者は料理人経験がある。"
+          },
+          {
+            "post_id": 13785,
+            "score": 78,
+            "published_at": "2024-05-02",
+            "answer_text": "高級感のある総菜も含む多品種小量生産体制、料理長経験者による生産管理体制"
+          },
+          {
+            "post_id": 13771,
+            "score": 76,
+            "published_at": "2024-05-02",
+            "answer_text": "ホテル調理場のマネジメントに熟知した現経営者、工場管理者の料理人の経験、が強み。"
+          },
+          {
+            "post_id": 13867,
+            "score": 74,
+            "published_at": "2024-05-02",
+            "answer_text": "①多品種少量生産、受託生産のノウハウ。②ゾーニングによる食品衛生管理力。"
+          },
+          {
+            "post_id": 13815,
+            "score": 72,
+            "published_at": "2024-05-02",
+            "answer_text": "①工場管理者の料理人経験があり②食品衛生管理上交差汚染を防ぐレイアウトがある。"
+          }
+        ],
+        "middle": [
+          {
+            "post_id": 13837,
+            "score": 58,
+            "published_at": "2024-05-02",
+            "answer_text": "①従業員のホテルや旅館での豊富な経験や②一貫生産体制が整っていること。"
+          },
+          {
+            "post_id": 13863,
+            "score": 58,
+            "published_at": "2024-05-02",
+            "answer_text": "①経営者や管理職の料理人経験とマネジメント力。②コスト低減し高級感のある食品"
+          },
+          {
+            "post_id": 13871,
+            "score": 58,
+            "published_at": "2024-05-02",
+            "answer_text": "高級ホテルの品揃え支援する総菜製造力、材料調達や管理簡素化によるコスト低減対応力"
+          },
+          {
+            "post_id": 13773,
+            "score": 57,
+            "published_at": "2024-05-02",
+            "answer_text": "ホテルでの料理人の経験。製品開発人材の存在。食品衛生上交差汚染防ぐゾーニング。"
+          },
+          {
+            "post_id": 13881,
+            "score": 57,
+            "published_at": "2024-05-02",
+            "answer_text": "顧客の材料調達や在庫管理の簡素化でコスト低減。高級感のある総菜づくりノウハウ。"
+          }
+        ],
+        "low": [
+          {
+            "post_id": 13739,
+            "score": 34,
+            "published_at": "2024-05-02",
+            "answer_text": "ホテル調理場の作業内容等を熟知した現経営者。製品開発の実務や管理ができる外部人材。"
+          },
+          {
+            "post_id": 13751,
+            "score": 39,
+            "published_at": "2024-05-02",
+            "answer_text": "現経営者のホテル調理上でのマネジメント経験、工場管理者の宿泊施設での料理人経験。"
+          },
+          {
+            "post_id": 13817,
+            "score": 39,
+            "published_at": "2024-05-02",
+            "answer_text": "①ホテル調理を熟知した経営者と管理者②材料調達、在庫管理の簡素化によるコスト低減"
+          },
+          {
+            "post_id": 13911,
+            "score": 39,
+            "published_at": "2024-05-02",
+            "answer_text": "①工場管理者のホテル等の料理人としての経験、②製品開発部による高い商品企画力。"
+          },
+          {
+            "post_id": 13727,
+            "score": 43,
+            "published_at": "2024-05-02",
+            "answer_text": "①受託品の製造に特化して蓄積された製造ノウハウ②企画から販売の一貫体制"
+          }
+        ]
+      },
+      "answers": [
+        {
+          "input_no": 1,
+          "post_id": 13781,
+          "score": 78,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13781",
+          "answer_text": "販売先料理長からの依頼で多品種少量個別生産に対応し、工場管理者は料理人経験がある。",
+          "subquestions": []
+        },
+        {
+          "input_no": 2,
+          "post_id": 13785,
+          "score": 78,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13785",
+          "answer_text": "高級感のある総菜も含む多品種小量生産体制、料理長経験者による生産管理体制",
+          "subquestions": []
+        },
+        {
+          "input_no": 3,
+          "post_id": 13771,
+          "score": 76,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13771",
+          "answer_text": "ホテル調理場のマネジメントに熟知した現経営者、工場管理者の料理人の経験、が強み。",
+          "subquestions": []
+        },
+        {
+          "input_no": 4,
+          "post_id": 13867,
+          "score": 74,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13867",
+          "answer_text": "①多品種少量生産、受託生産のノウハウ。②ゾーニングによる食品衛生管理力。",
+          "subquestions": []
+        },
+        {
+          "input_no": 5,
+          "post_id": 13815,
+          "score": 72,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13815",
+          "answer_text": "①工場管理者の料理人経験があり②食品衛生管理上交差汚染を防ぐレイアウトがある。",
+          "subquestions": []
+        },
+        {
+          "input_no": 6,
+          "post_id": 13869,
+          "score": 72,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13869",
+          "answer_text": "多品種少量の受託生産、料理人経験のある工場管理者、実務経験のある製品開発人材。",
+          "subquestions": []
+        },
+        {
+          "input_no": 7,
+          "post_id": 13745,
+          "score": 71,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13745",
+          "answer_text": "製造部課長のホテルや旅館での料理人経験、製品開発部の実務や管理経験、製品開発力。",
+          "subquestions": []
+        },
+        {
+          "input_no": 8,
+          "post_id": 13775,
+          "score": 70,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13775",
+          "answer_text": "多品種少量生産可能な生産体制とホテルや旅館での経験を持つ工場管理者による品質管理",
+          "subquestions": []
+        },
+        {
+          "input_no": 9,
+          "post_id": 13761,
+          "score": 69,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13761",
+          "answer_text": "強みは、①工場管理者が料理人経験を持ち、②加工室が交差汚染を防ぐ様に分離している点",
+          "subquestions": []
+        },
+        {
+          "input_no": 10,
+          "post_id": 13811,
+          "score": 69,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13811",
+          "answer_text": "多品種で少量の食品生産が可能。季節性があり高級感のある総菜の商品企画・提案力。",
+          "subquestions": []
+        },
+        {
+          "input_no": 11,
+          "post_id": 13883,
+          "score": 69,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13883",
+          "answer_text": "工場管理者のホテルや旅館での料理人経験と食品衛生管理上交差汚染を防ぐゾーニング",
+          "subquestions": []
+        },
+        {
+          "input_no": 12,
+          "post_id": 13799,
+          "score": 68,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13799",
+          "answer_text": "工場管理者のホテル等での料理人経験、加工室の設備機器がホテル等の厨房と同様",
+          "subquestions": []
+        },
+        {
+          "input_no": 13,
+          "post_id": 13825,
+          "score": 68,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13825",
+          "answer_text": "①料理人経験のある工場管理者、②ホテルや旅館の厨房と同様の設備レイアウトの加工室",
+          "subquestions": []
+        },
+        {
+          "input_no": 14,
+          "post_id": 13877,
+          "score": 68,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13877",
+          "answer_text": "ホテルや旅館の厨房同様の加工室レイアウト、現経営者や工場管理者の料理人ノウハウ。",
+          "subquestions": []
+        },
+        {
+          "input_no": 15,
+          "post_id": 13749,
+          "score": 67,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13749",
+          "answer_text": "①食品衛生上交差汚染を防ぐため加工室が分離されている事②料理人経験のある管理者",
+          "subquestions": []
+        },
+        {
+          "input_no": 16,
+          "post_id": 13787,
+          "score": 67,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13787",
+          "answer_text": "①ホテルや旅館の多様な需要に対応できる体制と②受注から発送に至る一貫生産体制",
+          "subquestions": []
+        },
+        {
+          "input_no": 17,
+          "post_id": 13861,
+          "score": 67,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13861",
+          "answer_text": "①製品開発部従業員の開発の実務や管理の経験②経営者や管理者のホテル料理人の経験。",
+          "subquestions": []
+        },
+        {
+          "input_no": 18,
+          "post_id": 13755,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13755",
+          "answer_text": "①経営者と工場管理者の料理人経験とマネジメント力、②外部人材の製品開発経験。",
+          "subquestions": []
+        },
+        {
+          "input_no": 19,
+          "post_id": 13779,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13779",
+          "answer_text": "工場管理者の料理人としての経験と交差汚染を防ぐゾーニングされた加工室が複数有る事",
+          "subquestions": []
+        },
+        {
+          "input_no": 20,
+          "post_id": 13827,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13827",
+          "answer_text": "①工場管理者のホテルや旅館での料理人経験②加工室の食品衛生管理上の交差汚染の防止",
+          "subquestions": []
+        },
+        {
+          "input_no": 21,
+          "post_id": 13839,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13839",
+          "answer_text": "①ホテルや旅館での料理人経験がある工場管理者の製造管理②手厚い直接指導・監督。",
+          "subquestions": []
+        },
+        {
+          "input_no": 22,
+          "post_id": 13851,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13851",
+          "answer_text": "①生産計画や消費期限を考慮して納品できる食品商社や②食品衛生管理上のゾーニング",
+          "subquestions": []
+        },
+        {
+          "input_no": 23,
+          "post_id": 13895,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13895",
+          "answer_text": "工場管理者のホテル等での料理人の経験、パートリーダーによる作業方法の指導・監督。",
+          "subquestions": []
+        },
+        {
+          "input_no": 24,
+          "post_id": 13741,
+          "score": 65,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13741",
+          "answer_text": "料理人経験がある製造部長や工場管理者。高付加価値製品を生産していること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 25,
+          "post_id": 13757,
+          "score": 65,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13757",
+          "answer_text": "①各製造班にベテラン従業員がおり②工場管理者がホテルや旅館での料理人経験がある。",
+          "subquestions": []
+        },
+        {
+          "input_no": 26,
+          "post_id": 13769,
+          "score": 65,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13769",
+          "answer_text": "ホテル等で料理人経験がある人材②販売先料理人からの要望に対応できる生産体制。",
+          "subquestions": []
+        },
+        {
+          "input_no": 27,
+          "post_id": 13819,
+          "score": 65,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13819",
+          "answer_text": "①経営者・工場管理者の料理人としての知見②高品質な食品を多品種少量生産可能な事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 28,
+          "post_id": 13903,
+          "score": 65,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13903",
+          "answer_text": "①交差汚染防止のため加工室はゾーニング②現経営者はホテル調理場の作業内容を熟知",
+          "subquestions": []
+        },
+        {
+          "input_no": 29,
+          "post_id": 13859,
+          "score": 64,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13859",
+          "answer_text": "①経営者がホテル調理場などの管理に熟知②工場管理者のホテルや旅館で料理人の経験。",
+          "subquestions": []
+        },
+        {
+          "input_no": 30,
+          "post_id": 13759,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13759",
+          "answer_text": "①口頭・変更指示でも対応できる現場技術力②多品種で少量製品の受託製造力",
+          "subquestions": []
+        },
+        {
+          "input_no": 31,
+          "post_id": 13783,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13783",
+          "answer_text": "パートリーダーがパート従業員を育成できる体制。料理人経験のある工場管理者の存在。",
+          "subquestions": []
+        },
+        {
+          "input_no": 32,
+          "post_id": 13821,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13821",
+          "answer_text": "工場管理者の料理人経験。食品衛生管理上交差感染を防ぐゾーニングがされた工場。",
+          "subquestions": []
+        },
+        {
+          "input_no": 33,
+          "post_id": 13853,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13853",
+          "answer_text": "ホテルや旅館の料理人経験のある工場管理者、販売先料理長の指示した料理の調理技術",
+          "subquestions": []
+        },
+        {
+          "input_no": 34,
+          "post_id": 13857,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13857",
+          "answer_text": "①工場管理者がホテルや旅館での料理人経験がある事②食品衛生管理上の対応体制",
+          "subquestions": []
+        },
+        {
+          "input_no": 35,
+          "post_id": 13885,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13885",
+          "answer_text": "工場管理者のホテルや旅館での料理人経験、ホテルや旅館の厨房と同様のレイアウト",
+          "subquestions": []
+        },
+        {
+          "input_no": 36,
+          "post_id": 13733,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13733",
+          "answer_text": "工場管理者の料理人経験の知識と直接作業方法を指導・監督することによる品質管理体制。",
+          "subquestions": []
+        },
+        {
+          "input_no": 37,
+          "post_id": 13807,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13807",
+          "answer_text": "多品種少量対応可能、料理人経験ある管理者、食品製品開発実務経験者を有する製品開発部",
+          "subquestions": []
+        },
+        {
+          "input_no": 38,
+          "post_id": 13889,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13889",
+          "answer_text": "①工場管理者やベテランパートリーダーの管理能力の高さ②少品種多量生産体制の構築。",
+          "subquestions": []
+        },
+        {
+          "input_no": 39,
+          "post_id": 13891,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13891",
+          "answer_text": "①料理人の経験がある工場管理者がいて②食品衛生管理された設備機器で生産可能な点。",
+          "subquestions": []
+        },
+        {
+          "input_no": 40,
+          "post_id": 13777,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13777",
+          "answer_text": "①現経営者や工場管理者の料理人としての経験②材料調達や在庫管理簡素化でコスト低減",
+          "subquestions": []
+        },
+        {
+          "input_no": 41,
+          "post_id": 13829,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13829",
+          "answer_text": "朝食用製品と夕食用製品の納期対応力、食品衛生管理上交差汚染を防ぐゾーニング。",
+          "subquestions": []
+        },
+        {
+          "input_no": 42,
+          "post_id": 13879,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13879",
+          "answer_text": "工場管理者が、①料理人の経験がある、②パート従業員に直接指導、監督をしている。",
+          "subquestions": []
+        },
+        {
+          "input_no": 43,
+          "post_id": 13901,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13901",
+          "answer_text": "現経営者・工場管理者の料理人経験、パート従業員への直接指導で質が高い、迅速な納品。",
+          "subquestions": []
+        },
+        {
+          "input_no": 44,
+          "post_id": 13747,
+          "score": 59,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13747",
+          "answer_text": "①ホテルでの料理人経験で生産指示や加工方法の指導が可能②製品開発経験がある開発部門",
+          "subquestions": []
+        },
+        {
+          "input_no": 45,
+          "post_id": 13837,
+          "score": 58,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13837",
+          "answer_text": "①従業員のホテルや旅館での豊富な経験や②一貫生産体制が整っていること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 46,
+          "post_id": 13863,
+          "score": 58,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13863",
+          "answer_text": "①経営者や管理職の料理人経験とマネジメント力。②コスト低減し高級感のある食品",
+          "subquestions": []
+        },
+        {
+          "input_no": 47,
+          "post_id": 13871,
+          "score": 58,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13871",
+          "answer_text": "高級ホテルの品揃え支援する総菜製造力、材料調達や管理簡素化によるコスト低減対応力",
+          "subquestions": []
+        },
+        {
+          "input_no": 48,
+          "post_id": 13773,
+          "score": 57,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13773",
+          "answer_text": "ホテルでの料理人の経験。製品開発人材の存在。食品衛生上交差汚染防ぐゾーニング。",
+          "subquestions": []
+        },
+        {
+          "input_no": 49,
+          "post_id": 13881,
+          "score": 57,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13881",
+          "answer_text": "顧客の材料調達や在庫管理の簡素化でコスト低減。高級感のある総菜づくりノウハウ。",
+          "subquestions": []
+        },
+        {
+          "input_no": 50,
+          "post_id": 13793,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13793",
+          "answer_text": "ホテルや旅館経験のある社員による生産。ホテル等と同様な設備レイアウトによる加工。",
+          "subquestions": []
+        },
+        {
+          "input_no": 51,
+          "post_id": 13893,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13893",
+          "answer_text": "管理者の料理人の経験と、その管理者がパートに直接指示、指導、監督できる体制。",
+          "subquestions": []
+        },
+        {
+          "input_no": 52,
+          "post_id": 13731,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13731",
+          "answer_text": "多品種少量の食品の受託製造力\n外部人材の季節性、高級な惣菜製造力",
+          "subquestions": []
+        },
+        {
+          "input_no": 53,
+          "post_id": 13735,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13735",
+          "answer_text": "①ホテルや旅館での料理人経験を持つ従業員②販売先料理長の細かいニーズへの対応力",
+          "subquestions": []
+        },
+        {
+          "input_no": 54,
+          "post_id": 13743,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13743",
+          "answer_text": "ホテル等の調理上を熟知した向上管理者の存在、材料調達から納品までの一貫生産体制",
+          "subquestions": []
+        },
+        {
+          "input_no": 55,
+          "post_id": 13765,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13765",
+          "answer_text": "社員の料理人・食品製造業経験による対応力。季節毎にメニュー変更できる体制。",
+          "subquestions": []
+        },
+        {
+          "input_no": 56,
+          "post_id": 13789,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13789",
+          "answer_text": "①料理人の経験がある工場管理者、②ホテルや旅館の厨房と似たレイアウトの加工室。",
+          "subquestions": []
+        },
+        {
+          "input_no": 57,
+          "post_id": 13795,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13795",
+          "answer_text": "①ホテル調理場の作業内容や管理に熟知②料理人経験により販売先の製品仕様に対応可能",
+          "subquestions": []
+        },
+        {
+          "input_no": 58,
+          "post_id": 13805,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13805",
+          "answer_text": "①交差汚染を防ぐ食品衛生管理、②ホテルや旅館で料理人の経験のある工場管理者。",
+          "subquestions": []
+        },
+        {
+          "input_no": 59,
+          "post_id": 13809,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13809",
+          "answer_text": "ホテル・旅館経験ある部課長の下、多品種少量対応と生産中に仕様変更できる生産体制",
+          "subquestions": []
+        },
+        {
+          "input_no": 60,
+          "post_id": 13843,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13843",
+          "answer_text": "現経営者・ベテランリーダーのホテル調理場の管理・料理人の経験、多品種少量生産体制。",
+          "subquestions": []
+        },
+        {
+          "input_no": 61,
+          "post_id": 13847,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13847",
+          "answer_text": "ホテル料理人経験による調理場のマネジメント力、ベテランパートリーダーの指導力",
+          "subquestions": []
+        },
+        {
+          "input_no": 62,
+          "post_id": 13887,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13887",
+          "answer_text": "ホテルや旅館での料理人経験のある工場管理者、ベテランのパートリーダーの存在。",
+          "subquestions": []
+        },
+        {
+          "input_no": 63,
+          "post_id": 13909,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13909",
+          "answer_text": "①現経営者が料理人を経験し調理場を熟知している点。②工場管理者が元料理人である点。",
+          "subquestions": []
+        },
+        {
+          "input_no": 64,
+          "post_id": 13737,
+          "score": 54,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13737",
+          "answer_text": "①工場管理者のホテルや旅館での料理経験があり②食品衛生管理の徹底されている。",
+          "subquestions": []
+        },
+        {
+          "input_no": 65,
+          "post_id": 13753,
+          "score": 54,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13753",
+          "answer_text": "①地元食材を使った特色あるメニュー。②材料調達等の簡素化によるコスト低減ノウハウ。",
+          "subquestions": []
+        },
+        {
+          "input_no": 66,
+          "post_id": 13767,
+          "score": 53,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13767",
+          "answer_text": "強みは①材料調達や在庫管理の簡素化によるコスト低減力②ライン長の料理人業務経験",
+          "subquestions": []
+        },
+        {
+          "input_no": 67,
+          "post_id": 13875,
+          "score": 53,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13875",
+          "answer_text": "現経営者の調理場のマネジメント力と2名の課長の料理人経験",
+          "subquestions": []
+        },
+        {
+          "input_no": 68,
+          "post_id": 13823,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13823",
+          "answer_text": "従業員の高級ホテルや旅館での調理ノウハウ、製品開発部の他社での製品開発経験",
+          "subquestions": []
+        },
+        {
+          "input_no": 69,
+          "post_id": 13855,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13855",
+          "answer_text": "外部人材の製品開発スキルがあること、C社管理者のホテル経験",
+          "subquestions": []
+        },
+        {
+          "input_no": 70,
+          "post_id": 13873,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13873",
+          "answer_text": "①工場管理者がホテル料理人の経験を有す②販売先毎に加工室が分離され交差汚染を防止",
+          "subquestions": []
+        },
+        {
+          "input_no": 71,
+          "post_id": 13905,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13905",
+          "answer_text": "工場管理者がホテル旅館での料理人経験ある。外部人材の食品製造業での製品開発経験。",
+          "subquestions": []
+        },
+        {
+          "input_no": 72,
+          "post_id": 13763,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13763",
+          "answer_text": "ホテルや旅館の作業に熟知した工場管理者。パートリーダーが直接作業を指導する体制。",
+          "subquestions": []
+        },
+        {
+          "input_no": 73,
+          "post_id": 13797,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13797",
+          "answer_text": "①料理人経験のある工場管理者による生産指導力②高級ホテルやX社への生産対応力。",
+          "subquestions": []
+        },
+        {
+          "input_no": 74,
+          "post_id": 13803,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13803",
+          "answer_text": "①現経営者や工場管理者の旅館等での料理人経験②設備機器レイアウトが旅館等と同様な事",
+          "subquestions": []
+        },
+        {
+          "input_no": 75,
+          "post_id": 13833,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13833",
+          "answer_text": "ホテルや旅館での料理人経験者が多い、季節性と高級感のある総菜の提案ができること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 76,
+          "post_id": 13899,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13899",
+          "answer_text": "①経営者や工場管理者の料理人の経験による提案力②パート従業員に\nよる効率的な運営。",
+          "subquestions": []
+        },
+        {
+          "input_no": 77,
+          "post_id": 13729,
+          "score": 50,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13729",
+          "answer_text": "現経営者と工場管理者のホテル等での料理人経験、充分な食品衛生管理体制構築。",
+          "subquestions": []
+        },
+        {
+          "input_no": 78,
+          "post_id": 13813,
+          "score": 50,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13813",
+          "answer_text": "多品種で少量の食品を受託製造できる体制、ホテル調理場の作業内容を熟知していること",
+          "subquestions": []
+        },
+        {
+          "input_no": 79,
+          "post_id": 13841,
+          "score": 50,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13841",
+          "answer_text": "経験豊富な人材が社内にいる点、受託製造で安定した稼働とノウハウの蓄積。",
+          "subquestions": []
+        },
+        {
+          "input_no": 80,
+          "post_id": 13897,
+          "score": 50,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13897",
+          "answer_text": "社長のホテル調理場のマネジメント力。朝食\nや夕食用製品の当日納品体制。",
+          "subquestions": []
+        },
+        {
+          "input_no": 81,
+          "post_id": 13791,
+          "score": 48,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13791",
+          "answer_text": "①経営者や工場管理者がホテル等で料理人経験がある②工場設備はホテル等と同様な作り",
+          "subquestions": []
+        },
+        {
+          "input_no": 82,
+          "post_id": 13849,
+          "score": 48,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13849",
+          "answer_text": "①現社長や菓子製造課長のホテル業務経験や、②ホテル等の顧客要求品質への対応力。",
+          "subquestions": []
+        },
+        {
+          "input_no": 83,
+          "post_id": 13831,
+          "score": 46,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13831",
+          "answer_text": "➀工場管理者のホテルや旅館での料理人経験、②採用人材の製品開発の実務や管理の経験",
+          "subquestions": []
+        },
+        {
+          "input_no": 84,
+          "post_id": 13865,
+          "score": 45,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13865",
+          "answer_text": "工場管理人のホテルや旅館での料理人の経験",
+          "subquestions": []
+        },
+        {
+          "input_no": 85,
+          "post_id": 13835,
+          "score": 44,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13835",
+          "answer_text": "社長や工場管理者の旅館等での料理人経験、設備機器の配置が旅館厨房と同様な生産体制",
+          "subquestions": []
+        },
+        {
+          "input_no": 86,
+          "post_id": 13845,
+          "score": 44,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13845",
+          "answer_text": "①季節性と高級感ある和洋の総菜製造が可能②販売先料理長の指示で高品質な食品を製造",
+          "subquestions": []
+        },
+        {
+          "input_no": 87,
+          "post_id": 13907,
+          "score": 44,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13907",
+          "answer_text": "製造部課長のホテルや旅館での料理長の経験、製品開発部の外部経験に基づく開発力。",
+          "subquestions": []
+        },
+        {
+          "input_no": 88,
+          "post_id": 13727,
+          "score": 43,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13727",
+          "answer_text": "①受託品の製造に特化して蓄積された製造ノウハウ②企画から販売の一貫体制",
+          "subquestions": []
+        },
+        {
+          "input_no": 89,
+          "post_id": 13801,
+          "score": 43,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13801",
+          "answer_text": "社長と工場管理者がホテルで料理人経験があり食品製造ノウハウがある。",
+          "subquestions": []
+        },
+        {
+          "input_no": 90,
+          "post_id": 13751,
+          "score": 39,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13751",
+          "answer_text": "現経営者のホテル調理上でのマネジメント経験、工場管理者の宿泊施設での料理人経験。",
+          "subquestions": []
+        },
+        {
+          "input_no": 91,
+          "post_id": 13817,
+          "score": 39,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13817",
+          "answer_text": "①ホテル調理を熟知した経営者と管理者②材料調達、在庫管理の簡素化によるコスト低減",
+          "subquestions": []
+        },
+        {
+          "input_no": 92,
+          "post_id": 13911,
+          "score": 39,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13911",
+          "answer_text": "①工場管理者のホテル等の料理人としての経験、②製品開発部による高い商品企画力。",
+          "subquestions": []
+        },
+        {
+          "input_no": 93,
+          "post_id": 13739,
+          "score": 34,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13739",
+          "answer_text": "ホテル調理場の作業内容等を熟知した現経営者。製品開発の実務や管理ができる外部人材。",
+          "subquestions": []
+        }
+      ]
+    },
+    {
+      "question_no": 2,
+      "points": 20,
+      "heading_text": "第２問（配点20点）",
+      "answer_count": 93,
+      "score_stats": {
+        "count": 93,
+        "min": 34,
+        "max": 78,
+        "median": 58,
+        "mean": 58.02
+      },
+      "answer_char_stats": {
+        "count": 93,
+        "min": 48,
+        "max": 101,
+        "median": 99,
+        "mean": 96.2
+      },
+      "exemplars": {
+        "high": [
+          {
+            "post_id": 13781,
+            "score": 78,
+            "published_at": "2024-05-02",
+            "answer_text": "対応策は①生産計画を週次で作成し販売先の納品数量に合わせた生産量を計画②製品仕様やレシピを明文化・一元管理し変更による手戻りを低減③スキル平準化のため作業標準化\n・マニュアル化で生産性を高め増産対応する"
+          },
+          {
+            "post_id": 13785,
+            "score": 78,
+            "published_at": "2024-05-02",
+            "answer_text": "対応策は①総菜製造の生産を全体管理とし、生産計画・統制を強化する事で生産性向上、②リーダーや管理者の業務指示を標準化・マニュアル化し共有を図り教育を実施し技術力向上させて、生産性の向上を図る。"
+          },
+          {
+            "post_id": 13771,
+            "score": 76,
+            "published_at": "2024-05-02",
+            "answer_text": "①作業の標準化やOJTを通じて、他の班でも作業可能な多能工化を進める②SLPを通じて、工場レイアウトの最適化を図る。以て、生産効率性の向上を図り、最近の増加する受注量に対応する。"
+          },
+          {
+            "post_id": 13867,
+            "score": 74,
+            "published_at": "2024-05-02",
+            "answer_text": "①各工程の作業方法を標準化し、OJTの強化でパート従業員の多能工化を図り、流動的な人員配置を行う。②各製品の製品仕様の指示をデータ化し一元管理することで全社的に即時共有し、増加する受注量に対応する。"
+          },
+          {
+            "post_id": 13815,
+            "score": 72,
+            "published_at": "2024-05-02",
+            "answer_text": "対応策は①工場管理者のレシピをDB化し食材、製造方法変更を従業員に共有可能にし②直接作業方法を標準化しマニュアル化したのを従業員教育して作業効率向上による生産性向上と変更指示に柔軟に対応出来る体制構築。"
+          }
+        ],
+        "middle": [
+          {
+            "post_id": 13837,
+            "score": 58,
+            "published_at": "2024-05-02",
+            "answer_text": "①レシピを整理しDBで一元管理し従業員に共有を行い②各工程の手順をマニュアル化しOJT教育により従業員を多能工化することで、生産性を向上させ人手不足においてもお増加する受注量に対応することを狙う。"
+          },
+          {
+            "post_id": 13863,
+            "score": 58,
+            "published_at": "2024-05-02",
+            "answer_text": "対応策は、①作業方法をマニュアル化・標準化し教育を行う。②製品仕様をデータベース化しリアルタイムで共有し、変更の回数を減らす。③パート従業員を多能工化し、柔軟な応援体制を構築する。"
+          },
+          {
+            "post_id": 13871,
+            "score": 58,
+            "published_at": "2024-05-02",
+            "answer_text": "対応策は①販売先料理長からの製品仕様のレシピを詳細に記し、DB等で一元管理共有して生産計画の精度を向上②各製造班の従業員を教育で多能工化し、繁閑に応じて班を超えた相互応援可能にして柔軟な生産体制を構築"
+          },
+          {
+            "post_id": 13773,
+            "score": 57,
+            "published_at": "2024-05-02",
+            "answer_text": "対応策は①食材・使用料・作業手順などの製品仕様のレシピを記録に残し標準化する。②ＤＢ化して整理し、販売先料理長とデータの即時共有を図り、製造部の工程計画や生産計画に活かす。以て生産性向上し受注増対応図る"
+          },
+          {
+            "post_id": 13881,
+            "score": 57,
+            "published_at": "2024-05-02",
+            "answer_text": "対応策は、①総菜製造部での製造を販売先ごとではなく、全社的に生産計画を立てて行い業務の平準化を図る。②工場管理者が作成したレシピをデータ化し共有する。以上で生産効率を上げ現戦力で受注増加に対応する。"
+          }
+        ],
+        "low": [
+          {
+            "post_id": 13739,
+            "score": 34,
+            "published_at": "2024-05-02",
+            "answer_text": "製造日に必要な食材や調味料を前日より前に準備し、販売先への納品遅れをなくす。短サイクルで生産計画を作成し、受注量を基に食材や調味料の必要量を見積もり、短サイクルで発注して納入管理を行い生産能力を高める。"
+          },
+          {
+            "post_id": 13751,
+            "score": 39,
+            "published_at": "2024-05-02",
+            "answer_text": "対応策は①惣菜製造班の販売先別製造を改め全社生産計画として短周期化のうえ生産統制強化して応援体制を構築②食材・調味料の発注サイクルを短周期化しい現品管理と納期管理を強化。以上で稼働率高め生産性向上。"
+          },
+          {
+            "post_id": 13817,
+            "score": 39,
+            "published_at": "2024-05-02",
+            "answer_text": "生産計画の短サイクル化を行い、在庫も同期し管理、生産統制を強化し、食品商社のマネジメントを徹底し、在庫の欠品を防止。作業内容を標準化、マニュアル化することで作業効率をあげ、受注増に対応。"
+          },
+          {
+            "post_id": 13911,
+            "score": 39,
+            "published_at": "2024-05-02",
+            "answer_text": "対応策は、①口頭で指示されるレシピを整理し各製品の使用量や作業手順等を明確にする事で、販売先料理長からの変更指示をなくす、②能力開発行う事で効率性を高める、ことにより受注量の増加に対応する。"
+          },
+          {
+            "post_id": 13727,
+            "score": 43,
+            "published_at": "2024-05-02",
+            "answer_text": "対応策は、生産性を向上させ稼働率UPで社員減でも受注に対応すること。具体的には①メモ程度のレシピを整理し、DBで一元管理して共有する②食材等の必要量を標準化しマニュアル化の上OJTで教育し、ムダを省く。"
+          }
+        ]
+      },
+      "answers": [
+        {
+          "input_no": 1,
+          "post_id": 13781,
+          "score": 78,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13781",
+          "answer_text": "対応策は①生産計画を週次で作成し販売先の納品数量に合わせた生産量を計画②製品仕様やレシピを明文化・一元管理し変更による手戻りを低減③スキル平準化のため作業標準化\n・マニュアル化で生産性を高め増産対応する",
+          "subquestions": []
+        },
+        {
+          "input_no": 2,
+          "post_id": 13785,
+          "score": 78,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13785",
+          "answer_text": "対応策は①総菜製造の生産を全体管理とし、生産計画・統制を強化する事で生産性向上、②リーダーや管理者の業務指示を標準化・マニュアル化し共有を図り教育を実施し技術力向上させて、生産性の向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 3,
+          "post_id": 13771,
+          "score": 76,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13771",
+          "answer_text": "①作業の標準化やOJTを通じて、他の班でも作業可能な多能工化を進める②SLPを通じて、工場レイアウトの最適化を図る。以て、生産効率性の向上を図り、最近の増加する受注量に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 4,
+          "post_id": 13867,
+          "score": 74,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13867",
+          "answer_text": "①各工程の作業方法を標準化し、OJTの強化でパート従業員の多能工化を図り、流動的な人員配置を行う。②各製品の製品仕様の指示をデータ化し一元管理することで全社的に即時共有し、増加する受注量に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 5,
+          "post_id": 13815,
+          "score": 72,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13815",
+          "answer_text": "対応策は①工場管理者のレシピをDB化し食材、製造方法変更を従業員に共有可能にし②直接作業方法を標準化しマニュアル化したのを従業員教育して作業効率向上による生産性向上と変更指示に柔軟に対応出来る体制構築。",
+          "subquestions": []
+        },
+        {
+          "input_no": 6,
+          "post_id": 13869,
+          "score": 72,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13869",
+          "answer_text": "対応策は①作業標準化・マニュアル化、ＯＪＴ教育による多能工化②レシピを整理し共有③食材や調味料の必要量を周知し、口頭での指示を無くし可視化する。以上により、柔軟な生産体制を構築し、生産性向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 7,
+          "post_id": 13745,
+          "score": 71,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13745",
+          "answer_text": "対応策は①作業方法やレシピを標準化・マニュアル化しOJT教育し②製品開発時にサンプル作成し変更指示を削減し③設備機器のレイアウトをSLPで改善し④洗浄や軽量等の自動化を進め、業務効率化する事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 8,
+          "post_id": 13775,
+          "score": 70,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13775",
+          "answer_text": "生産性向上により工場生産量を増やす策が必要。具体的には①作業の標準化をし機械化推進することで生産量向上②レシピをデータベース化し一元管理することで再利用しやすくする③多能工化教育で生産ノウハウをためる",
+          "subquestions": []
+        },
+        {
+          "input_no": 9,
+          "post_id": 13761,
+          "score": 69,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13761",
+          "answer_text": "C社は、①総菜工程にカット等の専用調理器を導入して手作業を減らし、②パートリーダーが担う食材の発注作業を資材管理課に任せることで、③現場の余力を生み、受注増に対応すべき。",
+          "subquestions": []
+        },
+        {
+          "input_no": 10,
+          "post_id": 13811,
+          "score": 69,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13811",
+          "answer_text": "対応策は①経験者のパート従業員を採用②ベテランの作業の標準化、マニュアル化とOJTで新人教育③口頭のレシピを整理して食材・使用量・料理方法をDB化して共有により受注増加に対応して売上を向上させる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 11,
+          "post_id": 13883,
+          "score": 69,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13883",
+          "answer_text": "対応策は①手作業の総菜製造工程の機械化②販売先料理長からの製品仕様レシピの整理と共有③生産計画の短サイクル化と④生産統制の徹底⑤食材や調味料の必要量の基準化で、生産性向上を図り、受注増加への体制を構築",
+          "subquestions": []
+        },
+        {
+          "input_no": 12,
+          "post_id": 13799,
+          "score": 68,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13799",
+          "answer_text": "対応策は①販売先料理長からの口頭指示のメモや工場管理者の手作業で進められる作業指示を標準化、マニュアル化②生産計画週次化で進捗・余力管理強化③製造部内のチーム間応援体制構築。以上で対応能力を向上。",
+          "subquestions": []
+        },
+        {
+          "input_no": 13,
+          "post_id": 13825,
+          "score": 68,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13825",
+          "answer_text": "対応策は①機械化可能な製造工程に設備導入し、自動化②製品仕様のレシピを整備し、加工手順と共に標準化とマニュアル化、③週次の生産計画を立て、生産量に応じて製造班の作業量平準化。以上により生産性向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 14,
+          "post_id": 13877,
+          "score": 68,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13877",
+          "answer_text": "対応策は①パートリーダー経験値を手順書化しOJT教育実施し②製造班間の配置転換で多能工化し③手作業工程を一部機械化し④余力管理強化で業務負荷を平準化し、省人化し業務効率化を図り、今後の受注増に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 15,
+          "post_id": 13749,
+          "score": 67,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13749",
+          "answer_text": "対策は、①販売先ごとの班を工程ごとに変更することで作業員の専門化を図る。②工場管理者の作成したレシピメモをDB化し、作業の標準化を図る。以上で、作業の効率化を図り、生産能力を向上する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 16,
+          "post_id": 13787,
+          "score": 67,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13787",
+          "answer_text": "対応策は①パート職員の新規採用を行い、作業の標準化、マニュアル化、OJTの実施により生産体制の強化を図ること。②生産計画の週次化、③発注の標準化、短サイクル化により納期の徹底を図ること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 17,
+          "post_id": 13861,
+          "score": 67,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13861",
+          "answer_text": "対応策は①受注量最多の総菜製造を標準化した上で機械化し②レシピメモを整理しＤＢ化し全社で共有し③販売先との打合せ窓口は一本化し④生産計画を短サイクル化することで生産効率を向上させ受注量増加に対応すべき。",
+          "subquestions": []
+        },
+        {
+          "input_no": 18,
+          "post_id": 13755,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13755",
+          "answer_text": "対応策は①経営者の調理場マネジメント力を活かし、加工室内の作業内容を効率化する、②レシピをマニュアル化して整理して共有し、工場管理者の指導時間削減と、品質均一化で変更指示を減らす。以上で生産効率化を図る",
+          "subquestions": []
+        },
+        {
+          "input_no": 19,
+          "post_id": 13779,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13779",
+          "answer_text": "OJTなどで所属班以外の作業できるように製造班員を教育。惣菜製造課と菓子製造課で別々に作成していた作業計画を全社で纏め班員を効率的に運用。余力管理などの生産統制や定例会を実施かつ生産管理計画の週次化検討",
+          "subquestions": []
+        },
+        {
+          "input_no": 20,
+          "post_id": 13827,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13827",
+          "answer_text": "①各製品の製品仕様のメモ程度のレシピを整理して、マニュアル化・標準化を行い教育を実施する②月次の生産計画を週次に改め精度を高める。以上で受注量の増加に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 21,
+          "post_id": 13839,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13839",
+          "answer_text": "①加工室のレイアウトをSLPで機能別に最適化し販売先ごとの製造を廃止し人材流動性を高める②レシピ情報を標準化・文書化し工場管理者からのOJTで多能工を育成し対応能力を高める③設備導入で手作業を減らす。",
+          "subquestions": []
+        },
+        {
+          "input_no": 22,
+          "post_id": 13851,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13851",
+          "answer_text": "対応策は①販売先ごとの総菜製造班の応援ルールを整備し生産効率を上げ②メモのレシピを標準化・マニュアル化して整理し従業員教育に活用し③手作業を自動化し、増加する受注量に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 23,
+          "post_id": 13895,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13895",
+          "answer_text": "作業量に応じた製造班間の移動をする事、パートリーダーの作業ノウハウを標準化、マニュアル化し、OJTを行い、従業員の技術力を上げる事。以上で、効率性向上し、受注量に対応を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 24,
+          "post_id": 13741,
+          "score": 65,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13741",
+          "answer_text": "対応策は①販売先料理長の口頭指示をデータベース化し標準化し、だれでも見れるようにすることで監督なしで作業したり変更に対応できるようにする②多能工化することで生産リードタイム短縮、稼働率向上をねらう。",
+          "subquestions": []
+        },
+        {
+          "input_no": 25,
+          "post_id": 13757,
+          "score": 65,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13757",
+          "answer_text": "対応策は①作業方法を標準化・マニュアル化して OJT 等で教育を行い従業員を多能工化し複数担当制にし②メモをフォーマット化して料理長から口頭で指示される製品仕様を整理・共有しやすくして生産性向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 26,
+          "post_id": 13769,
+          "score": 65,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13769",
+          "answer_text": "製造工程の前処理・計量・カット・調理等の手作業の自動化②作業標準化・マニュアル化し教育体制を整備③多能工化による応援体制構築④工程間負荷の調整による平準化。以上で生産性を上げ人材不足をカバーする。",
+          "subquestions": []
+        },
+        {
+          "input_no": 27,
+          "post_id": 13819,
+          "score": 65,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13819",
+          "answer_text": "若手従業員を育成し生産能力を向上させる。具体的には①作業の標準化・文書化を図りOJTで技能を標準化する②汎用調理設備を導入し惣菜工程の自動化を図る③レシピを製造指図書で指示する等で若手従業員を育成する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 28,
+          "post_id": 13903,
+          "score": 65,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13903",
+          "answer_text": "対応策は①総菜の製造工程は汎用調理器具と手作業から専用器具へ変更し②製造班内で同一食材の前処理は一括して行い③加工室のレイアウトは、流れ作業対応可能な形に変更する。以て生産性を向上させる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 29,
+          "post_id": 13859,
+          "score": 64,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13859",
+          "answer_text": "対応策は、①工場管理者のレシピを標準化してマニュアルを作成し社内で共有②ベテランパートリーダーによるパート従業員のOJTを実施して多能工化し③製造班間の応援体制を構築する。以上で生産を効率化する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 30,
+          "post_id": 13759,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13759",
+          "answer_text": "対応策は、作業方法・仕様のマニュアル化である。具体的には①パートリーダーが従業員に直接指導しているのを作業標準化②工場管理者のレシピのメモを整理し誰でも使えるようにする。以上で作業効率高め、受注増対応。",
+          "subquestions": []
+        },
+        {
+          "input_no": 31,
+          "post_id": 13783,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13783",
+          "answer_text": "生産管理課と総菜製造課で生産計画の情報共有を行い生産に必要な工数を明確にする。パートリーダーはパート従業員の育成を進め多能工化を図り多工程持ちを促していくことで繁閑対応できる余力を確保し応援体制を作る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 32,
+          "post_id": 13821,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13821",
+          "answer_text": "販売先料理長からの指示を口頭からテキストデータに変更し、ＤＢを作成して一元管理する。これにより、チェックや変更指示の回数、工場管理者の指導時間を削減し、生産時間を確保することで受注量の増加に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 33,
+          "post_id": 13853,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13853",
+          "answer_text": "対応策は①生産計画を全体で調整②月度生産計画を確定納品予定に合わせて週次に見直し③生産統制を行い、現品管理、余力管理、進捗管理により材料の欠品を無くすことで、受注量の増加に対応し、生産性の向上を図る",
+          "subquestions": []
+        },
+        {
+          "input_no": 34,
+          "post_id": 13857,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13857",
+          "answer_text": "①製造工程の繁閑差を平準化し、パート従業員の多能工化を目的にOJTを行い、生産性向上を図る②レシピ整理、作業方法の標準化で直接指示の迅速化で生産性を向上する。以上で生産性向上を図り収益性改善を図る",
+          "subquestions": []
+        },
+        {
+          "input_no": 35,
+          "post_id": 13885,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13885",
+          "answer_text": "販売先料理長から口頭で指示される製品仕様についてレシピとして整理し、社内で共有することで作業を標準化し、パート従業員を育成して多能化して生産リードタイムを短縮し、製造部の生産能力を向上させる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 36,
+          "post_id": 13733,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13733",
+          "answer_text": "対応策は、①総菜製造班の販売先ごとの製造を止め不稼働のムダを削減、②設備機器のレイアウトを前処理・軽量カット・調理の工程別に配置し加工を効率化、③機械調理器の導入。加工工程のムダを排して生産量を上げる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 37,
+          "post_id": 13807,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13807",
+          "answer_text": "対応策は、①販売先料理長からの口頭指示による製品仕様のレシピを整理してマニュアル化し作業手順を共有する、②パートリーダーの経験値をマニュアル化し食材や調味料の必要量を標準化して発注を効率化する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 38,
+          "post_id": 13889,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13889",
+          "answer_text": "対応策は①各製品のレシピ情報を整理②作業方法のマニュアル化やOJTで標準化させ、パートの多能工化を図る③ＡＢＣ分析で商品の絞込を実施し、生産性を向上させ増加する受注量に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 39,
+          "post_id": 13891,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13891",
+          "answer_text": "対応策は①直接口頭で行う生産指示や加工方法の指導をデータ化し②レシピを整理してDB化して共有し③属人的な材料の見積もりをマニュアル化することで生産効率化を図り、受注量変動に柔軟に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 40,
+          "post_id": 13777,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13777",
+          "answer_text": "①販売先料理長から指示される製品仕様メモを整理し、標準化して共有することで製品仕様工程を効率化②生産計画の短サイクル化・在庫状態の適宜確認により、余裕を持った作業を行い納期も遵守する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 41,
+          "post_id": 13829,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13829",
+          "answer_text": "月度生産計画は週次作成とし、販売先料理長から口頭指示の製品仕様はレシピとして整理し社内共有できるようにして販売先料理長やパートリーダーの直接口頭指示を削減し、従業員や総菜製造工程の余力を確保する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 42,
+          "post_id": 13879,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13879",
+          "answer_text": "対応策は、①販売先料理長に実際に試作してもらう、②製品仕様を文書化し、整理して保存する、③料理方法や作業方法を標準化し、パート従業員を教育する。以上より、生産性を向上させ、負荷低減を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 43,
+          "post_id": 13901,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13901",
+          "answer_text": "対応策は①手作業の製造工程の機械化②販売先料理長の指示による製造の休止、作業の標準化③納品期間中の製品仕様・加工方法の変更の削減。これにより受注量に対して柔軟に対応し、人に依らない体制を構築。",
+          "subquestions": []
+        },
+        {
+          "input_no": 44,
+          "post_id": 13747,
+          "score": 59,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13747",
+          "answer_text": "対応策は前処理、軽量・カット、調理の工程において可能な範囲を機械化する。直接作業方法を指示していた作業を標準化しマニュアル化して共有することで、生産性を向上し受注増加を対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 45,
+          "post_id": 13837,
+          "score": 58,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13837",
+          "answer_text": "①レシピを整理しDBで一元管理し従業員に共有を行い②各工程の手順をマニュアル化しOJT教育により従業員を多能工化することで、生産性を向上させ人手不足においてもお増加する受注量に対応することを狙う。",
+          "subquestions": []
+        },
+        {
+          "input_no": 46,
+          "post_id": 13863,
+          "score": 58,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13863",
+          "answer_text": "対応策は、①作業方法をマニュアル化・標準化し教育を行う。②製品仕様をデータベース化しリアルタイムで共有し、変更の回数を減らす。③パート従業員を多能工化し、柔軟な応援体制を構築する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 47,
+          "post_id": 13871,
+          "score": 58,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13871",
+          "answer_text": "対応策は①販売先料理長からの製品仕様のレシピを詳細に記し、DB等で一元管理共有して生産計画の精度を向上②各製造班の従業員を教育で多能工化し、繁閑に応じて班を超えた相互応援可能にして柔軟な生産体制を構築",
+          "subquestions": []
+        },
+        {
+          "input_no": 48,
+          "post_id": 13773,
+          "score": 57,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13773",
+          "answer_text": "対応策は①食材・使用料・作業手順などの製品仕様のレシピを記録に残し標準化する。②ＤＢ化して整理し、販売先料理長とデータの即時共有を図り、製造部の工程計画や生産計画に活かす。以て生産性向上し受注増対応図る",
+          "subquestions": []
+        },
+        {
+          "input_no": 49,
+          "post_id": 13881,
+          "score": 57,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13881",
+          "answer_text": "対応策は、①総菜製造部での製造を販売先ごとではなく、全社的に生産計画を立てて行い業務の平準化を図る。②工場管理者が作成したレシピをデータ化し共有する。以上で生産効率を上げ現戦力で受注増加に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 50,
+          "post_id": 13793,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13793",
+          "answer_text": "食材のトリミングや洗浄、計量、カットなどを専用の器具や機械で対応することで効率性を高める。レシピをメモ程度でなく精度を高めた内容のレシピとして整理する。担当者が検索しやすく正確に作業できるようにする。",
+          "subquestions": []
+        },
+        {
+          "input_no": 51,
+          "post_id": 13893,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13893",
+          "answer_text": "対応策は、口頭の指示やレシピを文書化・データ化することで作業方法・手順の標準化を行うことと、受注変動に応じて班を超えた人材配置の流動化を行うことにより、増える受注に対応できる生産能力向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 52,
+          "post_id": 13731,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13731",
+          "answer_text": "対応策①季節毎の販売先の製品仕様を口頭では無く、標準化、マニュアル化②毎日の生産指示、加工方法をマニュアル化③OJTを行い、出来栄え改善④製品の食材、使用料、作業手順、方法を整理しDB化し、生産性向上。",
+          "subquestions": []
+        },
+        {
+          "input_no": 53,
+          "post_id": 13735,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13735",
+          "answer_text": "対応策は、①顧客毎で共通する材料や工程はまとめて製造できるようにする、②手作業で行っている工程は可能な範囲で自動化を検討する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 54,
+          "post_id": 13743,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13743",
+          "answer_text": "対応策は①試作品の精度を高め販売先料理長からの指示・仕様変更の回数を減らすためレシピの整理を行い社内共有を図る、②パートへの作業指導はパートリーダーが行い工場管理者は担当課管理に注力し進捗管理を徹底。",
+          "subquestions": []
+        },
+        {
+          "input_no": 55,
+          "post_id": 13765,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13765",
+          "answer_text": "対応策は①レシピのDB化・作業の標準化とOJT等による教育②総菜製造班を前処理～包装の機能別に分け、専門化し、専門性・生産性を向上③全体の生産計画立案、進捗等の生産統制を行い、供給力を高める。",
+          "subquestions": []
+        },
+        {
+          "input_no": 56,
+          "post_id": 13789,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13789",
+          "answer_text": "必要な対応策は、①レシピを整理、データベース化し業務改善の資料とする、②販売先料理長との打ち合わせに担当者を同席させ認識の齟齬をなくす、③専用調理器具を導入することで手作業の効率化を進めることである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 57,
+          "post_id": 13795,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13795",
+          "answer_text": "対応策は①口頭指示の仕様を標準化、マニュアル化し仕様や製造方法の変更を減らす②各課横断した全社計画を宿泊予約に応じた納品計画と連動した形で週次で立案。以上で生産性向上と短納期に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 58,
+          "post_id": 13805,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13805",
+          "answer_text": "対応策は、①研修等による従業員の能力向上、②作業手順のマニュアル化・DＢ化により、作業の標準化を図り、③製造班の従業員の多能工化と流動化により、応援体制を構築し、生産能力の向上と効率化を推進すべきである",
+          "subquestions": []
+        },
+        {
+          "input_no": 59,
+          "post_id": 13809,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13809",
+          "answer_text": "対応策は、前処理・カットをあらかじめされた食材の購入または外注化しB社は調理に人的リソースを集中させる事や調理工程の自動化を進めることで業務効率化を図り受注増加に対応できる体制を構築し売上向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 60,
+          "post_id": 13843,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13843",
+          "answer_text": "対応策は①作業手順や製品仕様のマニュアル化②顧客は事前に試作品提供し出来栄えを確認させ変更回数削減③生産計画の短サイクル化により需要変動に対応④進捗に応じた人員配置で生産性向上し、製造期間短縮に繋げる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 61,
+          "post_id": 13847,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13847",
+          "answer_text": "対応策は①材料調達や在庫管理を簡素化し、②全社的計画を短サイクル作成し統制強化して生産性向上、③レシピを整理して製品仕様、品質基準、加工方法を標準化し、OJT教育で多能工化する。以て、受注量増加に対応。",
+          "subquestions": []
+        },
+        {
+          "input_no": 62,
+          "post_id": 13887,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13887",
+          "answer_text": "対応策は(1)作業標準、生産計画の週次化、生産統制し、食材や調味料の必要量を数値化(2)メモレシピのＤＢ化(3)多能工化④手作業の機械化で業務効率向上させ、受注増に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 63,
+          "post_id": 13909,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13909",
+          "answer_text": "対応策は、①作業方法の指導や監督の時間削減の為に、製品製造に必要な食材、使用料、作業手順を製造仕様書として作成する、②製造指示、指導時間の削減の為に継続生産の製品の生産や加工マニュアルを作成する、である",
+          "subquestions": []
+        },
+        {
+          "input_no": 64,
+          "post_id": 13737,
+          "score": 54,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13737",
+          "answer_text": "①製品仕様の確定を書面で行い、食材・量・手順の標準化②販売先料理長からの変更指示の一元管理、共有でノウハウを貯め、変更指示回数の減少③全課が統合した生産工程により生産効率を向上させ、納品遅れを解消。",
+          "subquestions": []
+        },
+        {
+          "input_no": 65,
+          "post_id": 13753,
+          "score": 54,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13753",
+          "answer_text": "対応策は、①販売先ごとから製品ごとに一括生産を行う。②SLPでレイアウトを最適化する。③専用機を導入して作業を自動化する。④口頭で指示している情報をデジタル化する。以上で生産性向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 66,
+          "post_id": 13767,
+          "score": 53,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13767",
+          "answer_text": "対応策は①惣菜の製造工程の手作業を機械化し、②販売先料理長からの製品仕様指示を整理し部内で共有し、③生産計画を週次化して生産統制を徹底する。以上で生産を効率化し増加する受注量に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 67,
+          "post_id": 13875,
+          "score": 53,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13875",
+          "answer_text": "対応策は①製造時の作業方法は標準化、マニュアル化して従業員へOJT教育②食材・製造方法等の変更指示も標準化、マニュアル化して両課長からパートリーダー経由でOJTで従業員教育し適宜管理③前処理は全班統合",
+          "subquestions": []
+        },
+        {
+          "input_no": 68,
+          "post_id": 13823,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13823",
+          "answer_text": "C社は①口頭指示でなく、作業指示書での明確な指示や作業手順の標準化、②月次の生産計画の短サイクル化、③納入遅れへのカムアップシステム導入や他部門からの応援派遣による生産性向上で、受注増加への対応を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 69,
+          "post_id": 13855,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13855",
+          "answer_text": "対応策は、①生産計画を月次から週次に短サイクル化し、販売先の週次で確定する予約に合わせて生産する、②食材調味料の調達期間を考慮し、納品に間に合うように納品させ、納品遅れを生じないようにすることである",
+          "subquestions": []
+        },
+        {
+          "input_no": 70,
+          "post_id": 13873,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13873",
+          "answer_text": "必要な対応策は口頭による直接指示を改め、作業標準化・マニュアル化を実施し作業員を多能工化する事。これにより製造班を横断した作業員の融通で生産性向上を図り、パート従業員不足に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 71,
+          "post_id": 13905,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13905",
+          "answer_text": "対応策は、①口頭で指示をうけている製品仕様や変更指示を文書化で行う。②整理されていないレシピを整理する。これを使い、パート従業員へ作業方法を指示することで効率化でき生産性が上がり、受注量の増加に対応。",
+          "subquestions": []
+        },
+        {
+          "input_no": 72,
+          "post_id": 13763,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13763",
+          "answer_text": "対応策は、①受注量が多い惣菜の製造工程で前処理や計量などの作業を機械化し、②レシピをデジタル化することで管理の手間削減や活用の促進を促し製品チェックでの手戻りを減らし、③増加する受注量への対応を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 73,
+          "post_id": 13797,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13797",
+          "answer_text": "生産面の対応策は、①工場管理者が直接指導する事を改め、権限委譲し、管理業務に専念する②過去のデータを使い、マニュアル化する③OJTや勉強会を実施する。以上で生産性を向上させ、受注量の増加に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 74,
+          "post_id": 13803,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13803",
+          "answer_text": "対応策は①総菜製造課の負荷が大きい為、OJTにより多能工化し他の担当でも加工が行えるようにし②C社と決定した内容をマニュアル化し、変更の度に更新する。以上で、生産性と歩留りを改善し増加する受注量に対応。",
+          "subquestions": []
+        },
+        {
+          "input_no": 75,
+          "post_id": 13833,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13833",
+          "answer_text": "対応策は生産計画立案や食品発注の間隔を週次化して変更に対応し、食品や調味料の必要量の見積を標準化して計画に反映させ、在庫管理の強化で納期遅れを抑止することで、生産性を改善し受注量拡大に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 76,
+          "post_id": 13899,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13899",
+          "answer_text": "対応策は、①適切な生産計画②製造工程の短縮による生産性向上で\nある。具体的には、①販売先の宿泊数の変動に対応し週次計画を立案\n②販売先の製品仕様を整理し標準化しDBとして共有、OJTによる教育を行う。",
+          "subquestions": []
+        },
+        {
+          "input_no": 77,
+          "post_id": 13729,
+          "score": 50,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13729",
+          "answer_text": "対応策は①作業方法と加工方法を標準化・OJT等の研修でパート社員戦力化②手作業工程を機械により自働化③ジョブローテーションで多能工化し多工程持ちで生産性向上、柔軟な生産体制構築し受注増に対応。",
+          "subquestions": []
+        },
+        {
+          "input_no": 78,
+          "post_id": 13813,
+          "score": 50,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13813",
+          "answer_text": "販売先料理長から口頭で指示される製品仕様を統一化し、工場管理者が直接指示を出し変更時の記録も行う",
+          "subquestions": []
+        },
+        {
+          "input_no": 79,
+          "post_id": 13841,
+          "score": 50,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13841",
+          "answer_text": "対応策は①業務用調理器具や作業の機械化で生産効率向上②一部工程を外注し業務軽減③レシピを整理・文章で共有し生産性向上④発注から納品までの時間を長くするよう取引先と調整し遅延防止。",
+          "subquestions": []
+        },
+        {
+          "input_no": 80,
+          "post_id": 13897,
+          "score": 50,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13897",
+          "answer_text": "対応策は①簡単な手作業の機械化②販売先料\n理長の製品仕様を仕様書化してもらう③レシ\nピメモDB化し共有④生産計画短サイク\nル化⑤食材や調味料要量見積標準化⑥OJＴ\n教育で従業員多能工化で生産効率高める",
+          "subquestions": []
+        },
+        {
+          "input_no": 81,
+          "post_id": 13791,
+          "score": 48,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13791",
+          "answer_text": "対応策は、①手作業のシステム化による生産性向上②レシピの整理③食材や調味料の量の基準設定やマニュアル化④入出庫記録を作り、適切な在庫管理⑤前もっての調達による納期遵守であり、人材不足の対応を行う。",
+          "subquestions": []
+        },
+        {
+          "input_no": 82,
+          "post_id": 13849,
+          "score": 48,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13849",
+          "answer_text": "対応策は、①惣菜製造工程の機械化を進め手作業の生産性を改善、②レシピをマニュアル化し生産期間を短縮、③生産計画を月次から週次に短サイクル化し顧客の需要変動に対応。以上で生産性を向上し受注量の増加に対応。",
+          "subquestions": []
+        },
+        {
+          "input_no": 83,
+          "post_id": 13831,
+          "score": 46,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13831",
+          "answer_text": "対応策は、➀メモ程度のﾚｼﾋﾟを関係者で共有して整理し、日々の確認作業を容易にする、②パートリーダーが直接指導している内容や変更指示を書面化して残し、 指導業務を減らし受注対応に専念すること",
+          "subquestions": []
+        },
+        {
+          "input_no": 84,
+          "post_id": 13865,
+          "score": 45,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13865",
+          "answer_text": "販売先料理長から指示される製品仕様をまとめたレシピを整理し作業者間で共有化できるようにする。生産管理課は月度生産計画の作成サイクルを短くし、資材管理課にも生産計画を連携する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 85,
+          "post_id": 13835,
+          "score": 44,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13835",
+          "answer_text": "対応策は、①総菜の前処理から調理までの手作業の工程の自動化、作業標準化と教育実施で、生産能力向上②料理長からの口頭の指示やレシピをDB化、一元管理共有③生産計画の週次化や統制強化。以上で、生産性向上。",
+          "subquestions": []
+        },
+        {
+          "input_no": 86,
+          "post_id": 13845,
+          "score": 44,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13845",
+          "answer_text": "対応策は①生産計画を週次化し、日毎の作業計画作成と食材等の発注を生産管理課に集約②両製造課長とパートリーダーは余力管理を徹底③販売先料理長が指示したレシピをDB化し共有して参照容易化。以て生産性向上。",
+          "subquestions": []
+        },
+        {
+          "input_no": 87,
+          "post_id": 13907,
+          "score": 44,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13907",
+          "answer_text": "対応策は、製品仕様のレシピをデータベース化して整理する、生産指示や加工方法の指導を口頭指示からデータとして共有する、入出庫記録をつけること、直材や調味料の準備を前広に行い、納品遅れを防ぐ事、である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 88,
+          "post_id": 13727,
+          "score": 43,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13727",
+          "answer_text": "対応策は、生産性を向上させ稼働率UPで社員減でも受注に対応すること。具体的には①メモ程度のレシピを整理し、DBで一元管理して共有する②食材等の必要量を標準化しマニュアル化の上OJTで教育し、ムダを省く。",
+          "subquestions": []
+        },
+        {
+          "input_no": 89,
+          "post_id": 13801,
+          "score": 43,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13801",
+          "answer_text": "対応策は①加熱処理する工程で手作業を改め機械導入し自動化②資材管理課で在庫の保管管理徹底し在庫と廃棄ロスの削減③パートリーダーの作業標準化しＯＪＴ教育の実施、以上で稼働率を向上させ生産能力向上図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 90,
+          "post_id": 13751,
+          "score": 39,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13751",
+          "answer_text": "対応策は①惣菜製造班の販売先別製造を改め全社生産計画として短周期化のうえ生産統制強化して応援体制を構築②食材・調味料の発注サイクルを短周期化しい現品管理と納期管理を強化。以上で稼働率高め生産性向上。",
+          "subquestions": []
+        },
+        {
+          "input_no": 91,
+          "post_id": 13817,
+          "score": 39,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13817",
+          "answer_text": "生産計画の短サイクル化を行い、在庫も同期し管理、生産統制を強化し、食品商社のマネジメントを徹底し、在庫の欠品を防止。作業内容を標準化、マニュアル化することで作業効率をあげ、受注増に対応。",
+          "subquestions": []
+        },
+        {
+          "input_no": 92,
+          "post_id": 13911,
+          "score": 39,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13911",
+          "answer_text": "対応策は、①口頭で指示されるレシピを整理し各製品の使用量や作業手順等を明確にする事で、販売先料理長からの変更指示をなくす、②能力開発行う事で効率性を高める、ことにより受注量の増加に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 93,
+          "post_id": 13739,
+          "score": 34,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13739",
+          "answer_text": "製造日に必要な食材や調味料を前日より前に準備し、販売先への納品遅れをなくす。短サイクルで生産計画を作成し、受注量を基に食材や調味料の必要量を見積もり、短サイクルで発注して納入管理を行い生産能力を高める。",
+          "subquestions": []
+        }
+      ]
+    },
+    {
+      "question_no": 3,
+      "points": 20,
+      "heading_text": "第３問（配点20点）",
+      "answer_count": 93,
+      "score_stats": {
+        "count": 93,
+        "min": 34,
+        "max": 78,
+        "median": 58,
+        "mean": 58.02
+      },
+      "answer_char_stats": {
+        "count": 93,
+        "min": 67,
+        "max": 121,
+        "median": 117,
+        "mean": 112.75
+      },
+      "exemplars": {
+        "high": [
+          {
+            "post_id": 13781,
+            "score": 78,
+            "published_at": "2024-05-02",
+            "answer_text": "①食材や調味料の所要量をレシピを基に決め在庫管理を徹底し②食品商社への発注サイクルを消費量に応じて定量発注などに変更し在庫を適正量に維持し③在庫の入出庫記録を正確に記録し在庫管理レベルを上げる。これにより在庫の廃棄ロスを削減し収益性を高める。"
+          },
+          {
+            "post_id": 13785,
+            "score": 78,
+            "published_at": "2024-05-02",
+            "answer_text": "食材や調味料発注の標準化・発注量適正化をした上で、入出庫記録を作成し、在庫管理強化で歩留まり改善し、コスト削減、②手作業の機械化・自動化を図り生産性向上、③配送効率化でコスト削減、④資材安価調達先発掘などでコスト削減し収益改善を図る。"
+          },
+          {
+            "post_id": 13771,
+            "score": 76,
+            "published_at": "2024-05-02",
+            "answer_text": "①仕入先を品質・価格の両側面から見直す②在庫管理を徹底し、仕入量の経験値での見積りを廃止し、標準化された規則作成③在庫不足による機会損失防止④適切な在庫水準維持⑤レシピメモを一元管理し、作業効率向上。以て、コスト削減等を図り、収益性改善。"
+          },
+          {
+            "post_id": 13867,
+            "score": 74,
+            "published_at": "2024-05-02",
+            "answer_text": "食材等の入出庫記録を行い過剰在庫を抑制し在庫コストや廃棄ロスを削減する。生産計画を週次化し、生産統制を強化することで生産コストを抑える。食材の納品管理、必要な食材や必要量を標準化し仕入を適正化。以上材料調達や在庫管理の簡素化でコストを削減。"
+          },
+          {
+            "post_id": 13815,
+            "score": 72,
+            "published_at": "2024-05-02",
+            "answer_text": "対応策は①経験値で作成している生産計画をレシピや受注に応じた生産計画に変更し②確定した受注に合うように生産計画の作成頻度を短サイクル化で精緻化し③材料の入出庫記録を記録し精緻化した生産計画と連動し現品管理を徹底し、廃棄減少で収益性改善を図る。"
+          }
+        ],
+        "middle": [
+          {
+            "post_id": 13837,
+            "score": 58,
+            "published_at": "2024-05-02",
+            "answer_text": "①全体生産計画を立て②週次で生産計画を立て③経験に頼らないデータを活用した需要予測を行い④発注頻度を最適化し⑤生産統制を強化することで在庫管理を改善し材料廃棄を減らしコスト削減により収益性向上を狙う。"
+          },
+          {
+            "post_id": 13863,
+            "score": 58,
+            "published_at": "2024-05-02",
+            "answer_text": "対応策は、①全社での生産計画を策定し短サイクル化する。②受発注状況を共有し、需要予測精度を向上させる。③在庫管理を徹底し、受注量に応じた発注で在庫の適正化を図る。④生産統制を強化し生産リードタイムの短縮、短納期化する。収益性改善を図る。"
+          },
+          {
+            "post_id": 13871,
+            "score": 58,
+            "published_at": "2024-05-02",
+            "answer_text": "対応策は①製造班での食材・調味料の発注ルールを標準化し、受注量に見合った発注量を定め、食材に応じて適正な納入額の発注先を選定②資材管理課の在庫保管にて、入出庫記録を作成しDBで在庫数と消費期限を一元管理共有して、廃棄や納品遅れを防止。"
+          },
+          {
+            "post_id": 13773,
+            "score": 57,
+            "published_at": "2024-05-02",
+            "answer_text": "対応策は①月次生産計画の短サイクル化②食材や調味料の計画上の必要量の基準を設定③食品商社と交渉し、需要量に応じた原材料の納品量設定④食材や調味料の入出庫記録を付け、在庫管理徹底⑤納期管理の徹底。以って在庫適正化しコスト削減。収益性向上図る。"
+          },
+          {
+            "post_id": 13881,
+            "score": 57,
+            "published_at": "2024-05-02",
+            "answer_text": "対応策は、①食材や調味料の入出庫の際に入出庫記録を作成し、資材管理部で管理し在庫を適量に保ち廃棄をなくす。②パートリーダーが月末に食材や調味料の発注を行う際に、経験値でなく基準値を設けて行う。以上で在庫増や廃棄ロス納期遅れを防止しコスト削減。"
+          }
+        ],
+        "low": [
+          {
+            "post_id": 13739,
+            "score": 34,
+            "published_at": "2024-05-02",
+            "answer_text": "食品や調味料の入出庫記録を作成し、在庫量を減らして廃棄をなくす。短サイクルで生産計画を作成し、需要量を基に食材や調味料の必要量を見積もり、短サイクルかつ小ロットサイズで発注し、在庫量を減らす。"
+          },
+          {
+            "post_id": 13751,
+            "score": 39,
+            "published_at": "2024-05-02",
+            "answer_text": "対応策は①惣菜製造班の販売先別製造を改め全社生産計画として短周期化のうえ生産統制強化、各班の連携強化し応援体制を構築②必要な食材、調味料の必要量を含むレシピを標準化③食材・調味料の発注を短期化し在庫削減、現品管理強化で廃棄回避しコスト削減。"
+          },
+          {
+            "post_id": 13817,
+            "score": 39,
+            "published_at": "2024-05-02",
+            "answer_text": "SLPを実施し加工室レイアウトの最適化。社内業務を標準化し、DB化し一元管理を行う。社外の料理長の対応は工場管理者が取りまとめ、指示内容などレシピも含め文書化し、全社共有を行い、生産性向上し、収益率向上を図る。"
+          },
+          {
+            "post_id": 13911,
+            "score": 39,
+            "published_at": "2024-05-02",
+            "answer_text": "対応策は、①月度生産計画を週度に改め、食品商社と共有する、②食材や調味料は入出庫記録を行う事で在庫量の適正化を図り、発注量は経験ではなく毎週発注する、ことにより在庫管理費や廃棄をなくして収益の低下を防ぐことにつなげる。"
+          },
+          {
+            "post_id": 13727,
+            "score": 43,
+            "published_at": "2024-05-02",
+            "answer_text": "対応策は①販売先との関係性を強化し、価格てんかを交渉する②生産計画の月度と日ごとを統合し、更新頻度の短サイクル化③入出庫記録をとり、現品管理による在庫量の適正化④食品商社の外注管理。以上により、価格面とコスト面の両面から対応し収益改善を図る。"
+          }
+        ]
+      },
+      "answers": [
+        {
+          "input_no": 1,
+          "post_id": 13781,
+          "score": 78,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13781",
+          "answer_text": "①食材や調味料の所要量をレシピを基に決め在庫管理を徹底し②食品商社への発注サイクルを消費量に応じて定量発注などに変更し在庫を適正量に維持し③在庫の入出庫記録を正確に記録し在庫管理レベルを上げる。これにより在庫の廃棄ロスを削減し収益性を高める。",
+          "subquestions": []
+        },
+        {
+          "input_no": 2,
+          "post_id": 13785,
+          "score": 78,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13785",
+          "answer_text": "食材や調味料発注の標準化・発注量適正化をした上で、入出庫記録を作成し、在庫管理強化で歩留まり改善し、コスト削減、②手作業の機械化・自動化を図り生産性向上、③配送効率化でコスト削減、④資材安価調達先発掘などでコスト削減し収益改善を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 3,
+          "post_id": 13771,
+          "score": 76,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13771",
+          "answer_text": "①仕入先を品質・価格の両側面から見直す②在庫管理を徹底し、仕入量の経験値での見積りを廃止し、標準化された規則作成③在庫不足による機会損失防止④適切な在庫水準維持⑤レシピメモを一元管理し、作業効率向上。以て、コスト削減等を図り、収益性改善。",
+          "subquestions": []
+        },
+        {
+          "input_no": 4,
+          "post_id": 13867,
+          "score": 74,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13867",
+          "answer_text": "食材等の入出庫記録を行い過剰在庫を抑制し在庫コストや廃棄ロスを削減する。生産計画を週次化し、生産統制を強化することで生産コストを抑える。食材の納品管理、必要な食材や必要量を標準化し仕入を適正化。以上材料調達や在庫管理の簡素化でコストを削減。",
+          "subquestions": []
+        },
+        {
+          "input_no": 5,
+          "post_id": 13815,
+          "score": 72,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13815",
+          "answer_text": "対応策は①経験値で作成している生産計画をレシピや受注に応じた生産計画に変更し②確定した受注に合うように生産計画の作成頻度を短サイクル化で精緻化し③材料の入出庫記録を記録し精緻化した生産計画と連動し現品管理を徹底し、廃棄減少で収益性改善を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 6,
+          "post_id": 13869,
+          "score": 72,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13869",
+          "answer_text": "対応策は①生産計画を短サイクルで更新し生産統制を強化②在庫の入出庫を記録し、在庫状況と生産計画に合わせた発注③チェックや変更を低減することで、生産性向上、在庫管理適正化で廃棄ロス削減、収益向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 7,
+          "post_id": 13745,
+          "score": 71,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13745",
+          "answer_text": "対応策は①レシピの食材や調味料の必要量を標準化し②発注計画を一元管理し、計画立案を週次化し③資材管理課で行っている入出庫記録を行い現品管理を徹底し、まとめ発注によるコスト削減、余剰や資材の発注防止、資材在庫を適正化し、収益改善する事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 8,
+          "post_id": 13775,
+          "score": 70,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13775",
+          "answer_text": "食材や調味料の在庫や廃棄を減らす策によるコスト削減が必要である。具体的には①生産計画を週次で作成し発注変動に対応し納期厳守②適正在庫の見える化と標準化及び週次発注で在庫の削減③入出庫記録をつけ先入先出の徹底による消費期限管理で廃棄減をする",
+          "subquestions": []
+        },
+        {
+          "input_no": 9,
+          "post_id": 13761,
+          "score": 69,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13761",
+          "answer_text": "C社は、①販売先料理長から指示されるレシピをDBに登録し、②再利用することで試作の効率を高めると共に、③食材の入出庫もDBに登録して管理を徹底することで、④廃棄を減らし、費用低減を図るべきである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 10,
+          "post_id": 13811,
+          "score": 69,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13811",
+          "answer_text": "対応策は①月次生産計画の短サイクル化②食材や調味料の必要量を標準化③食材等の発注業者を価格競争させて選定④在庫の入出庫記録をつけ在庫量を勘案して食材等を発注により在庫増加を防止し廃棄を削減し費用を削減させて収益性を向上させる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 11,
+          "post_id": 13883,
+          "score": 69,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13883",
+          "answer_text": "対応策は①販売先料理長との製品仕様確認の精度を上げ変更指示の削減②食材や調味料の入出庫と在庫管理を徹底して在庫量適正化と廃棄削減③営業体制強化による他のホテルや旅館への販路拡大にて、製造コストの低減と売上向上を図って、収益性の改善を図る",
+          "subquestions": []
+        },
+        {
+          "input_no": 12,
+          "post_id": 13799,
+          "score": 68,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13799",
+          "answer_text": "対応策は①パートリーダーが経験で見積もる食材等の必要量を標準化し適正化②長年取引のある食品商社への発注を見直し発注費用削減③入出庫記録をつけ、在庫・廃棄ロス削減④入出庫記録をパートリーダー共有し発注量適正化。以上でコスト削減し収益性向上。",
+          "subquestions": []
+        },
+        {
+          "input_no": 13,
+          "post_id": 13825,
+          "score": 68,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13825",
+          "answer_text": "対応策は①生産量に必要な食材や調味料の標準化を図ること、②生産統制の情報システム化を行い、材料や調味料の入出庫記録をつける事、③工場管理者が製品の出来栄えのチェックを行い、廃棄ロス・コスト削減を図る事",
+          "subquestions": []
+        },
+        {
+          "input_no": 14,
+          "post_id": 13877,
+          "score": 68,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13877",
+          "answer_text": "対応策は①全社的な生産計画を策定し日次修正を行い②生産計画情報、入出庫情報、在庫情報等をDB化し一元管理し③材料調達と在庫管理を簡素化し④需要予測精度向上で廃棄ロス削減と納期遅れ解消で高付加価値化し、コスト削減と売上拡大で収益性改善を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 15,
+          "post_id": 13749,
+          "score": 67,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13749",
+          "answer_text": "対策は、①販売先料理長と相談し、食材等の製品仕様を一緒に決め、食材や調味料の共通化、材料調達の標準化を図る。②資材管理課が食材等の入庫管理簿を作成し、製造課が取り出す都度出庫記録をつけ、５Sを徹底し在庫適正化によりロスを削減し収益性を高める。",
+          "subquestions": []
+        },
+        {
+          "input_no": 16,
+          "post_id": 13787,
+          "score": 67,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13787",
+          "answer_text": "①発注の標準化による適正量の発注、②入出庫記録をつけることによる在庫管理の適正化、③生産計画の週次化、発注の短サイクル化により材料や在庫のロスを削減し、材料費の削減、収益性の向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 17,
+          "post_id": 13861,
+          "score": 67,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13861",
+          "answer_text": "対応策は①原材料の入出庫管理を徹底し在庫状況を把握し②生産計画を月次から週次にし適正発注量とし③生産工程の見直しや教育による技術向上で原材料歩留り率を向上し④仕入れ業者見直しで低価実現することで量と単価の両面から経費削減で収益性を向上する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 18,
+          "post_id": 13755,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13755",
+          "answer_text": "対応策は①経験ベースの必要量見積もりを標準化・マニュアル化・教育し、発注量を適正化する、②入出庫記録を正確に行いデータベース化し、在庫管理を強化する、③生産計画策定・発注を納品量確定に合わせ短サイクル化する。以上で在庫適正化、費用削減を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 19,
+          "post_id": 13779,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13779",
+          "answer_text": "食材や調味料の在庫保管記録、入出庫記録を作り在庫の縮小、破棄の削減を実施。また調味料などの賞味期限も記録し在庫の縮小に役立てる。可能であれば所属や調味料は事前に用意するようにし廃棄を避ける。以上により収益性低下の原因を削除し経営の安定化を図る",
+          "subquestions": []
+        },
+        {
+          "input_no": 20,
+          "post_id": 13827,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13827",
+          "answer_text": "①月次の生産計画を週次に改め精度を高める②食材や調味料の入出庫記録を行い在庫量の適正化で廃棄を削減③食材や調味料の必要量を標準化された製品仕様から見積もり過大発注を防ぐ。以上で収益性低下に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 21,
+          "post_id": 13839,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13839",
+          "answer_text": "①総菜・菓子で生産計画を統合し週次作成に短サイクル化して在庫削減する②食材や調味料の必要量見積りを標準化し共通材料の一括仕入を行い費用削減する③資材管理課で入出庫記録をつけ在庫量削減と廃棄ロスを減らす④小ロット化に際し段取改善を行う。",
+          "subquestions": []
+        },
+        {
+          "input_no": 22,
+          "post_id": 13851,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13851",
+          "answer_text": "対応策は①宿泊予約数の変動に対応するため週次で生産計画を立案し統制、②メモから使用量を標準化ｈして整備し在庫量を加味した上で必要量を週次で発注し、食材等の廃棄や過剰在庫、販売先への納期遅れを抑制し、収益性の低下を抑制する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 23,
+          "post_id": 13895,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13895",
+          "answer_text": "生産計画を週次、日次で作成する事、食材や調味料の必要量の見積もりを標準化する事、食材や調味料、在庫の入出庫記録をし、在庫量に応じた発注・生産をする事、メモ程度のレシピを整理し、標準化の支援をする事、で、在庫量削減、原材料費削減で、収益性向上。",
+          "subquestions": []
+        },
+        {
+          "input_no": 24,
+          "post_id": 13741,
+          "score": 65,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13741",
+          "answer_text": "入出庫記録をせず、発注も月次で経験値で見積もり発注、また納入進捗も見ておらず、在庫過多、廃棄、欠品ロスを起こしている。対策は、入出庫記録や納入進捗などの在庫管理をし、それに基づく計画発注を週次で行う。",
+          "subquestions": []
+        },
+        {
+          "input_no": 25,
+          "post_id": 13757,
+          "score": 65,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13757",
+          "answer_text": "対応策は①全社的な生産計画を週次毎に立案して全部署で共有し進捗・余力管理を行い②在庫量を考慮し食材や調味料の必要量を見積り発注し③在庫の入出庫記録を付けて在庫の鮮度管理を徹底し現品管理を行う事で食材や調味料の過剰在庫を防ぎ収益性を向上させる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 26,
+          "post_id": 13769,
+          "score": 65,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13769",
+          "answer_text": "対応策は生産計画を週次化し資材調達も連動させ在庫の入出庫記録をつけ実在庫と計画在庫のズレをなくし在庫ロスを防止②材料に関する暗黙知をDB等を利用し形式知化し資材管理を徹底し納期遅延を解消する",
+          "subquestions": []
+        },
+        {
+          "input_no": 27,
+          "post_id": 13819,
+          "score": 65,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13819",
+          "answer_text": "生産効率を改善しコスト低減を図る。具体的には①生産計画を短サイクルで立案し需要予測精度向上、各工程の負荷を平準化②食料・調味料も生産管理課で計画一元化③在庫量入出庫量を生産管理課に共有、在庫量を適正化し④生産統制を実施し生産LTを削減する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 28,
+          "post_id": 13903,
+          "score": 65,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13903",
+          "answer_text": "対応策は①取引先料理長と料理や手順を確定し、詳細なレシピと精緻な生産計画を策定し②発注基準をもとに食材・調味料を発注し③納品後は入出庫記録と在庫基準での管理と④適切な温度で保管を行う。以て適切な在庫量としロスを削減し収益性を向上。",
+          "subquestions": []
+        },
+        {
+          "input_no": 29,
+          "post_id": 13859,
+          "score": 64,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13859",
+          "answer_text": "対応策は、①生産計画の作成頻度を週次日次に短縮し②全社で生産統制を行い、③現品管理、納品、在庫管理の改善で食材や調味料のロスを減らしコスト削減する。また、生産ロットの見直しによる生産の効率化も検討する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 30,
+          "post_id": 13759,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13759",
+          "answer_text": "対応策は、生産計画の精緻化と在庫管理である。具体的には①生産計画を週次化し生産統制を実施する②パートリーダーが経験値で見積もっている食材・調味料の必要量を定量情報化する③入出庫記録もつける。以上で在庫コスト・廃棄コストを削減する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 31,
+          "post_id": 13783,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13783",
+          "answer_text": "製品仕様や食材や調味料の必要量を整理してデータベース化し標準化することで、必要量に応じた発注量とし発注も短サイクル化する。資材管理課と連携し、入出庫記録を作成し入出庫状況を明確にすることで在庫の適正量を維持する体制を作り、在庫費用低減を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 32,
+          "post_id": 13821,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13821",
+          "answer_text": "月度の計画周期を短くすることで精度を上げる。計画の情報を一元管理することで部門間の連絡回数を削減する。食材や調味料の必要量の見積もりを経験値ではなく実績値からのデータで行い、入出庫記録をつけ、在庫の適正化と廃棄削減により収益性向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 33,
+          "post_id": 13853,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13853",
+          "answer_text": "対応策は①材料の仕入先の見直し②材料の入出庫記録を残し、在庫管理を行い在庫量の削減と廃棄ロスを減らす③発注タイミングを在庫量に応じて調整④両製造部で個別に発注しているのを生産管理課が一括で実施する等コスト削減を図り、収益性を向上する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 34,
+          "post_id": 13857,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13857",
+          "answer_text": "レシピの整理、DB化を行い、発注量を適正化し、資材管理課が発注処理を行う。入出庫記録を行い、発注管理を強化することで、納期管理を強化し、在庫削減を図る。月度生産計画を週初めに確定する注文に合わせ、生産計画の見直しを短周期化し、収益改善図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 35,
+          "post_id": 13885,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13885",
+          "answer_text": "食材や調味料の入出庫記録をつけて在庫量を管理して廃棄ロスをなくす。食品商社への発注頻度を高め、経験値での見積もりではなく、確定納品量に応じて発注し、月度生産計画の作成頻度を高めて食材や調味料の納品遅れをなくして収益性を改善する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 36,
+          "post_id": 13733,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13733",
+          "answer_text": "対応策は、①レシピの標準規格書を定めDB化、②食材や調味料は、資材管理課が生産計画に基づきレシピで計算した量を一括して発注・在庫管理し廃棄ロスを削減、③宿泊予約数の変動に対応するため生産計画を週次で策定、原材料のロス削減で収益性を向上させる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 37,
+          "post_id": 13807,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13807",
+          "answer_text": "対応策は、①資材管理課の在庫の保管管理を改善し、入出庫記録をつけることで食材や調味料の在庫量を把握し廃棄や賞味期限切れを防ぐ、②必要な食材や調味料の現品管理を改善し準備を適正化することで納期を厳守し、納品遅れを防いで機会損失を回避する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 38,
+          "post_id": 13889,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13889",
+          "answer_text": "対応策は①生産計画を短サイクル化し精度の向上を図り②パートリーダーの原材料調達を標準化③資材管理課の保管管理を記録し、原材料の在庫量を低減させる。以上で、原材料の在庫を適正にし、生産性向上を図り収益性を改善する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 39,
+          "post_id": 13891,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13891",
+          "answer_text": "対応策は①在庫の入出庫記録をつけ在庫管理を徹底して在庫量適正化を図り、②属人的な発注業務をマニュアル化して発注を管理し、コストの低減を図る。③兼任の営業担当者を専任化して営業を強化し販路開拓で売上向上を図る。以上で収益性向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 40,
+          "post_id": 13777,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13777",
+          "answer_text": "食材や調味料の在庫の適正化を実現する。具体的には①パートリーダーが経験値で行う発注量を可視化して標準化し共有する②資材管理課が在庫管理を徹底し、適正な在庫を維持し廃棄も削減する。以上により材料高騰に対しコストを減らして収益向上させる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 41,
+          "post_id": 13829,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13829",
+          "answer_text": "生産計画に必要な食材や調味料の必要量は標準化し、資材発注を短サイクル化して材料調達費用削減と納品遅れを防ぐ。在庫の保管管理については入出庫記録を作成、管理し適正な在庫量を維持し、廃棄ロスを防ぐことで在庫管理を簡素化し、コスト低減を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 42,
+          "post_id": 13879,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13879",
+          "answer_text": "対応策は、①月度生産計画の短サイクル化、②必要な食材や調味料の必要量をレシピで標準化し、過不足のない発注方法に見直す、③入出庫記録をつけ、現品管理を行うことで廃棄や納品遅れを防止する。以上より、在庫費用、運送費用を削減し、収益向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 43,
+          "post_id": 13901,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13901",
+          "answer_text": "対応策は①食材や調味料の必要量を規定し経験値での見積もりを回避する②食品商社へ発注頻度を高められないか交渉する③期限・入出庫記録を自社で管理する④データにより納品予定を同時共有する。これにより在庫の適正化と機械ロスを防ぎ、収益を改善する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 44,
+          "post_id": 13747,
+          "score": 59,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13747",
+          "answer_text": "対応策は料理長の口頭指示のレシピを整理してDB化する。生産計画に必要な食材や調味料の必要量をきめ、標準化する。入出庫記録をとり在庫量に合わせた生産計画を短サイクルで見直す。以上で生産、在庫コストを削減し収益性を向上させる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 45,
+          "post_id": 13837,
+          "score": 58,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13837",
+          "answer_text": "①全体生産計画を立て②週次で生産計画を立て③経験に頼らないデータを活用した需要予測を行い④発注頻度を最適化し⑤生産統制を強化することで在庫管理を改善し材料廃棄を減らしコスト削減により収益性向上を狙う。",
+          "subquestions": []
+        },
+        {
+          "input_no": 46,
+          "post_id": 13863,
+          "score": 58,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13863",
+          "answer_text": "対応策は、①全社での生産計画を策定し短サイクル化する。②受発注状況を共有し、需要予測精度を向上させる。③在庫管理を徹底し、受注量に応じた発注で在庫の適正化を図る。④生産統制を強化し生産リードタイムの短縮、短納期化する。収益性改善を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 47,
+          "post_id": 13871,
+          "score": 58,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13871",
+          "answer_text": "対応策は①製造班での食材・調味料の発注ルールを標準化し、受注量に見合った発注量を定め、食材に応じて適正な納入額の発注先を選定②資材管理課の在庫保管にて、入出庫記録を作成しDBで在庫数と消費期限を一元管理共有して、廃棄や納品遅れを防止。",
+          "subquestions": []
+        },
+        {
+          "input_no": 48,
+          "post_id": 13773,
+          "score": 57,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13773",
+          "answer_text": "対応策は①月次生産計画の短サイクル化②食材や調味料の計画上の必要量の基準を設定③食品商社と交渉し、需要量に応じた原材料の納品量設定④食材や調味料の入出庫記録を付け、在庫管理徹底⑤納期管理の徹底。以って在庫適正化しコスト削減。収益性向上図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 49,
+          "post_id": 13881,
+          "score": 57,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13881",
+          "answer_text": "対応策は、①食材や調味料の入出庫の際に入出庫記録を作成し、資材管理部で管理し在庫を適量に保ち廃棄をなくす。②パートリーダーが月末に食材や調味料の発注を行う際に、経験値でなく基準値を設けて行う。以上で在庫増や廃棄ロス納期遅れを防止しコスト削減。",
+          "subquestions": []
+        },
+        {
+          "input_no": 50,
+          "post_id": 13793,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13793",
+          "answer_text": "月度生産計画に必要な材料の必要量を経験値ではなくレシピや過去の実績などに基づいて見積り在庫量を適正化。入出庫記録を取り、現状の在庫量に合わせて発注量を決めて発注し、現品管理を強化、納期遅れによる変動を吸収する納期余裕も設定し廃棄ロスを削減。",
+          "subquestions": []
+        },
+        {
+          "input_no": 51,
+          "post_id": 13893,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13893",
+          "answer_text": "対応策は在庫管理の最適化で、①実需や過去データに基づく食材や調味料の発注量・タイミングを生産計画に組み込む②その生産計画の週次化する③食材や調味料の消費期限情報のデータ化と入出庫記録をつけることで、廃棄減でコスト削減による収益性向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 52,
+          "post_id": 13731,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13731",
+          "answer_text": "対応策①全体の生産計画を週次化し、生産統制を強化②パートリーダーの経験値では無く、受注、在庫を基に発注見直し③製造日毎の作業計画を納期加味④材料の入庫記録作成、資材管理を行う。以上で材料調達、在庫管理を行い、廃棄抑制。コスト削減し収益改善。",
+          "subquestions": []
+        },
+        {
+          "input_no": 53,
+          "post_id": 13735,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13735",
+          "answer_text": "対応策は①レシピを整理し、原材料の在庫を把握した上で、発注量を正確に求めてから原材料を発注する、②入出庫記録を付けるなど現品管理を強化する。以上により在庫費用の削減と廃棄の削減を図る",
+          "subquestions": []
+        },
+        {
+          "input_no": 54,
+          "post_id": 13743,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13743",
+          "answer_text": "対応策は①日ごとの作業計画を週初め１回の修正から日ごとの作成・修正に変更し欠品、過剰生産を防ぐこと、②月１回の発注から発注回数を増やし１回あたり発注数量を減らすと共に入出庫記録を作成し在庫管理を徹底することで廃棄減少を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 55,
+          "post_id": 13765,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13765",
+          "answer_text": "対応策は①口頭はやめて各製品の食材・使用量・作業手順を標準化したレシピを作成し、５S②各商品の使用量から必要な食材量を把握し、入出庫記録をつけ、在庫管理を適正化。以上により、在庫適正化による廃棄抑制・納期対応力強化による高付加価値化を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 56,
+          "post_id": 13789,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13789",
+          "answer_text": "必要な対応策は、①ABC分析を実施し、回転率の速い食材は定期発注から定量発注に切り替える、②週初めの修正結果をもとに適宜追加発注をする、③入出庫記録をつけ在庫管理の精度を向上させることで、食材や調味料の在庫を最適化し、欠品や過剰在庫を減らす。",
+          "subquestions": []
+        },
+        {
+          "input_no": 57,
+          "post_id": 13795,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13795",
+          "answer_text": "対応策は①入出庫記録を作成し在庫の保管管理状況全社で共有し②食材や調味料の必要量を標準化した上で発注サイクルを短縮し、在庫削減、廃棄軽減でコスト削減③販売先へ宿泊変動を加味した対応で納期遅れをなくし、高付加価値化により売上拡大を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 58,
+          "post_id": 13805,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13805",
+          "answer_text": "対応策は、①生産計画を短サイクル化し、②入出庫記録を作成し、在庫管理を徹底し、食材や調味料の廃棄を削減し、③生産統制の強化により、進捗管理、余力管理を徹底することにより、生産性の効率化を高め、収益性向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 59,
+          "post_id": 13809,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13809",
+          "answer_text": "対応策は、各製品仕様の標準化と食材・調味料の必要量の標準化を図り、出入庫記録による在庫の視える化での在庫適正化と製造日に必要な食材・調味料の準備前出しによる納期遅れの防止である。これにより生産中の仕様変更も削減し収益性の改善を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 60,
+          "post_id": 13843,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13843",
+          "answer_text": "対応策は①各製品の食材、使用料、調味料の必要量等レシピのマニュアル化し②生産計画短期化③資材発注計画作成し必要量に応じた仕入れ、発注頻度増加により在庫削減し廃棄コスト抑制④ホテルと共同仕入れ実施により購入費低減し、費用削減図り収益向上に繋げる",
+          "subquestions": []
+        },
+        {
+          "input_no": 61,
+          "post_id": 13847,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13847",
+          "answer_text": "対応策は、コスト低減のために①材料発注方法を見直した全社的計画を短サイクルで作成し統制強化②入出庫記録による材料管理見直しで在庫・廃棄を削減し、納品遅れをなくす。売上拡大のため、営業部を専任化し販路開拓すると共に交渉力強化し価格転嫁する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 62,
+          "post_id": 13887,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13887",
+          "answer_text": "対応策は(1)入出庫記録を付け、発注間隔の短期化により、在庫量適正化(2)配送や材料調達の見直し、一括仕入れ(3)作業標準化、多能工化による業務効率改善。よって、在庫管理費、材料費、労務費のコストを軽減し収益性の向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 63,
+          "post_id": 13909,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13909",
+          "answer_text": "対応策は、①在庫の廃棄をなくすめに、製品仕様書を作成し食材や調味料の必要量を客観的に設定する、②入出庫記録をつけることで適切な在庫の確保を行う、③週に1度生産計画を策定することで前日よりも前に食材の準備を行う、である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 64,
+          "post_id": 13737,
+          "score": 54,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13737",
+          "answer_text": "①全課統合した生産計画を立案し、②月度生産計画に必要な食材や調味料の必要量の標準化③食材や調味料の入出庫の記録による生産統制で在庫量の適正化、廃棄量の減少により、コスト削減と納期遅れの解消の対応をする。",
+          "subquestions": []
+        },
+        {
+          "input_no": 65,
+          "post_id": 13753,
+          "score": 54,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13753",
+          "answer_text": "対応策は、①納品予定を大・中・小日程で共有を受け、生産計画を短サイクル化する。②材料の入出庫記録を付け、生産計画に連動させる。③必要量の経験値見積を標準化する。以上で、材料在庫コストの低減を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 66,
+          "post_id": 13767,
+          "score": 53,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13767",
+          "answer_text": "対応策は①生産計画を月次から週次化して生産統制を強化し、②経験ではなく、精度の高い生産計画に応じて食材や調味料を発注し③入出庫を正確に記録する。以上で生産性を高めて在庫や欠品を減らし、収益力の向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 67,
+          "post_id": 13875,
+          "score": 53,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13875",
+          "answer_text": "対策は①販売先料理長指示のレシピ仕様を標準化しDB化し共有し蓄積②標準レシピで定められた食材や調味料の必要な量だけ発注しDB記録③食材や調味料の入出庫を記録し棚卸等現品管理を徹底し在庫最適化し廃棄ロスと在庫管理費削減と欠品を防止する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 68,
+          "post_id": 13823,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13823",
+          "answer_text": "C社は、①コスト面で、調味料等が経験値での見積りでの発注のため、発注基準を明確にすると共に、入出庫記録を取り、適正な在庫管理をすることで廃棄量を削減し、②売上面で、X社との共同開発製品の販売店舗の拡大等によって、収益性の向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 69,
+          "post_id": 13855,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13855",
+          "answer_text": "対応策は、①食材調味料の必要量の見積を標準化し、入出庫の記録を取り、材料の廃棄を回避する、②販売先料理長から指示されるレシピを文書化して保存し、作業手順などを標準化し、作業の無駄をなくして加工コストの削減を図ることである",
+          "subquestions": []
+        },
+        {
+          "input_no": 70,
+          "post_id": 13873,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13873",
+          "answer_text": "対応策は①食材や調味料の経験による見積りを改め発注を標準化し受入れの入出庫記録をとり在庫削減、食材廃棄を削減②月次計画を週次化し在庫削減で材料費と保管コストを削減する。以上で収益改善を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 71,
+          "post_id": 13905,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13905",
+          "answer_text": "対応策は、①月度納品予定を資材管理課と共有する。②資材管理課は、これを参考に必要な食材・調味料を経験知でなくデータに基づき見積もる。③この見積を元に、在庫量を確認して発注を行う。これで廃棄抑止や納品遅れが防止できコスト削減で収益回復に資する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 72,
+          "post_id": 13763,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13763",
+          "answer_text": "対応策は、①食材などの使用量を標準化しシステムで実需に基づく生産計画を立て不要な在庫を減らし、②入出庫管理や進捗管理も同じシステムで行い廃棄ロスや在庫費用を削減し、③自社のホテルを使い効率的な業務ノウハウを提供することで高付加価値化を目指す。",
+          "subquestions": []
+        },
+        {
+          "input_no": 73,
+          "post_id": 13797,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13797",
+          "answer_text": "対応策は①調理工程の手作業をやめ、②生産計画に必要な食材を最適量発注し、③在庫の保管管理を徹底する。以上により、①生産効率が上がり、②在庫過多による廃棄が減り、③原価の低減を実現し、材料価格高騰に対応して、収益性の回復を図っていく。",
+          "subquestions": []
+        },
+        {
+          "input_no": 74,
+          "post_id": 13803,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13803",
+          "answer_text": "対応策は①食材や調味料の必要量を経験値ではなく、宿泊予約数等需要量に基づき発注②消費期限基準ではなく、製造工程に合わせた納品を食品商社に依頼③月度生産計画を柔軟に見直し、在庫の入出庫管理等生産統制を徹底し、過剰在庫や廃棄を抑制し収益性を改善。",
+          "subquestions": []
+        },
+        {
+          "input_no": 75,
+          "post_id": 13833,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13833",
+          "answer_text": "対応策はレシピの整理で製品仕様を標準化、入出庫記録を付けて現品管理を強化し廃棄を抑止、計量・カット・調理に自動調理器を導入して省力化することでコストダウンを図り、収益性を改善する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 76,
+          "post_id": 13899,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13899",
+          "answer_text": "対応策は、①食材や調味料の廃棄削減②納品遅れの解消による収益性の\n改善である。具体的には、①経験値で見積もっている発注必要量を標準化し計画に沿った統制を行い、在庫基準を設定し定量発注し入出庫記録で管理する②製造日の前日より前に材料を用意する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 77,
+          "post_id": 13729,
+          "score": 50,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13729",
+          "answer_text": "コスト削減による収益性改善が必要である。具体的には①材料発注基準を明確化し生産計画の短サイクル化で需要予測精度向上し在庫適正化・材料コスト削減②製品仕様や生産計画をDB化・一元管理し全社共有により生産性向上・製造コスト削減。",
+          "subquestions": []
+        },
+        {
+          "input_no": 78,
+          "post_id": 13813,
+          "score": 50,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13813",
+          "answer_text": "生産計画を短サイクル化し必要な食材や調味料の調達も短サイクルで行い、資材管理課で入出庫記録を作成し食材と調味料の在庫と廃棄を削減する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 79,
+          "post_id": 13841,
+          "score": 50,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13841",
+          "answer_text": "対応策は①仕入れ先を見直し、より安価に食材や調味料を調達しコストを低減する②必要な食材や調味料の量を実績データに基づく基準に沿って適切な量を発注できるようにする③食材や調味料の入出庫記録を管理し過剰在庫や廃棄を減らす。",
+          "subquestions": []
+        },
+        {
+          "input_no": 80,
+          "post_id": 13897,
+          "score": 50,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13897",
+          "answer_text": "対応策は①生産計画短サイクル化②計画に応\nじた原材料発注③食材や調味料要量の標準\n化で在庫適正化し在庫コスト削減④長年取\n引がある食品商社だけでなく業者選定見直\nし仕入先確保で仕入コスト削減⑤強み訴求\nし差別化を図り価格交渉以上で収益性向上",
+          "subquestions": []
+        },
+        {
+          "input_no": 81,
+          "post_id": 13791,
+          "score": 48,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13791",
+          "answer_text": "既存の販売先との関係強化、販路の拡大、X社との新規事業の推進により売上を向上させると同時に、規模の経済性や稼働率向上により効率化を図る。また、入出庫記録を付ける等で適正な在庫コントロールを行い、破棄を削減しコスト低減に繋げて、収益性を向上。",
+          "subquestions": []
+        },
+        {
+          "input_no": 82,
+          "post_id": 13849,
+          "score": 48,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13849",
+          "answer_text": "対応策は、①レシピの標準化による必要資材をDBで社内共有、②資材発注サイクルを生産計画に組み込み、③資材発注サイクルを週次の短サイクル化で在庫削減、④現品管理の電子化で現品管理を厳格化する。以上で在庫削減、廃棄率の削減を行い資材コストを削減。",
+          "subquestions": []
+        },
+        {
+          "input_no": 83,
+          "post_id": 13831,
+          "score": 46,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13831",
+          "answer_text": "対応策は、➀保管管理の際に、しっかりと入庫管理記録をつけることにより、適正な在庫管理量の把握を行い、消費量を理解すること、②前日に準備する食材や調味料を一週間前に発注して前日は調整分のみとすることで、適正な在庫量の維持と廃棄の削減を行うこと",
+          "subquestions": []
+        },
+        {
+          "input_no": 84,
+          "post_id": 13865,
+          "score": 45,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13865",
+          "answer_text": "食品商社に定期発注する食材や調味料の必要量を客観データ値で見積もり、精度を上げてムダをなくす。食材や調味料の保管について入出庫記録をつけて管理を強化し在庫量の適正化を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 85,
+          "post_id": 13835,
+          "score": 44,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13835",
+          "answer_text": "対応策は、①経験値で見積もる食材等の材料の発注基準明確化、マニュアル化実施で標準化②在庫の入出庫を記録し、発注時期や量の適正化で、在庫を削減③カムアップシステムにより仕入先商社の生産統制を強化、納期遅れを防ぐ。等で費用削減し、収益向上。",
+          "subquestions": []
+        },
+        {
+          "input_no": 86,
+          "post_id": 13845,
+          "score": 44,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13845",
+          "answer_text": "対応策は①材料等の使用量見積もりを標準化②入出庫記録を管理し在庫状況を把握。以て過剰在庫削減と欠品防止を図る。また③製品仕様決定権を持つ販売先料理長と相談し、安価な材料で高品質な総菜を作れるレシピを共同開発する。以て収益性を向上させる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 87,
+          "post_id": 13907,
+          "score": 44,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13907",
+          "answer_text": "対応策は、①食材や調味料の発注を経験値での見積もりから安全在庫を設定して管理を行うことで、過剰在庫による在庫費用の発生や廃棄によるロスを防ぐ事、②顧客に原材料の高騰の状況を説明し、販売価格上昇の交渉の場を持つこと、である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 88,
+          "post_id": 13727,
+          "score": 43,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13727",
+          "answer_text": "対応策は①販売先との関係性を強化し、価格てんかを交渉する②生産計画の月度と日ごとを統合し、更新頻度の短サイクル化③入出庫記録をとり、現品管理による在庫量の適正化④食品商社の外注管理。以上により、価格面とコスト面の両面から対応し収益改善を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 89,
+          "post_id": 13801,
+          "score": 43,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13801",
+          "answer_text": "対応策は①加熱処理する工程で手作業を改め機械導入し自動化②資材管理課で在庫の保管管理徹底し在庫と廃棄ロスの削減③パートリーダーの作業標準化しＯＪＴ教育の実施、以上で稼働率を高め収益性改善図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 90,
+          "post_id": 13751,
+          "score": 39,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13751",
+          "answer_text": "対応策は①惣菜製造班の販売先別製造を改め全社生産計画として短周期化のうえ生産統制強化、各班の連携強化し応援体制を構築②必要な食材、調味料の必要量を含むレシピを標準化③食材・調味料の発注を短期化し在庫削減、現品管理強化で廃棄回避しコスト削減。",
+          "subquestions": []
+        },
+        {
+          "input_no": 91,
+          "post_id": 13817,
+          "score": 39,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13817",
+          "answer_text": "SLPを実施し加工室レイアウトの最適化。社内業務を標準化し、DB化し一元管理を行う。社外の料理長の対応は工場管理者が取りまとめ、指示内容などレシピも含め文書化し、全社共有を行い、生産性向上し、収益率向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 92,
+          "post_id": 13911,
+          "score": 39,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13911",
+          "answer_text": "対応策は、①月度生産計画を週度に改め、食品商社と共有する、②食材や調味料は入出庫記録を行う事で在庫量の適正化を図り、発注量は経験ではなく毎週発注する、ことにより在庫管理費や廃棄をなくして収益の低下を防ぐことにつなげる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 93,
+          "post_id": 13739,
+          "score": 34,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13739",
+          "answer_text": "食品や調味料の入出庫記録を作成し、在庫量を減らして廃棄をなくす。短サイクルで生産計画を作成し、需要量を基に食材や調味料の必要量を見積もり、短サイクルかつ小ロットサイズで発注し、在庫量を減らす。",
+          "subquestions": []
+        }
+      ]
+    },
+    {
+      "question_no": 4,
+      "points": 20,
+      "heading_text": "第４問（配点20点）",
+      "answer_count": 93,
+      "score_stats": {
+        "count": 93,
+        "min": 34,
+        "max": 78,
+        "median": 58,
+        "mean": 58.02
+      },
+      "answer_char_stats": {
+        "count": 93,
+        "min": 77,
+        "max": 121,
+        "median": 116,
+        "mean": 112.95
+      },
+      "exemplars": {
+        "high": [
+          {
+            "post_id": 13781,
+            "score": 78,
+            "published_at": "2024-05-02",
+            "answer_text": "①消費者ニーズ把握のため、取引先料理長やX社から情報収集し②製品開発部の外部人材に積極的に製品提案するよう動機付けし③経営者の料理人経験や高級宿泊施設との取引実績を訴求し④地元食材を活かした製品で差別化し、高付加価値化で販路・事業を拡大する。"
+          },
+          {
+            "post_id": 13785,
+            "score": 78,
+            "published_at": "2024-05-02",
+            "answer_text": "対応策は、①販売先料理長の口頭指示によるレシピを文章化し、ノウハウ共有し活用する事で他社販売に活かし、②X社との連携を強化しX社人材・ノウハウ活用、②営業部門を強化し顧客ニーズ収集し、開発力を高める。"
+          },
+          {
+            "post_id": 13771,
+            "score": 76,
+            "published_at": "2024-05-02",
+            "answer_text": "①企画開発経験者を雇い、当該ノウハウを活用②アンケートや既存の取引先から、今の消費者のニーズ情報を収集③企画開発経験豊富な企業との共同開発。①～③と、自社の強みである料理人の経験を掛け合わせた差別化された商品開発を行い、販路開拓を図るべき。"
+          },
+          {
+            "post_id": 13867,
+            "score": 74,
+            "published_at": "2024-05-02",
+            "answer_text": "営業部を専任化し、X社やホテル、旅館等から顧客ニーズを収集。そのニーズに基づき製品開発部の中堅食品製造業で開発経験等のある人材を活用し、共同企画開発による連携を強化し、季節性、高級感、地元食材等で差別化した惣菜商品の企画開発を進める。"
+          },
+          {
+            "post_id": 13815,
+            "score": 72,
+            "published_at": "2024-05-02",
+            "answer_text": "C社は、食品スーパーX社と連携し顧客の惣菜に対する顧客ニーズを収集し、採用した従業員の製品開発ノウハウを活用し顧客ニーズに合った惣菜の商品開発を実施する。自社企画製品も工場管理者と定期的会議を実施しホテルなどのニーズにあった商品開発を進める。"
+          }
+        ],
+        "middle": [
+          {
+            "post_id": 13837,
+            "score": 58,
+            "published_at": "2024-05-02",
+            "answer_text": "①見込み受注のため需要予測やロットサイズを最適化し材料廃棄がないよう在庫管理を行い②強みである従業員の豊富な経験や一貫生産体制を生かし営業部を強化しホテル、旅館のニーズを収集しニーズに応えた高品質な商品開発を行い販路拡大を狙う。"
+          },
+          {
+            "post_id": 13863,
+            "score": 58,
+            "published_at": "2024-05-02",
+            "answer_text": "採用した外部人材をプロジェクトリーダーとして製品開発を進める。既存客やＸ社のニーズを収集しながら、Ｃ社のコスト力を生かし、ホテル・旅館には高級感のある商品を、Ｘ社には中食需要に対応した総菜を提案する。以上により関係性を強化し販路拡大を図る。"
+          },
+          {
+            "post_id": 13871,
+            "score": 58,
+            "published_at": "2024-05-02",
+            "answer_text": "高級ホテル等の品揃え支援経験・コスト低減対応力・多品種少量生産可能を生かし、X社の中食需要対応要請に見合う高付加価値商品を企画開発する。季節性や高級感のある総菜の開発提供でX社の既存商品との差別化を提案し、総菜コーナーの売上向上に貢献する。"
+          },
+          {
+            "post_id": 13773,
+            "score": 57,
+            "published_at": "2024-05-02",
+            "answer_text": "企画開発は①ホテルやスーパーＸ社との取引の中で収集した顧客ニーズを新商品開発に活かす②採用した製品開発経験を持つ外部人材を外部交流に送りノウハウ獲得③外部人材による他従業員への教育を実施する。これにより販路拡大に繋がる自社製品販売を進める。"
+          },
+          {
+            "post_id": 13881,
+            "score": 57,
+            "published_at": "2024-05-02",
+            "answer_text": "製品の企画開発は、①Ｘ社の商品企画担当者と密に連絡を取り、市場動向や最終消費者のニーズを把握。②素材にこだわった季節性があり高級感のある和食や洋食の総菜を開発。以上で高付加価値な自社企画製品を開発しブランド化させる。"
+          }
+        ],
+        "low": [
+          {
+            "post_id": 13739,
+            "score": 34,
+            "published_at": "2024-05-02",
+            "answer_text": "販売先料理長から口頭で指示される製品仕様のメモ程度のレシピを整理し、製品の企画開発に活かす。中堅食品製造業で製品開発の実務や管理の経験がある外部人材が内部人材を育成し、企画開発の経験やノウハウを蓄積する。"
+          },
+          {
+            "post_id": 13751,
+            "score": 39,
+            "published_at": "2024-05-02",
+            "answer_text": "現経営者のホテル調理上のマネジメント経験、工場管理者の宿泊施設での料理人経験を活かし、材料調達や在庫管理の簡素化によるコスト低減、地元食材使用の高付高付加価値商品を開発し新規取引先を開拓して売上拡大する。既存取引の依存度を下げてリスク分散。"
+          },
+          {
+            "post_id": 13817,
+            "score": 39,
+            "published_at": "2024-05-02",
+            "answer_text": "①製品開発の実務と経験がある社外人材の企画力②営業部の兼務を解除し営業に集中させ、既存ホテルやX社から観光客など最終消費者のニーズを収集し③それに合わせた新製品開発を行い、企画力強化、自社ブランド開発を進める。"
+          },
+          {
+            "post_id": 13911,
+            "score": 39,
+            "published_at": "2024-05-02",
+            "answer_text": "製品の企画開発は、製品開発部が主体となり食品スーパーX社と共同でお互いの強みを活かした季節の旬の食材を用い高級感がある製品を毎月開発することで、他社との差別化を図り、売上伸び率を高める。並行して、C社独自で商品開発を行い販路拡大につなげる。"
+          },
+          {
+            "post_id": 13727,
+            "score": 43,
+            "published_at": "2024-05-02",
+            "answer_text": "高級旅館との関係性を強化し、顧客ニーズを共有してもらい、Ｂ社製品開発部担当者の開発力を生かし、自社ブランド製品の共同開発を行う。この共同開発で蓄積したノウハウをＸ社の商品企画へ活かし、さらなる付加価値向上で販路拡大と売上拡大を図る。"
+          }
+        ]
+      },
+      "answers": [
+        {
+          "input_no": 1,
+          "post_id": 13781,
+          "score": 78,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13781",
+          "answer_text": "①消費者ニーズ把握のため、取引先料理長やX社から情報収集し②製品開発部の外部人材に積極的に製品提案するよう動機付けし③経営者の料理人経験や高級宿泊施設との取引実績を訴求し④地元食材を活かした製品で差別化し、高付加価値化で販路・事業を拡大する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 2,
+          "post_id": 13785,
+          "score": 78,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13785",
+          "answer_text": "対応策は、①販売先料理長の口頭指示によるレシピを文章化し、ノウハウ共有し活用する事で他社販売に活かし、②X社との連携を強化しX社人材・ノウハウ活用、②営業部門を強化し顧客ニーズ収集し、開発力を高める。",
+          "subquestions": []
+        },
+        {
+          "input_no": 3,
+          "post_id": 13771,
+          "score": 76,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13771",
+          "answer_text": "①企画開発経験者を雇い、当該ノウハウを活用②アンケートや既存の取引先から、今の消費者のニーズ情報を収集③企画開発経験豊富な企業との共同開発。①～③と、自社の強みである料理人の経験を掛け合わせた差別化された商品開発を行い、販路開拓を図るべき。",
+          "subquestions": []
+        },
+        {
+          "input_no": 4,
+          "post_id": 13867,
+          "score": 74,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13867",
+          "answer_text": "営業部を専任化し、X社やホテル、旅館等から顧客ニーズを収集。そのニーズに基づき製品開発部の中堅食品製造業で開発経験等のある人材を活用し、共同企画開発による連携を強化し、季節性、高級感、地元食材等で差別化した惣菜商品の企画開発を進める。",
+          "subquestions": []
+        },
+        {
+          "input_no": 5,
+          "post_id": 13815,
+          "score": 72,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13815",
+          "answer_text": "C社は、食品スーパーX社と連携し顧客の惣菜に対する顧客ニーズを収集し、採用した従業員の製品開発ノウハウを活用し顧客ニーズに合った惣菜の商品開発を実施する。自社企画製品も工場管理者と定期的会議を実施しホテルなどのニーズにあった商品開発を進める。",
+          "subquestions": []
+        },
+        {
+          "input_no": 6,
+          "post_id": 13869,
+          "score": 72,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13869",
+          "answer_text": "販売先のホテルや旅館から増加する外国人観光客のニーズを共有してもらい、Ｘ社との協業で、料理人経験がある工場管理者と製品開発人材を活かし、地元食材を使った季節性があり高級感のある和食や洋食の惣菜を開発し差別化することで、販路拡大、売上向上。",
+          "subquestions": []
+        },
+        {
+          "input_no": 7,
+          "post_id": 13745,
+          "score": 71,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13745",
+          "answer_text": "営業力強化し、販売先のニーズを取込み、ホテル等へ提供している地元食材を使ったメニューや、製造部課長の料理人の経験、販売先料理長のニーズを活かし、製品開発部の開発力で企画開発を進める。さらにX社と連携強化し、顧客ニーズを取込む。",
+          "subquestions": []
+        },
+        {
+          "input_no": 8,
+          "post_id": 13775,
+          "score": 70,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13775",
+          "answer_text": "経験のある外部人材の活用と営業による顧客ニーズ取得によって季節感があり地元食材を使った高級感のある総菜を企画し提案していくべき。その際に高級ホテルの料理長コラボの商品を開発し数量限定で販売することでブランド力を高め高価格販売し差別化する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 9,
+          "post_id": 13761,
+          "score": 69,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13761",
+          "answer_text": "C社は、①ホテルの受託生産のメニューを活用すると共に、②外部採用人材の開発経験を活かし、X社の既存総菜の特性や顧客ニーズを把握することで、③季節性と高級感のある和食や洋食の総菜を開発し、④X社の既存総菜と差別化可能な商品を提供すべきである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 10,
+          "post_id": 13811,
+          "score": 69,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13811",
+          "answer_text": "製品開発部に採用した外部人材の製品開発経験とC社の高級旅館等の受託で培ったノウハウやニーズ情報を活用し、季節感と高級感のある総菜を自社企画製品として提案し、既存の販売先と関係性を強化し、他ホテル等の新規顧客を獲得し、増収を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 11,
+          "post_id": 13883,
+          "score": 69,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13883",
+          "answer_text": "企画開発は①ホテルや旅館での最終消費者の声やニーズを収集して製品開発に生かす②地元食材を使った季節性や高級感ある特色あるメニューの開発③今までの製品で好評を得たレシピの活用により、高付加価値で差別化された企画開発を進める",
+          "subquestions": []
+        },
+        {
+          "input_no": 12,
+          "post_id": 13799,
+          "score": 68,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13799",
+          "answer_text": "①販売先料理長の口頭指示を整理しマニュアル化し、製品開発部へ共有し季節のメニュー開発②営業部の配送業務を他部門に移管し、販路拡大の余力確保③X社との開発を短サイクル化し製品開発部強化。以上で製品開発し売上を拡大する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 13,
+          "post_id": 13825,
+          "score": 68,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13825",
+          "answer_text": "対応策は、食品製造業で製品開発の実務や管理の経験がある中途採用した外部人材を中心に旅館やホテル、スーパーから顧客ニーズを収集して共同開発も行い、 地元の食材を使った季節性のある地域ブランドのメニューで高付加価値化を図り、販路拡大を実施する事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 14,
+          "post_id": 13877,
+          "score": 68,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13877",
+          "answer_text": "①既存取引先のレシピDBを作成しノウハウとして蓄積し②料理人経験と採用した外部人材のノウハウ活用で③地元食材を使った季節性と高級感あるメニューを開発し④提案型営業強化で顧客ニーズを収集し⑤ニーズに沿った企画開発を進め、高付加価値化し販路拡大。",
+          "subquestions": []
+        },
+        {
+          "input_no": 15,
+          "post_id": 13749,
+          "score": 67,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13749",
+          "answer_text": "X社の既存顧客にニーズ調査を実施し、集約した声を惣菜開発に反映する。製品開発にあたっては、経験のある新規採用した外部人材に権限委譲するとともに、料理長とも連携し、季節性があり高級感のある製品とする。C社とX社のシナジーを発揮し差別化を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 16,
+          "post_id": 13787,
+          "score": 67,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13787",
+          "answer_text": "営業部が顧客からニーズを収集、既存レシピのDB化によりアイデアを形成し、製品開発部の製品開発の経験がある人材や元料理人のベテラン社員のノウハウの活用、納入先会社との連携により、製品を開発し、企画開発を進めるべきである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 17,
+          "post_id": 13861,
+          "score": 67,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13861",
+          "answer_text": "企画開発は①配送業務を切り離し営業を専任化し②ホテル料理人経験の経営者や管理職も営業に協力し③顧客開拓経験者を採用し経験を共有すし営業部門を強化し新顧客や最終顧客のニーズを収集し開発・製造部門へ共有し全社協力でニーズに合う開発をすすめるべき。",
+          "subquestions": []
+        },
+        {
+          "input_no": 18,
+          "post_id": 13755,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13755",
+          "answer_text": "①経験者の追加採用や外部講師研修を行い、製品開発部の体制を強化する、②ホテル・旅館やＸ社との関係性を強化し、顧客ニーズを収集し商品開発に反映する仕組みを作る、③商品開発の記録をデータベース化して共有し、ノウハウを蓄積する。企画開発力向上を図る",
+          "subquestions": []
+        },
+        {
+          "input_no": 19,
+          "post_id": 13779,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13779",
+          "answer_text": "外部人材である製品開発部の製品開発ノウハウに工場管理者がもつレシピと前職での知識経験を活かし季節性があり高級感のある差別化された惣菜を企画する。これに生産管理部やパートリーダーの経験やノウハウを追加し価格や品質に問題ない製品を開発する",
+          "subquestions": []
+        },
+        {
+          "input_no": 20,
+          "post_id": 13827,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13827",
+          "answer_text": "Ｘ社から顧客ニーズを入手し、顧客満足を得る商品を企画する。外部人材に権限委譲し、中堅食品製造業での製品開発の実務や管理の経験を活かす。売上拡大につなげる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 21,
+          "post_id": 13839,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13839",
+          "answer_text": "最終消費者のニーズを収集しニーズを捉えた製品企画開発を要する。具体的には①既存取引先との連携強化しニーズ収集を行う②製品開発部の外部人材の経験を活用し中食需要に応える製品開発や食品製造業との連携を強化する③営業力強化による認知度向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 22,
+          "post_id": 13851,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13851",
+          "answer_text": "進め方は①Ｘ社やホテル等での料理人の経験がある従業員から顧客ニーズを収集し、②他社で製品開発の経験がある外部人材から自社にノウハウを獲得し③自社の季節性と高級感のある総菜とを合わせ高付加価値で差別化を訴求し、既存客との関係性強化と販路を拡大",
+          "subquestions": []
+        },
+        {
+          "input_no": 23,
+          "post_id": 13895,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13895",
+          "answer_text": "既存の販売先から顧客ニーズを収集する事、製品開発部と製造部の連携を強化し、製品仕様の作成、試作品の作成をする事、テストマーケティングを行い、改良を行う事、で顧客ニーズ収集力を強化し、製品の企画開発を進める。",
+          "subquestions": []
+        },
+        {
+          "input_no": 24,
+          "post_id": 13741,
+          "score": 65,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13741",
+          "answer_text": "料理人経験者や、開発の実務や管理の経験がある外部人材を活かし、C社販売先やその顧客の要望を取り入れた製品を企画開発する。料理人経験者のアイデアも取り入れ、外部人材が提案を担うことで、販売先と互恵関係を築きながら、新規販路開拓をする。",
+          "subquestions": []
+        },
+        {
+          "input_no": 25,
+          "post_id": 13757,
+          "score": 65,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13757",
+          "answer_text": "①営業体制を強化して他のホテルや旅館の顧客ニーズを収集して販路拡大し②製品開発部に権限委譲し、X 社や既存ホテルに提供している商品と被らないよう留意しながら、ホテルや旅館での料理人の経験を取り入れて企画開発を進めるべき。",
+          "subquestions": []
+        },
+        {
+          "input_no": 26,
+          "post_id": 13769,
+          "score": 65,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13769",
+          "answer_text": "販売先料理人との連携強化し、地元の食材を使った特色あるメニューを開発する。メモしている販売先料理人からの口頭レシピを蓄積し独自に組み合わせることで商品開発を行い新規顧客開拓を行う",
+          "subquestions": []
+        },
+        {
+          "input_no": 27,
+          "post_id": 13819,
+          "score": 65,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13819",
+          "answer_text": "①販売先料理長やX社経由で消費者のニーズを収集し、レシピ開発に反映する②採用した外部人材を中心に社内で製品開発プロジェクトを発足する③現経営者・工場管理者の経験を標準データ化し、DBで一元管理・全社で共有する等で、製品開発を進めていく。",
+          "subquestions": []
+        },
+        {
+          "input_no": 28,
+          "post_id": 13903,
+          "score": 65,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13903",
+          "answer_text": "対応は①営業部を新設し開拓力を強化するとともに企画開発のための顧客ニーズを取得し②採用した外部人材のノウハウを見える化し社内研修を通じて内部で育成し③受託品と混在することから、生産計画・生産統制を適切に行う。以て企画開発を進め差別化を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 29,
+          "post_id": 13859,
+          "score": 64,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13859",
+          "answer_text": "X社や既存取引先との連携を強化し、顧客ニーズを収集して商品企画を行いノウハウを蓄積する。食品製造業で製品開発の経験がある外部人材のノウハウ活用や製品開発部に経営資源を集中し、新製品開発や販路拡大を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 30,
+          "post_id": 13759,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13759",
+          "answer_text": "企画・開発は、①配送業務を他部署に一部任せて営業部員を専任化し、食品製造の製品開発の実務経験がある外部人材と連携して市場ニーズを収集する②料理人の経験がある工場管理者と外部人材で製品実用化の可能性を検討する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 31,
+          "post_id": 13783,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13783",
+          "answer_text": "中堅食品製造業で製品開発の実務や管理の経験のある外部人材を活用する。Ｘ社との定期的な会議の実施により関係性強化を図り、Ｘ社が収集した顧客ニーズを基に外部人材が製品開発を進める。他部門との情報共有が行える管理体制を作り事業を高付加価値化する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 32,
+          "post_id": 13821,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13821",
+          "answer_text": "ホテルや旅館の料理メニューの計画に参加したり、製品企画の経験がある外部人材を採用したりすることで経験やスキルを獲得する。また、観光客のニーズ調査を行い、ニーズを満たす商品をＣ社の生産技術によって実現するように進めていく。",
+          "subquestions": []
+        },
+        {
+          "input_no": 33,
+          "post_id": 13853,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13853",
+          "answer_text": "①工場管理者のレシピメモを整理して開発に生かす②ホテルや旅館とコラボして料理長との季節性があり高級感のある総菜の共同開発を行い、ノウハウを蓄積③外部教育を活用④食品スーパーで顧客要望やニーズを収集し企画開発に生かし販路拡大し経営リスク減少。",
+          "subquestions": []
+        },
+        {
+          "input_no": 34,
+          "post_id": 13857,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13857",
+          "answer_text": "ホテルや旅館の料理人経験や外部人材の製品開発の実務や経験を活かし、地元食材を使った特書のあるメニューを法人外国人観光客を対象に企画開発を進め、X社から顧客要望を収集し、商品開発へ反映することで、関係性を強化し、売上拡大を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 35,
+          "post_id": 13885,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13885",
+          "answer_text": "中堅食品製造業で製品開発経験がある従業員がいる製品開発部を中心に営業部、製造部と連携して販売先のニーズを収集し、ノウハウを蓄積して増加する外国人観光客向けに地元食材を使った特色あるメニュー開発など差別化できる製品企画開発を行う。",
+          "subquestions": []
+        },
+        {
+          "input_no": 36,
+          "post_id": 13733,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13733",
+          "answer_text": "①ホテルや旅館の自主企画製品は、外国人観光客の集客を狙った地元食材を使った特色あるメニューでコスト低減効果を提案する。②新規事業の総菜商品企画は、季節感のある和洋総菜をX社の顧客ニーズを収集し、製品開発部の外部人材とX社で共同開発する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 37,
+          "post_id": 13807,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13807",
+          "answer_text": "企画開発は、①工場管理者の料理人経験を活かし、ホテルや旅館の設備機械のレイアウトを考慮した製品を企画する、②外部人材の製品開発の実務管理経験を活かし、Ｘ社と季節ごとに地元食材を使った特色ある総菜を企画し、受け身ではなく積極的に提案する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 38,
+          "post_id": 13889,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13889",
+          "answer_text": "①営業力を強化し、顧客ニーズを収集する体制を作り②共同開発や外部連携で企画力を向上させる③採用された外部人材の経験を活用し、顧客ニーズを反映した新製品開発で他社との差別化を図り、顧客関係性の強化と新規顧客開拓で売上拡大を図りリスク分散する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 39,
+          "post_id": 13891,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13891",
+          "answer_text": "①営業部門を設けて顧客ニーズ把握を強化して中食需要に対応する需要を収集し②２人だけの製品開発部を強化して経験蓄積し③販売先ごとの製造班の横の連携を強化して新商品開発の発案を創出することで、需要にあった企画開発を促進する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 40,
+          "post_id": 13777,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13777",
+          "answer_text": "製品開発部に採用された外部人材の製品開発経験を生かし、販売先のホテル・旅館やX社から顧客ニーズを収集して分析する。地元食材を使った季節感・高級感のあるメニューや惣菜を開発し、訪日外国人のニーズを捉えX社の既存商品と差別化する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 41,
+          "post_id": 13829,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13829",
+          "answer_text": "中堅食品製造業で製品開発の実務や管理経験のある外部人材を活用し、季節性があり高級感のある和食や洋食の総菜をX社と共同で開発する。増加する訪日外国人観光客を狙い、地元食材を使った特色あるメニューで既存の総菜商品との差別化、販売先拡大を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 42,
+          "post_id": 13879,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13879",
+          "answer_text": "X社との共同開発を通じて開発ノウハウをX社からまなぶとともに、製品企画部の製品開発力の向上を図る。また、X社から消費者ニーズを共有してもらい、その情報に基づいた製品開発、販売を行い、販売結果などの情報をX社にフィードバックする。",
+          "subquestions": []
+        },
+        {
+          "input_no": 43,
+          "post_id": 13901,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13901",
+          "answer_text": "販売先料理長のレシピを整理し、地元食材を使った特色のあるメニューや季節性があり高級感のある総菜商品を開発。X社と連携し顧客ニーズを収集し、ホテル・旅館向けメニューへ自社商品として展開。既存・新規取引先やX社との関係強化と売上増を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 44,
+          "post_id": 13747,
+          "score": 59,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13747",
+          "answer_text": "中堅食品製造業での製品開発のノウハウを標準化し、マニュアル化して営業へ共有する。営業が顧客と一緒に最終消費者のニーズを収集し、製品開発部へ共有し顧客と共同で製品開発を行う。以上でニーズにあった商品を提供し販路拡大を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 45,
+          "post_id": 13837,
+          "score": 58,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13837",
+          "answer_text": "①見込み受注のため需要予測やロットサイズを最適化し材料廃棄がないよう在庫管理を行い②強みである従業員の豊富な経験や一貫生産体制を生かし営業部を強化しホテル、旅館のニーズを収集しニーズに応えた高品質な商品開発を行い販路拡大を狙う。",
+          "subquestions": []
+        },
+        {
+          "input_no": 46,
+          "post_id": 13863,
+          "score": 58,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13863",
+          "answer_text": "採用した外部人材をプロジェクトリーダーとして製品開発を進める。既存客やＸ社のニーズを収集しながら、Ｃ社のコスト力を生かし、ホテル・旅館には高級感のある商品を、Ｘ社には中食需要に対応した総菜を提案する。以上により関係性を強化し販路拡大を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 47,
+          "post_id": 13871,
+          "score": 58,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13871",
+          "answer_text": "高級ホテル等の品揃え支援経験・コスト低減対応力・多品種少量生産可能を生かし、X社の中食需要対応要請に見合う高付加価値商品を企画開発する。季節性や高級感のある総菜の開発提供でX社の既存商品との差別化を提案し、総菜コーナーの売上向上に貢献する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 48,
+          "post_id": 13773,
+          "score": 57,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13773",
+          "answer_text": "企画開発は①ホテルやスーパーＸ社との取引の中で収集した顧客ニーズを新商品開発に活かす②採用した製品開発経験を持つ外部人材を外部交流に送りノウハウ獲得③外部人材による他従業員への教育を実施する。これにより販路拡大に繋がる自社製品販売を進める。",
+          "subquestions": []
+        },
+        {
+          "input_no": 49,
+          "post_id": 13881,
+          "score": 57,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13881",
+          "answer_text": "製品の企画開発は、①Ｘ社の商品企画担当者と密に連絡を取り、市場動向や最終消費者のニーズを把握。②素材にこだわった季節性があり高級感のある和食や洋食の総菜を開発。以上で高付加価値な自社企画製品を開発しブランド化させる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 50,
+          "post_id": 13793,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13793",
+          "answer_text": "ホテル等からの受注内容やX社と共同で消費者ニーズを収集し、ニーズに対応したアイデアを企画。試食品を作成しホテル担当者や顧客、X社店舗で提供しフィードバックをもらい商品改良や新商品開発に生かす。事業性分析にも活用する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 51,
+          "post_id": 13893,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13893",
+          "answer_text": "まず、増加する訪日外国人観光客や中食需要のニーズ収集のために営業部を営業業務に専任化し、社内の料理人経験のある社員等の知識・提案させる仕組みづくりにより、外部から来た経験のある人材を中心として、全社で製品企画開発を進める体制を作る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 52,
+          "post_id": 13731,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13731",
+          "answer_text": "①営業の行なっている配送業務を移管し、販売先のニーズを収集、強みの生産力を訴求できるよう営業体制強化。②採用した外部人材の経験を活かし、新商品企画力の強化を図る為、製品開発部増員、X社と共同開発、ノウハウ承継を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 53,
+          "post_id": 13735,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13735",
+          "answer_text": "①製品開発部の食品製造業での製品開発での経験と、ホテルや旅館での料理人経験を生かして、季節感のある、販売先のオペレーションコスト低減につながる製品を企画する。②製品開発はＣ社設備を利用し、顧客と共同で進める",
+          "subquestions": []
+        },
+        {
+          "input_no": 54,
+          "post_id": 13743,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13743",
+          "answer_text": "進め方は①ホテル等の経験ある工場責任者と販売先料理長が共同でニーズに沿う地元食材を使った特色ある新製品をコスト低減の観点も加味し開発する、②高級ホテル等の料理製造経験を活かしてX社と共同で季節感と高級感のある惣菜を開発する、ことである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 55,
+          "post_id": 13765,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13765",
+          "answer_text": "企画開発は①社員の旅館等での料理人・食品製造業での経験を活かし、材料調達や在庫管理の簡素化等のコスト低減ニーズに対応②季節性で高級感のある開発で中食需要に対応③地元食材を使った特色あるメニュー開発で外国人観光客を獲得に資するよう、差別化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 56,
+          "post_id": 13789,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13789",
+          "answer_text": "①外部人材がホテルや旅館のニーズを収集したうえで、C社の加工室を活用して販売先料理長と自社製品を共同開発する、②B社、X社、高級ホテルや旅館と連携して、季節性があり高級感のあるPB商品を協同開発することで、高付加価値製品の企画開発を進める。",
+          "subquestions": []
+        },
+        {
+          "input_no": 57,
+          "post_id": 13795,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13795",
+          "answer_text": "①外部人材を活用しOJT等の研修で製品企画のノウハウを蓄積し中食需要への商品企画へ対応②季節性、高級感のある惣菜をいかし、X社と共同でニーズを収集し商品開発へ反映。以上で新規顧客獲得を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 58,
+          "post_id": 13805,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13805",
+          "answer_text": "販売先の高級ホテルや高級旅館と協業し、ダブルブランドで商品を開発するべきである。最終消費者のニーズを収集するとともに、ノウハウを吸収し、中途採用した製品開発の実務経験のある従業員に権限委譲し、企画開発を進めるべきである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 59,
+          "post_id": 13809,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13809",
+          "answer_text": "Ｃ社受託品のドキュメント化を図り、季節性や高級感のある総菜商品の蓄積事例を基に外部人材の持つノウハウと合わせシナジー出るような商品企画をするべきである。また客先提案することでの反応・評価も収集し商品企画に生かし企画開発力を高めたい。",
+          "subquestions": []
+        },
+        {
+          "input_no": 60,
+          "post_id": 13843,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13843",
+          "answer_text": "対応策は①製品開発経験ある外部人材活用による開発に関する研修実施②X社と連携強化し顧客ニーズ共有し製品開発へ反映③販売先のホテル・旅館との共同開発による開発力強化。中食需要に応える季節性・高級感のある高付加価値な総菜開発し売上向上に繋げる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 61,
+          "post_id": 13847,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13847",
+          "answer_text": "①X社から最終消費者のニーズを収集し、C社からはホテル調理ノウハウを提供してイノベーションを起こし、②採用した外部人材の製品開発ノウハウを活かし、中食需要に対応したX社品やX社と競合しない季節性と高級感のある自社企画製品を開発し差別化する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 62,
+          "post_id": 13887,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13887",
+          "answer_text": "(1)配送業務を移管し、営業を強化し、ニーズ収集し企画開発に反映させる体制の構築(2)外部人材、外部ノウハウを営業部・製品開発部・製造部で共有し、企画開発力を強化する。よって、高付加価値化、受注増を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 63,
+          "post_id": 13909,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13909",
+          "answer_text": "料理人の経験がある製造部長、総菜製造課長、菓子製造課長も商品企画に参加させることで、X社からの料理メニュー依頼に対応したノウハウを活用し実現性を高める。また、販売先料理長と連携し、商品企画に参加してもらうことで商品力を高めることを狙う。",
+          "subquestions": []
+        },
+        {
+          "input_no": 64,
+          "post_id": 13737,
+          "score": 54,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13737",
+          "answer_text": "工場管理者のホテルや旅館での勤務経験や、既存販売先や食品スーパーでの対応で得たニーズを元に、食品衛生管理の強みや新設した製品開発部での製品開発ノウハウを活用し、差別化可能な商品開発を進め、ホテルや旅館を新規開拓し、売上向上を目指す。",
+          "subquestions": []
+        },
+        {
+          "input_no": 65,
+          "post_id": 13753,
+          "score": 54,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13753",
+          "answer_text": "企画開発は、①配送業務を生産管理課に移行させ、営業部は顧客ニーズの収集に集中する。②ホテルの料理人経験を生かし、外国人観光客の好みを収集する。③スーパーから情報を共有してもらい、地元食材を使って高付加価値商品を開発する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 66,
+          "post_id": 13767,
+          "score": 53,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13767",
+          "answer_text": "製品開発のノウハウと経験を持つ外部人材を中心に、X社から提供を受けた顧客ニーズを活かし、C社の強みである高級感ある和洋の食品製造ノウハウをもとに季節に応じた高付加価値の製品の企画開発を進める。",
+          "subquestions": []
+        },
+        {
+          "input_no": 67,
+          "post_id": 13875,
+          "score": 53,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13875",
+          "answer_text": "既存販売先やX社から消費者のニーズを収集し分析し外部人材の製品開発経験を活かし季節感があり高級感のある総菜を開発しX社の客単価の高い店から納品し徐々に拡大すると共に他のホテルや旅館にも販売し既存販売先との関係強化と他のホテルや旅館に販路拡大",
+          "subquestions": []
+        },
+        {
+          "input_no": 68,
+          "post_id": 13823,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13823",
+          "answer_text": "C社は、①自社企画製品の製造販売では、ホテルや旅館から季節毎のニーズを収集し、製品開発に反映し、②X社との新規事業では、各店舗から顧客ニーズを収集し、反映することで、情報収集力を強化することにより企画開発を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 69,
+          "post_id": 13855,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13855",
+          "answer_text": "製品企画開発は、①採用した外部人材の製品開発スキルを用いて差別化できる商品を開発してX社に提案し、X社での販売実績を積む、②他のホテル旅館に、X社での実績を訴求して提案を行い、自社企画製品の販路を拡大することである",
+          "subquestions": []
+        },
+        {
+          "input_no": 70,
+          "post_id": 13873,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13873",
+          "answer_text": "①既存取引先からの指示によるレシピを整理し自社ノウハウ化し社内共有し②中堅食品製造業で製品開発経験を有する開発部人材を中心に営業部と連携し、ホテル仕込みの季節性があり高級感のある総菜を顧客提案、ニーズ確認しながら進めていく。",
+          "subquestions": []
+        },
+        {
+          "input_no": 71,
+          "post_id": 13905,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13905",
+          "answer_text": "ホテルや旅館の料理人の経験ある工場管理者と中堅食品製造業で製品開発経験のある外部人材が一体となり、地元高級食材を利用し高級感のある和食などのレシピを検討・企画し、それをホテル・旅館とX社へ受け身でなく積極的に提案し販路開拓と受注増に繋げる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 72,
+          "post_id": 13763,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13763",
+          "answer_text": "対応策は、①製品開発部で雇用した外部人材のノウハウを生かして製品開発を行い、②既存の販売先や新規取引先から最終消費者の顧客ニーズを把握し商品開発に活かし、③ニーズに合う製品提供で受注を増加し製品開発のノウハウの蓄積を促す。",
+          "subquestions": []
+        },
+        {
+          "input_no": 73,
+          "post_id": 13797,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13797",
+          "answer_text": "最終消費者と接点を持つX社と連携を強化し、顧客のニーズを収集して、自社企画製品の製造販売に活かす。その際、データやレシピを標準化して、ＤＢ化する事でノウハウを蓄積しつつ、営業部と製造部で共有して、新製品開発に利用する。以上の手順で開発を進める",
+          "subquestions": []
+        },
+        {
+          "input_no": 74,
+          "post_id": 13803,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13803",
+          "answer_text": "企画開発の進め方は、①他のホテルやX社と情報交換を行い、顧客ニーズを収集する②製品開発部の外部人材を中心に、季節感や高級感を売りとした試作品を製造し提案営業を行う。以上により、自社企画のノウハウを社内に蓄積し販路拡大と新規事業に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 75,
+          "post_id": 13833,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13833",
+          "answer_text": "進め方としては、取引先やＸ社から消費者の声を収集し、Ｃ社の製品開発部とＸ社の商品企画担当者で企画に反映させる。Ｃ社はノウハウを蓄積し、季節性や高級感ある総菜を提案することで新たにホテルや旅館に販路を拡大させて売上拡大を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 76,
+          "post_id": 13899,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13899",
+          "answer_text": "製品開発部に採用された外部人材の経験と、C社の強みである料理人の\n経験を活かすため、ニーズ収集力を強化する。営業を専業化しニーズ\n収集に注力させ自社企画製品の開発に繋げ、既存の販売先との関係を\n強化しつつ他の販路を開拓し、売上拡大を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 77,
+          "post_id": 13729,
+          "score": 50,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13729",
+          "answer_text": "①顧客ニーズ収集力不足のため、営業業務専任化・研修等により営業力強化しニーズに合う製品開発②製品開発部を新設して間もないため、外部人材の経験をマニュアル化しOJT等の研修で能力開発・製品開発力強化③営業部・製造部と連携強化し情報共有促進。",
+          "subquestions": []
+        },
+        {
+          "input_no": 78,
+          "post_id": 13813,
+          "score": 50,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13813",
+          "answer_text": "採用した人材の中堅食品製造業での製品開発の実務経験を活かし、X社商品企画担当とX社の顧客のニーズを収集して商品開発を進める。外部人材の管理経験を活かし設備レイアウトを変更して試作品に対応できるようにする。",
+          "subquestions": []
+        },
+        {
+          "input_no": 79,
+          "post_id": 13841,
+          "score": 50,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13841",
+          "answer_text": "進め方は①製品開発部の体制を強化し、経験者の更なる採用や経営者、部課長の料理人経験を生かした企画開発を行う②受託品製造で得た知見やノウハウを活用しホテル、旅館やスーパーへ商品提供を行う。",
+          "subquestions": []
+        },
+        {
+          "input_no": 80,
+          "post_id": 13897,
+          "score": 50,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13897",
+          "answer_text": "営業の配送業務負荷を軽減し最終消費者ニー\nズを収集して企画開発に生かす。生産負荷の\n改善で企画開発の余力を作り、OJＴ教育にて\n企画開発力を強化する。以上で様々な新商品\n開発に繋げる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 81,
+          "post_id": 13791,
+          "score": 48,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13791",
+          "answer_text": "中堅食品製造業で製品開発の実務や管理の経験がある新規採用者や、新設の製品開発部を活用して、季節性があり高級感のある和食や洋食の総菜等の商品提案を行う。その際、ホテル等での販売先やX社、最終消費者のニーズを聞き取り、商品開発に活用し進める。",
+          "subquestions": []
+        },
+        {
+          "input_no": 82,
+          "post_id": 13849,
+          "score": 48,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13849",
+          "answer_text": "C社は、①外部人材の製品開発ノウハウを活用し、②X社と協業し、顧客ニーズを収集した製品開発を行う。③見込み生産品となるためX社と製販会議をおこなう等見込み生産量の精度を高め、④全社で生産計画を統合し製造コストを最適化した商品開発を進めるべき。",
+          "subquestions": []
+        },
+        {
+          "input_no": 83,
+          "post_id": 13831,
+          "score": 46,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13831",
+          "answer_text": "進め方は、➀他のホテルや旅館に工場管理者の料理人の経験を活用したメニューやコスト抑制の提案を行い、増加する観光客の市場を開拓すること、②X社と製品開発部で協働して価格の高い商品開発の提案を行い、中食需要に対する新製品開発を行うこと、である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 84,
+          "post_id": 13865,
+          "score": 45,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13865",
+          "answer_text": "新設の製品開発部に採用された外部人材2名に、ホテルや旅館で料理人の研修を行い季節感や高級感のある和洋食を学ばせる。製品開発の実務や経験を活かしてX社と共同で中食需要に対する惣菜の商品企画を行わせる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 85,
+          "post_id": 13835,
+          "score": 44,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13835",
+          "answer_text": "C社は、①外部人材を採用し最近新設した製品開発部への教育実施によるニーズ収集能力や企画開発力の強化を図り、②販売先の旅館の料理人やX社との情報共有によりニーズを収集し、ニーズに合った商品企画を実施する。以上で、新規売上を拡大する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 86,
+          "post_id": 13845,
+          "score": 44,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13845",
+          "answer_text": "企画開発は①営業部、製造部が顧客、販売先料理長から得た顧客ニーズや料理の流行を共有②製品開発部が実務経験を生かしてニーズ実現③パート従業員を活用して試食会を開き、最終消費者の反応を踏まえて修正し商品化を決定、という手順で進めるべき。",
+          "subquestions": []
+        },
+        {
+          "input_no": 87,
+          "post_id": 13907,
+          "score": 44,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13907",
+          "answer_text": "施策は、①C社は料理人の経験ある製造部課長からホテルや旅館のニーズを聴取し、②製品開発経験ある外部人材が季節感あり高級感ある和食や洋食総菜を開発し、③営業部が既存販売債やホテル、旅館に提案し、反応を更に製品開発に反映させること、である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 88,
+          "post_id": 13727,
+          "score": 43,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13727",
+          "answer_text": "高級旅館との関係性を強化し、顧客ニーズを共有してもらい、Ｂ社製品開発部担当者の開発力を生かし、自社ブランド製品の共同開発を行う。この共同開発で蓄積したノウハウをＸ社の商品企画へ活かし、さらなる付加価値向上で販路拡大と売上拡大を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 89,
+          "post_id": 13801,
+          "score": 43,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13801",
+          "answer_text": "対応策は①製品仕様、レシピ、食材や調味料の必要量を標準化②ＤＢで社内で即時共有できる体制を構築③製品企画部２名が中心となりマニュアルを作成し教育を実施し製品の企画開発力を強化する体制を構築する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 90,
+          "post_id": 13751,
+          "score": 39,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13751",
+          "answer_text": "現経営者のホテル調理上のマネジメント経験、工場管理者の宿泊施設での料理人経験を活かし、材料調達や在庫管理の簡素化によるコスト低減、地元食材使用の高付高付加価値商品を開発し新規取引先を開拓して売上拡大する。既存取引の依存度を下げてリスク分散。",
+          "subquestions": []
+        },
+        {
+          "input_no": 91,
+          "post_id": 13817,
+          "score": 39,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13817",
+          "answer_text": "①製品開発の実務と経験がある社外人材の企画力②営業部の兼務を解除し営業に集中させ、既存ホテルやX社から観光客など最終消費者のニーズを収集し③それに合わせた新製品開発を行い、企画力強化、自社ブランド開発を進める。",
+          "subquestions": []
+        },
+        {
+          "input_no": 92,
+          "post_id": 13911,
+          "score": 39,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13911",
+          "answer_text": "製品の企画開発は、製品開発部が主体となり食品スーパーX社と共同でお互いの強みを活かした季節の旬の食材を用い高級感がある製品を毎月開発することで、他社との差別化を図り、売上伸び率を高める。並行して、C社独自で商品開発を行い販路拡大につなげる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 93,
+          "post_id": 13739,
+          "score": 34,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13739",
+          "answer_text": "販売先料理長から口頭で指示される製品仕様のメモ程度のレシピを整理し、製品の企画開発に活かす。中堅食品製造業で製品開発の実務や管理の経験がある外部人材が内部人材を育成し、企画開発の経験やノウハウを蓄積する。",
+          "subquestions": []
+        }
+      ]
+    },
+    {
+      "question_no": 5,
+      "points": 30,
+      "heading_text": "第５問（配点30点）",
+      "answer_count": 93,
+      "score_stats": {
+        "count": 93,
+        "min": 34,
+        "max": 78,
+        "median": 58,
+        "mean": 58.02
+      },
+      "answer_char_stats": {
+        "count": 93,
+        "min": 69,
+        "max": 141,
+        "median": 137,
+        "mean": 132.11
+      },
+      "exemplars": {
+        "high": [
+          {
+            "post_id": 13781,
+            "score": 78,
+            "published_at": "2024-05-02",
+            "answer_text": "構想は妥当である。理由は、仕様が一定期間決まっている製品が一定量の製造が見込め、現在の個別生産に対しロット生産で対応が必要なため。留意点は①工程の一部を自動化し②新規採用者のスキル平準化のため作業標準化・マニュアル化・OJT教育を実施し③生産管理レベルを高めて生産性の高い工場とする"
+          },
+          {
+            "post_id": 13785,
+            "score": 78,
+            "published_at": "2024-05-02",
+            "answer_text": "X社との関係強化とX社からの発注で生産安定化、製品差別化も図れる為、妥当と考える。\n留意点は、①投資費用対効果を検討する事②新規採用人材に対し料理長やリーダーの製造技術・ノウハウを伝え技術力向上を図り③業務標準化・マニュアル化し共有、教育を実施し④機械操作のマニュアル化を図る。"
+          },
+          {
+            "post_id": 13771,
+            "score": 76,
+            "published_at": "2024-05-02",
+            "answer_text": "妥当である。その理由は、①関連多角化であり、ノウハウが生かせる点②シナジー効果を生ずる可能性③経営リスク分散④規模の経済発揮可能性、である。ただ、①細かな配送頻度への対応②経営資源の重複による無駄なコスト発生③新規採用者の教育コスト④投資コストの妥当性、には留意する必要がある。"
+          },
+          {
+            "post_id": 13867,
+            "score": 74,
+            "published_at": "2024-05-02",
+            "answer_text": "社長の構想は妥当性がある。理由は①生産能力の向上、②稼働率安定化、③受注料確保と規模の経済による収益力強化、④惣菜の量産ノウハウ蓄積が期待できる為。留意点は①新規採用者の教育による能力向上、②衛生管理体制強化、③製造班毎の連携がしやすいレイアウトへの変更、④X社依存上昇を防ぐ事。"
+          },
+          {
+            "post_id": 13815,
+            "score": 72,
+            "published_at": "2024-05-02",
+            "answer_text": "新規事業は①受注量が最も多い惣菜の製造工程を専用設備導入で手作業で実施している作業を機械化して生産性を向上し②新規採用者に新規事業の製造作業を専業化する事で作業ノウハウを蓄積できる為、妥当性がある。留意点は、①可能な範囲で多くの工程や品種の生産が可能な設備導入の検討②作業の標準化。"
+          }
+        ],
+        "middle": [
+          {
+            "post_id": 13837,
+            "score": 58,
+            "published_at": "2024-05-02",
+            "answer_text": "短期的に生産能力を向上させるには工場や設備、人材の追加が効果的なため妥当である。留意点は①新工場、設備導入により現場が混乱しないよう使用や作業手順をマニュアル化すること②採用人材のB社設備等の理解が遅れることがないようOJT教育や研修を行うことで生産能力低下を回避できることである。"
+          },
+          {
+            "post_id": 13863,
+            "score": 58,
+            "published_at": "2024-05-02",
+            "answer_text": "Ｘ社との新規事業では、差別化された商品の短納期化が求められる。新規採用者中心では混乱が予想されるため、責任者とリーダーには経験豊富な技術者を配置し教育を進め早期戦力化する。留意点は、差別化・高付加価値化した商品を短納期化できる生産体制を構築し、事業拡大を図っていく。"
+          },
+          {
+            "post_id": 13871,
+            "score": 58,
+            "published_at": "2024-05-02",
+            "answer_text": "妥当であると考える。理由は①新規採用者の製品開発経験を活かした開発が行える為②専用設備により既存のホテル等と異なる需要動向・特性に対応できる為。留意点は①既存設備・人材にもアクセス可能にし資源不足を防止②既存事業とも交流行い、技術向上や必要に応じ応援可能な柔軟な生産体制を構築する"
+          },
+          {
+            "post_id": 13773,
+            "score": 57,
+            "published_at": "2024-05-02",
+            "answer_text": "妥当性はあると判断する。理由は①製品開発ノウハウのある人材が存在し新規採用者への教育の余地があること②料理人経験を持つ従業員による製品提案ができること③生産性向上や収益性向上の余地があるため。留意点は①生産統制による生産余力の確保②収益向上により余力確保。以て新規事業対応図る。"
+          },
+          {
+            "post_id": 13881,
+            "score": 57,
+            "published_at": "2024-05-02",
+            "answer_text": "妥当性は、X社から昼食需要に対応する総菜の需要がある事。理由は、高級感のある総菜づくりノウハウが生かされる事。留意点は、①X社の専用機化を避け汎用性を持たせることでリスクを回避。②従来の業務との混乱を防止し共倒れを防ぐ事。である。"
+          }
+        ],
+        "low": [
+          {
+            "post_id": 13739,
+            "score": 34,
+            "published_at": "2024-05-02",
+            "answer_text": "中堅食品製造業で製品開発の実務や管理の経験がある外部人材を活かせるため、妥当である。中食需要に対応する惣菜の商品企画、季節性があり高級感のある和食や洋食の惣菜等の商品企画を進めることに留意する。"
+          },
+          {
+            "post_id": 13751,
+            "score": 39,
+            "published_at": "2024-05-02",
+            "answer_text": "専用生産設備で新規採用者による生産体制の構築は妥当性が低い。理由は、既存のホテル・旅館向け商品とシナジーがあり、生産設備・生産体制や配送ルートの多重利用が可能であり、食材・調味料の一括調達によりコスト削減が図れるため。留意点は、全社生産計画として生産統制を強化することである。"
+          },
+          {
+            "post_id": 13817,
+            "score": 39,
+            "published_at": "2024-05-02",
+            "answer_text": "工場増築、専用設備導入、新規採用者を中心とした体制の構築には慎重になるべき。理由は①新規事業のノウハウがまだたまっていない②X社の納期等の要求が厳しく対応可否不明③専用設備導入は一社依存度が上がり危険なため。まずは生産性向上、企画力強化に留意し、新規事業を進め、売上拡大を目指す。"
+          },
+          {
+            "post_id": 13911,
+            "score": 39,
+            "published_at": "2024-05-02",
+            "answer_text": "新規採用社中心の生産体制は妥当ではない。理由は、工場管理者や各製造班のパートリーダーを中心とする生産体制で生産性を高めるべきである。留意点は、①経験や指導力あるパートリーダーの正社員等用、②業務プロセスを見直し効率化を図る、③納品頻度が増えるので遅れを防ぐ為にITを活用、である。"
+          },
+          {
+            "post_id": 13727,
+            "score": 43,
+            "published_at": "2024-05-02",
+            "answer_text": "妥当性はない。理由は①現状の生産管理・生産体制ではムダが多く、労働時間が増加する②教育体制が整っていないこと③生産設備の投資で財務リスクが悪化し④経営資源が分散することで現状の事業にも悪い影響を与えるため。留意点は、生産管理体制などを整備しながら、新規事業開発の検討を進めること。"
+          }
+        ]
+      },
+      "answers": [
+        {
+          "input_no": 1,
+          "post_id": 13781,
+          "score": 78,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13781",
+          "answer_text": "構想は妥当である。理由は、仕様が一定期間決まっている製品が一定量の製造が見込め、現在の個別生産に対しロット生産で対応が必要なため。留意点は①工程の一部を自動化し②新規採用者のスキル平準化のため作業標準化・マニュアル化・OJT教育を実施し③生産管理レベルを高めて生産性の高い工場とする",
+          "subquestions": []
+        },
+        {
+          "input_no": 2,
+          "post_id": 13785,
+          "score": 78,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13785",
+          "answer_text": "X社との関係強化とX社からの発注で生産安定化、製品差別化も図れる為、妥当と考える。\n留意点は、①投資費用対効果を検討する事②新規採用人材に対し料理長やリーダーの製造技術・ノウハウを伝え技術力向上を図り③業務標準化・マニュアル化し共有、教育を実施し④機械操作のマニュアル化を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 3,
+          "post_id": 13771,
+          "score": 76,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13771",
+          "answer_text": "妥当である。その理由は、①関連多角化であり、ノウハウが生かせる点②シナジー効果を生ずる可能性③経営リスク分散④規模の経済発揮可能性、である。ただ、①細かな配送頻度への対応②経営資源の重複による無駄なコスト発生③新規採用者の教育コスト④投資コストの妥当性、には留意する必要がある。",
+          "subquestions": []
+        },
+        {
+          "input_no": 4,
+          "post_id": 13867,
+          "score": 74,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13867",
+          "answer_text": "社長の構想は妥当性がある。理由は①生産能力の向上、②稼働率安定化、③受注料確保と規模の経済による収益力強化、④惣菜の量産ノウハウ蓄積が期待できる為。留意点は①新規採用者の教育による能力向上、②衛生管理体制強化、③製造班毎の連携がしやすいレイアウトへの変更、④X社依存上昇を防ぐ事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 5,
+          "post_id": 13815,
+          "score": 72,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13815",
+          "answer_text": "新規事業は①受注量が最も多い惣菜の製造工程を専用設備導入で手作業で実施している作業を機械化して生産性を向上し②新規採用者に新規事業の製造作業を専業化する事で作業ノウハウを蓄積できる為、妥当性がある。留意点は、①可能な範囲で多くの工程や品種の生産が可能な設備導入の検討②作業の標準化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 6,
+          "post_id": 13869,
+          "score": 72,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13869",
+          "answer_text": "妥当性は①既存事業と食材、使用量、作業手順が違う②生産計画の更新タイミングが違う③食品衛生管理上、いずれにしても分離する必要がある④現工場の拡張が難しいことから、増築すべき。留意点は①SLPを実施しレイアウトを最適化②作業標準化、教育体制を整備し早期立ち上げ、生産性向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 7,
+          "post_id": 13745,
+          "score": 71,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13745",
+          "answer_text": "新規採用者を中心とした生産体制の構築は妥当である。理由は専用設備の導入で人員不足解消でき、新規採用者の開発力で商品高付加価値商品できる為。留意点は①新規採用者の管理経験を活かし②生産・発注計画を日次化し在庫適正化し③レシピを標準化し④SLPで配置最適化し、コスト削減する事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 8,
+          "post_id": 13775,
+          "score": 70,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13775",
+          "answer_text": "社長の構想は妥当性が高い。その理由は販売チャネルがホテル等の受託製造のみだと依存度が高くリスクが高いから。留意点は①客単価の高い店舗から徐々に拡大し欠品リスクを抑えること②現在の工場で標準化・マニュアル化を進め新規採用者をOJTで教育し早期に戦力化する体制で人員確保するよう助言。",
+          "subquestions": []
+        },
+        {
+          "input_no": 9,
+          "post_id": 13761,
+          "score": 69,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13761",
+          "answer_text": "C社社長の構想は妥当である。理由は、①工場管理者や外部採用人材のノウハウを活用でき、②増加するX社の売上を獲得し成長が期待できるため。留意点は、①X社の数量確定を基に短サイクルで生産計画を立案して納期を守り、②各作業を標準化・マニュアル化し、パート教育に活用して生産性を確保する点。",
+          "subquestions": []
+        },
+        {
+          "input_no": 10,
+          "post_id": 13811,
+          "score": 69,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13811",
+          "answer_text": "専用生産設備の導入は、X社に依存し経営リスクを高めるため妥当ではなく、自社企画製品の生産にも使用できる汎用生産設備の導入を助言する。また、新規採用者ではなく経験者採用を行い、ベテランリーダーの指導の下段階的に生産体制を構築し、円滑にX社との共同事業を推進するよう助言する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 11,
+          "post_id": 13883,
+          "score": 69,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13883",
+          "answer_text": "中食需要への対応であり妥当性はある。X社との新規事業は新たな販路拡大につながり、C社の売上向上につながる。留意点は①工場や設備への投資に対する財務リスクへ注視②生産面の内部課題の改善③量産体制のノウハウ蓄積④量産体制に向けた社員教育に留意しX社との共同新規事業を成功させ成長を図る",
+          "subquestions": []
+        },
+        {
+          "input_no": 12,
+          "post_id": 13799,
+          "score": 68,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13799",
+          "answer_text": "妥当性はある。理由は、工場管理者のホテル等での料理人経験や加工室の設備機器を活かせる為。留意点は①工場管理者のノウハウ活用②作業を標準化・マニュアル化し、新規採用者を即戦力化③生産管理体制強化により短納期に対応④下請けにならないようX社に提案。以上で事業拡大、下請け脱却を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 13,
+          "post_id": 13825,
+          "score": 68,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13825",
+          "answer_text": "C社社長の構想は妥当である。理由は①現在の生産能力では新規事業の対応が困難な事、②食品衛生管理上交差汚染を防ぐ必要がある事。留意点は、全社全体で生産計画法を立案して調達や納品を共通化すること、②定期的な人員の配置転換を行い、ナレッジを共有する事、により開発力や生産性を向上すること",
+          "subquestions": []
+        },
+        {
+          "input_no": 14,
+          "post_id": 13877,
+          "score": 68,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13877",
+          "answer_text": "X社との取引拡大を見据え、C社の料理人ノウハウを活用できる量販市場へ新規参入で宿泊業界への取引依存脱却と経営安定化を図れるため妥当性がある。留意点は①X者以外の生産も可能な機械設備を導入し稼働率を高めるに②単能工化と作業簡素化で新規採用者を受け入れ易くする③ウハウを蓄積し活用する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 15,
+          "post_id": 13749,
+          "score": 67,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13749",
+          "answer_text": "他社との差別化が可能であれば増設の妥当性はある。理由は、既存顧客はコロナ禍でも継続している旅館等であるため今後も受注が見込まれる。またX社の売上も増加している為。留意点は、受託製造と新規事業を含め、全社一体での生産計画を週次で作成し、生産統制を強化し、QCDを最適化すること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 16,
+          "post_id": 13787,
+          "score": 67,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13787",
+          "answer_text": "妥当と考える。理由は客単価の高い中食需要を取り込むことによっての高付加価値化、最終需要者の需要把握、製品開発ノウハウの取得につながるためである。留意点は①配送体制の強化、②生産管理による納期の徹底、③作業の標準化、マニュアル化による効率化が必要であることである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 17,
+          "post_id": 13861,
+          "score": 67,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13861",
+          "answer_text": "既存の製品は受注生産で、新製品は見込生産であり生産方式やレイアウトが異なるため、両方稼働させると混乱が生じ、生産量にも対応できないため妥当。助言は①新工場はＳＬＰを行い少品種大量生産対応の連続生産の製品別配置で適正化し②見込生産の管理経験者を採用し生産計画をたてることに留意すべき。",
+          "subquestions": []
+        },
+        {
+          "input_no": 18,
+          "post_id": 13755,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13755",
+          "answer_text": "構想は妥当である。理由は①社員の料理人や商品開発経験を生かせる、②ホテル・旅館への依存を脱し、リスク分散と売上拡大を図れる。留意点は①設備投資とＸ社への依存度上昇に対し、Ｘ社以外の取引先開拓を行い、早期の投資回収とリスク低減を図る、②Ｘ社と密に連携し納品に合わせ需要予測精緻化図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 19,
+          "post_id": 13779,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13779",
+          "answer_text": "X社の各店舗での売上金額の増額に対して惣菜コーナーの売上伸び率が低いが、今後追いつくと考えると新工場建設は妥当である。留意点は売上依存にならないように新規取引先を探す。現工場のノウハウをDB化、共有化などシステム化し属人的な作業を減らし新工場で利用する",
+          "subquestions": []
+        },
+        {
+          "input_no": 20,
+          "post_id": 13827,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13827",
+          "answer_text": "工場増築、専用設備の導入及び新規採用者を中心とした生産体制の構築は妥当である。その理由は、低価格の受注製品から付加価値の高い開発品への拡大が必要であるが、設備及び人のリソースが不足しているため。食品衛生管理や新規採用者への教育に留意する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 21,
+          "post_id": 13839,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13839",
+          "answer_text": "①人材不足や業務の属人化②手作業工程の残存により生産能力が受注量を下回り納期遅延が発生している為、妥当性はある。留意点は①他の取引先に対応可能な生産体制構築や設備導入を行いX社依存度を高めすぎない②生産能力と負荷を適切に管理し余裕を持った納期を設定する③業務標準化と教育を行う事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 22,
+          "post_id": 13851,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13851",
+          "answer_text": "妥当性はある。理由は観光客の増加で受注量も回復傾向のため。留意点は①作業を標準化してマニュアル化しＯＪＴ教育をする点②専用設備の稼働率を確保するため受注量を獲得する点③食品衛生管理上交差汚染を防ぐためのゾーニングを行う点である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 23,
+          "post_id": 13895,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13895",
+          "answer_text": "妥当である。理由は製品企画部の製品開発のノウハウを活用し、季節性、高級感のある惣菜で差別化できる為、中食需要の取り込みができる為。新規採用者に対して、研修やOJTを実施し、早期の生産体制構築をする事、納品数量の確定が遅くなるため、短納期化が必要な事に留意すべき。以上で新規事業伸長",
+          "subquestions": []
+        },
+        {
+          "input_no": 24,
+          "post_id": 13741,
+          "score": 65,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13741",
+          "answer_text": "妥当である、理由はX社の総菜とは高付加価値化によって差別化できており、客単価の高い店舗で販売されるからである。留意点は、鮮度を保った製品を短期間で納入するために新規採用への教育を行うこと、発注を毎日行うこと、パートリーダーを育成することである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 25,
+          "post_id": 13757,
+          "score": 65,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13757",
+          "answer_text": "外部人材のノウハウを活用しながら売上向上し、関連多角化により経営リスク分散を図れる為、新規事業への対応は妥当である。留意点は①納品頻度が高い為、配送担当を設け②自社で製品開発を行い、X 社への依存度を下げ③X 社の業績が悪化した場合を考慮して出来る限り汎用設備を使用する事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 26,
+          "post_id": 13769,
+          "score": 65,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13769",
+          "answer_text": "構想に妥当性がある。理由は①垂直連携で付加価値をつけられ②C社の強みを活かせ③新規採用者に適切な経験があり④安定受注に繋がるため。留意点は①X社の既存商品と差別化すること②仕入管理を行い納期対応を徹底すること③ニーズ対応ができるように生産体制を確立する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 27,
+          "post_id": 13819,
+          "score": 65,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13819",
+          "answer_text": "C社は工場管理者を中心に汎用生産設備を導入し現工場で生産体制を構築すべきである。理由は①季節性・高級感のある高付加価値な食品生産には既存のノウハウ活用が不可欠で②生産能力の向上や若手従業員の育成で対応可能と考える。留意点はX社以外の顧客開拓で依存度を低下、経営リスク分散を図る事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 28,
+          "post_id": 13903,
+          "score": 65,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13903",
+          "answer_text": "工場増築は、現行設備における生産性向上に限界があり、かつ新規事業で差別化を図るためには、妥当と考える。但し、①生産設備導入は企画開発事業の進捗を見ながら小規模・段階的に行い②新規採用者でなくベテランを活用し③X社専用ではなく他社にも対応できる生産設備とすることに留意する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 29,
+          "post_id": 13859,
+          "score": 64,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13859",
+          "answer_text": "感染症流行で減った観光客が増加し、既存取引先の受注量が回復する中で、X社の中食需要の対応が必要な為、工場の増築は妥当である。留意点は①新規事業の受注予測や②新規採用者の教育③既存事業とのシナジーの検討である。これまでは受託製造が主体であったが、提案営業を行う営業体制の整備も必要。",
+          "subquestions": []
+        },
+        {
+          "input_no": 30,
+          "post_id": 13759,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13759",
+          "answer_text": "妥当性は低くないと助言する。理由は、差別化が可能な商品企画をX社に提案できているからである。留意点は①新規採用者を教育するには作業方法のマニュアル化が必要な点②C社社長の経験があるホテル調理場と食品スーパーでは作業内容が異なる点③現品管理の強化が必要な点。",
+          "subquestions": []
+        },
+        {
+          "input_no": 31,
+          "post_id": 13783,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13783",
+          "answer_text": "現状、多品種少量生産体制に向くホテルや旅館の厨房と同様のレイアウトであり、新規事業に向けた専用生産設備の導入を考慮すれば工場増築は妥当と考える。新規採用者を中心とした生産体制の構築を考えているため、パートリーダーによる育成を進めて体制作りを行ない経営資源を分散させない事が留意点。",
+          "subquestions": []
+        },
+        {
+          "input_no": 32,
+          "post_id": 13821,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13821",
+          "answer_text": "汎用調理器具を使った手作業の生産工程では生産能力を満たせず、また鮮度を保つための出荷タイミングも既存の工場とは異なるため、社長の構想は妥当である。留意点は、将来の対象店舗拡大を見越した投資と短期的な需要のバランス、新規採用者の教育体制の構築である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 33,
+          "post_id": 13853,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13853",
+          "answer_text": "①既存の総菜商品との差別化が可能②中食需要があること③ターゲットを客単価の高い店舗から実施する④専用生産設備により生産コスト削減が図れる。これらの理由で妥当である。納期遅れやＸ社への依存度が高まる点に留意し、新規事業により、差別化、高付加価値化、生産性向上を図ることである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 34,
+          "post_id": 13857,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13857",
+          "answer_text": "C社はパンデミックの影響を受け、主要取引先から受注減の経験があり、経営リスクの分散のため、妥当である。留意点は、①新規採用者へのOJTで生産性確保、品質維持を図ること②専用設備の導入でX社以外の取引先拡大に対応可能な設備選定とすること。以上で生産性を維持し、売上拡大を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 35,
+          "post_id": 13885,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13885",
+          "answer_text": "妥当する。理由は生産能力が向上し、強みである工場管理者のホテルや旅館での料理人経験を活かし、高付加価値の製品を客単価の高い数店舗での販売でき、10数店舗まで拡大することで収益を確保できるため。留意点は短納期対応可能な効率的な生産体制。既存事業の生産能力の確保。新規採用者の育成。",
+          "subquestions": []
+        },
+        {
+          "input_no": 36,
+          "post_id": 13733,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13733",
+          "answer_text": "専用生産設備導入による新規事業は妥当でない。理由は、①X社の需要動向の影響を受け経営リスクがあり、②ホテルや旅館と同等の納品体制が困難だから。留意点は、①汎用設備導入でホテルや旅館への需要にも応えられる体制とし、②パート従業員の採用・教育を進め新規事業に対応できるようにすること",
+          "subquestions": []
+        },
+        {
+          "input_no": 37,
+          "post_id": 13807,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13807",
+          "answer_text": "妥当性はあると考える。理由は、コロナ禍も落ち着き、観光客増加でホテルや旅館からの需要も伸びると見込めるからである。その際の留意点は、①まずは業務プロセスの改善を優先して材料調達や在庫管理適正化によるコスト低減を行い、②その後、専用設備の導入や新規採用等の投資を行うことである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 38,
+          "post_id": 13889,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13889",
+          "answer_text": "強みであるベテランパートの管理能力の高さを活用できるため、妥当性はある。留意点は①作業の標準化やOJTでパートの即戦力化と多能工化を図る事②ジョブローテーションや教育でベテランパートの育成を行い、生産性を向上させる事③生産統制を強化する事。以上で新規事業の売上拡大を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 39,
+          "post_id": 13891,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13891",
+          "answer_text": "X社では各店舗の売上増加で機会があり、C社にはX社のニーズに対応できる強みがある為妥当である。留意点は①2日間という短納期に対応する生産管理を実施する必要があり、②新規採用者の採用基準や業務内容、既存社員との棲み分け等採用者管理を徹底することで、X社が求める生産能力獲得に努める。",
+          "subquestions": []
+        },
+        {
+          "input_no": 40,
+          "post_id": 13777,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13777",
+          "answer_text": "訪日外国人増加による受注増とX社との共同商品開発により受注拡大の見通しが高い理由から、C社長の構想は妥当である。留意点は①ベテランパートのもつ技能情報を標準化しOJT教育に活用して、新規採用者を即戦力として活用②生産計画の精緻化で納期を遵守し、鮮度の高い商品を届ける。",
+          "subquestions": []
+        },
+        {
+          "input_no": 41,
+          "post_id": 13829,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13829",
+          "answer_text": "各製造班に1名いるベテランのパートリーダーのOJTで新規採用者の能力開発が可能なため、妥当である。留意点は専用生産設備のレイアウトは加工順を考慮し配送用コンテナを近接させて運搬ロスを防ぎ、食品衛生管理上の交差汚染を防ぐようにする。複数の商品の生産管理体制を構築する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 42,
+          "post_id": 13879,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13879",
+          "answer_text": "C社は受託品の製造に特化していたが、新記事事業は自社内で仕様決定から製造までを行う必要がある為、これまでの事業領域とは異なる。よって、新規の工場や設備、生産体制とすることで新規事業に革新が生じやすくなる為、妥当である。ただし、十分な経営資源の確保やシナジーが必要な点に留意する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 43,
+          "post_id": 13901,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13901",
+          "answer_text": "妥当性はある。理由：①X社の店舗拡大と総菜ニーズの将来性により売上拡大が見込めるため②採用した外部人材の知見が活用できるため。留意点：①現時点では10数店舗に徐々に拡大する方針で、不確実性が高く設備導入のリスクがある②納品数量の確定が納品日の2日前で、かつ配送頻度が高い。",
+          "subquestions": []
+        },
+        {
+          "input_no": 44,
+          "post_id": 13747,
+          "score": 59,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13747",
+          "answer_text": "妥当である。理由はX社が10数店舗まで拡大を見込んでありニーズがある。既存の生産と並走して製造すると現場の混乱を招く為。留意点は営業力を強化して、需要を拡大させる必要がある。作業を標準化マニュアル化して、新規採用者の作業効率を高める。",
+          "subquestions": []
+        },
+        {
+          "input_no": 45,
+          "post_id": 13837,
+          "score": 58,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13837",
+          "answer_text": "短期的に生産能力を向上させるには工場や設備、人材の追加が効果的なため妥当である。留意点は①新工場、設備導入により現場が混乱しないよう使用や作業手順をマニュアル化すること②採用人材のB社設備等の理解が遅れることがないようOJT教育や研修を行うことで生産能力低下を回避できることである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 46,
+          "post_id": 13863,
+          "score": 58,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13863",
+          "answer_text": "Ｘ社との新規事業では、差別化された商品の短納期化が求められる。新規採用者中心では混乱が予想されるため、責任者とリーダーには経験豊富な技術者を配置し教育を進め早期戦力化する。留意点は、差別化・高付加価値化した商品を短納期化できる生産体制を構築し、事業拡大を図っていく。",
+          "subquestions": []
+        },
+        {
+          "input_no": 47,
+          "post_id": 13871,
+          "score": 58,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13871",
+          "answer_text": "妥当であると考える。理由は①新規採用者の製品開発経験を活かした開発が行える為②専用設備により既存のホテル等と異なる需要動向・特性に対応できる為。留意点は①既存設備・人材にもアクセス可能にし資源不足を防止②既存事業とも交流行い、技術向上や必要に応じ応援可能な柔軟な生産体制を構築する",
+          "subquestions": []
+        },
+        {
+          "input_no": 48,
+          "post_id": 13773,
+          "score": 57,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13773",
+          "answer_text": "妥当性はあると判断する。理由は①製品開発ノウハウのある人材が存在し新規採用者への教育の余地があること②料理人経験を持つ従業員による製品提案ができること③生産性向上や収益性向上の余地があるため。留意点は①生産統制による生産余力の確保②収益向上により余力確保。以て新規事業対応図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 49,
+          "post_id": 13881,
+          "score": 57,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13881",
+          "answer_text": "妥当性は、X社から昼食需要に対応する総菜の需要がある事。理由は、高級感のある総菜づくりノウハウが生かされる事。留意点は、①X社の専用機化を避け汎用性を持たせることでリスクを回避。②従来の業務との混乱を防止し共倒れを防ぐ事。である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 50,
+          "post_id": 13793,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13793",
+          "answer_text": "受託型の既存事業と異なるX社との共同企画による新規事業に対して、既存事業の経営資源を使用することによる制約を排除し、経験者採用による新しい発想や実践の取り組みを推進し規模拡大を図る為。留意点はX社と共に来店客数や売上状況などから需要予測精度を高めて廃棄ロスを低減。",
+          "subquestions": []
+        },
+        {
+          "input_no": 51,
+          "post_id": 13893,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13893",
+          "answer_text": "この構想は①かかるコストが大きい②1社への依存度を高めうる③不確実性が高い理由で妥当性が低い。留意点は、まず、作業標準化や人材配置の流動化によって生産能力を拡大し、在庫最適化によって生産性向上を図ったうえで、それでも新規事業への対応が難しければ構想の投資を行うべきである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 52,
+          "post_id": 13731,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13731",
+          "answer_text": "妥当性は、薄いと考える。理由は①専用生産設備導入によりX社依存増加。②X社は徐々に進めようと考えている。③社内の生産性の改善の余地がある。④強みを活かせない。\n⑤C社は新規開拓を考えている。\n留意点は、配送体制、生産体制を見直し、加工室、SLPによりレイアウト見直し対応。",
+          "subquestions": []
+        },
+        {
+          "input_no": 53,
+          "post_id": 13735,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13735",
+          "answer_text": "妥当であると考える。理由は①観光客の増加によってホテルや旅館からの受注増が見込める、②Ｘ社等スーパーからの中食需要に対する総菜商品の受注増が見込めるため。留意点は、製品をある程度まとまった数量で製造できる設備レイアウトにする。",
+          "subquestions": []
+        },
+        {
+          "input_no": 54,
+          "post_id": 13743,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13743",
+          "answer_text": "C社社長の構想は妥当である。理由は①既存製品と受注から納品までのリードタイムが異なり生産現場の混乱が生じることを予防するため、②既存製品と出荷のタイミングが異なり交差汚染が発生するリスクを予防するため。留意点は新工場に生産責任者を選任し生産計画の立案と生産統制を徹底する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 55,
+          "post_id": 13765,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13765",
+          "answer_text": "X社の使用店舗拡大方針で受注増が見込める為、増築すべきだが、季節性のメニュー対応を行う為、専用機導入しないべき。留意点は①納品の２日前の数量確定と午前・午後の納品に対応する配送・生産体制の整備と生産計画立案の日次化②汎用機の導入と作業標準化・OJT等の教育により多能工化で売上増。",
+          "subquestions": []
+        },
+        {
+          "input_no": 56,
+          "post_id": 13789,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13789",
+          "answer_text": "高級ホテルや旅館の料理の受託開発で蓄積したウノウハウを活用でき、市場の伸びも期待できることから増築を進めるべきである。留意点は、①新規採用者が中心であるため事前に業務の標準化やマニュアル化を進めておく、②人員増強や設備投資は低い稼働率にならないよう段階的に進めていくことである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 57,
+          "post_id": 13795,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13795",
+          "answer_text": "構想の妥当性は低い。理由は①新規事業の製品企画が半ばであり各加工室の設備レイアウトが確定できない為②受注増加への対応のため新規採用者への教育体制の整備が困難な為。留意点は作業の自動化や人材育成を進めて、生産能力の向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 58,
+          "post_id": 13805,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13805",
+          "answer_text": "生産設備の増強は十分な検討をして決断すべきであり、妥当性はない。理由は、生産性向上と効率化により、新規事業に対応すべきであるため。留意点は、新規採用者を育成し、能力向上を図り、パート従業員とともに交代勤務を導入し、工場の稼働率を向上し、対応力を高めることである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 59,
+          "post_id": 13809,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13809",
+          "answer_text": "妥当性は食品加工の外注化や自動化などの工程効率化や生産体制の進捗・余力・在庫管理視える化改善がされていないためあるとは言えない。またＸ社取り決めの納品２日前に数量確定する点についてより事前に確定できるのであれば更に既存体制で生産できる可能性が高くなる点に留意すべきである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 60,
+          "post_id": 13843,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13843",
+          "answer_text": "妥当であり、X社と協業し総菜の新規事業進めるべき。理由は①経営リスク分散でき②既存事業とのシナジー発揮③商品開発力強化に繋がる為。但し①投資は最小限に抑え、多品種少量生産維持しホテル・旅館で増加する訪日外国人観光客のニーズに対応②新規採用者へのOJT教育で生産性向上図るべき。",
+          "subquestions": []
+        },
+        {
+          "input_no": 61,
+          "post_id": 13847,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13847",
+          "answer_text": "妥当でない。理由は①現在の生産ラインを効率化して生産性向上する事で生産能力向上を図れるため。②工場増築等はコストがかかり、材料価格高騰の影響が大きく収益性が低い中、リスクが大きいため。留意点は①効率的な生産管理体制構築②製品仕様等の標準化、教育体制整備③材料発注管理法見直し。",
+          "subquestions": []
+        },
+        {
+          "input_no": 62,
+          "post_id": 13887,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13887",
+          "answer_text": "社長の構成は妥当性が低い。理由は①新規採用者が中心では２日間の納期に対応できず現場が混乱し納期遅延が生じる②専用設備の投資はリスクが高いため。留意点は(1)リーダーを育成し、作業標準化しOJTによる教育を行う(2)加工室をSLPでレイアウトを適正化し、既存施設で対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 63,
+          "post_id": 13909,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13909",
+          "answer_text": "妥当性はある。理由は、観光客の増加により販売先のホテルや旅館の稼働率が高くなっているので受注量が増加すると考えられる為である。留意点は、①工場の稼働率向上や売り上げ増加のために新規取引先開拓が必要となる、②長期的に働いてもらうために若いパート従業員の採用人数を増加させる、である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 64,
+          "post_id": 13737,
+          "score": 54,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13737",
+          "answer_text": "既存事業には訪日外国人観光客の増加により受注量が増加しており、既存納期遅れの対応等組織体制変更が優先のため妥当性は低い。実施の場合は、人員適正配置や社員教育、積極的な権限移譲や適正な評価により新規採用者のモラール向上や帰属意識向上により早期体制構築し、経営安定化を目指す。",
+          "subquestions": []
+        },
+        {
+          "input_no": 65,
+          "post_id": 13753,
+          "score": 54,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13753",
+          "answer_text": "妥当性はある。理由は、①専用機を導入すると作業を自動化でき、生産性が向上するから。②自動化で作業の標準化が容易になり、新規採用者でも習得がしやすいから。留意点は、①需要予測を精緻化し、在庫コスト増加を防止する。②作業方法の標準化を行い、教育する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 66,
+          "post_id": 13767,
+          "score": 53,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13767",
+          "answer_text": "妥当性は低い。その理由は、既存事業の増加する受注への対応を優先してはと考える為。体制構築の留意点は①人材確保の可能性の検討②既存事業から人材を異動させる場合の経営資源分散の影響③ノウハウ不足による生産混乱の可能性④納期遅延による信用低下リスクである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 67,
+          "post_id": 13875,
+          "score": 53,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13875",
+          "answer_text": "現時点では妥当性は少ない。理由は既存ホテルや旅館もコロナ明けで稼働率が増加し受注も増加中で、自社規格製品も開発して徐々に納品先を増やしている段階であり、販売先別季節別にメニューが細かく分かれており、現場混乱リスクが高いためである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 68,
+          "post_id": 13823,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13823",
+          "answer_text": "C社社長の構想は妥当ではない。理由は、①生産面で、季節毎の製品を納期通りに生産する生産計画力や生産管理力が不足している、②営業面で、製品を販売に繋げる営業力が不足しているからである。留意点は、①生産性の良い生産体制の構築、②営業要員の増員等による営業機能の強化である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 69,
+          "post_id": 13855,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13855",
+          "answer_text": "構想の妥当性はある。理由は、X社の10数店舗まで販売を拡大できる見込みがあること。留意点は、納品数量が納品日の2日前に確定するため、間に合うような生産計画、生産体制を備える事。（もっと書いたはずですが、思い出せないです）",
+          "subquestions": []
+        },
+        {
+          "input_no": 70,
+          "post_id": 13873,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13873",
+          "answer_text": "助言は、増築は一旦先送りと進言する。理由は①現状は手作業で現施設内で生産設備を導入しノウハウ蓄積する事が先決②新規採用者中心の運営では品質リスクが高く大きなロスの懸念がある為。留意点は自社生産性が向上しX社店舗が拡大するタイミングで再検討を行う事である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 71,
+          "post_id": 13905,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13905",
+          "answer_text": "助言は、①妥当である。②理由は、Ｃ社の強みである、総菜製造力を強化、維持し活用でき、高付加価値を図れ、売上向上に資するからである。③留意点は、新設備が、X社の専用設備化で他に転用できなくなる懸念、新規採用者が作業方法を継承して強みの強化・維持、活用ができるようにする点、である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 72,
+          "post_id": 13763,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13763",
+          "answer_text": "構想は、①現状はパートタイム中心でノウハウが蓄積しにく、②X社の需要取り込みによりノウハウを蓄積できるため、妥当である。留意点は、①専用設備とすることでX社への依存度を高め価格交渉力が弱くなるため、②他の需要も取り込めるような設備を導入する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 73,
+          "post_id": 13797,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13797",
+          "answer_text": "この構想は、①既存商品との差別化が可能で高付加価値化が実現できる点②採用した外部人材のノウハウが活かせる点で妥当だと考える。留意点は①製造工程でのECRSを徹底し、生産性向上②Ｘ社製品の専用機化にならないように汎用性を高める事③現製品とのシナジー創出④新規事業従事者への適正な報酬。",
+          "subquestions": []
+        },
+        {
+          "input_no": 74,
+          "post_id": 13803,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13803",
+          "answer_text": "C社社長の構想は妥当である。理由は①現工場が旅館等の厨房と同様のつくりで②工場管理者も旅館等料理人の経験者で、人・機械ともに旅館等の販売先に対して最適化されている為。留意点は①リードタイム短縮により鮮度維持し、1日2度以上の配送に対応②10数店舗へ納品する為の生産能力を確保する事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 75,
+          "post_id": 13833,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13833",
+          "answer_text": "現行の設備ではＸ社の求める短納期に対応できないため、構想は妥当である。留意点は、新規事業が軌道に乗った場合を見越して、レイアウト等をＸ社向けに特化しない設備にすることである。併せて、Ｃ社の企画提案力を強化して、他のホテル・旅館に販路を拡大し、売上の拡大を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 76,
+          "post_id": 13899,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13899",
+          "answer_text": "設備投資が大きくなり、C社の強みを活かせないため妥当性は低いと\nいえる。現状の設備で生産性を向上させ、既存事業と新規事業の配送を\n一本化する等で効率性を高め、現在の設備・体制で事業を展開する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 77,
+          "post_id": 13729,
+          "score": 50,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13729",
+          "answer_text": "妥当性は低い。理由は①配送業務の負担増②在庫管理体制弱い③専用生産設備のノウハウ不足で生産体制構築や新規採用者の戦力化に時間がかかる④当該設備を他製品製造に活用困難で受注減の場合稼働率低下リスクがあるから。留意点は受注の継続性、X社と情報共有促進、配送業務の専門化・外注化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 78,
+          "post_id": 13813,
+          "score": 50,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13813",
+          "answer_text": "進めるべきである。理由は社長のホテル調理場の作業内容のマネジメントの知見と、製造部長と工場管理者のホテルや旅館の料理人の経験を活かし対応できるため。新規採用者が中心となるため、生産方法を確立し標準化を進め新任者でも対応できるようにする",
+          "subquestions": []
+        },
+        {
+          "input_no": 79,
+          "post_id": 13841,
+          "score": 50,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13841",
+          "answer_text": "構想は妥当である。理由は現在は製造工程が機械化されていないため。留意点は①季節ごとに新商品開発をするため調理工程が変わっても対応可能な汎用性の高い機器を導入する必要がある②納品数量の規模感を具体的に把握した上で、必要な納品数に見合った設備機器にする必要がある。",
+          "subquestions": []
+        },
+        {
+          "input_no": 80,
+          "post_id": 13897,
+          "score": 50,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13897",
+          "answer_text": "専用生産設備の導入は売上や生産がＸ社の\n動向に左右されるためリスクがあり新規採\n用者中心の生産体制では生産ノウハウや納品\n体制の把握に欠け生産効率が低減するリス\nクがある。以上から経営リスクがあるため妥\n当性は低い。OJＴで多能工化し人材を強化\n汎用設備の導入で、売上拡大を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 81,
+          "post_id": 13791,
+          "score": 48,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13791",
+          "answer_text": "X社の各店舗の売上は増加し客数等の市場性はあり、X社は10数店舗まで拡大意向あり成長性もある。また、C社は外部人材採用や製品開発部新設等、準備を進めているため、生産体制の増強は妥当。但し、売上低迷による投資回収できない点や適正な在庫管理面ができず収益性向上に繋がらないリスクに留意。",
+          "subquestions": []
+        },
+        {
+          "input_no": 82,
+          "post_id": 13849,
+          "score": 48,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13849",
+          "answer_text": "新規工場の増築と新規採用者を中心とした生産体制構築は妥当性が低い。理由は初期需要量が限られる中、過大投資となるから。①生産計画は日次に短サイクル化し新製品の納品２日前確定に対応し、②発送体制は整える、③従来設備を利用した生産体制とし、需要拡大に従い段階的に生産能力の拡大を図るべき。",
+          "subquestions": []
+        },
+        {
+          "input_no": 83,
+          "post_id": 13831,
+          "score": 46,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13831",
+          "answer_text": "工場の新設と新規採用者により生産力が上がるので妥当である。理由は、惣菜の製造工程で、前処理や軽量、カットなどが手作業で行われており効率が悪いためである。留意点は、➀前処理・計量・カットなど全行程を行える専用機を準備すること、②外部採用人材の管理経験を活かして採用者を指導すること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 84,
+          "post_id": 13865,
+          "score": 45,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13865",
+          "answer_text": "C社長の構想は妥当である。工場増築し専用生産設備を導入することで生産能力が向上し、パート従業員の退職による人員減少を補うことができるため。",
+          "subquestions": []
+        },
+        {
+          "input_no": 85,
+          "post_id": 13835,
+          "score": 44,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13835",
+          "answer_text": "社長の構想は、妥当性がない。理由は、①投資に対し、X社は徐々に拡大をしたい意向であり、早期回収が困難であること②新規採用者中心とした生産体制であることから、商品の品質や納期などにばらつきが発生し、顧客に対応できない可能性が高い為。である。現状の設備を生かして、生産対応をする。",
+          "subquestions": []
+        },
+        {
+          "input_no": 86,
+          "post_id": 13845,
+          "score": 44,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13845",
+          "answer_text": "①工場増築はよいが②専用設備導入③新規採用者中心の体制は妥当性がない。理由は①加工室の分離は交差汚染防止に好都合だが②失敗のリスクが大きく③ベテランをパートリーダーにした成功体験を生かし、総菜製造経験者を配置すべきだから。留意点は班をまたいだ勉強会で知識、ノウハウを共有すること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 87,
+          "post_id": 13907,
+          "score": 44,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13907",
+          "answer_text": "妥当である。理由は、開発実務経験がある外部人材が季節感があり高級感がある和食や養殖総菜を開発することで、既存の総菜商品との差別化を図ることが出来る為。留意点は、パートリーダーが生産体制の中心となる新規採用者を教育し技術承継を図る事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 88,
+          "post_id": 13727,
+          "score": 43,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13727",
+          "answer_text": "妥当性はない。理由は①現状の生産管理・生産体制ではムダが多く、労働時間が増加する②教育体制が整っていないこと③生産設備の投資で財務リスクが悪化し④経営資源が分散することで現状の事業にも悪い影響を与えるため。留意点は、生産管理体制などを整備しながら、新規事業開発の検討を進めること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 89,
+          "post_id": 13801,
+          "score": 43,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13801",
+          "answer_text": "専用生産設備を導入し、新規採用者を中心とした生産体制を構築すべき。自社強みの社長と工場管理者の食品ノウハウを標準化しデジタル化を進め専用設備導入により生産能力を向上が可能であるから。",
+          "subquestions": []
+        },
+        {
+          "input_no": 90,
+          "post_id": 13751,
+          "score": 39,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13751",
+          "answer_text": "専用生産設備で新規採用者による生産体制の構築は妥当性が低い。理由は、既存のホテル・旅館向け商品とシナジーがあり、生産設備・生産体制や配送ルートの多重利用が可能であり、食材・調味料の一括調達によりコスト削減が図れるため。留意点は、全社生産計画として生産統制を強化することである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 91,
+          "post_id": 13817,
+          "score": 39,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13817",
+          "answer_text": "工場増築、専用設備導入、新規採用者を中心とした体制の構築には慎重になるべき。理由は①新規事業のノウハウがまだたまっていない②X社の納期等の要求が厳しく対応可否不明③専用設備導入は一社依存度が上がり危険なため。まずは生産性向上、企画力強化に留意し、新規事業を進め、売上拡大を目指す。",
+          "subquestions": []
+        },
+        {
+          "input_no": 92,
+          "post_id": 13911,
+          "score": 39,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13911",
+          "answer_text": "新規採用社中心の生産体制は妥当ではない。理由は、工場管理者や各製造班のパートリーダーを中心とする生産体制で生産性を高めるべきである。留意点は、①経験や指導力あるパートリーダーの正社員等用、②業務プロセスを見直し効率化を図る、③納品頻度が増えるので遅れを防ぐ為にITを活用、である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 93,
+          "post_id": 13739,
+          "score": 34,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13739",
+          "answer_text": "中堅食品製造業で製品開発の実務や管理の経験がある外部人材を活かせるため、妥当である。中食需要に対応する惣菜の商品企画、季節性があり高級感のある和食や洋食の惣菜等の商品企画を進めることに留意する。",
+          "subquestions": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,2370 @@
+{
+  "year_label": "R02",
+  "case_no": 3,
+  "case_label": "R02年度事例3",
+  "source_pdf_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2020.pdf",
+  "source_pdf_blob_path": "second-pdf-mondai/case3_2020.pdf",
+  "submission_count": 40,
+  "questions": [
+    {
+      "question_no": 1,
+      "points": 20,
+      "heading_text": "第１問（配点20点）",
+      "answer_count": 40,
+      "score_stats": {
+        "count": 40,
+        "min": 40,
+        "max": 72,
+        "median": 59.0,
+        "mean": 58.27
+      },
+      "answer_char_stats": {
+        "count": 40,
+        "min": 70,
+        "max": 91,
+        "median": 86.0,
+        "mean": 84.55
+      },
+      "exemplars": {
+        "high": [
+          {
+            "post_id": 7527,
+            "score": 72,
+            "published_at": "2021-07-01",
+            "answer_text": "(a)強みは、溶接・研磨技術力、装飾性の高い製品を設計から製作・据付までできる事。\n(b)弱みは、納期遅延がある事、受注量の変動が大きい事、作業者の技術力に差がある事。"
+          },
+          {
+            "post_id": 7530,
+            "score": 71,
+            "published_at": "2021-07-01",
+            "answer_text": "(a)溶接や研磨の技術力。熟練技術者による仕上げ品質。設計から据付までの一貫生産体制。\n(b)納期遅延常態化。建物の制約で高さ７ｍ超は受注不可。モニュメント製品の受注変動大。"
+          },
+          {
+            "post_id": 7532,
+            "score": 69,
+            "published_at": "2021-07-01",
+            "answer_text": "(a)特殊加工と高品質が実現可能な溶接・研磨技術、設計者を確保し一貫生産体制確立。\n(b)受注量の変動が大きい、遅延が発生している。チーム技術力に差がある。作業場所が狭隘。"
+          },
+          {
+            "post_id": 7534,
+            "score": 69,
+            "published_at": "2021-07-01",
+            "answer_text": "(a)①溶接技術力や研磨技術力が高く品質が高い、②設計・製作・据付までの一貫生産体制。\n(b)製作前プロセスの長期化や製作期間が生産計画をオーバーし、納期の遅延が生じている。"
+          },
+          {
+            "post_id": 7536,
+            "score": 68,
+            "published_at": "2021-07-01",
+            "answer_text": "(a)モニュメントも製作する溶接や研磨の高技術力や、設計から工事まで行う一貫請負体制。\n(b)制作前プロセスに時間を要する営業対応力や製作期間が計画を超える生産管理力等の不足。"
+          }
+        ],
+        "middle": [
+          {
+            "post_id": 7565,
+            "score": 60,
+            "published_at": "2021-07-01",
+            "answer_text": "(a)ステンレス製品の溶接や研磨の高い技術力と、設計から製作、据付工事まで受注可能な点。\n(b)個別受注製品で受注量の変動が大きい事と、建屋による設置高さ7m以内の製品の制約。"
+          },
+          {
+            "post_id": 7567,
+            "score": 59,
+            "published_at": "2021-07-01",
+            "answer_text": "(a)高い溶接技術や研磨技術を持ちモニュメント製品にも対応可の一貫生産体制。\n(b)打合せに時間を要し、チーム間の技術力に差があることから生じる納期の遅延。"
+          },
+          {
+            "post_id": 7569,
+            "score": 59,
+            "published_at": "2021-07-01",
+            "answer_text": "(a)創業時からの溶接・研磨加工技術。デザイン性の高い特殊加工・仕上げ技術。\n(b)作業場が手狭で業務に支障が出ている。納期遅延が頻発し顧客の信頼低下を招いている。"
+          },
+          {
+            "post_id": 7571,
+            "score": 59,
+            "published_at": "2021-07-01",
+            "answer_text": "(a)① 特殊加工と仕上げ品質、溶接等の高い技術力②製造、据置までの一貫した受注体制。\n(b)① 納期遅延や②作業員の能力にばらつきがあり全社的な生産管理ができていない事。"
+          },
+          {
+            "post_id": 7573,
+            "score": 58,
+            "published_at": "2021-07-01",
+            "answer_text": "(a)①高い溶接技術や研磨技術で高品質製品製作、②設計、製作、据付工事までの一貫体制。\n(b)①工程管理不十分で納期遅延が発生している事、②各作業チームの技術力に差がある事。"
+          }
+        ],
+        "low": [
+          {
+            "post_id": 7608,
+            "score": 40,
+            "published_at": "2021-07-01",
+            "answer_text": "(a)表面品質にこだわった溶接や研磨技術力と設計技術者獲得によるデザイン力。\n(b)溶接・組立工程と研磨工程の各作業チームの技術力の差と不稼働が多く、作業が非効率。"
+          },
+          {
+            "post_id": 7606,
+            "score": 44,
+            "published_at": "2021-07-01",
+            "answer_text": "(a)ステンレス製品の溶接技術力や研磨技術力により、高い表面品質を実現できること。\n(b)納期遅延の問題点を引き起こすなど、生産管理面が未整備であること。"
+          },
+          {
+            "post_id": 7604,
+            "score": 46,
+            "published_at": "2021-07-01",
+            "answer_text": "(a)溶接技術や研磨技術が高いこと、設計から製作、据付工事まで一貫対応できる体制。\n(b)ビル建築用金属製品の付加価値が低いこと、納期遅延が発生していること。"
+          },
+          {
+            "post_id": 7602,
+            "score": 47,
+            "published_at": "2021-07-01",
+            "answer_text": "(a)接客や研磨に関する技術力と、設計から製作据付まで一貫して行えること。\n(b)営業部と製造部の連携ができていないことと、作業標準化ができず納期が遅いこと。"
+          },
+          {
+            "post_id": 7600,
+            "score": 49,
+            "published_at": "2021-07-01",
+            "answer_text": "(a)強みは、溶接・研磨の技術力、設計から据付けまでの一貫制作、特殊加工と仕上げの高品質。\n(b)弱みは、作業の標準化不足、生産管理不足、情報共有化不足で、納期遅延が発生している点。"
+          }
+        ]
+      },
+      "answers": [
+        {
+          "input_no": 1,
+          "post_id": 7527,
+          "score": 72,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7527",
+          "answer_text": "(a)強みは、溶接・研磨技術力、装飾性の高い製品を設計から製作・据付までできる事。\n(b)弱みは、納期遅延がある事、受注量の変動が大きい事、作業者の技術力に差がある事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 2,
+          "post_id": 7530,
+          "score": 71,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7530",
+          "answer_text": "(a)溶接や研磨の技術力。熟練技術者による仕上げ品質。設計から据付までの一貫生産体制。\n(b)納期遅延常態化。建物の制約で高さ７ｍ超は受注不可。モニュメント製品の受注変動大。",
+          "subquestions": []
+        },
+        {
+          "input_no": 3,
+          "post_id": 7532,
+          "score": 69,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7532",
+          "answer_text": "(a)特殊加工と高品質が実現可能な溶接・研磨技術、設計者を確保し一貫生産体制確立。\n(b)受注量の変動が大きい、遅延が発生している。チーム技術力に差がある。作業場所が狭隘。",
+          "subquestions": []
+        },
+        {
+          "input_no": 4,
+          "post_id": 7534,
+          "score": 69,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7534",
+          "answer_text": "(a)①溶接技術力や研磨技術力が高く品質が高い、②設計・製作・据付までの一貫生産体制。\n(b)製作前プロセスの長期化や製作期間が生産計画をオーバーし、納期の遅延が生じている。",
+          "subquestions": []
+        },
+        {
+          "input_no": 5,
+          "post_id": 7536,
+          "score": 68,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7536",
+          "answer_text": "(a)モニュメントも製作する溶接や研磨の高技術力や、設計から工事まで行う一貫請負体制。\n(b)制作前プロセスに時間を要する営業対応力や製作期間が計画を超える生産管理力等の不足。",
+          "subquestions": []
+        },
+        {
+          "input_no": 6,
+          "post_id": 7538,
+          "score": 67,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7538",
+          "answer_text": "(a)①ステンレス製品の高い表面品質と溶接・研磨の技術力②設計から据付までの一貫体制。\n(b)①納期遅延の問題があること②作業チーム毎の技術力格差③工場建屋の高さ制約。",
+          "subquestions": []
+        },
+        {
+          "input_no": 7,
+          "post_id": 7540,
+          "score": 67,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7540",
+          "answer_text": "(a)高い溶接技術や研磨技術を有し、設計から製作、据付工事まで一貫して行える体制である。\n(b)製作前プロセスに時間を要し、作業チームの技術力に差があり、納期遅延が生じている。",
+          "subquestions": []
+        },
+        {
+          "input_no": 8,
+          "post_id": 7542,
+          "score": 64,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7542",
+          "answer_text": "(a)高い溶接技術や研磨技術と表面品質を持つ点。設計から据付け工事までの一貫体制を持つ点。\n(b)生産管理不足で納期遅延が発生している点。モニュメント製品の受注量の変動が大きい点。",
+          "subquestions": []
+        },
+        {
+          "input_no": 9,
+          "post_id": 7544,
+          "score": 63,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7544",
+          "answer_text": "(a)表面品質へのこだわりや溶接技術、研磨技術、設計から制作、据付工事まで受注できる体制。\n(b)工程順序や工数見積り等の標準化が確立できない等、工程管理が未整備で納期遅延する点。",
+          "subquestions": []
+        },
+        {
+          "input_no": 10,
+          "post_id": 7546,
+          "score": 63,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7546",
+          "answer_text": "(a)高度な溶接技術や研磨技術による表面品質、設計から制作、据付工事までの一貫受注体制。\n(b)納期遅延が常態化している営業・製造体制、受注が設置高さ7m以内に制限される工場建屋。",
+          "subquestions": []
+        },
+        {
+          "input_no": 11,
+          "post_id": 7548,
+          "score": 62,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7548",
+          "answer_text": "(a)仕上げ品質が高い研磨技術と溶接技術を持ち設計・製作・据付まで一貫体制を持つ事。\n(b)工場建屋の制約があることから、設置高さ７m以内の製品しか受注できない事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 12,
+          "post_id": 7550,
+          "score": 62,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7550",
+          "answer_text": "(a)①溶接・研磨の高い技術力②設計技術者を確保し設計から製作、据付まで受注できる体制。\n(b)①納期管理体制が不十分で納期遅延が生じ②作業チームの技術力に差がある点。",
+          "subquestions": []
+        },
+        {
+          "input_no": 13,
+          "post_id": 7552,
+          "score": 61,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7552",
+          "answer_text": "(a)金属製品の溶接・研磨技術が高いことと設計・制作、据付工事までできる一貫生産体制。\n(b)納期遅延が多いこと、チームの技術力に差があること、５Ｓが徹底されていないこと。",
+          "subquestions": []
+        },
+        {
+          "input_no": 14,
+          "post_id": 7554,
+          "score": 61,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7554",
+          "answer_text": "(a)高い装飾性にも対応できる技術力、設計から据付まで受注できる体制を有していること。\n(b)営業部と製造部それぞれで改善事項が多くあり、納期遅延が生じてしまうこと。",
+          "subquestions": []
+        },
+        {
+          "input_no": 15,
+          "post_id": 7557,
+          "score": 60,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7557",
+          "answer_text": "(a)①高い溶接技術や研磨技術、表面仕上げ等の加工②設計・制作・据付工事の一貫体制。\n(b)①制作前プロセスに時間がかかる②受注内容による生産計画のズレで納期遅延が生ずる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 16,
+          "post_id": 7559,
+          "score": 60,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7559",
+          "answer_text": "(a)①設計から据付までの一貫生産体制を構築している。②ステンレスの表面加工技術が高い。\n(b)①納期遅延の頻発。②生産管理の基準がない。③作業グループ間でスキル平準化していない。",
+          "subquestions": []
+        },
+        {
+          "input_no": 17,
+          "post_id": 7561,
+          "score": 60,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7561",
+          "answer_text": "(a)鏡面仕上げ等で培った溶接・研磨技術、設計から製作・据付工事まで担える一貫生産体制。\n(b)営業部と製造部の情報共有が不十分なため、納期遅延が発生していること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 18,
+          "post_id": 7563,
+          "score": 60,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7563",
+          "answer_text": "(a)溶接と研磨の技術力の高さと表面品質のこだわり、設計から据付まで受注できる体制。\n(b)納期を遅延する営業と製造の業務プロセス、営業と製造の進捗管理の情報共有。",
+          "subquestions": []
+        },
+        {
+          "input_no": 19,
+          "post_id": 7565,
+          "score": 60,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7565",
+          "answer_text": "(a)ステンレス製品の溶接や研磨の高い技術力と、設計から製作、据付工事まで受注可能な点。\n(b)個別受注製品で受注量の変動が大きい事と、建屋による設置高さ7m以内の製品の制約。",
+          "subquestions": []
+        },
+        {
+          "input_no": 20,
+          "post_id": 7567,
+          "score": 59,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7567",
+          "answer_text": "(a)高い溶接技術や研磨技術を持ちモニュメント製品にも対応可の一貫生産体制。\n(b)打合せに時間を要し、チーム間の技術力に差があることから生じる納期の遅延。",
+          "subquestions": []
+        },
+        {
+          "input_no": 21,
+          "post_id": 7569,
+          "score": 59,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7569",
+          "answer_text": "(a)創業時からの溶接・研磨加工技術。デザイン性の高い特殊加工・仕上げ技術。\n(b)作業場が手狭で業務に支障が出ている。納期遅延が頻発し顧客の信頼低下を招いている。",
+          "subquestions": []
+        },
+        {
+          "input_no": 22,
+          "post_id": 7571,
+          "score": 59,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7571",
+          "answer_text": "(a)① 特殊加工と仕上げ品質、溶接等の高い技術力②製造、据置までの一貫した受注体制。\n(b)① 納期遅延や②作業員の能力にばらつきがあり全社的な生産管理ができていない事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 23,
+          "post_id": 7573,
+          "score": 58,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7573",
+          "answer_text": "(a)①高い溶接技術や研磨技術で高品質製品製作、②設計、製作、据付工事までの一貫体制。\n(b)①工程管理不十分で納期遅延が発生している事、②各作業チームの技術力に差がある事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 24,
+          "post_id": 7575,
+          "score": 58,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7575",
+          "answer_text": "(a)装飾性を高める溶接、研磨技術、モニュメント参入した特殊加工と仕上げ品質のこだわり。\n(b)営業部製造部含め、業務プロセスの標準化が遅れており、納期遅延が発生している事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 25,
+          "post_id": 7577,
+          "score": 57,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7577",
+          "answer_text": "(a)表面品質を保つ高い溶接・研磨技術力、及び設計から製作・据付工事迄の一貫受注体制。\n(b)建屋制約による製造物高さ制限、納期遅延及び現場の狭隘状態に由る作業途中の製品移動。",
+          "subquestions": []
+        },
+        {
+          "input_no": 26,
+          "post_id": 7579,
+          "score": 57,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7579",
+          "answer_text": "(a)溶接や研磨の高い技術と、それを生かした高付加価値なモニュメント製品の受注増。\n(b)納期の遅延の発生、作業スペースの狭隘化、製造担当者の技術力の格差。",
+          "subquestions": []
+        },
+        {
+          "input_no": 27,
+          "post_id": 7581,
+          "score": 56,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7581",
+          "answer_text": "(a)特殊加工と高い仕上げ品質を実現する溶接・研磨技術、設計・製作・据付の一括受注力。\n(b)工程順序や工数見積もりが標準化されてないこと、建屋の制限による狭隘な作業スペース。",
+          "subquestions": []
+        },
+        {
+          "input_no": 28,
+          "post_id": 7583,
+          "score": 56,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7583",
+          "answer_text": "(a)高い溶接・研磨技術、特殊加工・仕上げ品質と設計から据付まで一括受注できること。\n(b)納期遅延の発生と工場建屋の制約で設置高さ7ｍ超の製品の製造ができないこと。",
+          "subquestions": []
+        },
+        {
+          "input_no": 29,
+          "post_id": 7585,
+          "score": 56,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7585",
+          "answer_text": "(a)表面品質にこだわった高い溶接・研磨技術。設計から制作・据付まで行う一貫体制。\n(b)製作前プロセスの長期化や製作期間が生産計画をオーバーすることなどによる納期遅延。",
+          "subquestions": []
+        },
+        {
+          "input_no": 30,
+          "post_id": 7587,
+          "score": 54,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7587",
+          "answer_text": "(a)表面品質が高く特殊加工を設計から製作、据付工事まで一貫して受注できる。\n(b)モニュメント製品の需要変動大きく、生産の稼働率や売上の変動も大きい。",
+          "subquestions": []
+        },
+        {
+          "input_no": 31,
+          "post_id": 7589,
+          "score": 53,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7589",
+          "answer_text": "(a)鏡面仕上げや特殊加工等の高い研磨溶接技術、設計技術者の存在、据付までの一貫体制。\n(b)設計変更や手直しの多さ、製造工程の非効率による納期遅延が多く、高コスト体質。",
+          "subquestions": []
+        },
+        {
+          "input_no": 32,
+          "post_id": 7591,
+          "score": 52,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7591",
+          "answer_text": "(a)強みは①表面品質にこだわった溶接・研磨技術力②設計から据付工事まで一貫対応できる。\n(b)弱みは①業務プロセス全体見直しが必要な程の納期遅延②加工物大型化でスペース不足。",
+          "subquestions": []
+        },
+        {
+          "input_no": 33,
+          "post_id": 7593,
+          "score": 52,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7593",
+          "answer_text": "(a)ステンレス製品の高い表面品質②高い溶接・研磨技術③製作図を理解できる営業担当。\n(b)作業チーム間で技術力に差があり、高度な技術が必要な工程を任せられないチームがある。",
+          "subquestions": []
+        },
+        {
+          "input_no": 34,
+          "post_id": 7595,
+          "score": 50,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7595",
+          "answer_text": "(a)溶接技術や研磨技術が高い事。設計から製作、据付工事まで受注できる事。\n(b)高度な技術が必要な製作物を任せられない作業チームがある事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 35,
+          "post_id": 7597,
+          "score": 50,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7597",
+          "answer_text": "(a)特別仕様の装飾性に対応できる溶接や研磨、特殊加工、仕上げの技術を有し付加価値高い。\n(b)営業と製造を含め全社的に製造・業務プロセスが標準化未対応、技術力不均一、狭い工場。",
+          "subquestions": []
+        },
+        {
+          "input_no": 36,
+          "post_id": 7600,
+          "score": 49,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7600",
+          "answer_text": "(a)強みは、溶接・研磨の技術力、設計から据付けまでの一貫制作、特殊加工と仕上げの高品質。\n(b)弱みは、作業の標準化不足、生産管理不足、情報共有化不足で、納期遅延が発生している点。",
+          "subquestions": []
+        },
+        {
+          "input_no": 37,
+          "post_id": 7602,
+          "score": 47,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7602",
+          "answer_text": "(a)接客や研磨に関する技術力と、設計から製作据付まで一貫して行えること。\n(b)営業部と製造部の連携ができていないことと、作業標準化ができず納期が遅いこと。",
+          "subquestions": []
+        },
+        {
+          "input_no": 38,
+          "post_id": 7604,
+          "score": 46,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7604",
+          "answer_text": "(a)溶接技術や研磨技術が高いこと、設計から製作、据付工事まで一貫対応できる体制。\n(b)ビル建築用金属製品の付加価値が低いこと、納期遅延が発生していること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 39,
+          "post_id": 7606,
+          "score": 44,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7606",
+          "answer_text": "(a)ステンレス製品の溶接技術力や研磨技術力により、高い表面品質を実現できること。\n(b)納期遅延の問題点を引き起こすなど、生産管理面が未整備であること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 40,
+          "post_id": 7608,
+          "score": 40,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7608",
+          "answer_text": "(a)表面品質にこだわった溶接や研磨技術力と設計技術者獲得によるデザイン力。\n(b)溶接・組立工程と研磨工程の各作業チームの技術力の差と不稼働が多く、作業が非効率。",
+          "subquestions": []
+        }
+      ]
+    },
+    {
+      "question_no": 2,
+      "points": 40,
+      "heading_text": "第２問（配点40点）",
+      "answer_count": 40,
+      "score_stats": {
+        "count": 40,
+        "min": 40,
+        "max": 72,
+        "median": 59.0,
+        "mean": 58.27
+      },
+      "answer_char_stats": {
+        "count": 0,
+        "min": null,
+        "max": null,
+        "median": null,
+        "mean": null
+      },
+      "exemplars": {
+        "high": [
+          {
+            "post_id": 7527,
+            "score": 72,
+            "published_at": "2021-07-01",
+            "answer_text": ""
+          },
+          {
+            "post_id": 7530,
+            "score": 71,
+            "published_at": "2021-07-01",
+            "answer_text": ""
+          },
+          {
+            "post_id": 7532,
+            "score": 69,
+            "published_at": "2021-07-01",
+            "answer_text": ""
+          },
+          {
+            "post_id": 7534,
+            "score": 69,
+            "published_at": "2021-07-01",
+            "answer_text": ""
+          },
+          {
+            "post_id": 7536,
+            "score": 68,
+            "published_at": "2021-07-01",
+            "answer_text": ""
+          }
+        ],
+        "middle": [
+          {
+            "post_id": 7565,
+            "score": 60,
+            "published_at": "2021-07-01",
+            "answer_text": ""
+          },
+          {
+            "post_id": 7567,
+            "score": 59,
+            "published_at": "2021-07-01",
+            "answer_text": ""
+          },
+          {
+            "post_id": 7569,
+            "score": 59,
+            "published_at": "2021-07-01",
+            "answer_text": ""
+          },
+          {
+            "post_id": 7571,
+            "score": 59,
+            "published_at": "2021-07-01",
+            "answer_text": ""
+          },
+          {
+            "post_id": 7573,
+            "score": 58,
+            "published_at": "2021-07-01",
+            "answer_text": ""
+          }
+        ],
+        "low": [
+          {
+            "post_id": 7608,
+            "score": 40,
+            "published_at": "2021-07-01",
+            "answer_text": ""
+          },
+          {
+            "post_id": 7606,
+            "score": 44,
+            "published_at": "2021-07-01",
+            "answer_text": ""
+          },
+          {
+            "post_id": 7604,
+            "score": 46,
+            "published_at": "2021-07-01",
+            "answer_text": ""
+          },
+          {
+            "post_id": 7602,
+            "score": 47,
+            "published_at": "2021-07-01",
+            "answer_text": ""
+          },
+          {
+            "post_id": 7600,
+            "score": 49,
+            "published_at": "2021-07-01",
+            "answer_text": ""
+          }
+        ]
+      },
+      "answers": [
+        {
+          "input_no": 1,
+          "post_id": 7527,
+          "score": 72,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7527",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)問題点は、仕様や図面変更などで顧客とのやり取りが多く、製作前プロセスに時間を要して製作期間を十分に確保できない事。\n(b)対応策は、３DCADを導入し、デザイナーに具体的なイメージを持ってもらうことで変更を少なくして製作時間を確保する事。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)問題点は、作業チームの技術力に差があるため打合せが多く、モノの移動に関する作業が多いため作業員の稼働率が低い事。\n(b)対応策は、工場レイアウトを見直し効率的な導線を確保し、作業の標準化とOJTによって作業員の技術のバラツキを無くす事。"
+            }
+          ]
+        },
+        {
+          "input_no": 2,
+          "post_id": 7530,
+          "score": 71,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7530",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)契約から顧客承認までの製作前プロセスに時間を要し、承認後も打ち合わせが必要な場合があり、製作期間を十分に確保できないこと。\n(b)顧客との打ち合わせに設計担当者も同行して手戻り防止。２次元ＣＡＤデータを製造部と共有して製作指示を早める。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)工程順序や工数見積もりが標準化されておらず、作業チームの技術力に差があり、受注内容によって製作期間が生産計画を超過。\n(b)手順計画を立案し工程順序を定め、溶接・加工、研磨工程でモノの移動による不稼働を削減。熟練技術者によるＯＪＴで習熟度向上。"
+            }
+          ]
+        },
+        {
+          "input_no": 3,
+          "post_id": 7532,
+          "score": 69,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7532",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)①仕様変更や図面変更が多い、②製造前のプロセスに時間を消費し、③打合せ時の不在による不稼働が多い。\n(b)①顧客ニーズをくみ取り、変更回数削減、②進捗管理の強化、③CADデータの利点も活用する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)①工程順序や見積工数が標準化されていない②生産計画の立案頻度が長い③材料工具運搬と歩行等の移動が多い④製造プロセスが長い。\n(b)①工程順序や見積工数の標準マニュアル化、生産計画の立案頻度を短縮、③5Sやロケーション決定で移動削減④製造プロセスの短縮。"
+            }
+          ]
+        },
+        {
+          "input_no": 4,
+          "post_id": 7534,
+          "score": 69,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7534",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)①仕様変更や図面変更により顧客とのやりとりが多く製作前プロセスに時間を要する、②施工管理を営業が行っており業務負担が過大。\n(b)①設計に３次元CADを導入し顧客との摺り合わせに要する時間を短縮し、②施工管理を行う専任者を設置し受注・設計に専念させる。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)①作業チームの技術力に差があり、高度な技術を持たないチームがある、②モノの移動や打ち合わせが多く稼働率が低い。\n(b)①熟練技術者によるOJTを行い作業チームの技術力を標準化する、②作業場内で５SやSLPを実施し稼働率を上げる。"
+            }
+          ]
+        },
+        {
+          "input_no": 5,
+          "post_id": 7536,
+          "score": 68,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7536",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)①造形物のイメージ摺合わせに時間を要し、②製作段階でも打ち合わせの必要が生じ、③最終検査でも修整や手直しの発生がある事。\n(b)①３次元CAD導入や操作研修を行い、摺り合わせ時間や打合せ回数を減少させ、②中間検査の実施で修正・手直しの発生を防ぐ。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)①高技術力が要る製作ができない作業チームがあり、②スケジューリング基準が標準化されず、③作業途中の加工物移動が多いこと。\n(b)①手作業の分析・改善やOJT強化で技術力を高め、②工程順序や工数見積の標準化をし、③流れ線図を活用し加工物移動を削減する。"
+            }
+          ]
+        },
+        {
+          "input_no": 6,
+          "post_id": 7538,
+          "score": 67,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7538",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)問題点は仕様変更等顧客とのやりとりで顧客承認までの制作前工程に時間を要し、製作時間確保が不十分で納期遅延が発生すること。\n(b)対応策は設計情報DB化で顧客と営業部門が迅速かつリアルタイムに情報共有を行い、設計業務の頻度及び精度向上で納期短縮を図る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)作業チーム間の技術格差や工程順序や工数見積もりの未標準化により、制作期間が生産計画を超え、納期遅延が発生していること。\n(b)対応策は①製作方法の文書化によるスキル平準化②生産計画の頻度増と生産統制の強化③工程順序や工数見積もりの標準化、である。"
+            }
+          ]
+        },
+        {
+          "input_no": 7,
+          "post_id": 7540,
+          "score": 67,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7540",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)問題点は図面承認後の製作段階でも打ち合わせをしており、製作期間を十分に確保できていないこと。また最終検査も行っていること。\n(b)対応策は打ち合わせの段階で２次元ＣＡＤを利用し、製作前プロセスを短縮し、製作期間を確保する。最終検査は製造部担当とする。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)問題点は各作業チームの技術力に差があり、作業時間中の不稼働の作業として、モノの移動が多く、打ち合わせ等不在が発生している。\n(b)対応策は高い加工技術の標準化を確立し、各作業チームで対応できるようにする。また、ＳＬＰを実施し、作業スペースを確保する。"
+            }
+          ]
+        },
+        {
+          "input_no": 8,
+          "post_id": 7542,
+          "score": 64,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7542",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)問題点は、設計段階での仕様や図面の変更、造形物のイメージの摺り合わせに顧客とのやり取りや打ち合わせが多発し、時間がかかる事。\n(b)対応策は、①3次元CADを用いてイメージの擦り合わせ時間を短縮、②過去のCAD画面を流用し、顧客との確認作業を短縮化。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)問題点は、①工程順序や工数見積りが標準化できておらずリードタイムが長期化。②作業者の移動や打ち合わせで、稼働率が低い事。\n(b)対応策は、①研磨工程と組立て工程の順序を変更し、加工物の移動をなくす。②作業者の教育を行い技術力を向上し、納期順の加工を行う。"
+            }
+          ]
+        },
+        {
+          "input_no": 9,
+          "post_id": 7544,
+          "score": 63,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7544",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)問題点は、顧客承認段階での仕様変更や図面変更等、顧客とのやり取りが多く発生し、造形物のイメージの摺合せに時間を要する点。\n(b)対応策は、顧客承認段階で熟練技術者のリーダーが営業部担当者に同行し、仕様変更や図面変更、造形物イメージの摺合せを迅速化する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)問題点は、各作業チームの技術力に差があり、作業スペースの確保が難しく、加工物の移動等で時間が取られて不稼働作業が発生する点。\n(b)対応策は、作業のマニュアル化による作業標準化を図り工程順序や作業順序の手順計画や工数計画を策定し不稼働を削減する事。"
+            }
+          ]
+        },
+        {
+          "input_no": 10,
+          "post_id": 7546,
+          "score": 63,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7546",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)問題点は①顧客のやり取りや仕様変更が多く、②施工管理や最終検査等、営業以外の業務実施、③製造部との打ち合わせが多い点。\n(b)対応策は①見積書と同時に2次元CAＤを活用し仕様や図面詳細を確定、②施工管理の外注や最終検査担当者の設置、等を実施する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)問題点は①作業チーム間の技術力に差がある点、②工程順序や工程見積もりの標準化が未確立、③最終検査時のデザイナー修正指示。\n(b)対応策は①熟練技術者によるOJＴや技術研修会実施、②工程順序や工程見積書を標準化、③制作完了時にデザイナー確認を実施。"
+            }
+          ]
+        },
+        {
+          "input_no": 11,
+          "post_id": 7548,
+          "score": 62,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7548",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)問題点は、①設計に２次元CADを使うためイメージ合わせに時間がかかる事②据付工事の工程管理をしていない事、である。\n(b)対応策は、①設計に３次元CADを使いイメージ合わせの時間の削減②据付工事の工程管理を厳しく行い工程厳守する事、である。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)問題点は、①溶接・組立・研磨工程の４班の作業チームの技術力に差がある事②材料・工具運搬と歩行のモノの移動作業が多い事。\n(b)対応策は、①作業チームを技術力で編成し直し担当も決め効率化し時間を削減②材料工具を整理整頓し、物と人の移動時間を削減。"
+            }
+          ]
+        },
+        {
+          "input_no": 12,
+          "post_id": 7550,
+          "score": 62,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7550",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)①仕様変更や図面変更により製作前プロセスに時間を要し②最終検査時も修正や手直しが生じ③摺合わせに時間を要する点。\n(b)①製作図や施工図の作成精度を向上させる②製造部と連携強化し、顧客やデザイナーと連携強化し、事前に綿密な摺合わせを行う。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)①作業チームの技術力に差があるため振り分けに難易度を考慮する必要があり②打ち合わせやモノの移動が多く作業者の稼働率が低い。\n(b)①作業チームを再編成し技術力の平準化を図り②ＯＪＴによる教育で作業者の技術力向上を図り③ＳＬＰを実施しレイアウトを見直す。"
+            }
+          ]
+        },
+        {
+          "input_no": 13,
+          "post_id": 7552,
+          "score": 61,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7552",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)問題点は、顧客承認段階で仕様変更や図面変更に時間を要すること、造形物のイメージ摺合わせに時間を要する場合が多いこと。\n(b)対応策は、２次元ＣＡＤではなく３次元ＣＡＤを採用することにより、顧客とのやり取りやイメージ摺合わせの時間を短縮すること。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)問題点は、各作業チームの技術力に差があること、生産計画が月次であること、工程順序や工数見積もりの標準化の未確立。\n(b)対応策は、熟練技術者による育成・指導とマニュアル化で技術力向上、生産計画の週次化、工程順序や工数見積もりの標準化。"
+            }
+          ]
+        },
+        {
+          "input_no": 14,
+          "post_id": 7554,
+          "score": 61,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7554",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)制作図および施工図の顧客承認段階においてやり取りが多く発生し、時間を要するために制作時間を十分に確保できないこと。\n(b)ＣＡＤデータを初期から顧客と共有し、修正情報を都度反映させ、摺り合わせをスムーズに行うことで納期遅延を防ぐ。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)チーム毎の技術力の差や難易度を考慮した生産計画となっていること。また、基準となる工程順序等も標準化されていないこと。\n(b)各班の熟練技術者による指導から技術力の平準化を図り、合わせて工数見積り等の基準を確立した上で生産計画に活かしていくこと。"
+            }
+          ]
+        },
+        {
+          "input_no": 15,
+          "post_id": 7557,
+          "score": 60,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7557",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)①図面承認前では使用や図面の変更で顧客とのやり取りが多く発生②図面承認後でも造形物のイメージ摺合せの打合わせが必要となる。\n(b)①見積書作成時に顧客と仕様書や図面について製造部門も交える②設計に３次元ＣＡＤを用いて造形物イメージの共有化を図る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)①各作業チームの技術力に差がある②生産計画が加工難易度により振分けられる③工程・工数の標準化がなく作業移動もムダが多い。\n(b)①研修やＯＪＴによる技術の習熟②生産計画の日次化と生産統制による管理実施③工程の標準化、マニュアル化やＳＬＰ、５Ｓの実施。"
+            }
+          ]
+        },
+        {
+          "input_no": 16,
+          "post_id": 7559,
+          "score": 60,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7559",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)イメージの摺り合わせに時間を要し、顧客承認が下りるまでにも時間を要し、図面承認後にも打合せが発生する場合がある。\n(b)３次元ＣＡＤを導入して、製作図の段階で完成イメージに近いものを顧客に提示し、確認してもらうことで手戻りを防止する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)①作業チームの技術力に差があるため、納期順の制作ができず納期遅延が発生している。②現品管理ができず運搬のムダが生じている。\n(b)①作業標準に基づくＯＪＴで、技術力格差を解消して業務負荷を平準化し、納期順の製造を実現する。②５Ｓによる現品管理を行う。"
+            }
+          ]
+        },
+        {
+          "input_no": 17,
+          "post_id": 7561,
+          "score": 60,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7561",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)製作図・施工図の顧客承認段階で仕様や図面変更が生じている。モニュメント製品では図面承認後の製作段階でも打合せが生じている。\n(b)２次元ＣＡＤの設計情報を顧客と共有する。営業部全体で顧客が求める仕様情報を共有し、造形物のイメージの摺合せ時間を削減する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)複雑な形状など高度な加工技術が必要な製品などの受注内容によって、製作・生産期間をオーバーするなど、納期遅延が発生している。\n(b)月次生産計画の作成サイクルを短くする。工程順序や工数見積りなどの標準化を行う。５Ｓを徹底してモノの移動を削減する。"
+            }
+          ]
+        },
+        {
+          "input_no": 18,
+          "post_id": 7563,
+          "score": 60,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7563",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)問題点は、顧客との製造前プロセスに時間を要しているのに受注製品ごとに営業部担当者を決めているため、ノウハウが蓄積されない。\n(b)顧客別に営業部担当者を決めて、顧客別に仕様や図面の変更などの要因を分析し、顧客別にノウハウを蓄積する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)各作業チームの技術力に差があるのに受注製品別に担当しているため、高度な製品の制作期間が予定よりもオーバーすることがある。\n(b)単純な工程と技術を要する工程を分業し作業チームを分け、技術を要する工程を基準に制作期間を決めて生産計画をたてる。"
+            }
+          ]
+        },
+        {
+          "input_no": 19,
+          "post_id": 7565,
+          "score": 60,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7565",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)①営業が一人で担当しており②受注から製造まで社内外との打合せが多く、③検査での手戻りも発生して納期遅延が発生していること。\n(b)①業務を分担できるように②製造部門も含む全社で設計や変更の情報をリアルタイム共有して、不測の手戻りも支援できるようにする。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)①溶接・組立と研磨工程の技術力の差で業務を担当できないチームがあり、②新たな製品の着手で加工品の無駄な移動も発生している。\n(b)業務を標準化して文書化、教育やチーム間の人材異動で技術力を底上げする。また全行程で計画を立てムダな製品の移動を排除する。"
+            }
+          ]
+        },
+        {
+          "input_no": 20,
+          "post_id": 7567,
+          "score": 59,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7567",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)①製作前のプロセスに時間を要し製作期間が確保できないこと。②製作期間が生産計画をオーバーする内容で受注していること。\n(b)①製品毎の専任担当者以外でも顧客に対応できる体制の構築②受注時に生産計画を考慮し製造部との連携を密にすること。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)①チーム間の技術力に差があること。②工程順序や工数見積が標準化されていないこと。③生産計画が完全納期順でないこと。\n(b)①作業員のOJTや配置替でチーム間の技術力を平準化すること。②工程標準や工数標準を設定すること。③完全納期順の計画策定。"
+            }
+          ]
+        },
+        {
+          "input_no": 21,
+          "post_id": 7569,
+          "score": 59,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7569",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)契約後の仕様・設計変更による着手・納期遅延。デザイナーの最終検査が通らず、手直し発生によるコスト・売上時期への影響。\n(b)設計と生産の契約を別契約とする。３DCADを導入し、デザイナー確認を初期から段階的に行い、認識ギャップを低減させる。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)チームごとの能力に差があり適正な作業の割り振りができない。他部門とのやり取りに忙殺され、生産のための時間がとれない。\n(b)工程順序を標準化しマニュアル化、高度技術と標準技術をOJTで教育しチームのスキルを平準化することで対応力を向上。"
+            }
+          ]
+        },
+        {
+          "input_no": 22,
+          "post_id": 7571,
+          "score": 59,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7571",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)問題点は①営業部５人という人員の不足② 受注から担当者ひとりで最後まで担当することで製作前プロセスに時間がかかること。\n(b)対応策としては、①設計の専門部署を新設し② その上で、役割分担を明確にすることで製作前プロセスを迅速に行うこと。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)問題点は①全社的な生産管理がれていない事②４班ある作業チームの技術力に差があること③作業スペースのレイアウトが狭い事。\n(b)対応策としては、①全社的な生産計画を策定し、生産統制を行い、②マニュアルを作成し技術の標準化を図り③ＳＬＰを実施する。"
+            }
+          ]
+        },
+        {
+          "input_no": 23,
+          "post_id": 7573,
+          "score": 58,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7573",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)問題点は、①顧客とのやりとりに時間がかかり納期遅延を発生させていること。\n(b)改善策は、①営業と製造の連携を強化し、正確な生産管理を実施、②製作図を理解すること。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)問題点は、①工程順序や工数見積もりの標準化確立していない、②作業スペースが狭隘で移動が発生して生産期間長期化。\n(b)改善点は、①工程順序や工数見積もりの標準化を行うこと、②作業スペースレイアウトの再検討を行い、移動を削減すること。"
+            }
+          ]
+        },
+        {
+          "input_no": 24,
+          "post_id": 7575,
+          "score": 58,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7575",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)問題点は、①顧客とのやり取りに多くの時間がかかり、製作期間を確保できなくなる事、②最終検査で修正や手直しが発生している事。\n(b)対応策は、①工数見積の標準化や打合せの効率化で製作前プロセスの期間短縮、②デザインレビューにデザイナが参加し手戻りの削減。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)問題点は、①チーム間で技術力に格差があり、加工難易度によりスケジュールに影響、②作業スペース不足により無駄な移動の発生。\n(b)対応策は、①OJTや技術講習により技術の底上げを図り割り振りを平準化、②加工物の大きさを考慮した生産計画で無駄な移動を削減。"
+            }
+          ]
+        },
+        {
+          "input_no": 25,
+          "post_id": 7577,
+          "score": 57,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7577",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)問題点は、①顧客承認に時間を要する為製作期間を十分に確保できない、②高度な加工技術が必要な場合等での納期遅延、等である。\n(b)対応策は、①設計責任者を選出し顧客との技術交渉を迅速に進める、②3次元CADを導入し製作期間策定の制度を高める、等である。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)問題点は、①各作業チーム間の技術力格差、②詩集検査時での顧客による修正・手直し要請、③作業途中の加工物の移動、等である。\n(b)対応策は、①作業内容の標準化・マニュアル化と承継、②指図書発行での顧客仕様展開の徹底、③全工程含む生産計画作成、等である。"
+            }
+          ]
+        },
+        {
+          "input_no": 26,
+          "post_id": 7579,
+          "score": 57,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7579",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)製造前プロセスに時間がかかり、特にモニュメント製品では造形物のイメージの摺り合わせに時間がかかる。\n(b)製品ごとの担当者決めを顧客ごとに変更し、関係性を高めてイメージの摺り合わせの時間を短縮する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)①作業チームの技術力に差がある、②モニュメント製品はデザイナーの最終検査後に手直しが発生、③作業スペースの狭隘化。\n(b)①製作物の難度に合わせて作業チームの編成を変更する、②デザイナーの中間検査を実施して小幅修正にする、③5Sの徹底。"
+            }
+          ]
+        },
+        {
+          "input_no": 27,
+          "post_id": 7581,
+          "score": 56,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7581",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)問題点は、顧客承認前の仕様変更や図面変更、造形物のイメージの摺合わせに時間を要し製作期間が十分に取れないこと。\n(b)対応策は、３ＤＣＡＤを導入し、図面や造形物を3次元で共有することで、摺合わせの打ち合わせ時間を短縮すること。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)問題点は、溶接・組立工程と研磨工程の作業チームの技術力に差があるため、難易度の高い加工の製作期間が計画通り進まないこと。\n(b)対応策は、リーダーの熟練技術者に加工技術を教育することを役割とすることで、作業チームの加工技術の向上と均質化を図ること。"
+            }
+          ]
+        },
+        {
+          "input_no": 28,
+          "post_id": 7583,
+          "score": 56,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7583",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)仕様変更や図面変更などによる顧客とのやり取りや造形物のイメージの擦り合せに時間を要し、制作時間が十分にとれないこと。\n(b)３次元CADを導入するなどにより、仕様変更や図面変更の削減や造形物のイメージの擦り合せを効率化して時間を短縮する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)溶接・組立工程と研磨工程作業の技術力が作業チームにより差があり、難易度により作業の振り分けがされ標準化されていないこと。\n(b)溶接・組立工程と研磨工程作業の標準化・教育訓練により各作業チームの平準化を行い、スケジューリングを納期を基準に行う。"
+            }
+          ]
+        },
+        {
+          "input_no": 29,
+          "post_id": 7585,
+          "score": 56,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7585",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)①製作前プロセスに時間がかかり製作期間に影響している事②製作後の検査でデザイナーの指示で修正や手直しが発生している事。\n(b)①契約前から作業員に打ち合わせに参加してもらい情報共有をする②製作の途中でもデザイナーの検査を行い修正をしていく。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)①作業員の技術力に差があり受注に制約がある事②作業スペースが狭隘でスペースの確保や人や物の移動に時間がかかっている事。\n(b)①教育を行って作業員を多能工化する。汎用的な機械を導入する。②５Sを実施して作業スペースに余裕を持たせる。"
+            }
+          ]
+        },
+        {
+          "input_no": 30,
+          "post_id": 7587,
+          "score": 54,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7587",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)モニュメント製品の造形物のイメージの擦り合わせ時間が長く、図面承認後も仕様変更や図面変更の打ち合わせを実施している。\n(b)2次元CADを有効活用し、顧客承認前のデザインレビューの回数を増やして検討し、フロントローディングを行う。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)①4つある作業チームの技術力に差がある。②加工物の大型化のため作業スペースが確保できず、加工物の移動を実施している。\n(b)①高度な技術のマニュアル化による形式知化、②レイアウトの再設計によりスペースを確保し、加工物移の動を無くす。"
+            }
+          ]
+        },
+        {
+          "input_no": 31,
+          "post_id": 7589,
+          "score": 53,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7589",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)問題点は、①最終段階での設計変更や手直しの多さ、②営業担当者の業務が多いため、製造部門の従業員が打合せで不在になる事。\n(b)対応策は、①受注・設計・据付工事施工管理別に業務を集約移管する事、②ＣＡＤデータを顧客と共有し、設計変更等を削減する事。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)問題点は、①作業チーム毎に技術力の差がある事、②加工難易度が優先され生産計画の納期管理が甘い、③各工程の作業面積が狭い。\n(b)対応策は、①熟練技術者のスキルを標準化・教育の実施、②生産計画を随時見直し、生産統制を強化、③ＳＬＰと５Ｓで作業面積確保。"
+            }
+          ]
+        },
+        {
+          "input_no": 32,
+          "post_id": 7591,
+          "score": 52,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7591",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)問題点は①契約から顧客承認までの契約前プロセスに時間を要し、製作期間が十分に確保できず、②イメージすり合わせ時間が長い点。\n(b)対応策は①契約前に顧客承認を取得し、契約時に納期を確認し、製作期間を確保し②設計に二次元CADを活用し、時間を削減する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)問題点は①複雑な形状など高度な加工技術が必要な製品の受注の際は製作に時間がかかり、②製作期間が生産計画をオーバーする点。\n(b)対応策は①工程順序や工数見積もりの標準化を行い、OJTにより多能工化を実現し②製作の進捗状況を確認し、応援体制をとる事。"
+            }
+          ]
+        },
+        {
+          "input_no": 33,
+          "post_id": 7593,
+          "score": 52,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7593",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)仕様変更等が発生することで、顧客承認までの製作前プロセスに時間を要し、納期遅延の原因となっていること、である。\n(b)モニュメント製品のすり合わせで早い段階から立体的なイメージを提示し、手戻りを避けることを可能にすること、である。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)溶接・組立工程と研磨工程において、作業チームごとに技術の差があり、複雑な対応が不能なチームがあること、である。\n(b)チームの技術レベルを平均化するため、①作業の上旬かを進めること、②熟練技術者によるOJTにより技術の底上げを図ること。"
+            }
+          ]
+        },
+        {
+          "input_no": 34,
+          "post_id": 7595,
+          "score": 50,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7595",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)問題点は、契約、図面作成、顧客承認までの製作前プロセスに時間を要して製作期間を十分に確保できない事である。\n(b)対応策は、①製品の工程順序や工数見積を標準化し、製作期間の見通し精度を高め、②製作期間のよゆうをとって受注する事である。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)問題点は、高度な技術が必要な製作物を任せられない作業チームがある為、作業途中の加工物の移動などを強いられている事である。\n(b)対応策は、技術力の低い作業チームにOJTを実施し技術力を高め、全作業チームが高度な技術が必要な製作物に対応可能とする事。"
+            }
+          ]
+        },
+        {
+          "input_no": 35,
+          "post_id": 7597,
+          "score": 50,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7597",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)問題点仕様変更や図面変更、造形物のイメージ摺合わせに時間を要したり、図面商品後に打ち合わせ時間がかかること。\n(b)対応策は顧客承認後に形状の複雑さや加工技術の難易度を考慮して製作期間を決めるようにして無理な生産計画の立案を回避する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)問題点は作業チームに技術差があること、デザイナーに最終検査時に手直しを支持されること、標準化不足。\n(b)対応策は熟練作業者に技術の低いチームのフォローをしてもらう、最終検査前にデザイナーにチェックしてもらい事前に修正を行う事。"
+            }
+          ]
+        },
+        {
+          "input_no": 36,
+          "post_id": 7600,
+          "score": 49,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7600",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)問題点は、①製造部と連携せずに受注し、製作期間が生産計画をオーバー、②外注管理不足で、製作期間を十分獲得できない点。\n(b)対応策は、①製造部と連携を強化し、生産計画を考慮した受注を行うこと、②外注の納期管理の徹底で、製作期間を確保する事。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)問題点は、①手作業チームの技術のバラつき、②工程順序等のの標準化不足で難易度を考慮した月次計画、③移動が非効率なレイアウト。\n(b)対応策は、①手作業技術や工程順序、工数見積もり等の標準化、②全工程での納期順の週次計画の立案、③移動効率の良いレイアウト。"
+            }
+          ]
+        },
+        {
+          "input_no": 37,
+          "post_id": 7602,
+          "score": 47,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7602",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)営業部における問題点は、顧客とのやりとりに時間がかかることにより納期が遅いことである。\n(b)対応策は、顧客承認を得る際に製造部担当者を同行させることにより、やりとりの時間を短縮させる。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)製造部における問題点は、各作業チームの技術力さがあるため、高度な技術が必要な制作物を任せられないチームが存在することである。\n(b)対応策は、熟練技術者の指導により技術力を向上させることや、多能工化を図りチーム間での移動を行えるようにすることである。"
+            }
+          ]
+        },
+        {
+          "input_no": 38,
+          "post_id": 7604,
+          "score": 46,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7604",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)問題点は、契約、図面作成、顧客承認までの製作前プロセスに時間を要して製作期間を十分に確保できないことである。\n(b)２次ＣＡＤを活用して、製造図及び施工図の仕様変更を効率的に行うとともに、造形物のイメージすり合わせ時間を短縮する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)問題点は、複雑な形状など高度な加工技術が必要な製品の受注の場合、製作期間が生産計画をオーバーすることである。\n(b)①工程順序や工数見積もりを標準化し、生産計画の精度を向上させる、②作業スペースを確保し、各製造工程での移動を少なくする。"
+            }
+          ]
+        },
+        {
+          "input_no": 39,
+          "post_id": 7606,
+          "score": 44,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7606",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)設計図・施工図の顧客承認段階で仕様変更や図面変更が多発し、製作期間にしわ寄せを生じさせている。\n(b)見積書の作成・提出プロセスを製作図・施工図の顧客承認後にすることで、適切な納期を設定する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)複雑な形状など高度な加工技術が必要な製品などの受注内容によって、製作期間がオーバーすることがある。\n(b)生産計画について、工程順序や工数見積もりなどの基準を策定し、適切な日程計画を可能にする。"
+            }
+          ]
+        },
+        {
+          "input_no": 40,
+          "post_id": 7608,
+          "score": 40,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7608",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(a)①営業部担当者が受注に加え、施工管理を行っている②顧客の仕様や図面変更によるやりとりや製作段階での修正や手直しが発生。\n(b)施工管理も社外の協力会社に依頼し、営業担当者を受注、設計に専念させ、顧客やデザイナーとの連携を密にし修正を削減。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "(a)①溶接組立と研磨工程の各作業チームの技術力に差があり高度な技術を任せられないチームの存在②ものの移動で不稼働が多く発生。\n(b)①熟練技術者のノウハウを標準化、マニュアル化し、OJTで各チームの技術力を平準化②５SとSLPにより効率的な動線を確保。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "question_no": 3,
+      "points": 20,
+      "heading_text": "第３問（配点20点）",
+      "answer_count": 40,
+      "score_stats": {
+        "count": 40,
+        "min": 40,
+        "max": 72,
+        "median": 59.0,
+        "mean": 58.27
+      },
+      "answer_char_stats": {
+        "count": 40,
+        "min": 63,
+        "max": 131,
+        "median": 118.0,
+        "mean": 112.83
+      },
+      "exemplars": {
+        "high": [
+          {
+            "post_id": 7527,
+            "score": 72,
+            "published_at": "2021-07-01",
+            "answer_text": "生産計画の作成を週次化し、IT化によって一元管理して共有し、変更内容を反映させ、CADデータをライブラリ化して設計の負荷軽減やリードタイムを短縮し、各工程の進捗や余力を共有し、閑散に応じて人員配置を適正化することで納期を順守する。"
+          },
+          {
+            "post_id": 7530,
+            "score": 71,
+            "published_at": "2021-07-01",
+            "answer_text": "助言は、生産管理情報を一元管理し、全部署でリアルタイムで共有して、双方向のやりとりが可能な情報システムの構築。具体的には①ＣＡＤデータや顧客との打ち合わせ内容を共有して、製造部と営業部の打ち合わせ削減②受注状況に基づき生産計画を随時更新③社外の協力会社とも共有。"
+          },
+          {
+            "post_id": 7532,
+            "score": 69,
+            "published_at": "2021-07-01",
+            "answer_text": "CADデータや設計情報、受注、在庫、生産管理情報、生産統制情報を製造部と営業、設計にてネットワークにて一元で管理し、共有化すること。顧客との打ち合わせ内容も共有化する。"
+          },
+          {
+            "post_id": 7534,
+            "score": 69,
+            "published_at": "2021-07-01",
+            "answer_text": "営業部と製造部を含む全体生産計画を作成し、計画の作成頻度を月次から週次に高める。工程順序や工数見積もりの標準化を行うと共に、生産計画に基づいた生産統制の徹底を行い、それらの情報をデータベース上で社内共有する事でIT化を図り納期遅延を解消する。"
+          },
+          {
+            "post_id": 7536,
+            "score": 68,
+            "published_at": "2021-07-01",
+            "answer_text": "C社は、①営業部の受注情報、②設計担当者の製品仕様情報、③生産現場の余力や進捗等の生産関連情報をデータベース化して一元管理し、全社的なネットワーク構築でリアルタイムに共有し、製販の連携の強化や生産計画の精緻化、打ち合わせ回数の削減を図るべき。"
+          }
+        ],
+        "middle": [
+          {
+            "post_id": 7565,
+            "score": 60,
+            "published_at": "2021-07-01",
+            "answer_text": "対策は、①受注から設計の打合せにおける技術情報をDB化し、②工程計画や進捗管理と合わせて一元管理して③全社でリアルタイム共有して顧客からの変更要求等に対応する。併せて社内の技術情報の共有と交流、精緻な計画と管理を行うことで納期遅延を防ぐ。"
+          },
+          {
+            "post_id": 7567,
+            "score": 59,
+            "published_at": "2021-07-01",
+            "answer_text": "顧客の引き合いから引渡までの情報をデータベース化する。受注時の設計図や仕様書のデータを製造部と共有するとともに、進捗状況もリアルタイムで一元管理し全社で共有する。また打合せをグループウェアで行い効率化を図る。以上により納期遅延を解消する。"
+          },
+          {
+            "post_id": 7569,
+            "score": 59,
+            "published_at": "2021-07-01",
+            "answer_text": "施策①生産管理システムを導入し、各製品の進捗状況を視覚化し、統制をかける事で稼働率を向上させ遅延の発生を未然に防ぐ。②営業の持つ受注情報をシステム上で共有し、情報のやりとりに要する時間を削減することで製造部の作業時間を捻出する。"
+          },
+          {
+            "post_id": 7571,
+            "score": 59,
+            "published_at": "2021-07-01",
+            "answer_text": "Ｃ社は①営業部の受注情報や製造部の生産計画情報などをリアルタイムで共有できるようにＤＢ化し、一元管理する②設計部門に３次元ＣＡＤ／ＣＡＭを導入し、データの打ち込み作業などの負担を軽減するなどして、ＩＴ化を進めていくべきである。"
+          },
+          {
+            "post_id": 7573,
+            "score": 58,
+            "published_at": "2021-07-01",
+            "answer_text": "助言は、①営業と製造の間で受注情報や図面をＩＴ化して、②Ｃ社と顧客の間の仕様変更や図面変更、製作段階での確認をＩＴ化すること。"
+          }
+        ],
+        "low": [
+          {
+            "post_id": 7608,
+            "score": 40,
+            "published_at": "2021-07-01",
+            "answer_text": "助言は、情報を一元管理し、リアルタイムに共有化する事で、作業者間や営業部担当者間のうちあわせの不在による不稼働を抑制し生産性を向上する。"
+          },
+          {
+            "post_id": 7606,
+            "score": 44,
+            "published_at": "2021-07-01",
+            "answer_text": "助言は、①３次元ＣＡＤを導入して造形物のイメージ確認を容易にし、顧客とのやり取りの時間を短縮する。②工程順序や工数見積もりを基準を策定した上で、生産計画の策定を支援する情報システムを導入する。"
+          },
+          {
+            "post_id": 7604,
+            "score": 46,
+            "published_at": "2021-07-01",
+            "answer_text": "助言はＩＴ活用による全社業務の効率化である。具体的には、①ＩＴ化で、仕様変更や図面変更の打ち合わせをオンラインで行い、業務を効率化する、②立体的で複雑な曲線形状の製品の製作や図をわかりやすくして加工ミスをなくし、修整や手直しを防ぐ、である。"
+          },
+          {
+            "post_id": 7602,
+            "score": 47,
+            "published_at": "2021-07-01",
+            "answer_text": "助言は、①チームごとの作業の進捗情報、②作業チームごとの余力情報、③作業チームごとの現品情報をデータ化し、社内で共有すること、および基準となる工程順序や工数見積もりの標準化を行うことにより、納期遅延を防ぐ。"
+          },
+          {
+            "post_id": 7600,
+            "score": 49,
+            "published_at": "2021-07-01",
+            "answer_text": "ＩＴの活用は、業務プロセス全体を見直す改善活動を支援するシステムを開発し、納期遅延の根絶を図ること。具体的には、①生産と営業との連携を強化するためＷＥＢ会議等の情報共有を図るシステム開発、②ＣＡＤ等を活用してレイアウト変更に活用する事。"
+          }
+        ]
+      },
+      "answers": [
+        {
+          "input_no": 1,
+          "post_id": 7527,
+          "score": 72,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7527",
+          "answer_text": "生産計画の作成を週次化し、IT化によって一元管理して共有し、変更内容を反映させ、CADデータをライブラリ化して設計の負荷軽減やリードタイムを短縮し、各工程の進捗や余力を共有し、閑散に応じて人員配置を適正化することで納期を順守する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 2,
+          "post_id": 7530,
+          "score": 71,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7530",
+          "answer_text": "助言は、生産管理情報を一元管理し、全部署でリアルタイムで共有して、双方向のやりとりが可能な情報システムの構築。具体的には①ＣＡＤデータや顧客との打ち合わせ内容を共有して、製造部と営業部の打ち合わせ削減②受注状況に基づき生産計画を随時更新③社外の協力会社とも共有。",
+          "subquestions": []
+        },
+        {
+          "input_no": 3,
+          "post_id": 7532,
+          "score": 69,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7532",
+          "answer_text": "CADデータや設計情報、受注、在庫、生産管理情報、生産統制情報を製造部と営業、設計にてネットワークにて一元で管理し、共有化すること。顧客との打ち合わせ内容も共有化する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 4,
+          "post_id": 7534,
+          "score": 69,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7534",
+          "answer_text": "営業部と製造部を含む全体生産計画を作成し、計画の作成頻度を月次から週次に高める。工程順序や工数見積もりの標準化を行うと共に、生産計画に基づいた生産統制の徹底を行い、それらの情報をデータベース上で社内共有する事でIT化を図り納期遅延を解消する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 5,
+          "post_id": 7536,
+          "score": 68,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7536",
+          "answer_text": "C社は、①営業部の受注情報、②設計担当者の製品仕様情報、③生産現場の余力や進捗等の生産関連情報をデータベース化して一元管理し、全社的なネットワーク構築でリアルタイムに共有し、製販の連携の強化や生産計画の精緻化、打ち合わせ回数の削減を図るべき。",
+          "subquestions": []
+        },
+        {
+          "input_no": 6,
+          "post_id": 7538,
+          "score": 67,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7538",
+          "answer_text": "受注情報、設計情報、技術者の保有スキル情報、余力情報、製造の進捗情報等をDB化し、高頻度かつリアルタイムな情報共有環境を実現する。また、これら情報を生産計画作成と生産統制実施に活用することで短納期化し、納期遅延の撲滅、を達成する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 7,
+          "post_id": 7540,
+          "score": 67,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7540",
+          "answer_text": "製品については基準となる工程順序や工数見積もりなどの標準化を確立すること。また、営業部の受注情報、設計担当者の製品仕様情報を全社共有していくよう整理していく。これでリアルタイムに生産計画の確認や修正を行うことができ、納期遅延を解消できる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 8,
+          "post_id": 7542,
+          "score": 64,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7542",
+          "answer_text": "助言は、営業の受注情報や製作仕様をデータ化し、共有する事で、顧客との打合せ時にその場で確認し、効率化し時間短縮。生産計画情報、生産統制情報、納期情報をIT化し、全社で共有し一元管理することで、進捗管理を行い、生産リードタイムを短縮する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 9,
+          "post_id": 7544,
+          "score": 63,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7544",
+          "answer_text": "助言内容は、①３次元のＣＡＤ/ＣＡＭシステムを導入し、設計作業の標準化とＮＣ加工機への設計データ送信による生産準備の迅速化を図る事②制作プロセスを含む業務プロセス全体の見直しを完了し、納期遅延対策の業務プロセス支援システムを構築・導入する事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 10,
+          "post_id": 7546,
+          "score": 63,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7546",
+          "answer_text": "C社は営業部・製造部を中心とした全社一元化データベースを構築し、共有化する。具体的には、営業部の受注情報、設計部の製品仕様情報、生産計画・工程計画とともに一元管理し、作業手配・現品管理・進捗管理等の生産統制を実施できるITシステムを導入する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 11,
+          "post_id": 7548,
+          "score": 62,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7548",
+          "answer_text": "助言は、IT化を効果的に導入するため、まず①溶接・組立・研磨工程を納期基準での計画に改善し、②基準となる工程順序や工数見積を標準化し、生産計画を立案するよう改善する。その上で一元管理し作業統制を厳しく行う事で納期遅延を撲滅する事を助言。",
+          "subquestions": []
+        },
+        {
+          "input_no": 12,
+          "post_id": 7550,
+          "score": 62,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7550",
+          "answer_text": "①工程順序や工数見積もりを標準化し基準を定め②生産計画を月次から週次に短サイクル化する。その上で③営業部の受注情報、設計担当者の製品仕様情報、生産計画情報、生産統制情報をデータベース化し一元管理し、④全社で共有化することで、納期遅延を防ぐ。",
+          "subquestions": []
+        },
+        {
+          "input_no": 13,
+          "post_id": 7552,
+          "score": 61,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7552",
+          "answer_text": "まずＩＴ化の準備として、材料等の保管場所を整理・集約し現品管理を強化し、マン・マシンチャートを分析し、現状の生産に適合した効率的なレイアウトに改善する。そのうえで、納期情報などを社内的に情報共有することで納期遅延を減らす。",
+          "subquestions": []
+        },
+        {
+          "input_no": 14,
+          "post_id": 7554,
+          "score": 61,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7554",
+          "answer_text": "管理情報をデータベース化し、組織で共有化することで全社的に情報を一元管理できるようにＩＴを活用する。受注情報や製品仕様情報の共有から不要な打ち合わせを削減し、稼働情報の分析により業務プロセスの最適化を実現させ納期遅延を根絶させる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 15,
+          "post_id": 7557,
+          "score": 60,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7557",
+          "answer_text": "①仕様や製作図・施工図等の情報のＤＢ化②生産計画や制作前後のプロセス・生産状況のリアルタイム共有③営業や製造の各部門が持つ情報の一元化④製造と営業や作業者間での連携やコミュニケーションを補完、することでリードタイムを削減して納期を遵守する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 16,
+          "post_id": 7559,
+          "score": 60,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7559",
+          "answer_text": "助言内容は、①３次元ＣＡＤを導入し、顧客との打ち合わせ時に完成イメージを作り込むことで、以降の工程での手戻りを防ぐ。②ＣＡＤの設計データをＮＣ旋盤に連携して、顧客承認時のイメージで製造することで、出荷時の修正や手直しも回避するものである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 17,
+          "post_id": 7561,
+          "score": 60,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7561",
+          "answer_text": "加工物の大型化に対応した設備や作業スペースのレイアウト見直しを行うことで、狭隘な状態を改善する。ＩＴ化の前提となる加す工物等の現品管理を容易化することで、溶接・組立工程の研磨スペースを確保し、作業途中の加工物の移動の負荷を軽減する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 18,
+          "post_id": 7563,
+          "score": 60,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7563",
+          "answer_text": "ＩＴの活用は、①受注から据付までのスケジュールを一元管理して営業と製造で情報を共有する、②作業内容のマニュアルを作成して誰でも見られるようにする、③工程順序や工数見積を標準化してデータベース化することで営業と共有する、などがある。",
+          "subquestions": []
+        },
+        {
+          "input_no": 19,
+          "post_id": 7565,
+          "score": 60,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7565",
+          "answer_text": "対策は、①受注から設計の打合せにおける技術情報をDB化し、②工程計画や進捗管理と合わせて一元管理して③全社でリアルタイム共有して顧客からの変更要求等に対応する。併せて社内の技術情報の共有と交流、精緻な計画と管理を行うことで納期遅延を防ぐ。",
+          "subquestions": []
+        },
+        {
+          "input_no": 20,
+          "post_id": 7567,
+          "score": 59,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7567",
+          "answer_text": "顧客の引き合いから引渡までの情報をデータベース化する。受注時の設計図や仕様書のデータを製造部と共有するとともに、進捗状況もリアルタイムで一元管理し全社で共有する。また打合せをグループウェアで行い効率化を図る。以上により納期遅延を解消する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 21,
+          "post_id": 7569,
+          "score": 59,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7569",
+          "answer_text": "施策①生産管理システムを導入し、各製品の進捗状況を視覚化し、統制をかける事で稼働率を向上させ遅延の発生を未然に防ぐ。②営業の持つ受注情報をシステム上で共有し、情報のやりとりに要する時間を削減することで製造部の作業時間を捻出する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 22,
+          "post_id": 7571,
+          "score": 59,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7571",
+          "answer_text": "Ｃ社は①営業部の受注情報や製造部の生産計画情報などをリアルタイムで共有できるようにＤＢ化し、一元管理する②設計部門に３次元ＣＡＤ／ＣＡＭを導入し、データの打ち込み作業などの負担を軽減するなどして、ＩＴ化を進めていくべきである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 23,
+          "post_id": 7573,
+          "score": 58,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7573",
+          "answer_text": "助言は、①営業と製造の間で受注情報や図面をＩＴ化して、②Ｃ社と顧客の間の仕様変更や図面変更、製作段階での確認をＩＴ化すること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 24,
+          "post_id": 7575,
+          "score": 58,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7575",
+          "answer_text": "IT活用は、①3次元CADを導入し完成イメージを明確化する事で、製作段階での手戻りを防止する事、②CAMを導入し3次元設計データを元にNC加工を自動化、効率化する事で、生産リードタイムを短縮する事、③営業から仕様や納期情報をタイムリーに製造に連携する事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 25,
+          "post_id": 7577,
+          "score": 57,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7577",
+          "answer_text": "C社は、行程順序や工数見積もりなどの標準化を行った上で、①製品仕様、数量等の顧客発注情報、②生産日程や負荷状況等の計画情報、③生産進捗や在庫状況等の生産統制情報、等のデータベースを構築し一元管理の上、ネットワークでリアルタイムに社内共有する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 26,
+          "post_id": 7579,
+          "score": 57,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7579",
+          "answer_text": "準備として、①製作物や顧客の情報をDB化、②作業者の熟練度をDB化、③組立・研磨工程を含めた全社の生産計画を策定してデータ化、④工程の標準化・マニュアル化、などを事前に進め、速やかなIT化を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 27,
+          "post_id": 7581,
+          "score": 56,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7581",
+          "answer_text": "助言は①作業グループの加工技術や受注した製品の加工難度を数値化して、工程順序や工数見積りを標準化し、全体の生産計画を策定すること、②作業チームの進捗、余力をITを活用して見える化し、生産統制を行い、納期遅延をなくすこと。",
+          "subquestions": []
+        },
+        {
+          "input_no": 28,
+          "post_id": 7583,
+          "score": 56,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7583",
+          "answer_text": "C社は、営業部と製造部間など社内の情報の共有化にITを活用する。具体的には、①営業部が作成するの設計図や仕様書などの書類をデーターベース化する、②製造部の作成する生産計画や進捗情報など生産統制情報を共有化する、ことで打ち合わせ時間を短縮する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 29,
+          "post_id": 7585,
+          "score": 56,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7585",
+          "answer_text": "①顧客から提供される設計図や仕様書をリアルタイムで共有し変更点等も確認できるようにする②工程順序や工数見積もりを標準化してシステムを通じて計画に反映させる③週次・日次の計画も立案し、進捗を日々統制する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 30,
+          "post_id": 7587,
+          "score": 54,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7587",
+          "answer_text": "①モニュメント製品の顧客承認前のDRにて、2Dデータをオンラインでつなぎやり取りする事で手戻りを無くす。②過去データを蓄積し、複雑な形状など高度な加工技術に対して要した製作期間をDB化し、生産計画の立案時に反映し、活用する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 31,
+          "post_id": 7589,
+          "score": 53,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7589",
+          "answer_text": "ＩＴ化の助言は、①取引先との受注・納期・使用・進捗等の情報を共有、②各部門など全社共有のＤＢ化し随時情報を更新、③生産計画や設計等に活用、④現品・余力など生産統制に活用するなど、設計・生産・営業を効率化し、コスト削減・売上増加に繋げる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 32,
+          "post_id": 7591,
+          "score": 52,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7591",
+          "answer_text": "助言は、全社的に業務プロセス改善活動が継続できるよう、IT化を進める。具体的には、①IEにより、作業者の移動や打ち合わせ等主体作業以外の作業時間を削減し、不稼働時間を減らす事、②営業担当者の受注状況等を確認し、事前に作業準備を進める事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 33,
+          "post_id": 7593,
+          "score": 52,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7593",
+          "answer_text": "①生産計画を精緻化するため、受注状況や余力管理情報を共有化、②営業担当の顧客との打ち合わせ情報を共有化して社内打ち合わせ時間を削減する、③現品管理情報を共有化し、材料等の運搬作業を内段取り化して不稼働時間を削減すること、である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 34,
+          "post_id": 7595,
+          "score": 50,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7595",
+          "answer_text": "IT活用は、①3次元CADを導入し、モニュメント製品の図面承認後の打ち合わせを減らす事、②作業者間の打ち合わせ、作業者と営業の打ち合わせを効率化するため、作業者全員にタブレットを配布しオンラインで打ち合わせできるようにする事、である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 35,
+          "post_id": 7597,
+          "score": 50,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7597",
+          "answer_text": "ＩＴ活法により制作プロセスを含む業務プロセス全体の効率化を図る。①顧客から提供される設計図や仕様書、製作仕様や見積書、製作図及び施工図等を全てＩＴ化してデータで参照可能にする②タブレットも全員に与え打ち合わせの場で速やかに修正ができるようにする。",
+          "subquestions": []
+        },
+        {
+          "input_no": 36,
+          "post_id": 7600,
+          "score": 49,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7600",
+          "answer_text": "ＩＴの活用は、業務プロセス全体を見直す改善活動を支援するシステムを開発し、納期遅延の根絶を図ること。具体的には、①生産と営業との連携を強化するためＷＥＢ会議等の情報共有を図るシステム開発、②ＣＡＤ等を活用してレイアウト変更に活用する事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 37,
+          "post_id": 7602,
+          "score": 47,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7602",
+          "answer_text": "助言は、①チームごとの作業の進捗情報、②作業チームごとの余力情報、③作業チームごとの現品情報をデータ化し、社内で共有すること、および基準となる工程順序や工数見積もりの標準化を行うことにより、納期遅延を防ぐ。",
+          "subquestions": []
+        },
+        {
+          "input_no": 38,
+          "post_id": 7604,
+          "score": 46,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7604",
+          "answer_text": "助言はＩＴ活用による全社業務の効率化である。具体的には、①ＩＴ化で、仕様変更や図面変更の打ち合わせをオンラインで行い、業務を効率化する、②立体的で複雑な曲線形状の製品の製作や図をわかりやすくして加工ミスをなくし、修整や手直しを防ぐ、である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 39,
+          "post_id": 7606,
+          "score": 44,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7606",
+          "answer_text": "助言は、①３次元ＣＡＤを導入して造形物のイメージ確認を容易にし、顧客とのやり取りの時間を短縮する。②工程順序や工数見積もりを基準を策定した上で、生産計画の策定を支援する情報システムを導入する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 40,
+          "post_id": 7608,
+          "score": 40,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7608",
+          "answer_text": "助言は、情報を一元管理し、リアルタイムに共有化する事で、作業者間や営業部担当者間のうちあわせの不在による不稼働を抑制し生産性を向上する。",
+          "subquestions": []
+        }
+      ]
+    },
+    {
+      "question_no": 4,
+      "points": 20,
+      "heading_text": "第４問（配点20点）",
+      "answer_count": 40,
+      "score_stats": {
+        "count": 40,
+        "min": 40,
+        "max": 72,
+        "median": 59.0,
+        "mean": 58.27
+      },
+      "answer_char_stats": {
+        "count": 39,
+        "min": 49,
+        "max": 122,
+        "median": 118,
+        "mean": 112.92
+      },
+      "exemplars": {
+        "high": [
+          {
+            "post_id": 7527,
+            "score": 72,
+            "published_at": "2021-07-01",
+            "answer_text": "モニュメント製作に必要な溶接・研磨技術を向上させ、高付加価値のモニュメント製作を優先した工場レイアウトに変更することで大型加工に対応させた上で、営業部を強化することで近年の都市型建築の増加の機会を捉えて新規受注を拡大して受注量を安定させる。"
+          },
+          {
+            "post_id": 7530,
+            "score": 71,
+            "published_at": "2021-07-01",
+            "answer_text": "戦略は、市場面で、都市型建築の増加を機会ととらえ、強みの仕上げ品質を訴求して新規顧客を開拓。製品面で、ベテラン技術者によるＯＪＴで技術力を向上。高付加価値化を図る。受注量を平準化する。営業部も増強する。"
+          },
+          {
+            "post_id": 7532,
+            "score": 69,
+            "published_at": "2021-07-01",
+            "answer_text": "充実：設計力の強化を図り、仕上げ品質を向上しデザイナーによる複雑形状の顧客ニーズを満たせるようにする。拡大：製作図の理解力と高い加工技術を強化し、都市型建築の増加を機会として新規顧客を志向していく。"
+          },
+          {
+            "post_id": 7534,
+            "score": 69,
+            "published_at": "2021-07-01",
+            "answer_text": "①溶接技術や研磨技術の高度化を図り特殊加工と仕上げ品質の要求に対応する、②一貫生産体制を強化し、設計から据付まで行える点を訴求する、③製作前プロセスと製作期間を短縮化する事でリードタイムを短縮し納期遅延を解消する。以上で高付加価値化し拡大する。"
+          },
+          {
+            "post_id": 7536,
+            "score": 68,
+            "published_at": "2021-07-01",
+            "answer_text": "C社は、①都市型建築の市場動向を調査し、建築プロジェクトにも積極的に参加し受注機会を増やし、②図面の作成や理解力を高める研修実施で受注への対応力を高め、③特殊加工や仕上げ品質の研究を強化し、製品の品質を向上させ、事業の充実・拡大を図るべき。"
+          }
+        ],
+        "middle": [
+          {
+            "post_id": 7565,
+            "score": 60,
+            "published_at": "2021-07-01",
+            "answer_text": "事業の充実には技術の向上が必要であり、デザイナーとの交流や設備メーカーや加工メーカーとの交流を増やす。拡大には、社内技術を底上げして高難度の作業も全チームで対応できるようにし、ムダな作業も無くして短納期を実現し受注を増やす。"
+          },
+          {
+            "post_id": 7567,
+            "score": 59,
+            "published_at": "2021-07-01",
+            "answer_text": "製作図の理解力や高い加工技術力の向上を図るとともに、モニュメント製品の受注量の変動を抑えるべく営業力を強化する。また、加工物の大型化に対応するべく高さがある工場建屋の整備を検討し、差別化された高付加価値のモニュメント製品事業の拡大を図る。"
+          },
+          {
+            "post_id": 7569,
+            "score": 59,
+            "published_at": "2021-07-01",
+            "answer_text": "事業拡大のため、①作業場のレイアウトを見直し、より大サイズの作品へ対応可能とし、②ステンレス以外の素材への対応するための技術を強化し製品対応力の幅を広げる。③据付工事まで一貫して行う体制を構築し、付加価値を高める。"
+          },
+          {
+            "post_id": 7571,
+            "score": 59,
+            "published_at": "2021-07-01",
+            "answer_text": "Ｃ社は①モニュメント事業専門の営業部隊を新設し②製作図の理解を深めて技術力を向上させることなどを通じて、受注量の変動幅を抑えて安定的な受注が出来る体制を構築する。③また作業スペースのレイアウトもモニュメント事業に対応できるよう再構築する。"
+          },
+          {
+            "post_id": 7573,
+            "score": 58,
+            "published_at": "2021-07-01",
+            "answer_text": "助言は、①作業チームの製作図の理解力と高い加工能力の向上を図り、建築用金属製品メーカーに都市型建築用製品を販売する、②設計から製作、据付工事までの一貫受注を活かし、建築プロジェクトに参加して拡販を図る。"
+          }
+        ],
+        "low": [
+          {
+            "post_id": 7608,
+            "score": 40,
+            "published_at": "2021-07-01",
+            "answer_text": ""
+          },
+          {
+            "post_id": 7606,
+            "score": 44,
+            "published_at": "2021-07-01",
+            "answer_text": "近年増加している都市型建築に対応して建築用金属製品を受注し、顧客に対しモニュメント製品を売り込む。"
+          },
+          {
+            "post_id": 7604,
+            "score": 46,
+            "published_at": "2021-07-01",
+            "answer_text": "助言は、①溶接技術や研磨技術の高さによる鏡面仕上げ技術を活用して、特殊加工と仕上げ品質が要求されるモニュメント製品の新製品を提供する、②設計から製作、据付工事までの一貫体制を訴求して、モニュメント製品の新規顧客を開拓する、である。"
+          },
+          {
+            "post_id": 7602,
+            "score": 47,
+            "published_at": "2021-07-01",
+            "answer_text": "モニュメント製品事業の、①拡大面に関する助言は、C社の溶接技術や研磨技術が高いことをデザイナーに対し訴求し、受注拡大を図る、②充実面に関する助言は、これまでの修正・手直し等の情報を蓄積することにより、製品の完成度を高めることである。"
+          },
+          {
+            "post_id": 7600,
+            "score": 49,
+            "published_at": "2021-07-01",
+            "answer_text": "モニュメント製品事業の充実のため、ビル建築用金属製品の溶接・研磨技術を活かし、特殊加工・仕上げ品質の更なる高度化を図る事。一方、拡大のために、設計から据付けまでの一貫製作を活かし、都市型建築の需要を取り込み、顧客開拓につなげる事。"
+          }
+        ]
+      },
+      "answers": [
+        {
+          "input_no": 1,
+          "post_id": 7527,
+          "score": 72,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7527",
+          "answer_text": "モニュメント製作に必要な溶接・研磨技術を向上させ、高付加価値のモニュメント製作を優先した工場レイアウトに変更することで大型加工に対応させた上で、営業部を強化することで近年の都市型建築の増加の機会を捉えて新規受注を拡大して受注量を安定させる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 2,
+          "post_id": 7530,
+          "score": 71,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7530",
+          "answer_text": "戦略は、市場面で、都市型建築の増加を機会ととらえ、強みの仕上げ品質を訴求して新規顧客を開拓。製品面で、ベテラン技術者によるＯＪＴで技術力を向上。高付加価値化を図る。受注量を平準化する。営業部も増強する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 3,
+          "post_id": 7532,
+          "score": 69,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7532",
+          "answer_text": "充実：設計力の強化を図り、仕上げ品質を向上しデザイナーによる複雑形状の顧客ニーズを満たせるようにする。拡大：製作図の理解力と高い加工技術を強化し、都市型建築の増加を機会として新規顧客を志向していく。",
+          "subquestions": []
+        },
+        {
+          "input_no": 4,
+          "post_id": 7534,
+          "score": 69,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7534",
+          "answer_text": "①溶接技術や研磨技術の高度化を図り特殊加工と仕上げ品質の要求に対応する、②一貫生産体制を強化し、設計から据付まで行える点を訴求する、③製作前プロセスと製作期間を短縮化する事でリードタイムを短縮し納期遅延を解消する。以上で高付加価値化し拡大する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 5,
+          "post_id": 7536,
+          "score": 68,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7536",
+          "answer_text": "C社は、①都市型建築の市場動向を調査し、建築プロジェクトにも積極的に参加し受注機会を増やし、②図面の作成や理解力を高める研修実施で受注への対応力を高め、③特殊加工や仕上げ品質の研究を強化し、製品の品質を向上させ、事業の充実・拡大を図るべき。",
+          "subquestions": []
+        },
+        {
+          "input_no": 6,
+          "post_id": 7538,
+          "score": 67,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7538",
+          "answer_text": "特殊加工と仕上げ品質の技術力強化により高付加価値化し、営業力強化で都市型建築の際にデザイナーに訴求する。またIT化による情報共有迅速化、技術力格差解消、生産計画及び生産統制の強化で短納期化し短納期需要にも応えることで事業拡大と売上向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 7,
+          "post_id": 7540,
+          "score": 67,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7540",
+          "answer_text": "近年の都市型建築の増加に伴い高付加価値のモニュメント製品の製作依頼が増加しており、受注の増加をめざすため、営業部員を増員していく。これにより売り上げの増加につながっていき、高付加価値の販売で利益も増加し、受注から据付する企業の地位を確立する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 8,
+          "post_id": 7542,
+          "score": 64,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7542",
+          "answer_text": "助言は、都市型建築の外装デザインを行うデザイナーに特殊加工技術や仕上げ品質の高さを訴求し、モニュメント製品の提案営業を行う。具体的には、顧客の要望納期を遵守、作業者の育成を行い、製作図の理解力と加工技術力向上を図り、付加価値を高め受注を増加。",
+          "subquestions": []
+        },
+        {
+          "input_no": 9,
+          "post_id": 7544,
+          "score": 63,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7544",
+          "answer_text": "戦略は、①表面品質のこだわりや溶接技術、研磨技術を活用し、特殊加工と仕上げ品質を向上させて立体的で複雑な曲線形状の製品を充実させる事②都市型建築を受注した建築用金属製品メーカーに、設計から制作、据付工事まで受注できる体制を活かし製品提供する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 10,
+          "post_id": 7546,
+          "score": 63,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7546",
+          "answer_text": "C社は、①営業面でビル等の建築プロジェクトの際、デザイナーにモニュメントの販促活動を行い、②設計面で２次元CADを活かし、ニーズに合った図面を提供する。③生産面で高度な溶接・研磨技術や表面品質を活かし、大型製品は他社設備を利用し、受注する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 11,
+          "post_id": 7548,
+          "score": 62,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7548",
+          "answer_text": "事業充実は、デザイナーとの打合せを密に行うことで、高付加価値で製作効率の良いデザインを作り差別化できるようにする事を助言。事業拡大は、都市型建築の増加に伴い製作依頼のある顧客にデザイナーと一緒に行き、過去実績を説明し提案する事を助言する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 12,
+          "post_id": 7550,
+          "score": 62,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7550",
+          "answer_text": "都市型建築の増加を機会ととらえ、強みである溶接・研磨の高い技術力を生かし顧客が要求する特殊加工や仕上げ品質を充足し、営業部の人員増強により設計技術と営業力を強化することで高付加価値化による差別化を図り、事業拡大を狙う。",
+          "subquestions": []
+        },
+        {
+          "input_no": 13,
+          "post_id": 7552,
+          "score": 61,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7552",
+          "answer_text": "技術力を更に向上させ、納期遅延を減らすことや、据付工事の内製化により一貫生産体制を更に強化することで付加価値向上を図り、また工場建屋を７ｍ超に改修することにより、高さ７m超の製品の受注拡大を可能とし、社長主導で営業力を強化し受注につなげる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 14,
+          "post_id": 7554,
+          "score": 61,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7554",
+          "answer_text": "モニュメント製品事業は受注量の変動が大きく過度に売上を依存しないよう経営リスクの分散を念頭に事業拡大を図る。またＢ社工場建屋の建替を行い最適なレイアウトを実現して大型の加工需要に応えつつ全社的改善活動から生産効率を改善させ事業充実を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 15,
+          "post_id": 7557,
+          "score": 60,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7557",
+          "answer_text": "①高い特殊加工や仕上げ品質を生かしてデザイン性の高い製品制作力や、打合せ改善や作業標準化・無駄の削減により納期遵守力を充実②作業スペース改善により大規模な製品製造を可能にして顧客ニーズに合わせた製品拡大、により高付加価値売上による収益を増加。",
+          "subquestions": []
+        },
+        {
+          "input_no": 16,
+          "post_id": 7559,
+          "score": 60,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7559",
+          "answer_text": "助言内容は、①３次元ＣＡＤの導入で手戻りを防ぎ、②生産管理基準の策定や技術力の平準化により余力を生み出し、③表面加工の高い技術を訴求することで、モニュメント事業の受注先を増やすことで、受注変動量が大きいリスクを回避し、高付加価値を追求する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 17,
+          "post_id": 7561,
+          "score": 60,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7561",
+          "answer_text": "高い溶接・研磨技術と設計から据付工事まで担う一貫生産体制を活かし、切断加工等の単純工程は社外の協力会社に委託して高付加価値受注の充実・拡大を図る。ＩＴ化により２次元ＣＡＤデータ等の社内共有を進め、デザイナーから要求される仕上げ品質を実現する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 18,
+          "post_id": 7563,
+          "score": 60,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7563",
+          "answer_text": "拡大するために、①過去に制作したモニュメントの情報をホームページなどを活用して発信する、②技術力の高さをイベントなどを開催してアピールする。充実するために、③デザイナーとの信頼関係を構築するためにデザイナーの営業部担当を固定するなどである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 19,
+          "post_id": 7565,
+          "score": 60,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7565",
+          "answer_text": "事業の充実には技術の向上が必要であり、デザイナーとの交流や設備メーカーや加工メーカーとの交流を増やす。拡大には、社内技術を底上げして高難度の作業も全チームで対応できるようにし、ムダな作業も無くして短納期を実現し受注を増やす。",
+          "subquestions": []
+        },
+        {
+          "input_no": 20,
+          "post_id": 7567,
+          "score": 59,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7567",
+          "answer_text": "製作図の理解力や高い加工技術力の向上を図るとともに、モニュメント製品の受注量の変動を抑えるべく営業力を強化する。また、加工物の大型化に対応するべく高さがある工場建屋の整備を検討し、差別化された高付加価値のモニュメント製品事業の拡大を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 21,
+          "post_id": 7569,
+          "score": 59,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7569",
+          "answer_text": "事業拡大のため、①作業場のレイアウトを見直し、より大サイズの作品へ対応可能とし、②ステンレス以外の素材への対応するための技術を強化し製品対応力の幅を広げる。③据付工事まで一貫して行う体制を構築し、付加価値を高める。",
+          "subquestions": []
+        },
+        {
+          "input_no": 22,
+          "post_id": 7571,
+          "score": 59,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7571",
+          "answer_text": "Ｃ社は①モニュメント事業専門の営業部隊を新設し②製作図の理解を深めて技術力を向上させることなどを通じて、受注量の変動幅を抑えて安定的な受注が出来る体制を構築する。③また作業スペースのレイアウトもモニュメント事業に対応できるよう再構築する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 23,
+          "post_id": 7573,
+          "score": 58,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7573",
+          "answer_text": "助言は、①作業チームの製作図の理解力と高い加工能力の向上を図り、建築用金属製品メーカーに都市型建築用製品を販売する、②設計から製作、据付工事までの一貫受注を活かし、建築プロジェクトに参加して拡販を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 24,
+          "post_id": 7575,
+          "score": 58,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7575",
+          "answer_text": "事業の充実は、強みである溶接、研磨技術と品質へのこだわりを生かし、都市型建築需要の増加に対して、高付加価値な製品の提供で差別化を図る事である。事業の拡大は、営業の専任部署化やプロセス効率化等で営業力を強化し、新市場開拓を行う事である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 25,
+          "post_id": 7577,
+          "score": 57,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7577",
+          "answer_text": "C社は、①営業部門及び製造部門での問題を解決し納期遅延を回避、②溶接・研磨技術の更なる向上、等で充実を図り、①工場の増改築による7m超の大型品製造、②自社による据え付け工事実施、③設計人員の拡充によるモニュメントの自社デザイン、等で拡大を行う。",
+          "subquestions": []
+        },
+        {
+          "input_no": 26,
+          "post_id": 7579,
+          "score": 57,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7579",
+          "answer_text": "モニュメント製品事業の拡大のため、①顧客別の担当制として関係性を深め、提案営業を行って受注拡大を図り、②営業と製造が協働して納期の短縮に努め、③以上で得られたノウハウと高い技術力を訴求して新規取引を拡大するように営業体制を強化する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 27,
+          "post_id": 7581,
+          "score": 56,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7581",
+          "answer_text": "C社社長は①展示会に出展し、特殊加工や高い仕上げ品質を実現する高い加工技術を訴求して、新規顧客を獲得すること、②建屋を改築し、最近増加している新規大型製品を受注することによって、モニュメント事業の拡大を図るべきである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 28,
+          "post_id": 7583,
+          "score": 56,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7583",
+          "answer_text": "C社は、①設計担当者の技術力・提案力を高める、②３DCADを導入して顧客との打ち合わせに活用する、ことでモニュメント事業を拡大する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 29,
+          "post_id": 7585,
+          "score": 56,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7585",
+          "answer_text": "①デザイナーに装飾性の高いデザインを提案し幅広い種類のモニュメント製品を提供することで充実させる。②建築用金属製品メーカーを介して建築プロジェクトに参加し設計から据付までの一貫体制を武器にモニュメントの設置を提案し販路を拡大する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 30,
+          "post_id": 7587,
+          "score": 54,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7587",
+          "answer_text": "既存デザイナーに、ビル建築用金属製品で培った鏡面仕上げによる高度な表面品質を提案し、新製品を共同で開発し充実させ、都市型建築のデザインを手掛けるデザイナーに、設計から製作、据付工事までの受注できる事を訴求し、取引先拡大する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 31,
+          "post_id": 7589,
+          "score": 53,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7589",
+          "answer_text": "モニュメント事業の拡大に向けた助言は、①モニュメントの立体的で複雑な曲線形状等を実現する研磨処理・設計・加工技術の高さを生かし、②デザイナーのニーズに個別対応する提案力を強化し、直接取引を拡大し、収益・売上の増加につなげる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 32,
+          "post_id": 7591,
+          "score": 52,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7591",
+          "answer_text": "助言は、①加工物の大型化により狭隘な状態が進んでいるため、SLPにより、工程レイアウトの見直しを行い、作業スペースを確保する事、②作業者の溶接・研磨技術力の更なる向上を行い、据付工事は外部委託に変更し、営業担当者の設計時間を確保する事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 33,
+          "post_id": 7593,
+          "score": 52,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7593",
+          "answer_text": "充実は、製作図の理解力と加工技術の高度化により、短納期化を実現すること、早い段階から立体的にイメージを共有することで手戻りを無くすこと、であり、拡大は、製作したモニュメントの画像入りのDMを新規のデザイナーへ送付すること、である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 34,
+          "post_id": 7595,
+          "score": 50,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7595",
+          "answer_text": "充実は、モニュメント製品の最終検査時のデザイナーの指示による製品の修正や手直しを考慮して受注し、納期遅延をなくす事。拡大は、モニュメント製品は顧客とのやり取りが多く時間と手間がかかる為、営業人員を増強してから受注を拡大する事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 35,
+          "post_id": 7597,
+          "score": 50,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7597",
+          "answer_text": "助言は①作業チームのジョブローテーションを行いチーム毎の技術の均一化、向上を図りどのチームでも高度な製作を可能にする②モニュメント向け工場新設を検討し、工場の狭隘な状態を解消し7m以上の高さも対応可能にしてデザイナーからの信頼を得て事業拡大。",
+          "subquestions": []
+        },
+        {
+          "input_no": 36,
+          "post_id": 7600,
+          "score": 49,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7600",
+          "answer_text": "モニュメント製品事業の充実のため、ビル建築用金属製品の溶接・研磨技術を活かし、特殊加工・仕上げ品質の更なる高度化を図る事。一方、拡大のために、設計から据付けまでの一貫製作を活かし、都市型建築の需要を取り込み、顧客開拓につなげる事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 37,
+          "post_id": 7602,
+          "score": 47,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7602",
+          "answer_text": "モニュメント製品事業の、①拡大面に関する助言は、C社の溶接技術や研磨技術が高いことをデザイナーに対し訴求し、受注拡大を図る、②充実面に関する助言は、これまでの修正・手直し等の情報を蓄積することにより、製品の完成度を高めることである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 38,
+          "post_id": 7604,
+          "score": 46,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7604",
+          "answer_text": "助言は、①溶接技術や研磨技術の高さによる鏡面仕上げ技術を活用して、特殊加工と仕上げ品質が要求されるモニュメント製品の新製品を提供する、②設計から製作、据付工事までの一貫体制を訴求して、モニュメント製品の新規顧客を開拓する、である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 39,
+          "post_id": 7606,
+          "score": 44,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7606",
+          "answer_text": "近年増加している都市型建築に対応して建築用金属製品を受注し、顧客に対しモニュメント製品を売り込む。",
+          "subquestions": []
+        },
+        {
+          "input_no": 40,
+          "post_id": 7608,
+          "score": 40,
+          "published_at": "2021-07-01",
+          "url": "https://www.aas-clover.com/tokyoblog/7608",
+          "answer_text": "",
+          "subquestions": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,4075 @@
+{
+  "year_label": "R04",
+  "case_no": 3,
+  "case_label": "R04年度事例3",
+  "source_pdf_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2022.pdf",
+  "source_pdf_blob_path": "second-pdf-mondai/case3_2022.pdf",
+  "submission_count": 77,
+  "questions": [
+    {
+      "question_no": 1,
+      "points": 20,
+      "heading_text": "第１問（配点20点）",
+      "answer_count": 77,
+      "score_stats": {
+        "count": 77,
+        "min": 39,
+        "max": 77,
+        "median": 60,
+        "mean": 59.64
+      },
+      "answer_char_stats": {
+        "count": 77,
+        "min": 65,
+        "max": 80,
+        "median": 79,
+        "mean": 77.7
+      },
+      "exemplars": {
+        "high": [
+          {
+            "post_id": 11901,
+            "score": 77,
+            "published_at": "2023-06-24",
+            "answer_text": "販売面では、感染症拡大や需要低迷で減少した売上高の回復や新規事業拡大。生産面では、発注元のロットサイズ減少や短納期要請への対応。生産計画精緻化と生産統制実施。"
+          },
+          {
+            "post_id": 11775,
+            "score": 74,
+            "published_at": "2023-06-24",
+            "answer_text": "販売面の課題は①業務用食器・重機の新販路の開拓②アウトドア用品の自社ブランド化。生産面の課題は①受注量に応じた小ロット生産化②X社に対応する納品リード期間短縮。"
+          },
+          {
+            "post_id": 11817,
+            "score": 73,
+            "published_at": "2023-06-24",
+            "answer_text": "販売面で感染症の影響で落ち込む業務用食器・什器の売上を補うＸ社向けアウトドア商品販売の成功。生産面でＸ社からの短納期、小ロット化の要望に応えること。"
+          },
+          {
+            "post_id": 11787,
+            "score": 72,
+            "published_at": "2023-06-24",
+            "answer_text": "課題は①販売面で数社の取引先依存からの\n脱却とリスク分散、観光需要への依存解消②生産面で短納期対応や小ロットサイズ化へ対応、 若手への技術承継、デジタル化推進。"
+          },
+          {
+            "post_id": 11763,
+            "score": 71,
+            "published_at": "2023-06-24",
+            "answer_text": "販売面の課題は新型コロナウイルス感染拡大の影響で減少した受注を補うこと。生産面の課題は①小ロット生産と顧客要望の短納期へ対応②若手の技術承継③デジタル化の対応。"
+          }
+        ],
+        "middle": [
+          {
+            "post_id": 11777,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": "販売面では、海外生産委託商品の価格高騰のアウトドア顧客へコスト低減提案営業を行う。生産面では、生産、物流で海外納品できない顧客へ生産性向上新規受注を獲得する。"
+          },
+          {
+            "post_id": 11809,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": "販売面の課題は販売先が卸売企業２社のみで販売先の拡大で安定した売上の確保、生産面の課題は金型の設計時間の短縮、設計の整流化、技術承継、多能工化である。"
+          },
+          {
+            "post_id": 11849,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": "販売面は感染症の影響で需要が減少している中、受注を増加させること。生産面は①発注元の発注ロットサイズ減少に対応すること②短納期化に対応すること。"
+          },
+          {
+            "post_id": 11875,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": "C社は、①販売面で取引先が卸売企業2社に依存している事に対して、新規顧客開拓、②生産面で非効率な生産プロセスと技能承継不足等による納期の短納期化が課題である。"
+          },
+          {
+            "post_id": 11885,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": "販売面の課題は、コロナ禍の影響により落ち込んだ調理場製品の売上を回復させること。生産面の課題は、発注元の在庫削減方針に対応して加工ロットサイズを小さくすること。"
+          }
+        ],
+        "low": [
+          {
+            "post_id": 11859,
+            "score": 39,
+            "published_at": "2023-06-24",
+            "answer_text": "販売面は、新型コロナウィルスの影響による売上減少から回復するため新規事業展開し受注拡大すること。生産面は、生産能力の制約を改善し小ロットや短納期に対応していく事"
+          },
+          {
+            "post_id": 11847,
+            "score": 42,
+            "published_at": "2023-06-24",
+            "answer_text": "販売面の課題は、営業力を強化し卸売企業2社の間接取引と依存から脱却するため直接取引を図る。製造面の課題は、調理場で使用される製品以外の製造力を向上させること。"
+          },
+          {
+            "post_id": 11855,
+            "score": 45,
+            "published_at": "2023-06-24",
+            "answer_text": "販売面で、新型コロナウイルス感染による外食産業の営業自粛分の売上高を回復すること。生産面で、OJTによりベテランのプレス加工技術を若手に承継すること。"
+          },
+          {
+            "post_id": 11791,
+            "score": 49,
+            "published_at": "2023-06-24",
+            "answer_text": "販売面で、業務用食器・什器の卸売企業２社への売上依存改善。生産面で、設計期間の短縮、若手の金型組立・仕上技術の養成、プレス加工の生産能力の向上。"
+          },
+          {
+            "post_id": 11857,
+            "score": 50,
+            "published_at": "2023-06-24",
+            "answer_text": "販売面は発注元の在庫量削減方針により発注の小ロット化への対応。生産面はプレス加工のベテラン技能者の後継者育成とプレス加工の段取り時間の削減である"
+          }
+        ]
+      },
+      "answers": [
+        {
+          "input_no": 1,
+          "post_id": 11901,
+          "score": 77,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11901",
+          "answer_text": "販売面では、感染症拡大や需要低迷で減少した売上高の回復や新規事業拡大。生産面では、発注元のロットサイズ減少や短納期要請への対応。生産計画精緻化と生産統制実施。",
+          "subquestions": []
+        },
+        {
+          "input_no": 2,
+          "post_id": 11775,
+          "score": 74,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11775",
+          "answer_text": "販売面の課題は①業務用食器・重機の新販路の開拓②アウトドア用品の自社ブランド化。生産面の課題は①受注量に応じた小ロット生産化②X社に対応する納品リード期間短縮。",
+          "subquestions": []
+        },
+        {
+          "input_no": 3,
+          "post_id": 11817,
+          "score": 73,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11817",
+          "answer_text": "販売面で感染症の影響で落ち込む業務用食器・什器の売上を補うＸ社向けアウトドア商品販売の成功。生産面でＸ社からの短納期、小ロット化の要望に応えること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 4,
+          "post_id": 11787,
+          "score": 72,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11787",
+          "answer_text": "課題は①販売面で数社の取引先依存からの\n脱却とリスク分散、観光需要への依存解消②生産面で短納期対応や小ロットサイズ化へ対応、 若手への技術承継、デジタル化推進。",
+          "subquestions": []
+        },
+        {
+          "input_no": 5,
+          "post_id": 11763,
+          "score": 71,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11763",
+          "answer_text": "販売面の課題は新型コロナウイルス感染拡大の影響で減少した受注を補うこと。生産面の課題は①小ロット生産と顧客要望の短納期へ対応②若手の技術承継③デジタル化の対応。",
+          "subquestions": []
+        },
+        {
+          "input_no": 6,
+          "post_id": 11839,
+          "score": 70,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11839",
+          "answer_text": "販売面の課題は①ホテルや外食産業以外の市場開拓②直販顧客の開拓。生産面の課題は①小ロット生産体制の構築②リードタイム短縮し短納期化図ること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 7,
+          "post_id": 11803,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11803",
+          "answer_text": "課題は、販売面で、営業体制を強化し、コスト低減、生産性向上に繋がる自社企画製品の提案営業。生産面で、OJTにより金型製作技術を高め、製品の高付加価値化を図ること",
+          "subquestions": []
+        },
+        {
+          "input_no": 8,
+          "post_id": 11825,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11825",
+          "answer_text": "販売面は難易度の高い金型製作技術によりコスト低減や生産性向上の提案を行うこと、生産面は若手へ技術承継をすること、社内業務のデータベース化に対応することである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 9,
+          "post_id": 11869,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11869",
+          "answer_text": "販売面は営業力強化し、高い金型製作技術を訴求し、新規顧客拡大、既存取引先依存低下。生産面は全工程の生産計画、資材発注サイクル短縮よりロットサイズ適正化で在庫縮減",
+          "subquestions": []
+        },
+        {
+          "input_no": 10,
+          "post_id": 11907,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11907",
+          "answer_text": "販売面の課題は、高品質訴求しコロナ影響受けない販売先の数を増やし、経営リスク分散する。生産面の課題は①情報の迅速な共有化②リードタイム短縮③若手加工技術力習得。",
+          "subquestions": []
+        },
+        {
+          "input_no": 11,
+          "post_id": 11829,
+          "score": 68,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11829",
+          "answer_text": "販売面の課題は販売先拡大と営業力強化。生産面の課題は①小ロット生産に対応した生産体制構築、②設計業務効率化、③若手への技能承継、④プレス加工の段取時間短縮。",
+          "subquestions": []
+        },
+        {
+          "input_no": 12,
+          "post_id": 11785,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11785",
+          "answer_text": "課題は①販売面で新型コロナウイルス感染拡大からプレス・板金両製品の受注量回復と②生産面で設計業務の混乱解消、若手への技能承継、属人化作業の標準化と平準化である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 13,
+          "post_id": 11789,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11789",
+          "answer_text": "販売面の課題は観光と外食需要が減少する中で新規販売先を獲得し売上向上。生産面の課題は発注元の在庫削減方針に沿った小ロット化と過剰在庫の撤廃。",
+          "subquestions": []
+        },
+        {
+          "input_no": 14,
+          "post_id": 11865,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11865",
+          "answer_text": "販売面の課題は営業力の強化やアウトドア用の商品の受注を増やすこと。生産面での課題は生産リードタイムの短縮やプレス加工技術のベテラン技能者の技術承継など。",
+          "subquestions": []
+        },
+        {
+          "input_no": 15,
+          "post_id": 11893,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11893",
+          "answer_text": "販売面の課題は、受注量が減少している為、新規取引先の信頼を獲得して、受注を拡大する事。生産面の課題は、顧客要望の小ロット化に対応して在庫抑制や短納期化する事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 16,
+          "post_id": 11793,
+          "score": 66,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11793",
+          "answer_text": "販売面の課題は、コロナの影響を受け受注が減少している取引先依存度を下げ、新規開拓を行う。生産面の課題は新規取引先から求められる小ロット化、短納期化対応に応える。",
+          "subquestions": []
+        },
+        {
+          "input_no": 17,
+          "post_id": 11843,
+          "score": 65,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11843",
+          "answer_text": "販売面は、コロナ禍での受注減少に対応するため、 新規取引先の開拓を行うこと。生産面では、取引先の発注ロットの縮小に対応出来る、効率性の高い生産体制の整備。",
+          "subquestions": []
+        },
+        {
+          "input_no": 18,
+          "post_id": 11781,
+          "score": 63,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11781",
+          "answer_text": "販売面の課題は、中堅ホームセンターX 社のアウトドア商品の受注を拡大する事。生産面は、 1ベテラン技能者から若手へ技術承継を図る事、2小ロット化ニーズへの対応。",
+          "subquestions": []
+        },
+        {
+          "input_no": 19,
+          "post_id": 11807,
+          "score": 63,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11807",
+          "answer_text": "販売面の課題は卸売企業2社への依存を脱却し提案力を高めた販路開拓。生産面の課題は発注先との擦合せやビジネスプロセスの改善により生産期間の短縮化と生産能力の向上。",
+          "subquestions": []
+        },
+        {
+          "input_no": 20,
+          "post_id": 11879,
+          "score": 63,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11879",
+          "answer_text": "販売面は業務用食器・什器の卸売企業向けの売上減少に対し取引先増で依存解消。生産面は金型組立、仕上げができ製品品質やコストに影響を持つスキルを持つ若手養成。",
+          "subquestions": []
+        },
+        {
+          "input_no": 21,
+          "post_id": 11891,
+          "score": 63,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11891",
+          "answer_text": "販売面では、コロナ禍による受注減を補うための新規取引先開拓や新製品の開発。生産面では、発注元の在庫量削減方針に伴う小ロット化に対応した生産計画修正による在庫削減",
+          "subquestions": []
+        },
+        {
+          "input_no": 22,
+          "post_id": 11909,
+          "score": 63,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11909",
+          "answer_text": "販売面はホテル、旅館、外食産業等新型感染症の影響を受けた業種を取引先としており取引先の分散が課題。生産面は発注元の在庫削減方針による小ロット生産への対応が課題。",
+          "subquestions": []
+        },
+        {
+          "input_no": 23,
+          "post_id": 11769,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11769",
+          "answer_text": "販売面は難易度の高い金型製作技術とノウハウ蓄積を活かしコスト低減や\n生産性向上に結び付く提案力強化。生産面は、短納期対応や小ロット対応\n②デジタル化の推進。",
+          "subquestions": []
+        },
+        {
+          "input_no": 24,
+          "post_id": 11795,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11795",
+          "answer_text": "販売面の課題は感染症流行による業務用什器の需要低下を補うためX社取引で売上拡大。生産面の課題はX社受注に対応できる生産体制構築と受注ロットサイズ減少への対応。",
+          "subquestions": []
+        },
+        {
+          "input_no": 25,
+          "post_id": 11801,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11801",
+          "answer_text": "販売面では、受注減少のため、新規取引先の開拓と、高付加価値製品の販売が課題。生産面では、流通悪化や仕入価格の高騰のため、多品種少量生産、在庫管理が課題である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 26,
+          "post_id": 11815,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11815",
+          "answer_text": "販売面で、業務用食器・什器等、調理場用製品とは異なる業界の新規顧客の開拓による経営リスク分散、生産面で、設計期間の短縮、ベテラン技能者からの技能承継が課題。",
+          "subquestions": []
+        },
+        {
+          "input_no": 27,
+          "post_id": 11877,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11877",
+          "answer_text": "販売面では、繰返受注のプレス加工製品が主であり、販売先拡大と高付加価値化製品の受注につなげること。生産面では、生産性の向上により、余力の創出に取り組むこと。",
+          "subquestions": []
+        },
+        {
+          "input_no": 28,
+          "post_id": 11915,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11915",
+          "answer_text": "販売面の課題は、感染症により低迷する業務用食器・什器に代わる市場の開拓、生産面の課題は、ベテラン技能者が高齢化しているため、若手の要請が必要なこと、である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 29,
+          "post_id": 11767,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11767",
+          "answer_text": "販売面では①サプライチェーンを構築する事②高価格製品への拡大を行う事。生産面では①金型製作期間を短くする事②若手への技術承継を行い兼務解消、コスト削減を図る事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 30,
+          "post_id": 11797,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11797",
+          "answer_text": "販売面の課題は外食の営業自粛等による受注減少のため新市場の開拓と受注拡大で、生産面は受注の小ロット化への対応のためロットサイズ設定法の見直しと生産効率向上である",
+          "subquestions": []
+        },
+        {
+          "input_no": 31,
+          "post_id": 11811,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11811",
+          "answer_text": "販売面は①観光需要の減少に伴う新規取引先の獲得によるリスク分散、②営業開拓力。生産面は①発注元の在庫削減方針による小ロット対応、②他社連携のための社内IT化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 32,
+          "post_id": 11833,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11833",
+          "answer_text": "課題は①販売面で、コロナによる市場縮小に対し新規取引先を開拓し経営リスク分散、②生産面で、ベテラン技能者の高齢化に対し若手へ技能承継を進め製品品質を維持すること",
+          "subquestions": []
+        },
+        {
+          "input_no": 33,
+          "post_id": 11845,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11845",
+          "answer_text": "販売面での課題は情報の交換と共有をデータベース化、一元化して共有する。生産面での課題は発注元の発注ロットサイズの減少に合わせたロットサイズと在庫の適正化である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 34,
+          "post_id": 11871,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11871",
+          "answer_text": "販売面の課題は①取引先の多角化を行いリスク分散する②提案営業を行い付加価値向上する生産面の課題は①少ロット対応②生産リードタイム短縮③若手への技術継承",
+          "subquestions": []
+        },
+        {
+          "input_no": 35,
+          "post_id": 11881,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11881",
+          "answer_text": "販売面は①取引先開拓のための営業体制強化，生産面は①設計期間短期化②組立・仕上のスキル伝承③生産計画の全社対象化と頻度増④ロットサイズ適正化⑤情報共有電子化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 36,
+          "post_id": 11883,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11883",
+          "answer_text": "販売面：コロナにより旅館や飲食業の市場が縮小した為、需要動向が異なる市場や、卸売以外（最終消費者向け等）の取引先の開拓。生産面：生産稼働率の平準化と技術の継承。",
+          "subquestions": []
+        },
+        {
+          "input_no": 37,
+          "post_id": 11777,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11777",
+          "answer_text": "販売面では、海外生産委託商品の価格高騰のアウトドア顧客へコスト低減提案営業を行う。生産面では、生産、物流で海外納品できない顧客へ生産性向上新規受注を獲得する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 38,
+          "post_id": 11809,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11809",
+          "answer_text": "販売面の課題は販売先が卸売企業２社のみで販売先の拡大で安定した売上の確保、生産面の課題は金型の設計時間の短縮、設計の整流化、技術承継、多能工化である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 39,
+          "post_id": 11849,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11849",
+          "answer_text": "販売面は感染症の影響で需要が減少している中、受注を増加させること。生産面は①発注元の発注ロットサイズ減少に対応すること②短納期化に対応すること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 40,
+          "post_id": 11875,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11875",
+          "answer_text": "C社は、①販売面で取引先が卸売企業2社に依存している事に対して、新規顧客開拓、②生産面で非効率な生産プロセスと技能承継不足等による納期の短納期化が課題である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 41,
+          "post_id": 11885,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11885",
+          "answer_text": "販売面の課題は、コロナ禍の影響により落ち込んだ調理場製品の売上を回復させること。生産面の課題は、発注元の在庫削減方針に対応して加工ロットサイズを小さくすること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 42,
+          "post_id": 11805,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11805",
+          "answer_text": "販売面で、感染拡大により外食産業との取引が減少する中、受注を拡大させること。生産面で、小ロット化・短納期化の要望の中、生産を効率化させること、である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 43,
+          "post_id": 11819,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11819",
+          "answer_text": "販売面の課題は、①受注拡大、②新規取引先の開拓である。生産面の課題は、①金型製作期間の短縮、②プレス加工製品の小ロット対応、③情報共有のデジタル化である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 44,
+          "post_id": 11821,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11821",
+          "answer_text": "販売面は需要減少傾向の業務用食器・什器卸売企業2社への依存から脱却が課題である。生産面はプレス加工製品の引き合いから納品までの短納期化と小ロット化への対応である",
+          "subquestions": []
+        },
+        {
+          "input_no": 45,
+          "post_id": 11887,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11887",
+          "answer_text": "販売面は、外部環境の変化に影響されやすい宿泊業等への依存脱却、新規開拓力の強化。生産面では、設計から納品までの業務プロセス改善による、生産性の向上。",
+          "subquestions": []
+        },
+        {
+          "input_no": 46,
+          "post_id": 11895,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11895",
+          "answer_text": "販売面では、コロナ禍による売上減少から回復するための新規取引先開拓。生産面では、発注の小ロット化に対応できる生産体制の確保と新規受注の短納期化、である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 47,
+          "post_id": 11903,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11903",
+          "answer_text": "販売の課題は、新規業界の開拓を行い、単一業界の依存を脱却し経営リスク分散。生産の課題は、小ロット化に対応し短納期で費用削減等の高付加価値の提案を行う。",
+          "subquestions": []
+        },
+        {
+          "input_no": 48,
+          "post_id": 11827,
+          "score": 58,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11827",
+          "answer_text": "販売面は、コロナ後の業況が厳しい外食産業向け販売からアウトドア製品等成長分野へシフト。生産面は、小ロット化、短納期化を実現する為の組織的な生産管理、効率性の向上",
+          "subquestions": []
+        },
+        {
+          "input_no": 49,
+          "post_id": 11835,
+          "score": 58,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11835",
+          "answer_text": "販売面は新型コロナ感染症で減少した売り上げを上げること、新規取引先の開拓。生産面は設計・生産リードタイムの短縮、若手技能者の養成、デジタル化による情報の有効活用",
+          "subquestions": []
+        },
+        {
+          "input_no": 50,
+          "post_id": 11911,
+          "score": 58,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11911",
+          "answer_text": "販売面は中価格帯のプレス加工製品販売から脱却し高価格帯製品の受注。生産面は小ロット化に対応した製品を納期通りにコスト低減しつつ生産する事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 51,
+          "post_id": 11773,
+          "score": 57,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11773",
+          "answer_text": "販売面の課題は、高い金型製作技術や製造コストの低さを訴求して新規顧客を獲得する。生産面は①段取時間の短縮による短納期化、②生産統制の強化による小ロット生産対応。",
+          "subquestions": []
+        },
+        {
+          "input_no": 52,
+          "post_id": 11861,
+          "score": 57,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11861",
+          "answer_text": "①販売面で、ホテル、旅館、飲食店以外の成長市場を開拓すること。②生産面で生産業務のスピードアップをあ図ること、小ロット化の需要に対応すること、金型技術の技術承継",
+          "subquestions": []
+        },
+        {
+          "input_no": 53,
+          "post_id": 11899,
+          "score": 57,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11899",
+          "answer_text": "販売面は外食産業の営業自粛の影響による受注減少からの回復である。生産面は発注元の在庫量削減方針による発注ロットサイズ減少への対応である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 54,
+          "post_id": 11799,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11799",
+          "answer_text": "販売面では、コロナの影響軽減の為、Ｘ社と取引を成功させ経営リスク分散を図ること。生産面は、生産計画の改善で短納期化し、生産統制強化・若手育成で効率化を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 55,
+          "post_id": 11813,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11813",
+          "answer_text": "販売面で高い金型製作技術のノウハウを生かして提案営業を行うこと、生産面で①ベテラン技能者から若手へ技能承継を行い②プレス加工の段取り作業の短縮化③在庫削減である",
+          "subquestions": []
+        },
+        {
+          "input_no": 56,
+          "post_id": 11851,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11851",
+          "answer_text": "販売面では、コロナ禍で減少している販売先に加えて新たな販売先を増やすこと。生産面では新規製品の生産において短納期化を実現すること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 57,
+          "post_id": 11867,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11867",
+          "answer_text": "販売面は、仕様確認の時間削減、設計変更を減らし、納期遅延を解消する事。生産面は技術者育成、生産計画や生産方法を見直し、生産能力を高め生産期間の短縮を図る事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 58,
+          "post_id": 11889,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11889",
+          "answer_text": "販売面は、卸売業からの受注減少を補うための新規顧客の開拓を行うこと。\n生産面は、発注元の発注ロットサイズ減少に伴い小ロット化を図るための体制を整えること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 59,
+          "post_id": 11897,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11897",
+          "answer_text": "課題は販売面では新型コロナウィルスの影響を受けた業務用食器・什器の卸売企業依存を脱却し、新規販売先開拓。生産面では顧客からの要望に応えるため小ロット化を図る事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 60,
+          "post_id": 11783,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11783",
+          "answer_text": "コロナの影響でホテル、外食等向け製品の販売が落ち込んでいる。Ｘ社向け製品をはじめ小ロット短納期への要請が強まっている。発注量と生産量のずれから社内在庫量増加。",
+          "subquestions": []
+        },
+        {
+          "input_no": 61,
+          "post_id": 11837,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11837",
+          "answer_text": "販売面では商談会出展時に高品質、低コストの技術力を訴求して新規顧客を獲得する。生産面ではI T 活用と若手育成と小ロット生産対応で高品質、低コストかつ短納期化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 62,
+          "post_id": 11913,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11913",
+          "answer_text": "販売面の課題は、販売先が業務用食器・什器の卸売企業２社であり、新規顧客を獲得できていないこと。生産面の課題は、発注元の在庫量削減方針によるロットサイズの減少。",
+          "subquestions": []
+        },
+        {
+          "input_no": 63,
+          "post_id": 11779,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11779",
+          "answer_text": "販売面の課題は、従来とは異なる業界からの新規需要を開拓し、受注機会の拡大を図る。生産面の課題は、小ロット化・短納期化に対応して業務効率化と生産性向上を図ること",
+          "subquestions": []
+        },
+        {
+          "input_no": 64,
+          "post_id": 11863,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11863",
+          "answer_text": "販売面の課題は感染症拡大の影響で需要が減少する業務用食器等に代わる新たな取引先を開拓すること。生産面の課題は、金型製作減少による金型組立等の技術継承を図ること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 65,
+          "post_id": 11873,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11873",
+          "answer_text": "販売面の課題は設計仕様の確認精度をあげて短納期要請に応え販路商品開発を拡大、生産面の課題は高齢技能者の技能承継、生産計画統制を強化し小ロット生産へ対応すること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 66,
+          "post_id": 11905,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11905",
+          "answer_text": "販売面は環境の変化による受注減少に対し高付加価値化で新規顧客を獲得し経営リスク回避を目指す。生産面は若手の技術承継，ロットサイズ適正化で在庫削減，生産統制を図る",
+          "subquestions": []
+        },
+        {
+          "input_no": 67,
+          "post_id": 11823,
+          "score": 52,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11823",
+          "answer_text": "販売面は①市場成長性と自社の強みを考慮して高価格な製品を拡販②見込生産の需要予測、生産面は①ロットサイズを発注データに合わせて適正化②リードタイムの短縮化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 68,
+          "post_id": 11831,
+          "score": 52,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11831",
+          "answer_text": "販売面の課題は、一社に依存せず製品分野を広げ多様な販売先を開拓することである。\n生産面の課題は、より小ロット化する受注に対応できる生産体制の構築である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 69,
+          "post_id": 11853,
+          "score": 52,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11853",
+          "answer_text": "販売面の課題は、①発注元の仕様確認にかかる期間を短縮すること、②設計業務の作成時の混乱を解消し納期を短縮。生産面の課題は、③段取り作業の効率化、④過剰在庫の解消",
+          "subquestions": []
+        },
+        {
+          "input_no": 70,
+          "post_id": 11765,
+          "score": 51,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11765",
+          "answer_text": "販売面は販売先拡大と外国人の入国規制や外食産業の営業自粛の中での受注量回復。生産面は①プレス加工製品の小ロット化・短納期化への対応②生産管理・業務のデジタル化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 71,
+          "post_id": 11771,
+          "score": 51,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11771",
+          "answer_text": "販売面は、Ｘ社への高価格なアウトドア用PB商品の受注拡大が課題。生産面は、プレス加工製品の小ロット生産化による過剰在庫の削減、プレス加工の技術承継が課題。",
+          "subquestions": []
+        },
+        {
+          "input_no": 72,
+          "post_id": 11841,
+          "score": 51,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11841",
+          "answer_text": "販売面は①アウトドア商品の売上拡大、②PB商品の高価格帯化。製造面は①受注後の納期7日に対応する生産体制、②小ロット化に対応できる生産ロットサイズ、である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 73,
+          "post_id": 11857,
+          "score": 50,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11857",
+          "answer_text": "販売面は発注元の在庫量削減方針により発注の小ロット化への対応。生産面はプレス加工のベテラン技能者の後継者育成とプレス加工の段取り時間の削減である",
+          "subquestions": []
+        },
+        {
+          "input_no": 74,
+          "post_id": 11791,
+          "score": 49,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11791",
+          "answer_text": "販売面で、業務用食器・什器の卸売企業２社への売上依存改善。生産面で、設計期間の短縮、若手の金型組立・仕上技術の養成、プレス加工の生産能力の向上。",
+          "subquestions": []
+        },
+        {
+          "input_no": 75,
+          "post_id": 11855,
+          "score": 45,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11855",
+          "answer_text": "販売面で、新型コロナウイルス感染による外食産業の営業自粛分の売上高を回復すること。生産面で、OJTによりベテランのプレス加工技術を若手に承継すること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 76,
+          "post_id": 11847,
+          "score": 42,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11847",
+          "answer_text": "販売面の課題は、営業力を強化し卸売企業2社の間接取引と依存から脱却するため直接取引を図る。製造面の課題は、調理場で使用される製品以外の製造力を向上させること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 77,
+          "post_id": 11859,
+          "score": 39,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11859",
+          "answer_text": "販売面は、新型コロナウィルスの影響による売上減少から回復するため新規事業展開し受注拡大すること。生産面は、生産能力の制約を改善し小ロットや短納期に対応していく事",
+          "subquestions": []
+        }
+      ]
+    },
+    {
+      "question_no": 2,
+      "points": 20,
+      "heading_text": "第２問（配点20点）",
+      "answer_count": 77,
+      "score_stats": {
+        "count": 77,
+        "min": 39,
+        "max": 77,
+        "median": 60,
+        "mean": 59.64
+      },
+      "answer_char_stats": {
+        "count": 77,
+        "min": 100,
+        "max": 120,
+        "median": 119,
+        "mean": 116.79
+      },
+      "exemplars": {
+        "high": [
+          {
+            "post_id": 11901,
+            "score": 77,
+            "published_at": "2023-06-24",
+            "answer_text": "課題は、①設計期間の短縮化と②プレス加工の効率化。対応策は、①3次元CADを使用し、\n設計変更や仕様変更を減らす。板金加工と担当を分け混乱を防止。②外段取化や段取作業者増員で段取作業時間を短縮。以上で短納期化で新規受注拡大し売上増加を図る。"
+          },
+          {
+            "post_id": 11775,
+            "score": 74,
+            "published_at": "2023-06-24",
+            "answer_text": "課題は①金型設計と板金加工製品設計業務の負荷軽減②段取時間の短縮③製品量産工程の生産リードタイム短縮。対応策は①設計業務担当を分け３次元CAD導入で設計期間の短縮②複数作業者での対応、外段取り化③生産計画の短サイクル化・資材納品期間の短縮。"
+          },
+          {
+            "post_id": 11817,
+            "score": 73,
+            "published_at": "2023-06-24",
+            "answer_text": "課題は①金型の設計期間の短縮と混乱の防止②金型組立、仕上作業の負担軽減と高齢化への対応。対応策は①3DCAD導入で顧客承認確認、変更削減と生産計画の一元化②標準化とOJT教育で若手に技術伝承し多能工を育成し生産を効率化する事。"
+          },
+          {
+            "post_id": 11787,
+            "score": 72,
+            "published_at": "2023-06-24",
+            "answer_text": "課題は①設計期間の短期化②プレス加工のボトルネック解消③小ロットサイズ化へ対応。対応策は①3DCAD導入で顧客対応迅速化、繰返受注と個別受注製品の設計担当分け②外・シングル段取導入と人員増③基準日程でなく発注内容を基にサイズ決定で短納期化。"
+          },
+          {
+            "post_id": 11763,
+            "score": 71,
+            "published_at": "2023-06-24",
+            "answer_text": "課題はプレス加工製品の生産プロセスの効率化と期間短縮を図る。対応策は3D-CAD導入しイメージ共有で設計時間短縮②板金加工製品との設計担当を分け③プレス加工作業を標準化し若手教育④段取り作業を二人で行い治具導入し生産プロセス改善、短納期化。"
+          }
+        ],
+        "middle": [
+          {
+            "post_id": 11777,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": "課題は金型製作と製品量産工場のリードタイムの短縮。対応策は①設計員がデザイン図で使用確認し、板金加工とプレス加工の設計を分け、設計期間を短縮する。②製品部品組付け、仕上げを含む生産計画を立案し、量産確認時点で資材発注を行い、量産工程短縮。"
+          },
+          {
+            "post_id": 11809,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": "課題は金型製造期間の短縮である。対応策は①3DCADを導入し、発注元との仕様調整、設計変更、仕様変更等の効率を向上させる、②設計業務の多能工化を進める、③ベテラン技能者から若手担当者への技術承継を図ることで短納期化に対応する。"
+          },
+          {
+            "post_id": 11849,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": "課題は①設計期間の短期化②設計業務の混乱防止。対応策は①３次元CADの利用、技術者による対応により発注元の理解を高め仕様確認を早め、仕様変更を減らす②設計課はプレス・板金加工を兼務しているため、配置転換等で専任体制を構築すること。"
+          },
+          {
+            "post_id": 11875,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": "課題は①仕様確認等設計期間の長期化に対して設計業務の効率化、②金型組立、仕上げの長期化に対してベテランから若手への技能承継。対策は①3次元CAD適用や設計同行の営業②ベテランから若手へのOJTやマイスター制度、技能の標準化で短納期化を図る。"
+          },
+          {
+            "post_id": 11885,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": "課題は新規の金型設計工程を短期化すること。対応策は、3次元CADの導入により発注元の設計や仕様の変更要請を減らすこと。設計課は板金加工製品の設計と兼務させず専業化させること。これにより設計課の混乱が減りプレス加工製品新規受注の短期化を図る。"
+          }
+        ],
+        "low": [
+          {
+            "post_id": 11859,
+            "score": 39,
+            "published_at": "2023-06-24",
+            "answer_text": "課題は①生産能力の制約改善②設計期間の短縮化➂属人的な作業工程の標準化。対応策は①全工程の生産計画を立案し生産統制を強化②3DCADを導入し設計変更、仕様変更を効率化➂OJTにより若手へ技術継承しベテラン従業員の支援体制構築し短納期化を図る"
+          },
+          {
+            "post_id": 11847,
+            "score": 42,
+            "published_at": "2023-06-24",
+            "answer_text": "課題は、納品リードタイムを短くし納期を短縮することである。対応策は、①打ち合わせから設計課も参加し仕様変更を削減、②設計担当の役割を明確化し混乱を抑制、③若手を養成し効率化、④CADや加工機の使用法を標準化及び外段取りかし稼働率を向上する。"
+          },
+          {
+            "post_id": 11855,
+            "score": 45,
+            "published_at": "2023-06-24",
+            "answer_text": "課題は①プレス加工の繰り返し受注作業を標準化し納期を短縮すること②在庫を削減することである。対策は①全工程の順序を考慮し、ネック工程に合わせた生産計画を短サイクルで立案し、統制を図ること②実需に合ったロットの適正化により在庫を削減すること。"
+          },
+          {
+            "post_id": 11791,
+            "score": 49,
+            "published_at": "2023-06-24",
+            "answer_text": "量産発注までの設計リードタイム短縮が課題。3DCADを導入し、設計や試作情報のデータ化、変更設計などを共有する。受注履歴データを活用して板金加工製品の設計を行う事で、設計業務の混乱を削減し生産リードタイム短縮。"
+          },
+          {
+            "post_id": 11857,
+            "score": 50,
+            "published_at": "2023-06-24",
+            "answer_text": "課題は設計リードタイムの短縮。３次元CADを導入し、発注元と完成品のデザインイメージを共有し、設計変更、仕様変更を回避する。金型設計と個別受注の板金加工製品の製品設計は専任化し、設計業務の混乱を回避する。CAD/CAMの導入する。"
+          }
+        ]
+      },
+      "answers": [
+        {
+          "input_no": 1,
+          "post_id": 11901,
+          "score": 77,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11901",
+          "answer_text": "課題は、①設計期間の短縮化と②プレス加工の効率化。対応策は、①3次元CADを使用し、\n設計変更や仕様変更を減らす。板金加工と担当を分け混乱を防止。②外段取化や段取作業者増員で段取作業時間を短縮。以上で短納期化で新規受注拡大し売上増加を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 2,
+          "post_id": 11775,
+          "score": 74,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11775",
+          "answer_text": "課題は①金型設計と板金加工製品設計業務の負荷軽減②段取時間の短縮③製品量産工程の生産リードタイム短縮。対応策は①設計業務担当を分け３次元CAD導入で設計期間の短縮②複数作業者での対応、外段取り化③生産計画の短サイクル化・資材納品期間の短縮。",
+          "subquestions": []
+        },
+        {
+          "input_no": 3,
+          "post_id": 11817,
+          "score": 73,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11817",
+          "answer_text": "課題は①金型の設計期間の短縮と混乱の防止②金型組立、仕上作業の負担軽減と高齢化への対応。対応策は①3DCAD導入で顧客承認確認、変更削減と生産計画の一元化②標準化とOJT教育で若手に技術伝承し多能工を育成し生産を効率化する事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 4,
+          "post_id": 11787,
+          "score": 72,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11787",
+          "answer_text": "課題は①設計期間の短期化②プレス加工のボトルネック解消③小ロットサイズ化へ対応。対応策は①3DCAD導入で顧客対応迅速化、繰返受注と個別受注製品の設計担当分け②外・シングル段取導入と人員増③基準日程でなく発注内容を基にサイズ決定で短納期化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 5,
+          "post_id": 11763,
+          "score": 71,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11763",
+          "answer_text": "課題はプレス加工製品の生産プロセスの効率化と期間短縮を図る。対応策は3D-CAD導入しイメージ共有で設計時間短縮②板金加工製品との設計担当を分け③プレス加工作業を標準化し若手教育④段取り作業を二人で行い治具導入し生産プロセス改善、短納期化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 6,
+          "post_id": 11839,
+          "score": 70,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11839",
+          "answer_text": "課題は①設計期間の短縮②設計部門の混乱の防止③量産から納品までのリードタイムを短縮する事。対応策は①製販帯同営業とCADデータの共有で顧客の設計、仕様変更を削減する②作業の標準化とOJTにより若手を育成する③予測を元に早期に生産着手する事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 7,
+          "post_id": 11803,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11803",
+          "answer_text": "課題は①設計期間短縮②設計課の業務負荷低減③金型組立・仕上とプレス加工のベテラン技術を若手に継承④段取時間削減。対応策は①発注元と３DCAD打合せ②類似設計流用③ベテラン技術を標準化・マニュアル化・教育④外段取り化。リードタイム短縮短納期化",
+          "subquestions": []
+        },
+        {
+          "input_no": 8,
+          "post_id": 11825,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11825",
+          "answer_text": "課題は設計期間を短縮すること、生産能力の向上を図ることである。対応策は、①3次元CADにより打ち合わせ時間を短縮する、②データベース化により設計情報を再利用できるようにする、③プレス加工担当の多能工化を図る、ことにより生産能力の向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 9,
+          "post_id": 11869,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11869",
+          "answer_text": "課題は①設計期間短縮と多能工化による段取時間短縮で、生産リードタイム短縮。対応策は①発注元との仕様確認に金型製作技術者が同行してすり合わせ②設計業務分担の明確化③ベテラン技能者のノウハウ標準化、若手へのOJTで技能伝承し、生産性向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 10,
+          "post_id": 11907,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11907",
+          "answer_text": "課題は①発注元からの設計、使用変更要請減らす。②設計業務の混乱なくす。③ベテラン技能者のプレス加工技術の技能承継。対応策は①3DCAＤの導入によりイメージ立体化、②個別受注と繰返受注の設計業務を分ける③OJＴや技術指導により若手育成する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 11,
+          "post_id": 11829,
+          "score": 68,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11829",
+          "answer_text": "課題は①設計業務効率化で金型製作期間短縮、②プレス加工の段取時間短縮。対応策は①３次元ＣＡＤ導入で設計をデータ化し設計業務を効率化、個別受注の製品設計に担当を付ける。②外段取化と作業員を増員し段取時間を短縮し短納期化を実現。",
+          "subquestions": []
+        },
+        {
+          "input_no": 12,
+          "post_id": 11785,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11785",
+          "answer_text": "課題は①金型製作期間短縮と②若手への技能承継で、対応策は①３次元CAD に更新し製販同行等で設計や仕様変更のやりとりを減らし、②個別受注品の設計を他の者へ作業割り振りし、③若手に金型修理と改善作業を担わせ、ベテランから若手へ技能承継を行う。",
+          "subquestions": []
+        },
+        {
+          "input_no": 13,
+          "post_id": 11789,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11789",
+          "answer_text": "課題は①設計期間の短期化②設計業務の整理③段取りの短期化である。対応策は①３次元CADを発注元とデータ共有して変更を削減②設計課にプレス加工専門者を置き混乱をなくす③応援体制を構築し複数人で段取り作業を行うことで、新規受託の短期化をする。",
+          "subquestions": []
+        },
+        {
+          "input_no": 14,
+          "post_id": 11865,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11865",
+          "answer_text": "課題は金型製作工程のリードタイム短縮である。対応策は①3DCADを用いて設計期間を短縮し、②プレス加工製品と板金加工製品の設計担当を分けて業務の混乱を避け、③金型組立や金型仕上でのプレス加工技術を標準化④OJTで若手を育成し短納期化を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 15,
+          "post_id": 11893,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11893",
+          "answer_text": "課題は、①金型製作工程の期間短縮をする事。②ベテラン技能者の技術を若手に継承する事。対応策は、①３DCADで顧客の仕様すり合わせの時間の短縮や設計の専任化で混乱を防ぐ。②作業をマニュアル化して、技能マップを基にベテランから若手に教育をする。",
+          "subquestions": []
+        },
+        {
+          "input_no": 16,
+          "post_id": 11793,
+          "score": 66,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11793",
+          "answer_text": "課題は、金型製作工程の短縮で、対応策としては①仕様確認を２次元ＣＡＤを用いて設計と営業が共有する。②設計課の個別受注製品との兼務を是正。③金型組立、仕上工程の熟練技能者によるＯＪＴによる若手の養成をしつつ短納期化を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 17,
+          "post_id": 11843,
+          "score": 65,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11843",
+          "answer_text": "課題は、①設計期間の短縮化②プレス加工の生産能力の向上である。対応策は、①設計に3次元CADを 使用し、立体製図で顧客の確認時間短縮化、仕様変更負荷軽減②段取り作業を見直し、内段取りの外段取り化や人員補強で時間短縮を図り、納期短縮化を実現。",
+          "subquestions": []
+        },
+        {
+          "input_no": 18,
+          "post_id": 11781,
+          "score": 63,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11781",
+          "answer_text": "課題は、1金型製作工程の負荷軽減、2段取り作業の見直しを行う事、3社内の連携を強化 する事。対応策は、1OJT 等の教育により若手への技術承継を図る事、2内段取りの外段 取り化、33DCAD を導入し、顧客と情報共有。以て短納期化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 19,
+          "post_id": 11807,
+          "score": 63,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11807",
+          "answer_text": "課題は、生産期間の短縮化と生産能力の向上を図ること。対応策は①繰返受注で得た過去の発注情報をDB管理し設計に活かす。②3次元CADの導入で発注先との擦り合わせを強化し、設計・仕様変更を減らす。③作業の属人化を見直す。④技能を承継。",
+          "subquestions": []
+        },
+        {
+          "input_no": 20,
+          "post_id": 11879,
+          "score": 63,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11879",
+          "answer_text": "課題は、設計から初回納品までのリードタイム短縮。対応策は、３次元CADを導入し設計・仕様変更の回数減。全社で生産計画を作成し計画的に設計担当者を配備し設計業務の混乱を抑制、金型作成期間減。金型の修理や改善作業を標準化し若手養成、作業期間減。",
+          "subquestions": []
+        },
+        {
+          "input_no": 21,
+          "post_id": 11891,
+          "score": 63,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11891",
+          "answer_text": "課題は①仕様、設計確認の迅速化で製造期間を短縮②プレス加工の生産能力向上で全社の生産性を改善ーすること。対応策は①３次元CAD導入でリモートで仕様、設計を調整②材料準備作業の外段取り化を進め、金型交換作業の応援で段取り時間を短縮ーすること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 22,
+          "post_id": 11909,
+          "score": 63,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11909",
+          "answer_text": "課題は①金型製作期間の短縮②発注元との仕様確認等のやりとりの時間を短縮し設計期間を短縮すること対応策は①ベテラン技能者のOJTによる若手技能者養成②作業のマニュアル化・標準化による金型製作期間の短縮③3次元CAD導入による設計期間短縮",
+          "subquestions": []
+        },
+        {
+          "input_no": 23,
+          "post_id": 11769,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11769",
+          "answer_text": "課題は①金型設計、仕様変更要請の対応変更②設計の専門化\n②若手への技能承継を図る事である。\n対応策は①2 次元 CAD を改め、3 次元 CAD にして設計時間短縮と提案の明視化し、\n顧客との調整を軽減し②OJT、教育での技能承継を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 24,
+          "post_id": 11795,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11795",
+          "answer_text": "課題は①顧客との仕様確認の改善②個別受注対応による設計業務の混乱回避③若手への金型組立・仕上げ技術継承による戦力化。対応策は①3DCADの活用による仕様確認の期間と精度向上②全社的な金型製作計画立案と管理③作業標準化の上OJTで若手育成。",
+          "subquestions": []
+        },
+        {
+          "input_no": 25,
+          "post_id": 11801,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11801",
+          "answer_text": "課題は①発注元との仕様確認短期化と変更発生の回避②設計課の負担軽減③ベテラン技能者の事業承継。対応策は①3DCADの導入②プレス加工と板金加工の金型製作担当を分ける③ベテラン技術の標準化、マニュアル化、OJTで技能承継し、作業を短縮化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 26,
+          "post_id": 11815,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11815",
+          "answer_text": "課題は、①金型設計期間の短縮化、②設計業務の円滑な推進による金型製作期間の短縮化である。対応策は①営業に設計や製作要員が同行、３ⅮＣＡＤを使って仕様打ち合わせをする、②設計担当者を専任化する。以上で、金型設計の効率化を進め、期間短縮を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 27,
+          "post_id": 11877,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11877",
+          "answer_text": "課題は生産リードタイムの短縮。対応策は、3DCADを導入し、金型の仕様共有を円滑化して設計期間を短縮する。金型の組立・仕上作業は標準化し、作業者を育成して習熟度を向上させる。加工中に次工程に必要な資材や金型の準備を行い、段取り時間を削減。",
+          "subquestions": []
+        },
+        {
+          "input_no": 28,
+          "post_id": 11915,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11915",
+          "answer_text": "課題は、①設計期間の短縮化。対応策は２DCADから３DCADへの変更により、仕様変更要請による設計変更、仕様変更に対応し混乱防ぐ。②段取り作業の短縮化。対応策は、内段取りの外段取り化、余力管理で作業人員を増やす。",
+          "subquestions": []
+        },
+        {
+          "input_no": 29,
+          "post_id": 11767,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11767",
+          "answer_text": "課題は①発注元からの設計変更、仕様変更要請に対する対応の迅速化②設計業務の混乱解消③段取作業の時間短縮。対応策は①3DCADの導入、顧客との打合せへの設計課の同席②製品設計担当の専任化③複数人で段取作業を行う事。以上で短納期化を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 30,
+          "post_id": 11797,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11797",
+          "answer_text": "課題は金型製作工程の短縮で、①発注元との密で迅速な情報共有で仕様確認や変更の時間の短縮②プレス加工の金型設計専任の設置で設計業務の混乱の回避③ベテランによるOJT等で若手の育成により生産効率向上でリードタイム短縮を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 31,
+          "post_id": 11811,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11811",
+          "answer_text": "課題は①発注元との仕様変更の削減、時間短縮、②設計課の混乱解消、③段取り作業の削減による生産能力の向上。対応策は①３DCAD導入、設計担当者の仕様確認への同行、②板金加工の専任者をつくり負荷を軽減、③段取り作業の削減、外段取り化を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 32,
+          "post_id": 11833,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11833",
+          "answer_text": "C社は①設計期間短縮が課題のため、3D-CADを使ったイメージ共有や過去データ活用で設計業務を効率化②プレス加工の生産能力向上が課題のため、設備の改良保全③段取り作業短縮が課題のため、金型交換作業等の外段取り化、で生産性を向上し短納期化する",
+          "subquestions": []
+        },
+        {
+          "input_no": 33,
+          "post_id": 11845,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11845",
+          "answer_text": "課題は①設計課の負担を減らし②設計変更・仕様変更を減らすことである。対応策は①設計課内で金型設計専任担当者を設け②3次元CADにより設計変更・仕様変更を減らし③設計業務の混乱を回避し短納期生産を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 34,
+          "post_id": 11871,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11871",
+          "answer_text": "課題は①設計期間の短縮②生産計画から納品までの期間短縮。対応策は①3次元CADの導入、発注元との情報共有、製品担当者の固定を行う②生産計画の頻度増加、段取り替えを複数人で協力して行い段取り時間短縮、納品回数の増加を行いリードタイム短縮する",
+          "subquestions": []
+        },
+        {
+          "input_no": 35,
+          "post_id": 11881,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11881",
+          "answer_text": "課題は，①設計期間短期化，②生産計画の作成頻度増，③プレス加工機の生産能力拡大。対応策は，①仕様確認に設計課も帯同，②計画作成頻度を月1回から週1回へ増やす，③業務の標準化・マニュアル化と外段取り化により新規受注の短納期化を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 36,
+          "post_id": 11883,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11883",
+          "answer_text": "課題：設計期間の短縮と組立や仕上の加工期間の短縮で金型製作期間のリードタイムの短縮化。対応策：2次元ＣＡＤから３次元に変え、発注元とのイメージ共有をし易くして打合せや変更を減らす。加工技術に関してベテランから若手へ引継ぎ、作業人数を増やす。",
+          "subquestions": []
+        },
+        {
+          "input_no": 37,
+          "post_id": 11777,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11777",
+          "answer_text": "課題は金型製作と製品量産工場のリードタイムの短縮。対応策は①設計員がデザイン図で使用確認し、板金加工とプレス加工の設計を分け、設計期間を短縮する。②製品部品組付け、仕上げを含む生産計画を立案し、量産確認時点で資材発注を行い、量産工程短縮。",
+          "subquestions": []
+        },
+        {
+          "input_no": 38,
+          "post_id": 11809,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11809",
+          "answer_text": "課題は金型製造期間の短縮である。対応策は①3DCADを導入し、発注元との仕様調整、設計変更、仕様変更等の効率を向上させる、②設計業務の多能工化を進める、③ベテラン技能者から若手担当者への技術承継を図ることで短納期化に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 39,
+          "post_id": 11849,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11849",
+          "answer_text": "課題は①設計期間の短期化②設計業務の混乱防止。対応策は①３次元CADの利用、技術者による対応により発注元の理解を高め仕様確認を早め、仕様変更を減らす②設計課はプレス・板金加工を兼務しているため、配置転換等で専任体制を構築すること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 40,
+          "post_id": 11875,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11875",
+          "answer_text": "課題は①仕様確認等設計期間の長期化に対して設計業務の効率化、②金型組立、仕上げの長期化に対してベテランから若手への技能承継。対策は①3次元CAD適用や設計同行の営業②ベテランから若手へのOJTやマイスター制度、技能の標準化で短納期化を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 41,
+          "post_id": 11885,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11885",
+          "answer_text": "課題は新規の金型設計工程を短期化すること。対応策は、3次元CADの導入により発注元の設計や仕様の変更要請を減らすこと。設計課は板金加工製品の設計と兼務させず専業化させること。これにより設計課の混乱が減りプレス加工製品新規受注の短期化を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 42,
+          "post_id": 11805,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11805",
+          "answer_text": "課題は、金型製作と初回プレスまでの期間を短縮すること。対応策は、①3DCADを活用し、仕様確認をスムーズに行う、②金型製作と板金加工製品の担当を分け混乱を防ぐ、③金型製作と同時に初回加工の計画や資材発注を行う、である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 43,
+          "post_id": 11819,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11819",
+          "answer_text": "課題は、①金型製作期間の短縮、②プレス加工工程の段取作業の改善である。対応策は、①製品群毎に設計担当を分けた上で、二次元ＣＡＤデータを用いて発注元との仕様に関する認識統一を行う点、②複数人での段取作業を標準とし、シングル段取を目指す点。",
+          "subquestions": []
+        },
+        {
+          "input_no": 44,
+          "post_id": 11821,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11821",
+          "answer_text": "課題は①仕様確認と設計変更対応の迅速化による設計期間短縮、②プレス加工の段取時間短縮である。対応策は①顧客との仕様打合せに設計課担当者も同行し早期の情報共有で設計リードタイム短縮、②プレス加工に補助作業員を配置し材料準備作業の外段取化を図る",
+          "subquestions": []
+        },
+        {
+          "input_no": 45,
+          "post_id": 11887,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11887",
+          "answer_text": "①金型設計業務の短縮化、②設計変更等による業務混乱の解消、③段取り作業の短縮化である。対応策は、①ベテラン技能者によるOJT、標準化・マニュアル化で従業員への技術承継②3DCADを活用し仕様等の変更撲滅③作業員の負荷分散と外段取り化である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 46,
+          "post_id": 11895,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11895",
+          "answer_text": "課題は①発注元との仕様確認等にかかる時間の削減、②金型設計と板金加工設計の対応の明確化③効率的な人員配置による段取り作業削減。対応策は①３次元CAD導入での仕様調整の容易化、②両作業での担当者兼任の回避③人員の適正配置、でリードタイム縮減。",
+          "subquestions": []
+        },
+        {
+          "input_no": 47,
+          "post_id": 11903,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11903",
+          "answer_text": "課題は、①金型設計体制の強化、②若手技能者の技能向上を図る。対応策は、①営業課との連携し仕様確認の短縮、②３次元CADを活用し変更削減、③金型設計の専任設計担当を設置、④マニュアル作成、OJT、研修で技能育成し、熟練職人の余力を捻出する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 48,
+          "post_id": 11827,
+          "score": 58,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11827",
+          "answer_text": "課題は➀金型製作期間の短縮②高齢技能者の技術継承③生産計画の精度向上④段取り時間の短縮。対策は➀CADデータのライブラリ化で作業効率化、設計段階で顧客と内容を確認②作業マニュアル化、OJTで若手育成③全工程及び加工順含め計画作成④外段取り化",
+          "subquestions": []
+        },
+        {
+          "input_no": 49,
+          "post_id": 11835,
+          "score": 58,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11835",
+          "answer_text": "対応策は①仕様確認を短縮するために３次元ＣＡＤを導入する、②若手技能者をＯＪＴなどによって技術を養成する、③設計課の業務負担軽減のために、個別受注品の担当業務を移管することで、新規受注の短納期化を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 50,
+          "post_id": 11911,
+          "score": 58,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11911",
+          "answer_text": "課題は①設計・仕様変更に迅速対応②設計担当者の業務負荷軽減③若手養成体制構築。対応策は①CAD データのやり取りで変更に即応。②板金加工製品や金型修理や改善は他者に作業委託③熟練技術者の技術を標準化・書面化し師弟制等で教育。で短納期を実現。",
+          "subquestions": []
+        },
+        {
+          "input_no": 51,
+          "post_id": 11773,
+          "score": 57,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11773",
+          "answer_text": "課題は、①金型設計の打ち合わせ回数を減らすこと、②金型設計・制作できる作業員を増やすことで短納期化する。対応策は、①３次元ＣＡＤを導入して、顧客とイメージを合わせやすくすること、②ＯＪＴにより若手を育成し、板金加工の設計者を多能工化させる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 52,
+          "post_id": 11861,
+          "score": 57,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11861",
+          "answer_text": "①設計工程で発注元の設計変更や仕様変更によるムダを無くすこと、②設計課、プレス加工課の兼務体制によるムダをなくすことが課題。対応策は①３次元ＣＡＤの導入、②設計工程の計画立案、③金型技術を若手にＯＪＴで承継し、新規受注の短納期化を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 53,
+          "post_id": 11899,
+          "score": 57,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11899",
+          "answer_text": "課題は①技能者を育成・増員すること②設計期間を短縮すること③段取時間を短縮することである。対応策は①高齢技能者からのＯＪＴ②３次元ＣＡＤの導入と、プレス加工と板金加工の設計担当者の分離③内段取化と、プレス加工機別の担当制の廃止である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 54,
+          "post_id": 11799,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11799",
+          "answer_text": "課題は、１設計課の役割を明確化し２若手の活用で作業を平準化させ３最適な生産計画立案で作業効率化し４段取作業短縮で短納期化を図ること。対応策は、１マニュアル作成で役割を標準化２OJT育成で若手を育成３週次で計画作成４外段化、増員の実施である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 55,
+          "post_id": 11813,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11813",
+          "answer_text": "①プレス加工のネック工程が課題のためプレス加工機の増強を行い、②プレス加工の段取り時間短縮が課題のため段取り作業の標準化・マニュアル化し作業者に教育を行い、③ベテラン技能者から若手へ技能承継が課題のためマイスター制度により技能承継を行う事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 56,
+          "post_id": 11851,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11851",
+          "answer_text": "課題は、金型の設計期間を短くすることである。対応策は①3DCADを用いて顧客とのイメージを合わせ仕様確認を早くする②若手技術者をベテランからのOJTで育成すること③個別生産品と繰返生産品との設計担当を分けて混乱を防ぐことである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 57,
+          "post_id": 11867,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11867",
+          "answer_text": "プレス加工機における生産能力を高めることが課題。仕様見積りを標準化し設計変更を減らす。CADデータの設計要素をライブラリー化し流用することで金型設計時間を短縮する。金型組立、金型仕上げ、プレス加工技術を標準化し若手を育成し生産能力を高める。",
+          "subquestions": []
+        },
+        {
+          "input_no": 58,
+          "post_id": 11889,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11889",
+          "answer_text": "課題は、発注元との仕様確認などの手戻りを削減し設計期間を短縮化。\n対応策は、①プレス加工製品と板金加工製品で専任の設計者を置き計画業務の混乱の削減、②3DCADを導入し発注元との仕様確認に要する時間を短縮する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 59,
+          "post_id": 11897,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11897",
+          "answer_text": "課題は生産期間の短縮。対応策は①3DCADの導入、プレス加工製品と板金加工製品の設計担当を専任化し設計期間短縮、②金型組立と金型仕上の作業の標準化と若手技能者育成で生産能力増強と全工程の生産計画作成で余力管理を行い生産期間短縮、を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 60,
+          "post_id": 11783,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11783",
+          "answer_text": "設計課による金型設計が板金加工設計により遅れることがあるため、全体で計画策定し、作業の遅延を回避する。金型組立と仕上を修理等も兼務している熟練工のみが実施し、全体への影響が大きいため若手の育成を通じて負荷を最適化し、遅延を回避する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 61,
+          "post_id": 11837,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11837",
+          "answer_text": "課題は①設計担当が個別受注と板金加工製品の設計で混乱を起こさない。②ベテランが重要な業務の対応に集中できるようにする。対策は①設計課で個別受注と板金加工製品担当を別にする。②若手育成を推進させ金型組立、金型仕上を担当させる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 62,
+          "post_id": 11913,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11913",
+          "answer_text": "課題は、ラインバランシングの実現である。対応策は、➀金型の修理と改善作業の兼務を解消し、それぞれの工程を独立させる、➁プレス加工の金型交換作業と材料準備作業を一人で行うのではなく、複数人で行うことで、段取作業を短縮しボトルネックを解消する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 63,
+          "post_id": 11779,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11779",
+          "answer_text": "課題は①設計期間の短縮化、➁プレス工程の生産能力向上。対応策は①難易度によって設計の優先度と業務の振り分けを整理して設計業務の混乱をなくす。➁プレス加工機を複数名で担当して、内段取の外段取化と内段取時間の短縮をすすめる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 64,
+          "post_id": 11863,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11863",
+          "answer_text": "課題は発注者との仕様確定を早期化し、設計期間を短縮すること。対応策は営業が行う仕様確認に設計課同行し、早期の仕様確定を図る。また、3DCADの導入で、打合せ時に立体的な設計モデルを見せ、打合せ後の設計変更等を防ぎ、設計効率を向上させる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 65,
+          "post_id": 11873,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11873",
+          "answer_text": "課題は設計課の業務効率化による負荷軽減とプレス加工課の役割分担である。対応策は、３DCADを用い設計業務の効率化を図り設計課の余力確保、情報共有、生産計画統制を全社的に行い、プレス加工の多能工化を図り業務平準化、段取改善を行い短納期化する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 66,
+          "post_id": 11905,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11905",
+          "answer_text": "課題は①若手への技能承継②兼務による負荷解消③全社で計画を立てる④段取り作業の効率化。対応策は①研修による多能工化②ＯＪＴによる技術承継③外段取り・標準化④２次元ＣＡＤでデータ共有し効率化⑤生産統制を行うことにより新規受注の短納期化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 67,
+          "post_id": 11823,
+          "score": 52,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11823",
+          "answer_text": "課題は①金型製作期間の短縮化②プレス加工工程の段取り時間短縮化である。対応策は①設計担当者を専任化し、設計内容の変更や確認の為にCADデータを発注元と共有化②多能工化によりプレス加工工程以外の人員と段取り作業を行い外段取り化する事、である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 68,
+          "post_id": 11831,
+          "score": 52,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11831",
+          "answer_text": "課題は、高難易度の製作期間を低難易度の製作期間と同様にすることで、短納期化を図ることである。対応策は、プレス加工と板金加工の設計の兼任をやめて余力を確保した上で、3次元CADを導入し発注元との使用確認や設計変更を減らして設計期間を短縮する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 69,
+          "post_id": 11853,
+          "score": 52,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11853",
+          "answer_text": "課題は、①発注元の仕様確定までの手戻りの解消、②金型設計で混乱を回避すること、で納期を短縮する。対応策は、①設計を3D CADで行い、発注元がイメージし易くし手戻りを抑制、②設計業務を繰返受注と個別受注でそれぞれ専任化し混乱を回避する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 70,
+          "post_id": 11765,
+          "score": 51,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11765",
+          "answer_text": "課題はプレス加工製品の金型製作・製品量産工程の期間短縮。対応策は①発注元との2DCADデータ共有による設計・仕様変更の抑止と板金加工製品・プレス加工品の設計業務の専任化、ベテラン技能者から若手への技能継承②プレス加工機の段取り作業分担。",
+          "subquestions": []
+        },
+        {
+          "input_no": 71,
+          "post_id": 11771,
+          "score": 51,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11771",
+          "answer_text": "プレス加工製品の生産計画を、製品部品組付と製品仕上も含めて統合し、余力管理を行い生産能力を高める。３次元CADを導入し、発注元との仕様確認や設計変更を減らし、設計期間を短縮し、設計業務を分業化し生産リードタイムを短縮する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 72,
+          "post_id": 11841,
+          "score": 51,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11841",
+          "answer_text": "課題は①一人での金型交換作業と材料準備を改善し、②全社的生産計画が立案を行うこと。対応策は①外段取りにして人に任せることで作業に集中し、②月次計画を週次日次にし生産統制を図ることで短納期化を図り、納期遅延を防ぐ。",
+          "subquestions": []
+        },
+        {
+          "input_no": 73,
+          "post_id": 11857,
+          "score": 50,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11857",
+          "answer_text": "課題は設計リードタイムの短縮。３次元CADを導入し、発注元と完成品のデザインイメージを共有し、設計変更、仕様変更を回避する。金型設計と個別受注の板金加工製品の製品設計は専任化し、設計業務の混乱を回避する。CAD/CAMの導入する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 74,
+          "post_id": 11791,
+          "score": 49,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11791",
+          "answer_text": "量産発注までの設計リードタイム短縮が課題。3DCADを導入し、設計や試作情報のデータ化、変更設計などを共有する。受注履歴データを活用して板金加工製品の設計を行う事で、設計業務の混乱を削減し生産リードタイム短縮。",
+          "subquestions": []
+        },
+        {
+          "input_no": 75,
+          "post_id": 11855,
+          "score": 45,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11855",
+          "answer_text": "課題は①プレス加工の繰り返し受注作業を標準化し納期を短縮すること②在庫を削減することである。対策は①全工程の順序を考慮し、ネック工程に合わせた生産計画を短サイクルで立案し、統制を図ること②実需に合ったロットの適正化により在庫を削減すること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 76,
+          "post_id": 11847,
+          "score": 42,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11847",
+          "answer_text": "課題は、納品リードタイムを短くし納期を短縮することである。対応策は、①打ち合わせから設計課も参加し仕様変更を削減、②設計担当の役割を明確化し混乱を抑制、③若手を養成し効率化、④CADや加工機の使用法を標準化及び外段取りかし稼働率を向上する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 77,
+          "post_id": 11859,
+          "score": 39,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11859",
+          "answer_text": "課題は①生産能力の制約改善②設計期間の短縮化➂属人的な作業工程の標準化。対応策は①全工程の生産計画を立案し生産統制を強化②3DCADを導入し設計変更、仕様変更を効率化➂OJTにより若手へ技術継承しベテラン従業員の支援体制構築し短納期化を図る",
+          "subquestions": []
+        }
+      ]
+    },
+    {
+      "question_no": 3,
+      "points": 20,
+      "heading_text": "第３問（配点20点）",
+      "answer_count": 77,
+      "score_stats": {
+        "count": 77,
+        "min": 39,
+        "max": 77,
+        "median": 60,
+        "mean": 59.64
+      },
+      "answer_char_stats": {
+        "count": 77,
+        "min": 86,
+        "max": 120,
+        "median": 116,
+        "mean": 113.47
+      },
+      "exemplars": {
+        "high": [
+          {
+            "post_id": 11901,
+            "score": 77,
+            "published_at": "2023-06-24",
+            "answer_text": "対応策は、プレス加工以外の工程も含めた全社的な生産計画を立案の上、計画を短周期化。現在の基準日程による計画を改め、発注ロットサイズに応じた計画立案。外段取化や段取作業者増員で段取時間を短縮。以上で、小ロット生産に対応し、短納期化で受注拡大。"
+          },
+          {
+            "post_id": 11775,
+            "score": 74,
+            "published_at": "2023-06-24",
+            "answer_text": "対応策は、①プレス加工能力を強化し負荷平準化・仕掛品を減らして稼働率を向上②プレス加工と金型加工の生産計画を一元化③基準日程に合わせたロットサイズから受注量に合わせた生産ロットサイズに変更し、パソコンで全社リアルタイムに情報交換・共有する。"
+          },
+          {
+            "post_id": 11817,
+            "score": 73,
+            "published_at": "2023-06-24",
+            "answer_text": "対応策は①月次生産計画を週次に短サイクル化し②プレス加工の段取り作業を外段取化し作業の標準化でOJT教育で短縮し生産能力増強も検討③プレス加工を全体計画に統合し発注量で基準日程を策定し小ロット化し在庫を削減する。以上により生産性を向上する。"
+          },
+          {
+            "post_id": 11787,
+            "score": 72,
+            "published_at": "2023-06-24",
+            "answer_text": "対応策は①受注内容の共有迅速化の為の製販\n連携強化 ②プレス加工や製品部品組付、 製品仕上等全工程を含め、 小ロットサイズ化も考慮した生産計画策定 ③ 計画に沿う現品・ 進捗・余力管理の実施等生産統制でリードタイム短縮し小ロット化に対応。"
+          },
+          {
+            "post_id": 11763,
+            "score": 71,
+            "published_at": "2023-06-24",
+            "answer_text": "対応策は①プレス加工以外も含めた生産計画を立案し細めに見直し②生産ロットサイズ見直し適正ロットサイズで生産③加工数量基準を発注量基準に変更④納期日が生産期間より長い場合は中間在庫を保有し、在庫保有コスト削減とともに小ロット生産対応する。"
+          }
+        ],
+        "middle": [
+          {
+            "post_id": 11777,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": "対応策は①段取り作業の標準化により、金型交換と材料準備作業のマニュアル化を進め、作業員の負荷を平準化し、作業時間を短縮する事。②基準日程によってロットサイズを設定するではなく、確定受注量を基にロットサイズを決め、発注方法の変化に対応する。"
+          },
+          {
+            "post_id": 11809,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": "生産面での対応策は、①プレス加工機の金型交換作業と材料準備作業のマニュアル化と標準化を進める、②プレス加工製品と板金加工製品全体の生産計画を策定し、適正なロットサイズでの製造や在庫量の削減を進め、小ロットへの変化に対応する。"
+          },
+          {
+            "post_id": 11849,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": "対応策は①生産計画立案の短サイクル化を図り最新の受注数量を反映させる②プレス加工と製品部品組付・仕上を含めた生産計画を立案しロットサイズは加工数量ではなく受注量で決める③ベテランのOJTにより多能工化を図り柔軟性のある生産体制を構築する。"
+          },
+          {
+            "post_id": 11875,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": "対策は、①月次の生産計画に対し、生産計画の短サイクル化、②プレス加工の計画だけでなく全体生産計画の策定、③基準日程による設定でなく発注元のロットサイズに合わせた適正なロットサイズ、④内段取りの外段取り化等で小ロットサイズに対応する。"
+          },
+          {
+            "post_id": 11885,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": "対応策はプレス加工機ごとの担当を作業ごとの担当に変更する。具体的には材料の出し入れ、金型交換を設備操作中に他の担当者が準備することで外段取り化しプレスの稼働率を向上させ生産効率化を図り、小ロット化による多品種少量生産体制を実現する。"
+          }
+        ],
+        "low": [
+          {
+            "post_id": 11859,
+            "score": 39,
+            "published_at": "2023-06-24",
+            "answer_text": "対応策は①プレス加工だけでなく全工程の生産計画を立案し②生産統制の強化により在庫量の見直し➂属人的な作業を標準化しOJTにより若手を養成④SLPを実施し5Sの徹底で段取り作業の短縮化、以上により生産性を高め少ロット化に対応する。"
+          },
+          {
+            "post_id": 11847,
+            "score": 42,
+            "published_at": "2023-06-24",
+            "answer_text": "対応策は、①全社的な生産計画の立案及び計画立案の短サイクル化、②確定受注量を基にしたロットサイズの適正化、③納品間隔を短サイクル化、④資材の調達見直し、⑤加工機の生産能力増強でネックを解消。以上で在庫量削減方針に適応し発注方法の変化に対応。"
+          },
+          {
+            "post_id": 11855,
+            "score": 45,
+            "published_at": "2023-06-24",
+            "answer_text": "対応策は①マンマシンチャートを作成し、作業者の稼働状況を把握すること②外段取り化により作業効率の改善を図ること③金型交換作業と材料準備作業の役割を分担し、作業負荷の平準化を図ること④生産計画を短サイクルで作成することである。"
+          },
+          {
+            "post_id": 11791,
+            "score": 49,
+            "published_at": "2023-06-24",
+            "answer_text": "金型組立・仕上作業を標準化し若手を育成し、プレス加工の金型交換や材料準備作業を標準化し外段取化を図り段取り時間を短縮し、全体で納品日を含めた生産計画を短サイクルで作成する事で、仕掛品や製品在庫を削減する。"
+          },
+          {
+            "post_id": 11857,
+            "score": 50,
+            "published_at": "2023-06-24",
+            "answer_text": "プレス加工の標準化で多能工を育成し多工程持ちにすることで金型交換作業と材料準備作業の段取り時間を削減する。製販会議は高頻度で行い生産計画は納品日を基準に最終工程の完了日まで計画し生産量は確定受注量を計画する。資材発注は生産計画に含める。"
+          }
+        ]
+      },
+      "answers": [
+        {
+          "input_no": 1,
+          "post_id": 11901,
+          "score": 77,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11901",
+          "answer_text": "対応策は、プレス加工以外の工程も含めた全社的な生産計画を立案の上、計画を短周期化。現在の基準日程による計画を改め、発注ロットサイズに応じた計画立案。外段取化や段取作業者増員で段取時間を短縮。以上で、小ロット生産に対応し、短納期化で受注拡大。",
+          "subquestions": []
+        },
+        {
+          "input_no": 2,
+          "post_id": 11775,
+          "score": 74,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11775",
+          "answer_text": "対応策は、①プレス加工能力を強化し負荷平準化・仕掛品を減らして稼働率を向上②プレス加工と金型加工の生産計画を一元化③基準日程に合わせたロットサイズから受注量に合わせた生産ロットサイズに変更し、パソコンで全社リアルタイムに情報交換・共有する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 3,
+          "post_id": 11817,
+          "score": 73,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11817",
+          "answer_text": "対応策は①月次生産計画を週次に短サイクル化し②プレス加工の段取り作業を外段取化し作業の標準化でOJT教育で短縮し生産能力増強も検討③プレス加工を全体計画に統合し発注量で基準日程を策定し小ロット化し在庫を削減する。以上により生産性を向上する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 4,
+          "post_id": 11787,
+          "score": 72,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11787",
+          "answer_text": "対応策は①受注内容の共有迅速化の為の製販\n連携強化 ②プレス加工や製品部品組付、 製品仕上等全工程を含め、 小ロットサイズ化も考慮した生産計画策定 ③ 計画に沿う現品・ 進捗・余力管理の実施等生産統制でリードタイム短縮し小ロット化に対応。",
+          "subquestions": []
+        },
+        {
+          "input_no": 5,
+          "post_id": 11763,
+          "score": 71,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11763",
+          "answer_text": "対応策は①プレス加工以外も含めた生産計画を立案し細めに見直し②生産ロットサイズ見直し適正ロットサイズで生産③加工数量基準を発注量基準に変更④納期日が生産期間より長い場合は中間在庫を保有し、在庫保有コスト削減とともに小ロット生産対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 6,
+          "post_id": 11839,
+          "score": 70,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11839",
+          "answer_text": "生産面での対応策は①全社的な生産計画を短サイクルで立案する事②基準日程により設定しているロットサイズを需要ベースに改める事③人員配置を見直し段取り作業の効率化を図る事④内段取りの外段取り化。以上で小ロット需要に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 7,
+          "post_id": 11803,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11803",
+          "answer_text": "対応策は①プレス加工、板金加工を合わせた全社生産計画として、短周期化、進捗・現品・余力管理を強化②基準日程での設定を止め納品・在庫状況を加味し小ロット化③ベテラン技術を標準化・マニュアル化・OJTで若手を多能工化。以上で柔軟な生産体制を構築",
+          "subquestions": []
+        },
+        {
+          "input_no": 8,
+          "post_id": 11825,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11825",
+          "answer_text": "対応策は、①生産計画を納品指定日が通知されてからすぐに作成すること、②全工程を一元化した生産計画を作ること、③納期に基づいて製品部品組付や製品仕上げを行うこと、基準日程を作ること、④実需に合ったロットサイズを設定すること、である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 9,
+          "post_id": 11869,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11869",
+          "answer_text": "対応策は①プレス加工だけでなく全工程に対応し、低サイクルで生産計画作成②加工数量ではなく、受注量基準とした生産計画③生産統制を強化し、資材発注サイクル短縮④プレス加工生産能力に応じた人員配置、ラインバランシングによる在庫縮減を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 10,
+          "post_id": 11907,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11907",
+          "answer_text": "対応策は①全社的な生産計画の立案、②基準日程で設定しているロットサイズを経済的ロ\nットサイズへ変更し加工のムダをなくす③プレス加工機ごとに担当する作業者の業務負担の軽減と段取作業の応援、により生産性向上させ、顧客の小ロット化需要に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 11,
+          "post_id": 11829,
+          "score": 68,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11829",
+          "answer_text": "対応策は①全行程の生産計画を策定し各課の生産の同期化、②後工程引取方式を導入し必要な量を必要な時に生産し在庫の適正化、③多品種少量生産に対応するため機能別配置やＧＴを導入し生産の効率化を図り、発注量に合わせて生産し小ロットに対応。",
+          "subquestions": []
+        },
+        {
+          "input_no": 12,
+          "post_id": 11785,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11785",
+          "answer_text": "対応策は①Ｃ社全体の生産計画を立案し週次へ短サイクル化、②受注量を考慮し適正ロット化して適正在庫化、③段取作業を標準化マニュアル化し、OJT で多能工化・兼任化し一人から複数名担当へ作業負荷を平準化し④進捗管理をしボトルネックに同期化する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 13,
+          "post_id": 11789,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11789",
+          "answer_text": "対応策は①全社レベルでの生産計画の立案②受注量と在庫量をリアルタイムで共有③短サイクルで生産計画を見直すことである。生産計画に基づいた生産統制を行い、現品管理、余力管理、進捗管理を徹底し、小ロット化に対応し過剰在庫を出さない。",
+          "subquestions": []
+        },
+        {
+          "input_no": 14,
+          "post_id": 11865,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11865",
+          "answer_text": "対応策は①生産計画を短サイクル化し発注サイクルを短サイクル化②段取り作業を分業して段取り時間を削減③プレス加工の生産計画だけでなく、製品部品組付や製品仕上げのまでの生産計画を立案し、生産統制を行うことで、小ロット化に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 15,
+          "post_id": 11893,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11893",
+          "answer_text": "対応策は、①生産計画面で、全工程計画を週・日次化で立案をする。②生産統制面で、在庫ポイントの設定で、在庫抑制して、現品管理する。内段取りの外段取り化や金型の交換作業の自動化で余力管理を行う。全工程計画を基に納期管理する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 16,
+          "post_id": 11793,
+          "score": 66,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11793",
+          "answer_text": "対応策は、①加工数量で立案されるプレス加工のみの生産計画を、在庫を考慮し実需に沿い、設計や組立を含めた全体最適の生産計画とする。②長時間一人で行う段取り替えを是正し体制を整備することで小ロット化した発注に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 17,
+          "post_id": 11843,
+          "score": 65,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11843",
+          "answer_text": "対応策は、①生産ロットサイズを基準日程ではなく、受注ロットサイズに変更し、生産ロットサイズ の適正化を図る②生産計画の作成は、月次ではなく週次に変更し、受注状況を生産計画に反映させる③生産計画の範囲もプレス加工以外の全行程を含むようにする。",
+          "subquestions": []
+        },
+        {
+          "input_no": 18,
+          "post_id": 11781,
+          "score": 63,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11781",
+          "answer_text": "対応策は、小ロット化に対応する為、1全行程での生産計画を立案する事、2基準日程によって設定しているロットサイズを見直し、適正化を図る事、3月度生産計画を見直し、短期化を図る事、4現品・余力・進捗管理を徹底し生産統制を図る。以て在庫を削減。",
+          "subquestions": []
+        },
+        {
+          "input_no": 19,
+          "post_id": 11807,
+          "score": 63,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11807",
+          "answer_text": "①生産計画をプレス加工工程以外も加味した全社的な視点で作成し、②短サイクルで作成する。②ロットサイズの設定基準を基準日程から確定受注量に見直し、ロットサイズの適正化を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 20,
+          "post_id": 11879,
+          "score": 63,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11879",
+          "answer_text": "対応策は、納品日を基準にした全社、全工程の生産計画を短サイクルで作成し計画精度を向上。確定納品数量に合わせたロットサイズにし、仕掛品と在庫を削減。金型交換作業と材料準備作業を標準化し段取り時間を削減し、生産能力を向上させる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 21,
+          "post_id": 11891,
+          "score": 63,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11891",
+          "answer_text": "対応策は、①発注元からの生産依頼数通知を月単位から短サイクル化し、生産計画を月度より短い周期で策定②各製品の１日間の加工数量でそれぞれの基準日程を立案している生産計画を、発注ロットサイズ基準に変更し、全社で共有ーすること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 22,
+          "post_id": 11909,
+          "score": 63,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11909",
+          "answer_text": "対応策は①基準日程ではなく受注量基準でロットサイズを設定することで在庫を削減する②全工程を加味した生産計画を作成し、DB化して社内で共有することで稼働率向上を図る③生産計画作成頻度を週次へ短サイクル化する④外段取り化等による段取時間短縮",
+          "subquestions": []
+        },
+        {
+          "input_no": 23,
+          "post_id": 11769,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11769",
+          "answer_text": "対応策は①月度生産計画を全社的に改め週次計画にし、\n計画に合わせた資材発注や\n②段取り作業の標準化、増員と OJT での教育を行う\n③プレス加工の生産計画も全社的に行い、\n計画範囲を受注量に合わせたロットサイズを加え、\n小ロット要請対応。",
+          "subquestions": []
+        },
+        {
+          "input_no": 24,
+          "post_id": 11795,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11795",
+          "answer_text": "対応策はロットサイズの適正化と段取作業の短縮である。具体的には①プレス加工機の段取り作業を標準化し担当者以外も作業できるよう教育②一部外段取り化し、複数人による同時作業を可能とする③受注量を踏まえたロットサイズの適正化④生産管理の強化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 25,
+          "post_id": 11801,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11801",
+          "answer_text": "対応策は①発注元のロットサイズを基準として生産計画を立案し、立案頻度を高める②段取り改善として、外段取り化や作業訓練を行い、標準時間を確立③製品部品組付と製品仕上げも計画し、並行作業する④材料は安全在庫を準備し、多品種少量生産に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 26,
+          "post_id": 11815,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11815",
+          "answer_text": "対応策は、①全行程での生産計画を作ると共に計画修正機会を設定②生産ロットサイズを受注情報に合わせ最適化③段取りの外段取り化を推進④負荷調整と応援体制の整備である。以上で、ネック工程となっている段取り作業を改善、生産効率を高め在庫も削減する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 27,
+          "post_id": 11877,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11877",
+          "answer_text": "対応策は、全社一貫の生産計画を納期ベースで短サイクルで策定し、確定受注量で小ロット生産を行う。資材発注を短サイクルで行い在庫を抑制する。段取作業を標準化し、次加工に必要な資材や金型の準備を、余力のある作業員が予め行い、段取時間を短縮。",
+          "subquestions": []
+        },
+        {
+          "input_no": 28,
+          "post_id": 11915,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11915",
+          "answer_text": "対応策は、①「プレス加工」だけでなく納品までの全体の生産計画を策定し、進捗管理を行い過剰在庫や欠品の発生を防ぐ、②基準日程によるロットサイズの設定ではなく、受注量を生産ロットサイズとし、在庫の発生を防ぐこと、である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 29,
+          "post_id": 11767,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11767",
+          "answer_text": "対応策は①プレス工程だけの生産計画を全工程を考慮した計画にし②月次の生産計画を短サイクル化すると共に、確定納品情報に基づき見直しを行い③生産ロットサイズを発注ロットサイズに合わせて小ロット化し④組織的な生産統制を行う事で小ロット化対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 30,
+          "post_id": 11797,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11797",
+          "answer_text": "①プレス加工を2人組で行い段取時間等の短縮②組付、仕上を含めた全社での生産計画立案と短サイクル化による生産の効率化③生産計画を納期順に立案し在庫の削減。以上で生産効率向上を図り小ロット化への対応を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 31,
+          "post_id": 11811,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11811",
+          "answer_text": "短納期の小ロット多種生産を整備する。対応策は①納期を意識した全体工程計画を短サイクルで作成、②進捗・現品・余力等の生産統制を強化、③ベテラン技能者のOJTで若手への技能承継を行い多能工化を進め、工程負荷を軽減。④生産管理体制を強化する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 32,
+          "post_id": 11833,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11833",
+          "answer_text": "C社は①生産計画を製品仕上等を含めた全工程の計画を日次で立案するなど短サイクル化、②発注基準を明確化して資材発注を行い、発注後のカムアップシステムによる資材納品確認、③需要予測の精緻化や確定納品情報の日次での集計を行い、小ロット化に対応する",
+          "subquestions": []
+        },
+        {
+          "input_no": 33,
+          "post_id": 11845,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11845",
+          "answer_text": "①生産計画はプレス加工だけでなく製品部品組付や製品仕上を含めて立案する、②プレス加工での金型変更作業や材料準備作業を外段取り化や増員を行う、③発注元ロットサイズに応じて自社ロットサイズを最適化する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 34,
+          "post_id": 11871,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11871",
+          "answer_text": "対応策は①販売予測を活用し発注量を予測し適切なロットサイズを設定する②製品量産工程全体で生産計画し、在庫も含めて適切なロットサイズを設定する③段取り替えを複数人で協力し、段取り時間短縮で、少ロット生産を可能にする",
+          "subquestions": []
+        },
+        {
+          "input_no": 35,
+          "post_id": 11881,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11881",
+          "answer_text": "製品一覧化し，PQ分析を行い，少量の場合は機能別レイアウト・ロット生産に切り替える。リードタイム短縮のため，①発注情報のDB化による社内共有，②段取りの外段取り化，③業務の標準化・マニュアル化を踏まえた多能工化を実施する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 36,
+          "post_id": 11883,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11883",
+          "answer_text": "金型交換作業と材料準備作業などをマニュアル化・標準化し長時間の段取り時間を短縮する。それにより1日間の加工数量が減ることで基準日程が短くなるので、小さいロットサイズに対応でき、在庫量圧縮で効率化も図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 37,
+          "post_id": 11777,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11777",
+          "answer_text": "対応策は①段取り作業の標準化により、金型交換と材料準備作業のマニュアル化を進め、作業員の負荷を平準化し、作業時間を短縮する事。②基準日程によってロットサイズを設定するではなく、確定受注量を基にロットサイズを決め、発注方法の変化に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 38,
+          "post_id": 11809,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11809",
+          "answer_text": "生産面での対応策は、①プレス加工機の金型交換作業と材料準備作業のマニュアル化と標準化を進める、②プレス加工製品と板金加工製品全体の生産計画を策定し、適正なロットサイズでの製造や在庫量の削減を進め、小ロットへの変化に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 39,
+          "post_id": 11849,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11849",
+          "answer_text": "対応策は①生産計画立案の短サイクル化を図り最新の受注数量を反映させる②プレス加工と製品部品組付・仕上を含めた生産計画を立案しロットサイズは加工数量ではなく受注量で決める③ベテランのOJTにより多能工化を図り柔軟性のある生産体制を構築する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 40,
+          "post_id": 11875,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11875",
+          "answer_text": "対策は、①月次の生産計画に対し、生産計画の短サイクル化、②プレス加工の計画だけでなく全体生産計画の策定、③基準日程による設定でなく発注元のロットサイズに合わせた適正なロットサイズ、④内段取りの外段取り化等で小ロットサイズに対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 41,
+          "post_id": 11885,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11885",
+          "answer_text": "対応策はプレス加工機ごとの担当を作業ごとの担当に変更する。具体的には材料の出し入れ、金型交換を設備操作中に他の担当者が準備することで外段取り化しプレスの稼働率を向上させ生産効率化を図り、小ロット化による多品種少量生産体制を実現する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 42,
+          "post_id": 11805,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11805",
+          "answer_text": "対応策は、①プレス加工のみでなく他の加工も含む全社的な生産計画を週次で作成・更新することで、受注量のみの生産を可能にする、②プレス加工の段取りを分担・効率化し、加工製品を替えても生産性が大きく低下しないようにする、である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 43,
+          "post_id": 11819,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11819",
+          "answer_text": "対応策は、①月次の生産計画作成を週次とするような短サイクル化を行い、納品サイクルを短縮する点、②生産計画を、需要予測に基づいて全工程について作成する点、③製品在庫についてＡＢＣ分析を行い、在庫量の適正化を図る点である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 44,
+          "post_id": 11821,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11821",
+          "answer_text": "対応策は①現在プレス加工のみが策定している生産計画を全工程統一の生産計画に改め、②計画策定を週次・日次に短サイクル化、③受注量に合わせた生産ロットサイズの適正化、④統一の生産計画に合わせ生産統制を徹底。以上により顧客の発注方法変化に対応する",
+          "subquestions": []
+        },
+        {
+          "input_no": 45,
+          "post_id": 11887,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11887",
+          "answer_text": "対応策は、①プレス加工のみの計画ではなく全行程を考慮した計画を立てると共に、②生産計画の短サイクル化と納期基準の計画と資材発注をしたうえで生産統制を徹底し、③納期基準のロットサイズに変更し、④納期対応ができる在庫量の確保と在庫適正化を行う。",
+          "subquestions": []
+        },
+        {
+          "input_no": 46,
+          "post_id": 11895,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11895",
+          "answer_text": "対応策は①生産計画の作成を高頻度化し、日程計画の作成も見直す②X社からの月販売予測の分析能力を向上させ、受注予測の精度を向上させる。以て、小ロット化に対応できる生産体制を確立し、自社在庫を増やさなくてすむようにする。",
+          "subquestions": []
+        },
+        {
+          "input_no": 47,
+          "post_id": 11903,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11903",
+          "answer_text": "対応策は、①実需に合わせた全社的な生産計画を短サイクルで立案、見直し、統制を図る、②段階の外段階化、内段取時間の短縮、マニュアルを作成し応援体制の構築、③内示を活かし需要予測精度の向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 48,
+          "post_id": 11827,
+          "score": 58,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11827",
+          "answer_text": "対策は➀基準日程のロットを受注量に基づく小ロットで計画作成②X社から四半期ごとの販売予測値を基に大日程、中日程、小日程の計画作成とし短サイクルで見直す③金型交換や材料準備作業の効率化で段取り時間短縮に取組む。ロット切替時の負担軽減を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 49,
+          "post_id": 11835,
+          "score": 58,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11835",
+          "answer_text": "対応策は①製品量産計画立案を短サイクル化する、②プレス加工計画も一元管理する、③プレス加工機の段取り改善・外段取り化する、④納品回数を増やし、できた分から納品することで実需に応じたロット数を生産できるようにする。",
+          "subquestions": []
+        },
+        {
+          "input_no": 50,
+          "post_id": 11911,
+          "score": 58,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11911",
+          "answer_text": "①プレス加工の段取を外段取化や作業分担でシングル段取を実現し段取り時間の短縮②受注量を基準の生産計画で、加工・組付・仕上工程を勘案し、迅速な余力把握と調整等の統制を実施し、工程の遊休を最小化等で柔軟性を持たせて小ロット化に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 51,
+          "post_id": 11773,
+          "score": 57,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11773",
+          "answer_text": "対応策は、①生産部門全体での生産計画を作成すること、②生産計画の作成を週に１回に増やして生産計画の精度を高めること、③受注したロットサイズに合わせてその都度生産ロットサイズを設定することにより小ロット生産に対応させて適正在庫量を維持する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 52,
+          "post_id": 11861,
+          "score": 57,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11861",
+          "answer_text": "①多品種小ロットのロット生産に対する段取り時間の短縮と外段取り化を行う。②製品毎の段取り替えに作業者が集中出来る様に材料準備を外段取り化し、③プレス加工工程も計画を立案し、金型交換の段取り時間を短縮し、顧客の小ロット発注に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 53,
+          "post_id": 11899,
+          "score": 57,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11899",
+          "answer_text": "対応策は①生産計画の立案サイクルを月次から週次以下に短縮すること②製品部品組立と製品仕上を生産計画に組み込むこと③納品の頻度を月１回から複数回に増やすこと④技能者を育成して生産性の向上を図ることである。これにより小ロット化を実現する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 54,
+          "post_id": 11799,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11799",
+          "answer_text": "対応策は１生産計画・資材の発注頻度の見直しと２段取作業の短縮化である。具体的には生産計画を週次で作成する等短サイクル化し、材料を都度発注する。また増員・外段取化・組作業分析で段取作業を効率化し切替ロスの削減により効率化を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 55,
+          "post_id": 11813,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11813",
+          "answer_text": "対応策は、生産計画を①プレス加工のみから全工程を考慮した計画立案へ変更し、②X社の確定納品情報に基づき週次化へ短サイクル化し、③基準日程によるロットサイズから発注ロットサイズに基づくロットサイズへ適正化により在庫の削減を行うことである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 56,
+          "post_id": 11851,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11851",
+          "answer_text": "対応策は①仕様の似ている製品の生産をまとめてグループテクノロジーを活用して生産性向上すること②生産計画を製品仕上にまで対象として生産統制すること③段取り作業を複数人で行うようにし段取り時間を短縮すること④発注をある程度ためてから生産する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 57,
+          "post_id": 11867,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11867",
+          "answer_text": "月次の生産計画を日次計画に変更して、納品数量に合わせて小ロット生産を行う。プレス加工機ごとの金型交換作業や材料準備作業を標準化し段取り時間を削減し小ロット生産に対応する。短サイクルで資材発注し資材遅れによる納期遅延を回避する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 58,
+          "post_id": 11889,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11889",
+          "answer_text": "対応策は、①プレス加工の生産能力を考慮した全社的生産計画を週次・日次で立案し、\nそれに基づく資材発注等の生産統制を図る。②ラインバランシングを行い工程の負荷を分散させ、金型交換作業や材料準備作業の標準化で多能工化を図りロットサイズ適正化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 59,
+          "post_id": 11897,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11897",
+          "answer_text": "対応策は①金型交換作業と材料準備作業の段取りを作業員がチーム体制で行う事で段取時間短縮、②ロットサイズを顧客からの発注ロットサイズに合わせたロットサイズに変更し、在庫管理の手間の削減と在庫量減少、を図る事である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 60,
+          "post_id": 11783,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11783",
+          "answer_text": "生産計画の立案と資材発注を、月１回から毎日へ短サイクル化する。材料準備等の作業を機械稼働中に行い、段取り時間を短縮する。プレス加工だけでなく仕上げまで含んだ生産計画を立案して進捗と在庫を管理し、生産ロットサイズを適正化して納期短縮を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 61,
+          "post_id": 11837,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11837",
+          "answer_text": "発注元のロットサイズに合わせたロットサイズに減らす。小ロット化により段取回数が増えるが、プラス加工機の作業員を２名に増やして材料の出し入れと操作を平行作業にする、材料準備作業は外段取化するなどで段取改善する。仕事の投入順も決めて整備する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 62,
+          "post_id": 11913,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11913",
+          "answer_text": "対応策は、➀発注から納品までのサイクルを現在の月次から、今後は週次に変更する、➁生産計画を現在のプレス加工の計画だけの立案から、今後は工程全体の計画を立案し、工程全体の最適化を図る。以上により、発注サイズの小ロット化に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 63,
+          "post_id": 11779,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11779",
+          "answer_text": "①小ロット化で段取回数が増える為、段取作業を効率化する。➁在庫が過剰にならないように現品管理による生産統制を行い、短サイクルで生産計画を修正する。③生産性の低下を防ぐため、効率的な加工順となるように全工程の生産計画を作成する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 64,
+          "post_id": 11863,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11863",
+          "answer_text": "生産計画を製品仕上等の量産工程全体での作成とし、在庫状況も加味し、ロットサイズを柔軟に設定し、過剰在庫を防止する。また、小ロット化による段取時間削減の為、金型製作課とプレス加工課が連携して行い、併せて金型組立の技術継承を図り、若手育成する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 65,
+          "post_id": 11873,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11873",
+          "answer_text": "対応策は、1全社的な生産計画統制で進度を管理2受注量を基準としたロットサイズに変更3数量統制を強化し在庫管理を徹底し納期遅れをなくし4情報共有で効率化をはかり5研修ＯＪＴで多能工を育成し業務分担平準化を図り、段取り改善を行い効率化する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 66,
+          "post_id": 11905,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11905",
+          "answer_text": "対応策は①需要予測の精度向上②ロットサイズを顧客企業の発注に合わせる③在庫を踏まえた計画にする④全社で生産計画を策定する⑤計画立案頻度を高め短サイクル化することである。これにより生産統制を行い，在庫削減を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 67,
+          "post_id": 11823,
+          "score": 52,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11823",
+          "answer_text": "対応策は①月販売予測を元にプレス加工工程までの見込生産を適正なロットサイズで実施し②X社で集計された発注データを元に製品部品組付以降の受注生産を実施するモジュール生産方式を取り入れる事で、小ロット化に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 68,
+          "post_id": 11831,
+          "score": 52,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11831",
+          "answer_text": "対応策は、現在1名で行っている金型交換作業と材料準備作業や、材料の出し入れと設備操作を複数名で行い、段取り時間の短縮化を図る。小ロット化による段取り替えの増加による作業時間の増加を防止し、生産性の低下を防ぐ。",
+          "subquestions": []
+        },
+        {
+          "input_no": 69,
+          "post_id": 11853,
+          "score": 52,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11853",
+          "answer_text": "対応策は、①生産計画を日次や週次の短期計画に変更すること、②繰返受注や個別受注、各工程を全て含む生産計画に変更すること、③加工数量基準ではなく受注数や納期を基準とすること、④段取作業を外段取り化し、標準化、マニュアル化し研修で育成する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 70,
+          "post_id": 11765,
+          "score": 51,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11765",
+          "answer_text": "対応策は①製品の基準日程を見直した上で全工程での生産計画を発注ロットサイズ考慮で策定し②発注元からの発注ロットサイズを基に短周期で修正する。以上で小ロット化に対応しつつ短納期にも対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 71,
+          "post_id": 11771,
+          "score": 51,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11771",
+          "answer_text": "短サイクルで生産計画を作成し、資材発注も小ロットで短サイクルで発注し、小ロット生産を行う。プレス加工機の段取作業を分業化し、加工中に金型や材料を予め準備し、段取時間を削減する。確定受注量に合わせたロットサイズで生産し、過剰在庫を解消する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 72,
+          "post_id": 11841,
+          "score": 51,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11841",
+          "answer_text": "対応策は①加工ロットサイズから顧客企業からの発注ロットにあわせ小ロットサイズ化する、②ベテラン作業員の作業を標準化マニュアル化して社内で共有し、小ロット化を実現させ、短納期化とコスト削減を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 73,
+          "post_id": 11857,
+          "score": 50,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11857",
+          "answer_text": "プレス加工の標準化で多能工を育成し多工程持ちにすることで金型交換作業と材料準備作業の段取り時間を削減する。製販会議は高頻度で行い生産計画は納品日を基準に最終工程の完了日まで計画し生産量は確定受注量を計画する。資材発注は生産計画に含める。",
+          "subquestions": []
+        },
+        {
+          "input_no": 74,
+          "post_id": 11791,
+          "score": 49,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11791",
+          "answer_text": "金型組立・仕上作業を標準化し若手を育成し、プレス加工の金型交換や材料準備作業を標準化し外段取化を図り段取り時間を短縮し、全体で納品日を含めた生産計画を短サイクルで作成する事で、仕掛品や製品在庫を削減する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 75,
+          "post_id": 11855,
+          "score": 45,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11855",
+          "answer_text": "対応策は①マンマシンチャートを作成し、作業者の稼働状況を把握すること②外段取り化により作業効率の改善を図ること③金型交換作業と材料準備作業の役割を分担し、作業負荷の平準化を図ること④生産計画を短サイクルで作成することである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 76,
+          "post_id": 11847,
+          "score": 42,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11847",
+          "answer_text": "対応策は、①全社的な生産計画の立案及び計画立案の短サイクル化、②確定受注量を基にしたロットサイズの適正化、③納品間隔を短サイクル化、④資材の調達見直し、⑤加工機の生産能力増強でネックを解消。以上で在庫量削減方針に適応し発注方法の変化に対応。",
+          "subquestions": []
+        },
+        {
+          "input_no": 77,
+          "post_id": 11859,
+          "score": 39,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11859",
+          "answer_text": "対応策は①プレス加工だけでなく全工程の生産計画を立案し②生産統制の強化により在庫量の見直し➂属人的な作業を標準化しOJTにより若手を養成④SLPを実施し5Sの徹底で段取り作業の短縮化、以上により生産性を高め少ロット化に対応する。",
+          "subquestions": []
+        }
+      ]
+    },
+    {
+      "question_no": 4,
+      "points": 20,
+      "heading_text": "第４問（配点20点）",
+      "answer_count": 77,
+      "score_stats": {
+        "count": 77,
+        "min": 39,
+        "max": 77,
+        "median": 60,
+        "mean": 59.64
+      },
+      "answer_char_stats": {
+        "count": 77,
+        "min": 94,
+        "max": 120,
+        "median": 117,
+        "mean": 114.99
+      },
+      "exemplars": {
+        "high": [
+          {
+            "post_id": 11901,
+            "score": 77,
+            "published_at": "2023-06-24",
+            "answer_text": "紙ベースで共有している受注から納品までの情報の電子化を進め、デザイン図、仕様、受注、納期、生産計画や生産統制等の情報をデータベースで一元管理し、全社でリアルタイムに共有する。マニュアル作成や社員研修で操作習熟を図り、生産性とスピードを改善。"
+          },
+          {
+            "post_id": 11775,
+            "score": 74,
+            "published_at": "2023-06-24",
+            "answer_text": "デジタル化の内容は、①形状サイズデザイン情報②金型設計情報③受注数・納期情報④設計変更・仕様変更情報⑤標準化工数情報をDB化リスト化する。社内活動は、①作業手順・工程順の標準化を進め②全社に教育・研修を実施し生産業務の迅速化を図る。"
+          },
+          {
+            "post_id": 11817,
+            "score": 73,
+            "published_at": "2023-06-24",
+            "answer_text": "顧客、仕様、設計、工程、在庫情報を紙ベースからのデジタル化することを優先する。DB化を進め、リアルタイムで共有、一元化しマニュアルを作成して社内教育を行い生産性を向上する。3DCADの導入で社内のイメージ摺合わせも効率化する。"
+          },
+          {
+            "post_id": 11787,
+            "score": 72,
+            "published_at": "2023-06-24",
+            "answer_text": "優先すべきデジタル化の内容は①仕様や設計\n、納期等顧客からの受注内容②設計課作成の設計データ③生産計画。 社内活動は①3DCAD②データの一元管理、 全社共有③デジタル化データ活用の為の教育実施で、生産業務の迅速化図る。"
+          },
+          {
+            "post_id": 11763,
+            "score": 71,
+            "published_at": "2023-06-24",
+            "answer_text": "優先するのは受注から納品に至る社内業務。社内活動は①受注情報、進度情報、余力、納期情報を一元管理し共有②金型の設計情報を共有し設計期間短縮③在庫型物流センターの在庫情報と確定納品情報をリアルタイムで管理することで生産業務の効率化を図ること。"
+          }
+        ],
+        "middle": [
+          {
+            "post_id": 11777,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": "内容は金型に関する情報と生産、在庫情報。社内活動は①3次元CADを導入し金型データを交換、ベテラン技能者が金型修理や改善の作業手順書を作成し、若手養成に使う。②受注から納品に至る業務を生産管理課でDB化し一元管理を行い、生産計画を共有する事"
+          },
+          {
+            "post_id": 11809,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": "デジタル化の内容は①X社の商品企画情報、②月販売予測情報、③確定納品情報、④在庫情報である。社内活動は紙ベースでの情報の交換と共有を廃止し、パソコンを活用し、上記情報のデータベース化、リアルタイムで一元化した情報を社内で共有する。"
+          },
+          {
+            "post_id": 11849,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": "デジタル化の内容は情報の交換と共有を紙ベースからネットワークに変更すること。社内活動は、受注から納品に至る業務データをDBにしネットワークで一元管理・共有化する。よって全社員が即時に最新の状況を確認でき、生産業務のスピードアップが図られる。"
+          },
+          {
+            "post_id": 11875,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": "C社は、①商品仕様や企画、販売予測等の顧客情報、②確定納品情報や納期、ロットサイズ、加工計画等の生産管理情報等をデータベースで一元化し、インターネットで共有すると共に、社内関連部門の定期会議等で共有することで生産効率向上を図る。"
+          },
+          {
+            "post_id": 11885,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": "デジタル化を優先すべき内容は、X社の発注データを取り込んで短期間で生産計画を作る仕組みである。そのためには生産部門の各課の作業を標準化し、生産状況のDB化により一元管理することで生産統制を行、短サイクルで生産計画を見直す体制づくりが必要。わ"
+          }
+        ],
+        "low": [
+          {
+            "post_id": 11859,
+            "score": 39,
+            "published_at": "2023-06-24",
+            "answer_text": "デジタル化の内容は①CADデータ等の設計・仕様情報②受注情報➂生産統制に関する情報を優先する。社内活動は①設計データのDB化②仕様変更や受注情報のリアルタイム共有➂社内ネットワークから常にアクセス可能とし、データでの情報交換共有を徹底させる"
+          },
+          {
+            "post_id": 11847,
+            "score": 42,
+            "published_at": "2023-06-24",
+            "answer_text": "デジタル化の内容は①顧客からの仕様変更情報、②資材や金型情報、③CADや加工機の使用方法。社内活動は①仕様変更をリアルタイム共有し試作を迅速化、②金型をスキャンし製作に活用、③OJT等若手育成に活用し清算業務をスピードアップする。"
+          },
+          {
+            "post_id": 11855,
+            "score": 45,
+            "published_at": "2023-06-24",
+            "answer_text": "３次元CADを導入し、仕様確認、設計変更、仕様変更の情報を共有化することで発信元企業とのやり取りを減らす。また、全社的な生産計画を作成し各部署へ共有し、教育によりデジタル化活用の意識を高め、生産管理課による生産統制を行う。"
+          },
+          {
+            "post_id": 11791,
+            "score": 49,
+            "published_at": "2023-06-24",
+            "answer_text": "Ｘ社の在庫や確定納品情報、発注情報、金型の設計・試作品情報、生産計画など生産管理情報をデジタル化する。生産計画を短サイクル化し現品管理を徹底、作業の標準化を図り、情報の社内や取引先との共有を図る事で生産能力の向上を図る。"
+          },
+          {
+            "post_id": 11857,
+            "score": 50,
+            "published_at": "2023-06-24",
+            "answer_text": "内容はX社の商品企画と月販売予測データ、確定受注データ。自社の資材の在庫量や資材発注データを共有する。社内活動は資材点数の削減、資材の保管場所を集約し現品管理をしやすくする。社内業務の標準化を図り、データを共有しやすくする。"
+          }
+        ]
+      },
+      "answers": [
+        {
+          "input_no": 1,
+          "post_id": 11901,
+          "score": 77,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11901",
+          "answer_text": "紙ベースで共有している受注から納品までの情報の電子化を進め、デザイン図、仕様、受注、納期、生産計画や生産統制等の情報をデータベースで一元管理し、全社でリアルタイムに共有する。マニュアル作成や社員研修で操作習熟を図り、生産性とスピードを改善。",
+          "subquestions": []
+        },
+        {
+          "input_no": 2,
+          "post_id": 11775,
+          "score": 74,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11775",
+          "answer_text": "デジタル化の内容は、①形状サイズデザイン情報②金型設計情報③受注数・納期情報④設計変更・仕様変更情報⑤標準化工数情報をDB化リスト化する。社内活動は、①作業手順・工程順の標準化を進め②全社に教育・研修を実施し生産業務の迅速化を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 3,
+          "post_id": 11817,
+          "score": 73,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11817",
+          "answer_text": "顧客、仕様、設計、工程、在庫情報を紙ベースからのデジタル化することを優先する。DB化を進め、リアルタイムで共有、一元化しマニュアルを作成して社内教育を行い生産性を向上する。3DCADの導入で社内のイメージ摺合わせも効率化する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 4,
+          "post_id": 11787,
+          "score": 72,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11787",
+          "answer_text": "優先すべきデジタル化の内容は①仕様や設計\n、納期等顧客からの受注内容②設計課作成の設計データ③生産計画。 社内活動は①3DCAD②データの一元管理、 全社共有③デジタル化データ活用の為の教育実施で、生産業務の迅速化図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 5,
+          "post_id": 11763,
+          "score": 71,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11763",
+          "answer_text": "優先するのは受注から納品に至る社内業務。社内活動は①受注情報、進度情報、余力、納期情報を一元管理し共有②金型の設計情報を共有し設計期間短縮③在庫型物流センターの在庫情報と確定納品情報をリアルタイムで管理することで生産業務の効率化を図ること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 6,
+          "post_id": 11839,
+          "score": 70,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11839",
+          "answer_text": "優先的にデジタル化すべきは①営業の持つ受注、納期情報②工場内の進捗、現品、余力、在庫情報③生産計画情報。社内対応は①作業を標準化し、データの入力規則を整える事②生産統制を実施する事③システムの使用方法の教育を実施し活用体制を整備する事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 7,
+          "post_id": 11803,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11803",
+          "answer_text": "優先すべき内容は①受注・納品情報の電子化②全社生産計画、生産統制情報の電子化③設計CAD情報のライブラリー化④ベテラン技能者の金型の組立・仕上、プレス加工の標準化マニュアルの電子化。以上を、一元管理の上、DB化し、リアルタイムで全社共有。",
+          "subquestions": []
+        },
+        {
+          "input_no": 8,
+          "post_id": 11825,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11825",
+          "answer_text": "デジタル化の内容は、生産計画、受注状況、進捗、現品、余力の状況、商品の在庫状況である。社内活動は、①社内業務をデータベース化して一元管理する、②定例会議を開き、情報共有する、③外注についても一元管理をする。",
+          "subquestions": []
+        },
+        {
+          "input_no": 9,
+          "post_id": 11869,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11869",
+          "answer_text": "受注から納品に至る社内業務情報や設計に使うCADデータに対し、社内活動にて①受注から納品に至る社内業務情報をライブラリ化し、全社で情報交換や共有できるシステム構築②CADを3Dデータとし、DB化で一元管理し、製作課と情報共有し、生産性向上。",
+          "subquestions": []
+        },
+        {
+          "input_no": 10,
+          "post_id": 11907,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11907",
+          "answer_text": "各課が保有する受注情報、設計情報、金型製作の進捗情報、生産計画、資材発注情報、在庫情報、生産進捗情報をデータベース化する。それを一元管理し社内共有化を図り随時更新を行う。各課の進捗状況の可視化で社内資源最適配分し生産業務をスピードアップする",
+          "subquestions": []
+        },
+        {
+          "input_no": 11,
+          "post_id": 11829,
+          "score": 68,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11829",
+          "answer_text": "内容は全行程での生産計画と各課の進捗状況、受注情報、納期情報、在庫情報、金型の設計情報。社内活動は各課のネットワークを構築し情報の共有化を図り、設計データの活用により設計業務の効率化を通し、短納期の実現と生産業務のスピードアップを図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 12,
+          "post_id": 11785,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11785",
+          "answer_text": "デジタル化の内容は情報項目としてＸ社の商品企画・月販売予測・発注データの確定納品情報と、Ｃ社の安全在庫量を含む在庫量をDB化し一元管理し社内外で共有し活用する。社内活動は紙ベースのやりとりを改め、Ｘ社やDCと連携を密にし生産効率向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 13,
+          "post_id": 11789,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11789",
+          "answer_text": "紙ベースの情報交換と共有作業をデジタル化する。社内活動は①情報の定型化・標準化を行い、その手順をマニュアル化する②データベースで一元管理し、社内ネットワークでリアルタイムに共有することで、生産性を向上し、生産業務のスピードアップを図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 14,
+          "post_id": 11865,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11865",
+          "answer_text": "デジタル化の内容は①金型の設計データ②在庫数量③生産計画や進捗管理④ベテラン技術者のプレス加工技術など。社内活動は紙ベースで行われている情報交換や共有作業をデータ化し、社内全体で情報を共有できるシステムを構築して、使えるように教育する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 15,
+          "post_id": 11893,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11893",
+          "answer_text": "内容は、①３DCADの導入、②生産計画の内容、③金型交換の自動化、④プレス加工や段取り作業のマニュアル化、⑤金型の個別認識番号。社内活動は、情報のデータ化を行い、DBで一元管理する。金型の識別番号の割り振りや所定位置の管理や標準作業。",
+          "subquestions": []
+        },
+        {
+          "input_no": 16,
+          "post_id": 11793,
+          "score": 66,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11793",
+          "answer_text": "Ⅹ社から共有される四半期毎の商品企画や月販売予測、週毎の発注データや物流センターの在庫情報を共有しデジタル化を図る。社内活動は、紙ベースで管理している社内業務の情報を一元管理しリアルタイムに共有し生産業務を効率化する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 17,
+          "post_id": 11843,
+          "score": 65,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11843",
+          "answer_text": "デジタル化の内容は①受注や設計内容、仕様変更に関する情報②在庫や完成品の情報③生産計画と進捗状況の情報である。社内活動は、①デジタル化の必要性を社員へ周知②各種情報をデータベース化し、一元管理③デジタル化した内容を生産計画へ活かす体制整備。",
+          "subquestions": []
+        },
+        {
+          "input_no": 18,
+          "post_id": 11781,
+          "score": 63,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11781",
+          "answer_text": "優先するデジタル化の内容は、発注データ、商品企画や月販売予測、生産計画や生産統制情 報、確定納期情報、在庫情報といった情報をDB化し、リアルタイムで情報共有する。社内活動は、紙ベースで行われている情報の交換と共有を見直し電子化。以て効率化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 19,
+          "post_id": 11807,
+          "score": 63,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11807",
+          "answer_text": "優先すべきデジタル化の内容は、商品の発注・納品情報、在庫量情報の交換と共有である。社内活動として、①デジタル化に向け各課をまたぐ人員交流や勉強会を実施し、②チームを組んで、デジタル化に向けた課題の洗い出しと意見交換を実施する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 20,
+          "post_id": 11879,
+          "score": 63,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11879",
+          "answer_text": "設計内容と生産計画、製品在庫や材料在庫の情報を共有する。３次元CADを導入し設計データを共有する。在庫置き場を集約し現品管理を徹底、実在庫と帳簿在庫のかい離をなくす。X社の受注データを適ぎ反映し生産期間●●を短縮、７日の納期に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 21,
+          "post_id": 11891,
+          "score": 63,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11891",
+          "answer_text": "受注から納品に至る社内業務の情報の交換、共有の電子化を優先する。社内対応は①紙ベースでの情報伝達の原則廃止②全社データベースの構築③部門を超えたリアルタイムでの情報共有をしやすくするコミュニケーションツールの導入。",
+          "subquestions": []
+        },
+        {
+          "input_no": 22,
+          "post_id": 11909,
+          "score": 63,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11909",
+          "answer_text": "優先すべきデジタル化の内容は受注から納品に至る社内業務をDB化し全社でリアルタイムに情報を共有する事。社内活動は①業務を一元管理するシステムの導入②社員教育によるITリテラシーの向上③デジタル化に向け受注・納品情報の整備を進める。",
+          "subquestions": []
+        },
+        {
+          "input_no": 23,
+          "post_id": 11769,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11769",
+          "answer_text": "内容は①受注情報②設計変更、仕様変更情報③生産計画、生産統制情報④在庫情報⑤\nロットサイズ情報である、社内活動は①情報の DB 一元化や標準化、マニュアル化を図り、\n②情報を共有し、OJT による教育で業務効率化と生産性改善を図ること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 24,
+          "post_id": 11795,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11795",
+          "answer_text": "X社取引の短納期対応を可能にするため、製品量産工程のデジタル化を優先する。受注情報を一元化、共有し、予測情報に基づいて全社的生産計画を策定し、共有する。生産統制情報と確定発注情報を共有し発注から7日の納品を可能とする。",
+          "subquestions": []
+        },
+        {
+          "input_no": 25,
+          "post_id": 11801,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11801",
+          "answer_text": "優先すべきデジタル化の内容は①生産計画の情報②3DCADデータ③資材や金型の位置④在庫情報である。社内活動としては①社長が中心となってシステムを導入し、②生産計画を共有し、③金型データを分類し、検索可能として、④モノの位置や在庫をデータ化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 26,
+          "post_id": 11815,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11815",
+          "answer_text": "内容は、①顧客からの商品企画情報、②設計変更や仕様変更に関わる情報、③設計図面の情報、④受注や生産計画に関する情報、⑤進捗、現品、余力に関する情報である。情報はＤＢ化した上セキュリティ対策をした上で一元管理し、リアルタイムで社員に共有する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 27,
+          "post_id": 11877,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11877",
+          "answer_text": "生産計画のデジタル化を優先する。製品ごとの受注情報や納期、生産情報や進捗を共有する。在庫情報を共有し現品管理を容易化。金型や材料の置き場を集約化し、次加工に必要な資材や金型の準備を標準化、事前化。金型の設計データを共有し、設計業務を円滑化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 28,
+          "post_id": 11915,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11915",
+          "answer_text": "デジタル化の内容は、①社内LANを構築、紙ベースの情報の交換と共有を電子化する、②ベテラン技能者の加工技術を共有、若手への承継を進める③2DCADを3DCADにし設計期間短縮。社内活動は、社長を筆頭としたプレジェクトチームを推進すること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 29,
+          "post_id": 11767,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11767",
+          "answer_text": "優先すべきデジタル化の内容は①交換、共有すべき社内業務情報②顧客からの受注情報や設計、仕様に関する情報③生産統制に関する情報。社内活動は①情報をDB化し共有化し②情報を一元管理しリアルタイムで更新し③従業員に教育する事で効率化を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 30,
+          "post_id": 11797,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11797",
+          "answer_text": "X社からの月販売予測データと発注データをリアルタイム共有し、受注、生産、在庫、納品情報をDB化し一元管理する。それらをもとに生産計画の策定と生産統制の強化を図る。そのため課をまたいだネットワーク環境構築によるデジタル化を行う。",
+          "subquestions": []
+        },
+        {
+          "input_no": 31,
+          "post_id": 11811,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11811",
+          "answer_text": "優先すべきは受注業務・生産管理のデジタル化である。社内活動は①社内業務のDB化、②各課の連携を強化し情報共有体制を整備、③四半期毎のX社の商品企画、売上予測に基づく生産計画・体制を構築、④確定納品情報の小ロット・短納期に対応する体制整備。",
+          "subquestions": []
+        },
+        {
+          "input_no": 32,
+          "post_id": 11833,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11833",
+          "answer_text": "C社は、①納期や注文数等の受注情報、②進ちょくや余力等の生産統制情報、③納品先や納品数等の納品情報を優先してデジタル化する。社内活動は、①業務用ＰＣを用いた入力体制構築、②情報のＤＢ化を行うと共に、情報を一元管理し共有する体制構築活動を行う",
+          "subquestions": []
+        },
+        {
+          "input_no": 33,
+          "post_id": 11845,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11845",
+          "answer_text": "デジタル化の内容は受注から納品に至る社内業務の効率化とIT化である。社内活動は社内業務を標準化し、情報の交換や共有事項をデータベース化、一元化し、共有して、社内教育により生産業務のスピードアップを図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 34,
+          "post_id": 11871,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11871",
+          "answer_text": "受注から生産までの情報交換と共有をクラウド化し、生産業務の効率化を行う。社内対応策は①クラウド化する業務を把握する②社内でクラウド化した方法の研修を行い活用を促進する。③社外との取引でもクラウド化を提案し、活用を促進する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 35,
+          "post_id": 11881,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11881",
+          "answer_text": "顧客・受注・在庫・余力・現品・行程情報を標準化，DB化し，全社共通のグループウェアにより生産業務の情報交換と共有を進める。生産業務のスピードアップという目的をトップダウンで早急に社内に徹底浸透させ，情報の全社管理・一元化を実現する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 36,
+          "post_id": 11883,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11883",
+          "answer_text": "内容：3次元CADでイメージ共有し易くする。プレス加工と板金加工の設計データを整理し混在しないようにする。従前の月度生産計画とX社の週次の計画が混ざるため、一元管理しコンカレント化を図る。社内：マニュアルを作成し、標準化を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 37,
+          "post_id": 11777,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11777",
+          "answer_text": "内容は金型に関する情報と生産、在庫情報。社内活動は①3次元CADを導入し金型データを交換、ベテラン技能者が金型修理や改善の作業手順書を作成し、若手養成に使う。②受注から納品に至る業務を生産管理課でDB化し一元管理を行い、生産計画を共有する事",
+          "subquestions": []
+        },
+        {
+          "input_no": 38,
+          "post_id": 11809,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11809",
+          "answer_text": "デジタル化の内容は①X社の商品企画情報、②月販売予測情報、③確定納品情報、④在庫情報である。社内活動は紙ベースでの情報の交換と共有を廃止し、パソコンを活用し、上記情報のデータベース化、リアルタイムで一元化した情報を社内で共有する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 39,
+          "post_id": 11849,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11849",
+          "answer_text": "デジタル化の内容は情報の交換と共有を紙ベースからネットワークに変更すること。社内活動は、受注から納品に至る業務データをDBにしネットワークで一元管理・共有化する。よって全社員が即時に最新の状況を確認でき、生産業務のスピードアップが図られる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 40,
+          "post_id": 11875,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11875",
+          "answer_text": "C社は、①商品仕様や企画、販売予測等の顧客情報、②確定納品情報や納期、ロットサイズ、加工計画等の生産管理情報等をデータベースで一元化し、インターネットで共有すると共に、社内関連部門の定期会議等で共有することで生産効率向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 41,
+          "post_id": 11885,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11885",
+          "answer_text": "デジタル化を優先すべき内容は、X社の発注データを取り込んで短期間で生産計画を作る仕組みである。そのためには生産部門の各課の作業を標準化し、生産状況のDB化により一元管理することで生産統制を行、短サイクルで生産計画を見直す体制づくりが必要。わ",
+          "subquestions": []
+        },
+        {
+          "input_no": 42,
+          "post_id": 11805,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11805",
+          "answer_text": "C社は、受注と生産の情報をDB化して一元管理すべき。各課にて生産統制が行え、生産業務が効率化される。社内活動は、①デジタル化の効果と目的を周知し混乱を防ぐ、②利用方法の勉強会を開催し、スムーズに利用できるようにする、である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 43,
+          "post_id": 11819,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11819",
+          "answer_text": "優先すべきデジタル化の内容は、①顧客と調整する仕様情報、②顧客の商品企画・販売予測・確定納品情報、③自社及び顧客の在庫情報である。これらをデジタル化するために、情報をＤＢ化した上、一元管理し共有するといった社内活動を進めるべき。",
+          "subquestions": []
+        },
+        {
+          "input_no": 44,
+          "post_id": 11821,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11821",
+          "answer_text": "デジタル化の内容は金型の設計図面のデータベース化である。設計課の2次元CADでの金型図面をデータベース化し一元管理して社内で共有する。類似品引合い時の過去データ活用、顧客との仕様打合せ時の設計データ確認により設計期間短縮を図ることができる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 45,
+          "post_id": 11887,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11887",
+          "answer_text": "受注から納品に至る社内業務で、紙ベースで管理している情報を優先してデジタル化する。QC活動で各作業の棚卸しを行い、ボトルネック工程や真因の把握をしたうえで、生産業務のスピードアップに寄与する情報をDB化し、一元管理し、社内共有する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 46,
+          "post_id": 11895,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11895",
+          "answer_text": "デジタル化の内容は、生産管理システム導入により、製品仕様や納期、進捗等を情報共有すること。社内活動は、①共有すべき情報を統一の様式でDB化する事、②プレス加工において製品部品組付等の工程も含めた生産計画の作成、③技能承継による負荷平準化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 47,
+          "post_id": 11903,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11903",
+          "answer_text": "内容は、①受注から納品までの社内情報、②各課の余力、進度、現品情報。社内活動は、①情報をデータベースに一元化し、共有化を図る。②データベースの活用方法の研修を行い、有効活用できるようにする。",
+          "subquestions": []
+        },
+        {
+          "input_no": 48,
+          "post_id": 11827,
+          "score": 58,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11827",
+          "answer_text": "デジタル化の内容は、金型設計、CADデータ、変更含む仕様内容、数量や納期等受注内容、生産計画、進捗状況等の情報である。社内活動は基準日程や工数、金型種類、作業方法等の標準化を進め、情報DB化で生産統制の強化を図る。一元管理のうえ共有化する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 49,
+          "post_id": 11835,
+          "score": 58,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11835",
+          "answer_text": "①発注個数や納品情報、②在庫情報、③仕様情報、④生産計画、⑤生産の進捗情報を共有すべきである。そのためにＣＡＤデータのライブラリ化や、生産計画を全社で一元化し、業務を標準化を進める。これらによって新規取引を推進する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 50,
+          "post_id": 11911,
+          "score": 58,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11911",
+          "answer_text": "優先的にＸ社の納品計画や発注情報や、Ｃ社の生産計画・統制情報や在庫情報をデジタル化。社内では納品・発注情報をDB化し、使用変更情報も即時反映し一元管理し、資材発注もふまえた全社的な生産計画と統制を行う。",
+          "subquestions": []
+        },
+        {
+          "input_no": 51,
+          "post_id": 11773,
+          "score": 57,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11773",
+          "answer_text": "デジタル化の内容は、①受注情報や在庫情報をデータベース化すること、②金型や材料の識別コードを導入すること。社内活動は、①受注や在庫が情報共有できるシステムを導入すること、②置き場を固定化して周知することで生産性を向上して短納期化する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 52,
+          "post_id": 11861,
+          "score": 57,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11861",
+          "answer_text": "①発注元からの生産数や納期等の生産依頼、②生産計画に関する情報、③資材納期等の資材情報をデジタル化し交換・共有する。そのため①生産依頼を日次で全工程計画し、②計画に基づき日次で資材発注を行い、③資材納期に合わせ段取りを行う等社内活動を進める",
+          "subquestions": []
+        },
+        {
+          "input_no": 53,
+          "post_id": 11899,
+          "score": 57,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11899",
+          "answer_text": "内容は、受注量、製品在庫量、納期、進捗状況を管理できるようにすることである。社内活動としては①各パソコンで使っているデータの規格化②各パソコンのネットワーク化③データベースを構築して一元管理である。これにより情報交換と共有を実現する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 54,
+          "post_id": 11799,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11799",
+          "answer_text": "デジタル化する内容は１受注データ２生産計画３在庫データである。社内では、発注元と連携し大中小計画を作成し需給精度向上を図り、部品組付・仕上工程まで生産計画を一元化する。進捗・現品を把握できるよう生産統制を強化し、社内での共有化を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 55,
+          "post_id": 11813,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11813",
+          "answer_text": "C社は、①設計データをCAD・CAM化しライブラリー化により設計業務を効率化し、②各工程の進捗データをデータベースで一元管理しネットワークで共有化し、③X社の確定納品情報をオンラインで共有し、生産リードタイムの短縮化を図ることである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 56,
+          "post_id": 11851,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11851",
+          "answer_text": "①受注情報をDB化して一元管理し営業と生産とが連携する②取引先協力のもと、繰返受注を電子化しリアルタイムに受注が把握できるようにし、短納期化を図る③金型や材料・製品をDB化し一元管理して共有し、在庫削減につなげる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 57,
+          "post_id": 11867,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11867",
+          "answer_text": "受注情報を集約し、納期に基づいた生産量の決定や生産優先順位を付けた情報を社内に情報共有すること。見積書や受注書、仕様確認書などを標準化し事前に利用し、問題点を改良する。デジタル化に対応するための社内研修を従業員向けに事前に実施する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 58,
+          "post_id": 11889,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11889",
+          "answer_text": "デジタル化の内容は、金型設計時に使用したCADデータ、受注から納品までの生産計画に基づく進捗などの情報である。社内活動は、紙ベースから脱却し、データベースで一元管理してリアルタイムに共有する体制を整える。",
+          "subquestions": []
+        },
+        {
+          "input_no": 59,
+          "post_id": 11897,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11897",
+          "answer_text": "デジタル化の内容は四半期ごとのX社の商品企画と月販売予測、確定納品情報、各店舗の在庫情報。社内活動は①設計業務を早めに着手し設計期間の短縮、②販売予測や在庫情報に合わせて生産計画を短サイクル化し生産現場にタイムリーに共有し生産期間短縮。",
+          "subquestions": []
+        },
+        {
+          "input_no": 60,
+          "post_id": 11783,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11783",
+          "answer_text": "各課の間での情報の交換と共有をＩＴ化すべきである。そのために、管理すべき情報の形式や内容を共通化し、また管理の方法を標準化する。具体的には、各課で管理する方法を形式化した上で統合し、統一された方法で管理されるよう従業員の教育を進める。",
+          "subquestions": []
+        },
+        {
+          "input_no": 61,
+          "post_id": 11837,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11837",
+          "answer_text": "受注から納品に至る社内業務について標準化、マニュアル化し運用を徹底させた上で、デジタル化し、情報の交換、共有をデジタルで実施し一元管理できるシステムにする。このシステムは誰でも利用・検索して活用できるようにする。",
+          "subquestions": []
+        },
+        {
+          "input_no": 62,
+          "post_id": 11913,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11913",
+          "answer_text": "デジタル化の内容は、➀３次元ＣＡＤを導入し発注元と情報を共有化するこにより、設計変更、仕様変更に速やかに対応する、➁社内業務の進捗を管理するＤＢを作成し、情報の交換と共有を行う。社内活動は、操作方法をマニュアル化し研修で使用方法を徹底する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 63,
+          "post_id": 11779,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11779",
+          "answer_text": "３次元ＣＡＤを導入する。発注元とのやりとりを効率化し、ＣＡＥにより試作品製作を不要とする。ＣＡＭで生産情報の社内共有と自動化を行う。社内は、ベテランが担当する工程を分析し、機械化できる作業と熟練が必要な作業に切り分け、後者を若手に教育する",
+          "subquestions": []
+        },
+        {
+          "input_no": 64,
+          "post_id": 11863,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11863",
+          "answer_text": "Ｘ社からの商品企画・月販売予測情報・確定納品情報やＣ社の在庫情報等を優先してデジタル化する。社内対応策は受注から納品までの進捗状況を一元管理するシステムを導入し、生産部門内で共有し、必要な共有情報を即時に反映し、短納期への対応力を強化する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 65,
+          "post_id": 11873,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11873",
+          "answer_text": "受発注情報、設計情報、技能情報、生産計画統制情報、進捗納期情報をデジタル化する。３DCADを用い設計情報をデータベース化、一元ネットワーク化、技能マップで技能情報を共有、研修ＯＪＴマニュアルで全社的品質管理と生産計画統制で生産を効率化する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 66,
+          "post_id": 11905,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11905",
+          "answer_text": "内容は，Ｘ社の商品企画，販売予測，確定納品情報，Ｂ社の受注情報，在庫情報，変更情報，生産計画などのデータを全社で共有，随時更新すること。社内活動は，電子化し，これらの活用を周知徹底することで生産統制を行い生産効率化を図り短納期化に対応する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 67,
+          "post_id": 11823,
+          "score": 52,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11823",
+          "answer_text": "内容は①商品企画と月販売情報②X社で週次で集計される確定納品情報③在庫量から差し引いた発注データである。社内活動は①X社からの情報を社内で交換と共有をし、専任の担当者が一元管理した上で②全社的計画を立案し、進捗管理等で生産統制を徹底する事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 68,
+          "post_id": 11831,
+          "score": 52,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11831",
+          "answer_text": "優先すべきデジタル化の内容は、受注状況や納期や生産計画、各工程での進捗状況や在庫情報などである。そのための社内活動は、常に情報を更新し、全社的にリアルタイムで情報共有できる体制を構築する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 69,
+          "post_id": 11853,
+          "score": 52,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11853",
+          "answer_text": "デジタル化の内容は、①X社や繰返受注、個別受注の受注量、納期、在庫や稼働状況、②各仕様情報や金型設計情報。社内活動は、①紙ベースの情報をDB化・一元化しリアルタイムで共有できるシステムを構築する、②システムを活用する研修を行い効率化を実現。",
+          "subquestions": []
+        },
+        {
+          "input_no": 70,
+          "post_id": 11765,
+          "score": 51,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11765",
+          "answer_text": "デジタル化対象は受注情報、発注元から来る仕様情報、生産計画、在庫情報、生産の能力・負荷情報、生産進捗情報。社内活動は①上記情報をデータベース化した上で②発注元から来る発注情報、商品企画、月販売予測、確定納品情報を追加し一元管理・社内共有。",
+          "subquestions": []
+        },
+        {
+          "input_no": 71,
+          "post_id": 11771,
+          "score": 51,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11771",
+          "answer_text": "デジタル化は、四半期ごとの商品企画と月販売予測をデータ化し、Ｃ社内で共有し、小ロット生産化を図る。３次元CADを導入し設計データからプレス加工を自動化し、生産リードタイムを短縮し、短納期体制を構築する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 72,
+          "post_id": 11841,
+          "score": 51,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11841",
+          "answer_text": "デジタル化の内容は、過去の受注履歴、製品仕様書、販売単価、在庫状況でDB化して一元管理して全社に共有する。社内活動は、データの活用方法を研修し使えるようにし、製販会議での情報のすり合わせを行うことで生産業務のスピードアップ化を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 73,
+          "post_id": 11857,
+          "score": 50,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11857",
+          "answer_text": "内容はX社の商品企画と月販売予測データ、確定受注データ。自社の資材の在庫量や資材発注データを共有する。社内活動は資材点数の削減、資材の保管場所を集約し現品管理をしやすくする。社内業務の標準化を図り、データを共有しやすくする。",
+          "subquestions": []
+        },
+        {
+          "input_no": 74,
+          "post_id": 11791,
+          "score": 49,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11791",
+          "answer_text": "Ｘ社の在庫や確定納品情報、発注情報、金型の設計・試作品情報、生産計画など生産管理情報をデジタル化する。生産計画を短サイクル化し現品管理を徹底、作業の標準化を図り、情報の社内や取引先との共有を図る事で生産能力の向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 75,
+          "post_id": 11855,
+          "score": 45,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11855",
+          "answer_text": "３次元CADを導入し、仕様確認、設計変更、仕様変更の情報を共有化することで発信元企業とのやり取りを減らす。また、全社的な生産計画を作成し各部署へ共有し、教育によりデジタル化活用の意識を高め、生産管理課による生産統制を行う。",
+          "subquestions": []
+        },
+        {
+          "input_no": 76,
+          "post_id": 11847,
+          "score": 42,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11847",
+          "answer_text": "デジタル化の内容は①顧客からの仕様変更情報、②資材や金型情報、③CADや加工機の使用方法。社内活動は①仕様変更をリアルタイム共有し試作を迅速化、②金型をスキャンし製作に活用、③OJT等若手育成に活用し清算業務をスピードアップする。",
+          "subquestions": []
+        },
+        {
+          "input_no": 77,
+          "post_id": 11859,
+          "score": 39,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11859",
+          "answer_text": "デジタル化の内容は①CADデータ等の設計・仕様情報②受注情報➂生産統制に関する情報を優先する。社内活動は①設計データのDB化②仕様変更や受注情報のリアルタイム共有➂社内ネットワークから常にアクセス可能とし、データでの情報交換共有を徹底させる",
+          "subquestions": []
+        }
+      ]
+    },
+    {
+      "question_no": 5,
+      "points": 20,
+      "heading_text": "第５問（配点20点）",
+      "answer_count": 77,
+      "score_stats": {
+        "count": 77,
+        "min": 39,
+        "max": 77,
+        "median": 60,
+        "mean": 59.64
+      },
+      "answer_char_stats": {
+        "count": 77,
+        "min": 82,
+        "max": 100,
+        "median": 99,
+        "mean": 97.23
+      },
+      "exemplars": {
+        "high": [
+          {
+            "post_id": 11901,
+            "score": 77,
+            "published_at": "2023-06-24",
+            "answer_text": "市場成長性の機会や金型製作の技術力を活かし、高価格製品への販売移行で高収益化し、売上回復や新規事業拡大の可能性。X社の要請に応え獲得したノウハウを活用し、短納期化や小ロット生産実現で受注拡大の可能性。"
+          },
+          {
+            "post_id": 11775,
+            "score": 74,
+            "published_at": "2023-06-24",
+            "answer_text": "①消費者ニーズの収集分析が可能となり②量産化のノウハウを獲得③金型製作技術力・③コスト削減力の強みを活かし④高付加価値な自社ブランド開発で若手への技術承継を進め、差別化戦略で収益拡大の可能性をもつ。"
+          },
+          {
+            "post_id": 11817,
+            "score": 73,
+            "published_at": "2023-06-24",
+            "answer_text": "感染症の拡大による外部環境の変化を捉え、強みである金型製作技術力、コスト低減や生産性向上の提案力を活かし、アウトドア商品の開発に取り組むことで、高付加価値、既存の販売先への依存度低減の可能性を持つ。"
+          },
+          {
+            "post_id": 11787,
+            "score": 72,
+            "published_at": "2023-06-24",
+            "answer_text": "可能性は①市場成長率が高い分野において、高い金型製作技術やコスト低減、生産性向上の提案力という強みに短納期や小ロット化対応力が加わる事で高付加価値化、高価格製品の受注獲得し売上増②技術承継機会確保。"
+          },
+          {
+            "post_id": 11763,
+            "score": 71,
+            "published_at": "2023-06-24",
+            "answer_text": "今後は自社ブランドの高価格帯のアウトドア用品で売上拡大の可能性がある。営業力強化し、難易度の高い金型製作技術のノウハウを活かし、他社と差別化する。受託製品以外の売上獲得することで経営リスク分散を図る。"
+          }
+        ],
+        "middle": [
+          {
+            "post_id": 11777,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": "助言は①コスト低減と生産性向上のノウハウを生かし、海外から納品できない価格帯の商品をもらい、受注量増加を図る②難易度高い金型製作技術を生かし、高付加価値の製品を開発し提案し、高価格帯の受注を獲得する事"
+          },
+          {
+            "post_id": 11809,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": "C社はX社との新規取引を通じて、強みである金型加工技術力、コスト低減や生産向上に結びつく提案力の向上を強化でき、X社以外からの受注を獲得し、少数顧客への依存から脱却し安定した経営体質への転換を図る。"
+          },
+          {
+            "post_id": 11849,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": "①X社の中国等に委託していた仕事が受注できる②好調なアウトドア市場で受注ができ、技術力が信頼されれば高価格帯の製品にも拡大できる③小ロット化、短納期のノウハウを獲得し、受注拡大や高付加価値化を図ること"
+          },
+          {
+            "post_id": 11875,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": "C社はアウトドア商品市場の成長を捉え①生産面で小ロット対応や短納期対応等の生産管理体制整備、②営業面で高い技術力や提案力を活かした高付加価値製品の提供による営業力強化で新規顧客開拓、売上拡大が図れる。"
+          },
+          {
+            "post_id": 11885,
+            "score": 60,
+            "published_at": "2023-06-24",
+            "answer_text": "X社向け新規取引により、中価格帯のPB製品の多品種少量体制の生産ノウハウを蓄積し、生産能力、技術力をX社にアピールすることで高価格帯製品を受注、新規営業に注力することで他PB製品の受注可能性がある。"
+          }
+        ],
+        "low": [
+          {
+            "post_id": 11859,
+            "score": 39,
+            "published_at": "2023-06-24",
+            "answer_text": "C社は、高い技術を活かしてX社のPB商品の少ロット・短納期に対応することで高付加価値化を図り、高価格な製品への拡大を狙う。さらに、これらの実績を訴求し新規顧客開拓し事業拡大による売上向上が期待できる。"
+          },
+          {
+            "post_id": 11847,
+            "score": 42,
+            "published_at": "2023-06-24",
+            "answer_text": "可能性は、①PBの受託及び在庫型物流センター活用のノウハウ蓄積による差別化、②設計から納品まで一貫生産体制による高付加価値化。以上により競争優位を獲得し高価格の製品の受託と経営リスクの分散が期待できる"
+          },
+          {
+            "post_id": 11855,
+            "score": 45,
+            "published_at": "2023-06-24",
+            "answer_text": "アウトドア商品が成長市場であり、強みであるプレス加工技術が活用できる。新規顧客との接点ができ、売上の向上とノウハウの蓄積が図れる。また、自社ブランド展開することで高価格製品を販売できる可能性がある。"
+          },
+          {
+            "post_id": 11791,
+            "score": 49,
+            "published_at": "2023-06-24",
+            "answer_text": "難易度の高い金型製作技術、3DCAD利用した設計からプレス加工製品迄の一貫生産体制、コスト低減ノウハウ等を活用し商談会を通じ新規開拓を図る。顧客のコスト低減など高付加価値を訴求し卸売企業の依存低下図る"
+          },
+          {
+            "post_id": 11857,
+            "score": 50,
+            "published_at": "2023-06-24",
+            "answer_text": "難易度の高い金型製作技術と蓄積したノウハウを活かし、業務用食器・什器の卸売企業や雑貨・日用品の商談会を通じて、高価格のアウトドア用の食器セットなどアルミニウム製プレス加工品の開発と販売が可能になる。"
+          }
+        ]
+      },
+      "answers": [
+        {
+          "input_no": 1,
+          "post_id": 11901,
+          "score": 77,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11901",
+          "answer_text": "市場成長性の機会や金型製作の技術力を活かし、高価格製品への販売移行で高収益化し、売上回復や新規事業拡大の可能性。X社の要請に応え獲得したノウハウを活用し、短納期化や小ロット生産実現で受注拡大の可能性。",
+          "subquestions": []
+        },
+        {
+          "input_no": 2,
+          "post_id": 11775,
+          "score": 74,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11775",
+          "answer_text": "①消費者ニーズの収集分析が可能となり②量産化のノウハウを獲得③金型製作技術力・③コスト削減力の強みを活かし④高付加価値な自社ブランド開発で若手への技術承継を進め、差別化戦略で収益拡大の可能性をもつ。",
+          "subquestions": []
+        },
+        {
+          "input_no": 3,
+          "post_id": 11817,
+          "score": 73,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11817",
+          "answer_text": "感染症の拡大による外部環境の変化を捉え、強みである金型製作技術力、コスト低減や生産性向上の提案力を活かし、アウトドア商品の開発に取り組むことで、高付加価値、既存の販売先への依存度低減の可能性を持つ。",
+          "subquestions": []
+        },
+        {
+          "input_no": 4,
+          "post_id": 11787,
+          "score": 72,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11787",
+          "answer_text": "可能性は①市場成長率が高い分野において、高い金型製作技術やコスト低減、生産性向上の提案力という強みに短納期や小ロット化対応力が加わる事で高付加価値化、高価格製品の受注獲得し売上増②技術承継機会確保。",
+          "subquestions": []
+        },
+        {
+          "input_no": 5,
+          "post_id": 11763,
+          "score": 71,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11763",
+          "answer_text": "今後は自社ブランドの高価格帯のアウトドア用品で売上拡大の可能性がある。営業力強化し、難易度の高い金型製作技術のノウハウを活かし、他社と差別化する。受託製品以外の売上獲得することで経営リスク分散を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 6,
+          "post_id": 11839,
+          "score": 70,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11839",
+          "answer_text": "今後の可能性は①X社との共同開発等で高価格帯製品の受注獲得の可能性がある②直販顧客の獲得で顧客ニーズが収集でき高付加価値製品の開発に生かせる③小ロット、短納期生産体制の整備で既存顧客のニーズに対応可能",
+          "subquestions": []
+        },
+        {
+          "input_no": 7,
+          "post_id": 11803,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11803",
+          "answer_text": "新規取引対応は、金型製作技術を活かせ、市場成長を見込め、短納期のノウハウ獲得と体制構築に繋がり、生産性向上と製品の高付加価値化に繋がる。自社企画商品の拡大による収益拡大の可能性を持つ。",
+          "subquestions": []
+        },
+        {
+          "input_no": 8,
+          "post_id": 11825,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11825",
+          "answer_text": "助言は、強みの一貫したプレス加工生産ができることや、難度の高い金型製作技術によりコスト低減、生産性向上が図れる高付加価値な製品を提案することで、受注製品のみの依頼から脱却でき、新規開拓力がつく。",
+          "subquestions": []
+        },
+        {
+          "input_no": 9,
+          "post_id": 11869,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11869",
+          "answer_text": "戦略は、PB商品の小ロット、短納期対応する事で、量産生産ノウハウと顧客ニーズを取得でき、高い金型製作技術を活かした高価格な板金加工製品開発で、差別化し、新市場拡大させ、既存顧客依存低下の可能性をもつ。",
+          "subquestions": []
+        },
+        {
+          "input_no": 10,
+          "post_id": 11907,
+          "score": 69,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11907",
+          "answer_text": "Ｘ社との取引により獲得したアウトドア用品のノウハウ蓄積し、独自性の高い高価格製品のアルミやステンレス製の調理器具を開発し自社ブランド化する。営業強化、販売注力で下請依存体質から脱却できる可能性がある。",
+          "subquestions": []
+        },
+        {
+          "input_no": 11,
+          "post_id": 11829,
+          "score": 68,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11829",
+          "answer_text": "Ｘ社との新規取引により①販売先拡大に伴う売上増加を通し経営リスクの分散、②小ロット生産、短納期対応の体制確立とＸ社の取引実績を活かし新規受注獲得が見込める、③高価格帯な製品の受注可能性がある。",
+          "subquestions": []
+        },
+        {
+          "input_no": 12,
+          "post_id": 11785,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11785",
+          "answer_text": "戦略は①Ｘ社に難易度の高い金型製作技術を活用し中価格帯のアルミニウム製プレス加工製品を新製品開発、②コスト低減や生産性向上のノウハウを活用し、VE提案や提案営業をし高価格製品を開発し商談会で引合する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 13,
+          "post_id": 11789,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11789",
+          "answer_text": "①コロナ禍でも受領がある分野に進出して経営リスクの分散②成長市場で強みを活かすことで売上の拡大③今後、Ｃ社との関係性を強化して、高価格製品への商機の足がかりとする。",
+          "subquestions": []
+        },
+        {
+          "input_no": 14,
+          "post_id": 11865,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11865",
+          "answer_text": "難易度の高い金型製作技術の向上に努めて蓄積してきたノウハウを活用して、アウトドア製品以外でも高価格・高付加価値な製品を製作していく。営業力の強化や商談会などを活用して売上拡大、収益増加を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 15,
+          "post_id": 11893,
+          "score": 67,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11893",
+          "answer_text": "設計から量産体制までの期間の短縮化や生産業務の効率化、在庫抑制、段取り時間の短縮で、平準化生産が可能になる。小ロット化や短納期で取引先の信頼を獲得して、高価格帯の製品の受注を受け、売上拡大を狙える。",
+          "subquestions": []
+        },
+        {
+          "input_no": 16,
+          "post_id": 11793,
+          "score": 66,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11793",
+          "answer_text": "新規取引の求める小ロット化、短納期化に応えノウハウを蓄積し、強みを活かした高い難易度の金型製作技術を活かした高価格製品の取扱いや需要が高いアウトドア商品の受注拡大に繋がる可能性がある。",
+          "subquestions": []
+        },
+        {
+          "input_no": 17,
+          "post_id": 11843,
+          "score": 65,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11843",
+          "answer_text": "ホームセンター X社との新規取引に応えることで、①アウトドア市場において、別の会社から受注を得られる可能性②自社の強みである品質の高さを訴求でき、X社の高価格の製品の受注まで拡大できる可能性。",
+          "subquestions": []
+        },
+        {
+          "input_no": 18,
+          "post_id": 11781,
+          "score": 63,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11781",
+          "answer_text": "可能性は、1アウトドア商品受注により、売上や収益の向上、2自社の強みの金型製作技術 を活かした高付加価値化製品拡大の期待。3設備稼働率向上による生産効率向上。以上で差別化を図り、成長へつなげる戦略。",
+          "subquestions": []
+        },
+        {
+          "input_no": 19,
+          "post_id": 11807,
+          "score": 63,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11807",
+          "answer_text": "①ホームセンターＸ社との取引実績を活かした新規取引先との販路を拡大、②市場の成長を捉え、自社の高難易度の金型設計技術やノウハウ等の強みを活かし高付加価値製品の開発で市場開拓に繋がる可能性を持つ。",
+          "subquestions": []
+        },
+        {
+          "input_no": 20,
+          "post_id": 11879,
+          "score": 63,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11879",
+          "answer_text": "高い金型製作技術を活用でき、工場の稼働率向上や取引先拡大で経営リスク分散による経営安定化を図れる。市場の成長が見込めるアウトドア商品のノウハウが獲得でき、高価格で高付加価値な製品へ販売拡大する可能性。",
+          "subquestions": []
+        },
+        {
+          "input_no": 21,
+          "post_id": 11891,
+          "score": 63,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11891",
+          "answer_text": "①サプライチェーンの国内回帰の動きに対応した受注獲得が可能に②X社向けに高付加価値の製品を開発しようとする社内の動機づけが高まる③X社の納期管理に対応する力をつけることで、取引先拡大の可能性が高くなる",
+          "subquestions": []
+        },
+        {
+          "input_no": 22,
+          "post_id": 11909,
+          "score": 63,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11909",
+          "answer_text": "①X社との信頼関係構築により高価格な製品の生産へと受注拡大する可能性②小ロット・短納期生産への対応ノウハウを蓄積することで今後成長が期待できるアウトドア商品を取り扱う他社との取引拡大の可能性を助言する",
+          "subquestions": []
+        },
+        {
+          "input_no": 23,
+          "post_id": 11769,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11769",
+          "answer_text": "戦略は①難易度の高い金型製作技術やコスト低減や生産性向上提案の強みを活かし、\n業務プロセスの改善やデジタル化で効率化した余力を新規開拓の営業に投資し、\n高付加価値化、差別化を図り、売上向上を図ること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 24,
+          "post_id": 11795,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11795",
+          "answer_text": "高度な金型製作技術を活かして成長するアウトドア市場を捉え、高価格製品を含む生産ノウハウ獲得と見込み生産体制構築により、売上向上と経営リスクの分散、将来的には自社ブランド化の可能性が生まれる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 25,
+          "post_id": 11801,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11801",
+          "answer_text": "新規取引に応えることで①多品種少量生産体制を確立し、②難易度の高い金型製作技術の蓄積で、コスト低減や生産性向上を訴求する事で、高付加価値製品で差別化し、取引先を増やし受注を増やしていく可能性を持つ。",
+          "subquestions": []
+        },
+        {
+          "input_no": 26,
+          "post_id": 11815,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11815",
+          "answer_text": "Ｃ社の行動な金型設計技術力を生かし、高付加価値で差別化した製品をＸ社向けに提案できる可能性、Ｘ社との取引で獲得した製品開発ノウハウを活かし、日用品・雑貨に関わる新たな取引先を開拓できる可能性がある。",
+          "subquestions": []
+        },
+        {
+          "input_no": 27,
+          "post_id": 11877,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11877",
+          "answer_text": "高難度の金型製作技術とコスト削減・生産性向上の提案力を活かし、生産性向上による余力の確保で、アウトドアPB品の量産受注につなげる。また、板金加工製品の個別受注につながり、高付加価値が期待できる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 28,
+          "post_id": 11915,
+          "score": 62,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11915",
+          "answer_text": "Ｃ社は、感染症で販売が低迷する業務用食器・什器に代わりアウトドア事業の市場成長を取り込める可能性を持つ。今後は、高価格な製品、ステンレス製品プレス加工製品や板金加工製品への展開可能性も期待できる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 29,
+          "post_id": 11767,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11767",
+          "answer_text": "可能性は、①最終消費者に向けての販売であり自社ブランド価値が高まり②コスト低減、生産性向上に結びつく強みの高度な金型作成技術を訴求し③高価格な製品の新規顧客を獲得できる事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 30,
+          "post_id": 11797,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11797",
+          "answer_text": "新市場開拓で売上拡大による経営リスク軽減と、自社の高い技術と蓄積されたノウハウ活用より高付加価値商品拡大の可能性がある。一方、PB商品の売上依存度増加で、X社との取引解消となると経営が傾く可能性がある",
+          "subquestions": []
+        },
+        {
+          "input_no": 31,
+          "post_id": 11811,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11811",
+          "answer_text": "可能性は①IT化による生産効率の上昇、②ノウハウの蓄積およびC社の強みであるコスト低減や生産性向上を図る提案で取引の深化・受注の拡大、③高価格帯での高付加価値なPB商品の開発、直接販売の拡大。",
+          "subquestions": []
+        },
+        {
+          "input_no": 32,
+          "post_id": 11833,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11833",
+          "answer_text": "新規取引により、①生産面での新製品の生産による金型製作技術力向上やノウハウ蓄積、若手の育成を行い生産性を上げて、②営業面で、コスト低減に結びつく提案営業により売上を向上させ、経営リスクの分散を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 33,
+          "post_id": 11845,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11845",
+          "answer_text": "X社からの厳しい要求に応えることでノウハウや技術が向上し、より短納期で高品質なものが製造可能となり、アウトドア商品を中心とした高付加価値製品の受注に繋がり、継続的な関係性の強化、売上拡大が可能となる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 34,
+          "post_id": 11871,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11871",
+          "answer_text": "①アウトドア製品を生産する別会社との取引拡大で新規顧客開拓によりリスク分散する②高い金型製作技術やコスト低減や生産性向上のノウハウを活かし新製品開発を行い付加価値向上する可能性を持つ",
+          "subquestions": []
+        },
+        {
+          "input_no": 35,
+          "post_id": 11881,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11881",
+          "answer_text": "生産効率化及びエンドユーザのニーズ把握を通じて，高い技術力を活かした高価格製品の受注，更には自社ブランドによるエンドユーザ向け製品販売につながる可能性。効果は，取引先拡大によるリスク低下と売上拡大。",
+          "subquestions": []
+        },
+        {
+          "input_no": 36,
+          "post_id": 11883,
+          "score": 61,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11883",
+          "answer_text": "X社と取引で短納期対応が可能になり付加価値を高め競争力を得る。需要動向が異なるアウトドア製品で経営リスクが低減できる。将来、高価格帯な製品を共同開発や自社開発し付加価値向上、事業の拡大に繋がる可能性。",
+          "subquestions": []
+        },
+        {
+          "input_no": 37,
+          "post_id": 11777,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11777",
+          "answer_text": "助言は①コスト低減と生産性向上のノウハウを生かし、海外から納品できない価格帯の商品をもらい、受注量増加を図る②難易度高い金型製作技術を生かし、高付加価値の製品を開発し提案し、高価格帯の受注を獲得する事",
+          "subquestions": []
+        },
+        {
+          "input_no": 38,
+          "post_id": 11809,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11809",
+          "answer_text": "C社はX社との新規取引を通じて、強みである金型加工技術力、コスト低減や生産向上に結びつく提案力の向上を強化でき、X社以外からの受注を獲得し、少数顧客への依存から脱却し安定した経営体質への転換を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 39,
+          "post_id": 11849,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11849",
+          "answer_text": "①X社の中国等に委託していた仕事が受注できる②好調なアウトドア市場で受注ができ、技術力が信頼されれば高価格帯の製品にも拡大できる③小ロット化、短納期のノウハウを獲得し、受注拡大や高付加価値化を図ること",
+          "subquestions": []
+        },
+        {
+          "input_no": 40,
+          "post_id": 11875,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11875",
+          "answer_text": "C社はアウトドア商品市場の成長を捉え①生産面で小ロット対応や短納期対応等の生産管理体制整備、②営業面で高い技術力や提案力を活かした高付加価値製品の提供による営業力強化で新規顧客開拓、売上拡大が図れる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 41,
+          "post_id": 11885,
+          "score": 60,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11885",
+          "answer_text": "X社向け新規取引により、中価格帯のPB製品の多品種少量体制の生産ノウハウを蓄積し、生産能力、技術力をX社にアピールすることで高価格帯製品を受注、新規営業に注力することで他PB製品の受注可能性がある。",
+          "subquestions": []
+        },
+        {
+          "input_no": 42,
+          "post_id": 11805,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11805",
+          "answer_text": "可能性は、①今後高価格な製品についても担当することで、収益の向上を狙える、②アウトドア製品のノウハウを獲得することで、成長市場の商品開発力を向上させ取引先拡大が狙える、である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 43,
+          "post_id": 11819,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11819",
+          "answer_text": "持ちうる可能性は、①他への新規開拓にあたってのノウハウ獲得、②高価格製品への受注拡大、③短納期・小ロット対応による生産性の向上である。以上により、売上向上及びコスト削減を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 44,
+          "post_id": 11821,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11821",
+          "answer_text": "①卸売企業2社との取引依存から脱却し経営リスク分散、②X社PB商品の安定した生産量と継続的取引確保、③C社の対応力が認められると高価格製品へ展開、が見込まれ、売上拡大と高付加価値化を図ることができる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 45,
+          "post_id": 11887,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11887",
+          "answer_text": "売上拡大の機会となる一方でX社依存となる可能性がある。助言は①加工技術の向上とX社に対してコスト低減や生産性向上の提案を行い高価格製品の受注も獲得②販促力強化により販売チャネルの多様化と依存回避を図る",
+          "subquestions": []
+        },
+        {
+          "input_no": 46,
+          "post_id": 11895,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11895",
+          "answer_text": "可能性は、①新規の取引先開拓により、経営リスクの分散を図れる②コロナ禍でも成長する市場で自社のプレス加工技術を訴求できる③高付加価値製品の取引も期待でき、収益性を向上させられる、ことである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 47,
+          "post_id": 11903,
+          "score": 59,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11903",
+          "answer_text": "可能性は、①難度の高い金型製作技術や金型製作からプレス加工の一貫生産の活用、②短納期や小ロット化対応のノウハウ蓄積、③単一業界への依存脱却、④高単価製品への事業拡大、で高付加価値ある。",
+          "subquestions": []
+        },
+        {
+          "input_no": 48,
+          "post_id": 11827,
+          "score": 58,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11827",
+          "answer_text": "可能性は、外食産業への依存からアウトドア市場向けの高付加価値な製品開発やX社以外の取引開拓。外国生産の支障や仕入価格高騰に悩む先に対し、コスト削減や生産性向上の提案を商談会等で訴求し新規受注へ繋げる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 49,
+          "post_id": 11835,
+          "score": 58,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11835",
+          "answer_text": "Ｘ社のＰＯＳデータや店舗から得られる販売実績や顧客ニーズと蓄積してきたノウハウで、商品改善・商品開発をすることで、他社との新規取引が可能になる。また実績を積み、高価格商品も手掛けられる可能性がある。",
+          "subquestions": []
+        },
+        {
+          "input_no": 50,
+          "post_id": 11911,
+          "score": 58,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11911",
+          "answer_text": "アウトドア事業の市場成長に乗り、Ｃ社のコスト低減等の提案で信頼獲得し、高価格帯で高付加価値の調理台やラック・ワゴン等の受注を獲得する。また自社ブランド製品開発も行う。",
+          "subquestions": []
+        },
+        {
+          "input_no": 51,
+          "post_id": 11773,
+          "score": 57,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11773",
+          "answer_text": "取引に応えることで、①Ｘ社との取引実績ができるため、新規顧客を獲得でき、取引先のリスク分散を図れる、②さらに技術力や生産性が向上することで、製造コストを削減でき、収益性が向上する可能性がある。",
+          "subquestions": []
+        },
+        {
+          "input_no": 52,
+          "post_id": 11861,
+          "score": 57,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11861",
+          "answer_text": "可能性は①高価格な製品に受注が拡大すること、②小ロット生産に対応出来ること、③生産業務のスピードアップを図れること、④コスト低減や生産効率に繋がる更なる提案が出来る事。以上で、成長市場の標的顧客獲得。",
+          "subquestions": []
+        },
+        {
+          "input_no": 53,
+          "post_id": 11899,
+          "score": 57,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11899",
+          "answer_text": "可能性としては①生産性の向上と量産化の実現②高度な金型製作技術を生かした高価格製品の受注③取引先の拡大である。これにより他社との差別化を図り、受注量・生産量を増大させて収益増加を狙う。",
+          "subquestions": []
+        },
+        {
+          "input_no": 54,
+          "post_id": 11799,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11799",
+          "answer_text": "新たなノウハウの獲得と、新市場開拓の受注増加に伴い増産体制を整備することで生産の効率化が図れる。そのことからアウトドア市場に加えさらに新市場獲得の可能性が見込め、経営リスク分散と売上拡大が図れる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 55,
+          "post_id": 11813,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11813",
+          "answer_text": "X社との取引は、①C社の高い金型製作技術を生かして高価格な製品に拡大する可能性、②X社とサプライチェーンを構築することで設備稼働率が向上し、金型制作技術のノウハウ蓄積、売上向上の可能性があること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 56,
+          "post_id": 11851,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11851",
+          "answer_text": "コスト低減や生産性向上の強みを活かし、海外生産の納期遅れや仕入価格高騰を機会として国内生産切り替えの需要を獲得し売上を増加させ、高い金型製作技術を生かして付加価値を向上させる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 57,
+          "post_id": 11867,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11867",
+          "answer_text": "アウトドア製品の開発ノウハウを獲得でき、強みの高難度の金型製作技術や設計から完成品までの一貫生産体制を活かし、高付加価値なアウトドア用品を開発できる。ホームセンターの販路で販売し収益改善が見込める。",
+          "subquestions": []
+        },
+        {
+          "input_no": 58,
+          "post_id": 11889,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11889",
+          "answer_text": "C社は、商談会に参加する雑貨・日用品企業に対し、コスト低減や生産性向上のための提案を行い新市場開拓\n②若手職人へOJTを行いX社からアウトドア用PB商品のプレス加工品以外の高価格製品の開発で新製品開発",
+          "subquestions": []
+        },
+        {
+          "input_no": 59,
+          "post_id": 11897,
+          "score": 55,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11897",
+          "answer_text": "助言は高い金型製品技術とノウハウの蓄積によりX社のコスト低減や生産性向上のための提案を行う事で高単価製品の受注を獲得し、X社との取引実績を訴求し雑貨・日用品の商談会にて新規販売先の開拓で利益率向上。",
+          "subquestions": []
+        },
+        {
+          "input_no": 60,
+          "post_id": 11783,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11783",
+          "answer_text": "自社の強みであるコスト削減や生産性向上への提案力を活用して、Ｘ社の新製品開発におけるコンサルティング等へ事業領域を拡大できる。これに伴い、より付加価値の高い製品の受注とそれによる高収益化が可能である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 61,
+          "post_id": 11837,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11837",
+          "answer_text": "中価格帯の食器セットや高付加価値商品を扱うことで高い利益を得ることができる。X社の流通ノウハウを獲得でき、B社の高品質、低コスト、短納期の訴求と合わせて訴求していくことで顧客を獲得していくことができる",
+          "subquestions": []
+        },
+        {
+          "input_no": 62,
+          "post_id": 11913,
+          "score": 54,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11913",
+          "answer_text": "可能性は、➀課題であった新規顧客の獲得が実現できること、➁中価格帯のアルミニウム製プレス加工製品から高価格な製品に拡大することにより売上が向上すること、➂Ｘ社の顧客から新たなニーズが把握できること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 63,
+          "post_id": 11779,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11779",
+          "answer_text": "海外拠点へ低コストでの生産委託を行っていた企業からの受注機会が増す可能性がある。コスト面で見劣りしない点に加えて、品質面と納期面でのメリットを訴求する。幅広い業界の商談会に出店することを助言する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 64,
+          "post_id": 11863,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11863",
+          "answer_text": "新たに市場拡大中の日用品市場に進出し、Ｃ社の強みである金型製作技術の向上やノウハウの蓄積が可能となり、需要が減少する業務用食器等に代わり、新たな収益源となり、更なる受注拡大で競争力を強化できる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 65,
+          "post_id": 11873,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11873",
+          "answer_text": "短納期体制を強化、ノウハウ蓄積、技能向上により高難度金型を設計、コスト低減や生産性向上の提案を可能とし取引先の信頼を得て高単価ＰＢ商品の開発につなげ付加価値の高い商品を展開差別化でき販路開拓ができる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 66,
+          "post_id": 11905,
+          "score": 53,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11905",
+          "answer_text": "①稼働率向上による売上向上，②新たなノウハウ・体制の獲得，③環境変化に対し特定の事業に依存せず経営リスクを回避，④強みである金型製作技術力や提案力を活かすことで高付加価値化を図れる可能性。",
+          "subquestions": []
+        },
+        {
+          "input_no": 67,
+          "post_id": 11823,
+          "score": 52,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11823",
+          "answer_text": "新規取引は①アウトドア製品需要増の機会を捉え、高い金型製作技術の強みを活かし、X社のコスト低減や生産性向上を可能とし②B社のプレス加工製品の稼働率も高まる為、高価格製品を拡大させ収益向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 68,
+          "post_id": 11831,
+          "score": 52,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11831",
+          "answer_text": "難易度の高い金型製作技術の向上に努めてノウハウを蓄積し、コスト削減や生産性向上を実現した高品質な商品で応えることで、X社からの高価格な製品や、他の海外生産委託商品を扱う事業者からの受注が期待できる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 69,
+          "post_id": 11853,
+          "score": 52,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11853",
+          "answer_text": "C社は、①X社の高価格製品への受注拡大、②新たなノウハウの蓄積、③海外生産委託商品を扱う他社からの受注拡大の可能性がある。以上を実現するために若手の養成を行い、費用低減・生産性向上し売上を拡大する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 70,
+          "post_id": 11765,
+          "score": 51,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11765",
+          "answer_text": "可能性は①X社の中価格帯製品に対し、小ロット・短納期で対応することで②金型製作に係る製作技術や蓄積したノウハウを基にコスト低減や生産性向上に繋がる提案の機会が生まれ③高価格帯製品の受注にも繋がり得る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 71,
+          "post_id": 11771,
+          "score": 51,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11771",
+          "answer_text": "金型設計から完成品までの一貫生産体制や、コスト低減や生産性向上に結びつく提案力を活かし、Ｘからの高付加価値なアウトドア用PB商品の受注を拡大でき、成長するアウトドアのニーズに対応できる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 72,
+          "post_id": 11841,
+          "score": 51,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11841",
+          "answer_text": "可能性は①新たな販売チャネルを拡大し業務用卸売企業からの依存脱却とリスク分散、②X社のニーズに対応し、プレス加工製品だけでなく板金加工品も受注できる体制づくりで、業務受注の安定と、売上拡大を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 73,
+          "post_id": 11857,
+          "score": 50,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11857",
+          "answer_text": "難易度の高い金型製作技術と蓄積したノウハウを活かし、業務用食器・什器の卸売企業や雑貨・日用品の商談会を通じて、高価格のアウトドア用の食器セットなどアルミニウム製プレス加工品の開発と販売が可能になる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 74,
+          "post_id": 11791,
+          "score": 49,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11791",
+          "answer_text": "難易度の高い金型製作技術、3DCAD利用した設計からプレス加工製品迄の一貫生産体制、コスト低減ノウハウ等を活用し商談会を通じ新規開拓を図る。顧客のコスト低減など高付加価値を訴求し卸売企業の依存低下図る",
+          "subquestions": []
+        },
+        {
+          "input_no": 75,
+          "post_id": 11855,
+          "score": 45,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11855",
+          "answer_text": "アウトドア商品が成長市場であり、強みであるプレス加工技術が活用できる。新規顧客との接点ができ、売上の向上とノウハウの蓄積が図れる。また、自社ブランド展開することで高価格製品を販売できる可能性がある。",
+          "subquestions": []
+        },
+        {
+          "input_no": 76,
+          "post_id": 11847,
+          "score": 42,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11847",
+          "answer_text": "可能性は、①PBの受託及び在庫型物流センター活用のノウハウ蓄積による差別化、②設計から納品まで一貫生産体制による高付加価値化。以上により競争優位を獲得し高価格の製品の受託と経営リスクの分散が期待できる",
+          "subquestions": []
+        },
+        {
+          "input_no": 77,
+          "post_id": 11859,
+          "score": 39,
+          "published_at": "2023-06-24",
+          "url": "https://www.aas-clover.com/tokyoblog/11859",
+          "answer_text": "C社は、高い技術を活かしてX社のPB商品の少ロット・短納期に対応することで高付加価値化を図り、高価格な製品への拡大を狙う。さらに、これらの実績を訴求し新規顧客開拓し事業拡大による売上向上が期待できる。",
+          "subquestions": []
+        }
+      ]
+    }
+  ]
+}

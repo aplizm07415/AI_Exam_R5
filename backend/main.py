@@ -19,11 +19,12 @@ import hashlib
 import time
 import uuid
 from fastapi import Request, Depends # Add Depends
-import google.generativeai as genai
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials # Add for security
 
 # --- ローカルユーティリティ ---
 from .utils import normalize_question, HistoryItem, ProblemStudyStatus, get_problem_study_statuses, calculate_review_priority
+from .secondary_exam import router as secondary_exam_router
+from .gemini_config import create_generative_model, get_gemini_unavailable_reason
 
 # 新規追加: 日別集計の戻り値用モデル
 class DailySummaryItem(BaseModel):
@@ -318,11 +319,6 @@ MUSCLE_BODY_PARTS = [
     "hamstrings",
     "calves",
 ]
-
-# Gemini API Setup
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-if GOOGLE_API_KEY:
-    genai.configure(api_key=GOOGLE_API_KEY)
 
 # App Access Token Setup for single developer use
 APP_ACCESS_TOKEN = os.getenv("APP_ACCESS_TOKEN")
@@ -1361,13 +1357,14 @@ def generate_keywords_from_memo(request: GenerateKeywordsRequest):
     """
     Takes memo text and uses the Gemini API to extract and suggest keywords.
     """
-    if not GOOGLE_API_KEY:
-        raise HTTPException(status_code=500, detail="Google API Key is not configured.")
+    gemini_unavailable_reason = get_gemini_unavailable_reason()
+    if gemini_unavailable_reason:
+        raise HTTPException(status_code=500, detail=gemini_unavailable_reason)
     if not request.memo_text:
         return []
         
     try:
-        model = genai.GenerativeModel('gemini-3-flash-preview')
+        model = create_generative_model()
         prompt = f"""
 あなたは優秀な中小企業診断士の一次試験の専門家です。
 以下のテキストは、ある一日に学習した内容のメモです。
@@ -1419,8 +1416,9 @@ def _coerce_score(value, default_value: int = 50) -> int:
 @api_router.post("/quiz/oral-viva/step", response_model=OralVivaStepResponse)
 def generate_oral_viva_step(request: OralVivaStepRequest):
     """解説後に任意で実行する、1問単位の口頭試問ターンを生成する。"""
-    if not GOOGLE_API_KEY:
-        raise HTTPException(status_code=500, detail="Google API Key is not configured.")
+    gemini_unavailable_reason = get_gemini_unavailable_reason()
+    if gemini_unavailable_reason:
+        raise HTTPException(status_code=500, detail=gemini_unavailable_reason)
 
     step_titles = {
         "root": "根拠",
@@ -1484,7 +1482,7 @@ def generate_oral_viva_step(request: OralVivaStepRequest):
 }}
 """
     try:
-        model = genai.GenerativeModel('gemini-3-flash-preview')
+        model = create_generative_model()
         response = model.generate_content(prompt)
         raw_text = (response.text or "").strip()
 
@@ -2566,7 +2564,7 @@ def get_similar_questions_for_review_later(subject_name: str, problem_id: str, c
 """
     topic_keywords: list[str] = []
     try:
-        model = genai.GenerativeModel('gemini-3-flash-preview')
+        model = create_generative_model()
         response = model.generate_content(prompt)
         keyword_line = (response.text or "").strip()
         topic_keywords = [k.strip().lower() for k in keyword_line.split(",") if k.strip()]
@@ -2992,6 +2990,7 @@ def get_daily_summary(
 
 # --- Final App Setup ---
 app.include_router(api_router)
+app.include_router(secondary_exam_router)
 
 # Explicitly handle SPA routes to avoid "Not Found" on reload
 @app.get("/portal", response_class=FileResponse)

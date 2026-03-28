@@ -1,0 +1,1955 @@
+[
+  {
+    "category": "fuzoroi_xlsx",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/2  ふぞろい17メンバー再現答案（２０２４）.xlsx",
+    "relative_source_path": "2  ふぞろい17メンバー再現答案（２０２４）.xlsx",
+    "suffix": ".xlsx",
+    "size_bytes": 32136
+  },
+  {
+    "category": "fuzoroi_xlsx",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/2.ふぞろいメンバー再現答案_（２０２３）.xlsx",
+    "relative_source_path": "2.ふぞろいメンバー再現答案_（２０２３）.xlsx",
+    "suffix": ".xlsx",
+    "size_bytes": 38633
+  },
+  {
+    "category": "fuzoroi_xlsx",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/2_ふぞろい18メンバー再現答案(２０２５).xlsx",
+    "relative_source_path": "2_ふぞろい18メンバー再現答案(２０２５).xlsx",
+    "suffix": ".xlsx",
+    "size_bytes": 204187
+  },
+  {
+    "category": "notes",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/README.md",
+    "relative_source_path": "README.md",
+    "suffix": ".md",
+    "size_bytes": 1026
+  },
+  {
+    "category": "notes",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/scripts/README_saigen_extractor.md",
+    "relative_source_path": "scripts/README_saigen_extractor.md",
+    "suffix": ".md",
+    "size_bytes": 1056
+  },
+  {
+    "category": "utility_script",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/scripts/extract_saigen_answers.py",
+    "relative_source_path": "scripts/extract_saigen_answers.py",
+    "suffix": ".py",
+    "size_bytes": 15806
+  },
+  {
+    "category": "tac_text_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R1年度_事例1.pdf",
+    "relative_source_path": "★2次テキスト（解法）/2次テキスト_R1年度_事例1.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 475682,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R1年度_事例1.pdf",
+      "output_path": "source_documents/★2次テキスト（解法）/2次テキスト_R1年度_事例1.json",
+      "char_count": 24851,
+      "line_count": 1289,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "tac_text_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R1年度_事例2.pdf",
+    "relative_source_path": "★2次テキスト（解法）/2次テキスト_R1年度_事例2.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 626319,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R1年度_事例2.pdf",
+      "output_path": "source_documents/★2次テキスト（解法）/2次テキスト_R1年度_事例2.json",
+      "char_count": 22700,
+      "line_count": 1159,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "tac_text_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R1年度_事例3.pdf",
+    "relative_source_path": "★2次テキスト（解法）/2次テキスト_R1年度_事例3.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 562571,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R1年度_事例3.pdf",
+      "output_path": "source_documents/★2次テキスト（解法）/2次テキスト_R1年度_事例3.json",
+      "char_count": 22911,
+      "line_count": 1196,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "tac_text_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R1年度_事例4.pdf",
+    "relative_source_path": "★2次テキスト（解法）/2次テキスト_R1年度_事例4.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 952800,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R1年度_事例4.pdf",
+      "output_path": "source_documents/★2次テキスト（解法）/2次テキスト_R1年度_事例4.json",
+      "char_count": 25849,
+      "line_count": 1457,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "tac_text_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R2年度_事例1.pdf",
+    "relative_source_path": "★2次テキスト（解法）/2次テキスト_R2年度_事例1.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 589659,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R2年度_事例1.pdf",
+      "output_path": "source_documents/★2次テキスト（解法）/2次テキスト_R2年度_事例1.json",
+      "char_count": 25450,
+      "line_count": 1336,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "tac_text_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R2年度_事例2.pdf",
+    "relative_source_path": "★2次テキスト（解法）/2次テキスト_R2年度_事例2.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 594543,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R2年度_事例2.pdf",
+      "output_path": "source_documents/★2次テキスト（解法）/2次テキスト_R2年度_事例2.json",
+      "char_count": 25310,
+      "line_count": 1393,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "tac_text_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R2年度_事例3.pdf",
+    "relative_source_path": "★2次テキスト（解法）/2次テキスト_R2年度_事例3.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 552018,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R2年度_事例3.pdf",
+      "output_path": "source_documents/★2次テキスト（解法）/2次テキスト_R2年度_事例3.json",
+      "char_count": 23115,
+      "line_count": 1304,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "tac_text_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R2年度_事例4.pdf",
+    "relative_source_path": "★2次テキスト（解法）/2次テキスト_R2年度_事例4.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 1088252,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R2年度_事例4.pdf",
+      "output_path": "source_documents/★2次テキスト（解法）/2次テキスト_R2年度_事例4.json",
+      "char_count": 25240,
+      "line_count": 1462,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "tac_text_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R3年度_事例1.pdf",
+    "relative_source_path": "★2次テキスト（解法）/2次テキスト_R3年度_事例1.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 535900,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R3年度_事例1.pdf",
+      "output_path": "source_documents/★2次テキスト（解法）/2次テキスト_R3年度_事例1.json",
+      "char_count": 24666,
+      "line_count": 1306,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "tac_text_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R3年度_事例3.pdf",
+    "relative_source_path": "★2次テキスト（解法）/2次テキスト_R3年度_事例3.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 552839,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R3年度_事例3.pdf",
+      "output_path": "source_documents/★2次テキスト（解法）/2次テキスト_R3年度_事例3.json",
+      "char_count": 24997,
+      "line_count": 1375,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "tac_text_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R3年度_事例4.pdf",
+    "relative_source_path": "★2次テキスト（解法）/2次テキスト_R3年度_事例4.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 953215,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R3年度_事例4.pdf",
+      "output_path": "source_documents/★2次テキスト（解法）/2次テキスト_R3年度_事例4.json",
+      "char_count": 30323,
+      "line_count": 1550,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "tac_text_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R3年度事例2.pdf",
+    "relative_source_path": "★2次テキスト（解法）/2次テキスト_R3年度事例2.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 613212,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R3年度事例2.pdf",
+      "output_path": "source_documents/★2次テキスト（解法）/2次テキスト_R3年度事例2.json",
+      "char_count": 26332,
+      "line_count": 1372,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "tac_text_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R4年度_事例1.pdf",
+    "relative_source_path": "★2次テキスト（解法）/2次テキスト_R4年度_事例1.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 427789,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R4年度_事例1.pdf",
+      "output_path": "source_documents/★2次テキスト（解法）/2次テキスト_R4年度_事例1.json",
+      "char_count": 24577,
+      "line_count": 1340,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "tac_text_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R4年度_事例2.pdf",
+    "relative_source_path": "★2次テキスト（解法）/2次テキスト_R4年度_事例2.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 418360,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R4年度_事例2.pdf",
+      "output_path": "source_documents/★2次テキスト（解法）/2次テキスト_R4年度_事例2.json",
+      "char_count": 25133,
+      "line_count": 1303,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "tac_text_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R4年度_事例3.pdf",
+    "relative_source_path": "★2次テキスト（解法）/2次テキスト_R4年度_事例3.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 510839,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R4年度_事例3.pdf",
+      "output_path": "source_documents/★2次テキスト（解法）/2次テキスト_R4年度_事例3.json",
+      "char_count": 25909,
+      "line_count": 1356,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "tac_text_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R4年度事例4.pdf",
+    "relative_source_path": "★2次テキスト（解法）/2次テキスト_R4年度事例4.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 884588,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R4年度事例4.pdf",
+      "output_path": "source_documents/★2次テキスト（解法）/2次テキスト_R4年度事例4.json",
+      "char_count": 26407,
+      "line_count": 1383,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "tac_text_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R5年度_事例1.pdf",
+    "relative_source_path": "★2次テキスト（解法）/2次テキスト_R5年度_事例1.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 386209,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R5年度_事例1.pdf",
+      "output_path": "source_documents/★2次テキスト（解法）/2次テキスト_R5年度_事例1.json",
+      "char_count": 28156,
+      "line_count": 1518,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "tac_text_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R5年度_事例2.pdf",
+    "relative_source_path": "★2次テキスト（解法）/2次テキスト_R5年度_事例2.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 354977,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R5年度_事例2.pdf",
+      "output_path": "source_documents/★2次テキスト（解法）/2次テキスト_R5年度_事例2.json",
+      "char_count": 25329,
+      "line_count": 1293,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "tac_text_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R5年度_事例3.pdf",
+    "relative_source_path": "★2次テキスト（解法）/2次テキスト_R5年度_事例3.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 406863,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R5年度_事例3.pdf",
+      "output_path": "source_documents/★2次テキスト（解法）/2次テキスト_R5年度_事例3.json",
+      "char_count": 27871,
+      "line_count": 1467,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "tac_text_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R5年度_事例4.pdf",
+    "relative_source_path": "★2次テキスト（解法）/2次テキスト_R5年度_事例4.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 667576,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/2次テキスト_R5年度_事例4.pdf",
+      "output_path": "source_documents/★2次テキスト（解法）/2次テキスト_R5年度_事例4.json",
+      "char_count": 32047,
+      "line_count": 1677,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "tac_text_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/R6年度 _2024_tac-mohankatoushu.pdf",
+    "relative_source_path": "★2次テキスト（解法）/R6年度 _2024_tac-mohankatoushu.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 1890771,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/R6年度 _2024_tac-mohankatoushu.pdf",
+      "output_path": "source_documents/★2次テキスト（解法）/R6年度 _2024_tac-mohankatoushu.json",
+      "char_count": 118003,
+      "line_count": 6427,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "tac_text_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/R7年度_2025_tac-2ji-mohankatoushu.pdf",
+    "relative_source_path": "★2次テキスト（解法）/R7年度_2025_tac-2ji-mohankatoushu.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 1831520,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★2次テキスト（解法）/R7年度_2025_tac-2ji-mohankatoushu.pdf",
+      "output_path": "source_documents/★2次テキスト（解法）/R7年度_2025_tac-2ji-mohankatoushu.json",
+      "char_count": 111739,
+      "line_count": 5839,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "tac_ocr_json",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★R7,R6 _TAC解説_OCR/R6_page_dump.json",
+    "relative_source_path": "★R7,R6 _TAC解説_OCR/R6_page_dump.json",
+    "suffix": ".json",
+    "size_bytes": 265189
+  },
+  {
+    "category": "tac_ocr_json",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★R7,R6 _TAC解説_OCR/R7_page_dump.json",
+    "relative_source_path": "★R7,R6 _TAC解説_OCR/R7_page_dump.json",
+    "suffix": ".json",
+    "size_bytes": 244017
+  },
+  {
+    "category": "answer_checklist_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R1年度_事例1.pdf",
+    "relative_source_path": "★解答チェックリスト/解答チェックリスト_R1年度_事例1.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 381475,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R1年度_事例1.pdf",
+      "output_path": "source_documents/★解答チェックリスト/解答チェックリスト_R1年度_事例1.json",
+      "char_count": 2738,
+      "line_count": 86,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "answer_checklist_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R1年度_事例2.pdf",
+    "relative_source_path": "★解答チェックリスト/解答チェックリスト_R1年度_事例2.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 367256,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R1年度_事例2.pdf",
+      "output_path": "source_documents/★解答チェックリスト/解答チェックリスト_R1年度_事例2.json",
+      "char_count": 2401,
+      "line_count": 70,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "answer_checklist_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R1年度_事例3.pdf",
+    "relative_source_path": "★解答チェックリスト/解答チェックリスト_R1年度_事例3.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 384589,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R1年度_事例3.pdf",
+      "output_path": "source_documents/★解答チェックリスト/解答チェックリスト_R1年度_事例3.json",
+      "char_count": 3349,
+      "line_count": 90,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "answer_checklist_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R1年度_事例4.pdf",
+    "relative_source_path": "★解答チェックリスト/解答チェックリスト_R1年度_事例4.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 423099,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R1年度_事例4.pdf",
+      "output_path": "source_documents/★解答チェックリスト/解答チェックリスト_R1年度_事例4.json",
+      "char_count": 4939,
+      "line_count": 149,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "answer_checklist_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R2年度_事例1.pdf",
+    "relative_source_path": "★解答チェックリスト/解答チェックリスト_R2年度_事例1.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 386695,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R2年度_事例1.pdf",
+      "output_path": "source_documents/★解答チェックリスト/解答チェックリスト_R2年度_事例1.json",
+      "char_count": 2882,
+      "line_count": 87,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "answer_checklist_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R2年度_事例2.pdf",
+    "relative_source_path": "★解答チェックリスト/解答チェックリスト_R2年度_事例2.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 407534,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R2年度_事例2.pdf",
+      "output_path": "source_documents/★解答チェックリスト/解答チェックリスト_R2年度_事例2.json",
+      "char_count": 2871,
+      "line_count": 88,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "answer_checklist_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R2年度_事例3.pdf",
+    "relative_source_path": "★解答チェックリスト/解答チェックリスト_R2年度_事例3.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 374523,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R2年度_事例3.pdf",
+      "output_path": "source_documents/★解答チェックリスト/解答チェックリスト_R2年度_事例3.json",
+      "char_count": 3248,
+      "line_count": 93,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "answer_checklist_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R2年度_事例4.pdf",
+    "relative_source_path": "★解答チェックリスト/解答チェックリスト_R2年度_事例4.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 417831,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R2年度_事例4.pdf",
+      "output_path": "source_documents/★解答チェックリスト/解答チェックリスト_R2年度_事例4.json",
+      "char_count": 4787,
+      "line_count": 151,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "answer_checklist_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R3年度_事例1.pdf",
+    "relative_source_path": "★解答チェックリスト/解答チェックリスト_R3年度_事例1.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 394016,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R3年度_事例1.pdf",
+      "output_path": "source_documents/★解答チェックリスト/解答チェックリスト_R3年度_事例1.json",
+      "char_count": 3098,
+      "line_count": 89,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "answer_checklist_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R3年度_事例2.pdf",
+    "relative_source_path": "★解答チェックリスト/解答チェックリスト_R3年度_事例2.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 384855,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R3年度_事例2.pdf",
+      "output_path": "source_documents/★解答チェックリスト/解答チェックリスト_R3年度_事例2.json",
+      "char_count": 2307,
+      "line_count": 71,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "answer_checklist_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R3年度_事例3.pdf",
+    "relative_source_path": "★解答チェックリスト/解答チェックリスト_R3年度_事例3.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 366264,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R3年度_事例3.pdf",
+      "output_path": "source_documents/★解答チェックリスト/解答チェックリスト_R3年度_事例3.json",
+      "char_count": 2651,
+      "line_count": 77,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "answer_checklist_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R3年度_事例4.pdf",
+    "relative_source_path": "★解答チェックリスト/解答チェックリスト_R3年度_事例4.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 422141,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R3年度_事例4.pdf",
+      "output_path": "source_documents/★解答チェックリスト/解答チェックリスト_R3年度_事例4.json",
+      "char_count": 4968,
+      "line_count": 149,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "answer_checklist_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R4年度_事例1.pdf",
+    "relative_source_path": "★解答チェックリスト/解答チェックリスト_R4年度_事例1.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 351522,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R4年度_事例1.pdf",
+      "output_path": "source_documents/★解答チェックリスト/解答チェックリスト_R4年度_事例1.json",
+      "char_count": 2876,
+      "line_count": 87,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "answer_checklist_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R4年度_事例2.pdf",
+    "relative_source_path": "★解答チェックリスト/解答チェックリスト_R4年度_事例2.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 386621,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R4年度_事例2.pdf",
+      "output_path": "source_documents/★解答チェックリスト/解答チェックリスト_R4年度_事例2.json",
+      "char_count": 2548,
+      "line_count": 73,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "answer_checklist_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R4年度_事例3.pdf",
+    "relative_source_path": "★解答チェックリスト/解答チェックリスト_R4年度_事例3.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 379818,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R4年度_事例3.pdf",
+      "output_path": "source_documents/★解答チェックリスト/解答チェックリスト_R4年度_事例3.json",
+      "char_count": 3038,
+      "line_count": 94,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "answer_checklist_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R4年度_事例4.pdf",
+    "relative_source_path": "★解答チェックリスト/解答チェックリスト_R4年度_事例4.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 464450,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R4年度_事例4.pdf",
+      "output_path": "source_documents/★解答チェックリスト/解答チェックリスト_R4年度_事例4.json",
+      "char_count": 4670,
+      "line_count": 137,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "answer_checklist_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R5年度_事例1.pdf",
+    "relative_source_path": "★解答チェックリスト/解答チェックリスト_R5年度_事例1.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 384827,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R5年度_事例1.pdf",
+      "output_path": "source_documents/★解答チェックリスト/解答チェックリスト_R5年度_事例1.json",
+      "char_count": 3010,
+      "line_count": 87,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "answer_checklist_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R5年度_事例2.pdf",
+    "relative_source_path": "★解答チェックリスト/解答チェックリスト_R5年度_事例2.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 377477,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R5年度_事例2.pdf",
+      "output_path": "source_documents/★解答チェックリスト/解答チェックリスト_R5年度_事例2.json",
+      "char_count": 2362,
+      "line_count": 71,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "answer_checklist_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R5年度_事例3.pdf",
+    "relative_source_path": "★解答チェックリスト/解答チェックリスト_R5年度_事例3.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 358087,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R5年度_事例3.pdf",
+      "output_path": "source_documents/★解答チェックリスト/解答チェックリスト_R5年度_事例3.json",
+      "char_count": 2802,
+      "line_count": 86,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "answer_checklist_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R5年度_事例4.pdf",
+    "relative_source_path": "★解答チェックリスト/解答チェックリスト_R5年度_事例4.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 413849,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★解答チェックリスト/解答チェックリスト_R5年度_事例4.pdf",
+      "output_path": "source_documents/★解答チェックリスト/解答チェックリスト_R5年度_事例4.json",
+      "char_count": 6480,
+      "line_count": 182,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "structured_case1",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/☆事例1_整形済みinputデータ/事例1/R1.json",
+    "relative_source_path": "☆事例1_整形済みinputデータ/事例1/R1.json",
+    "suffix": ".json",
+    "size_bytes": 11260
+  },
+  {
+    "category": "structured_case1",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/☆事例1_整形済みinputデータ/事例1/R1採点観点.json",
+    "relative_source_path": "☆事例1_整形済みinputデータ/事例1/R1採点観点.json",
+    "suffix": ".json",
+    "size_bytes": 5641
+  },
+  {
+    "category": "structured_case1",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/☆事例1_整形済みinputデータ/事例1/R2.json",
+    "relative_source_path": "☆事例1_整形済みinputデータ/事例1/R2.json",
+    "suffix": ".json",
+    "size_bytes": 9470
+  },
+  {
+    "category": "structured_case1",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/☆事例1_整形済みinputデータ/事例1/R2採点観点.json",
+    "relative_source_path": "☆事例1_整形済みinputデータ/事例1/R2採点観点.json",
+    "suffix": ".json",
+    "size_bytes": 7693
+  },
+  {
+    "category": "structured_case1",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/☆事例1_整形済みinputデータ/事例1/R3.json",
+    "relative_source_path": "☆事例1_整形済みinputデータ/事例1/R3.json",
+    "suffix": ".json",
+    "size_bytes": 9159
+  },
+  {
+    "category": "structured_case1",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/☆事例1_整形済みinputデータ/事例1/R3採点観点.json",
+    "relative_source_path": "☆事例1_整形済みinputデータ/事例1/R3採点観点.json",
+    "suffix": ".json",
+    "size_bytes": 8035
+  },
+  {
+    "category": "structured_case1",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/☆事例1_整形済みinputデータ/事例1/R4.json",
+    "relative_source_path": "☆事例1_整形済みinputデータ/事例1/R4.json",
+    "suffix": ".json",
+    "size_bytes": 10648
+  },
+  {
+    "category": "structured_case1",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/☆事例1_整形済みinputデータ/事例1/R4採点観点.json",
+    "relative_source_path": "☆事例1_整形済みinputデータ/事例1/R4採点観点.json",
+    "suffix": ".json",
+    "size_bytes": 7633
+  },
+  {
+    "category": "structured_case1",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/☆事例1_整形済みinputデータ/事例1/R5.json",
+    "relative_source_path": "☆事例1_整形済みinputデータ/事例1/R5.json",
+    "suffix": ".json",
+    "size_bytes": 11369
+  },
+  {
+    "category": "structured_case1",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/☆事例1_整形済みinputデータ/事例1/R5採点観点.json",
+    "relative_source_path": "☆事例1_整形済みinputデータ/事例1/R5採点観点.json",
+    "suffix": ".json",
+    "size_bytes": 6809
+  },
+  {
+    "category": "structured_case1",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/☆事例1_整形済みinputデータ/事例1/R6.json",
+    "relative_source_path": "☆事例1_整形済みinputデータ/事例1/R6.json",
+    "suffix": ".json",
+    "size_bytes": 9578
+  },
+  {
+    "category": "structured_case1",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/☆事例1_整形済みinputデータ/事例1/R6_図.png",
+    "relative_source_path": "☆事例1_整形済みinputデータ/事例1/R6_図.png",
+    "suffix": ".png",
+    "size_bytes": 23414
+  },
+  {
+    "category": "structured_case1",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/☆事例1_整形済みinputデータ/事例1/R6採点観点.json",
+    "relative_source_path": "☆事例1_整形済みinputデータ/事例1/R6採点観点.json",
+    "suffix": ".json",
+    "size_bytes": 5399
+  },
+  {
+    "category": "structured_case1",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/☆事例1_整形済みinputデータ/事例1/R7.json",
+    "relative_source_path": "☆事例1_整形済みinputデータ/事例1/R7.json",
+    "suffix": ".json",
+    "size_bytes": 10749
+  },
+  {
+    "category": "structured_case1",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/☆事例1_整形済みinputデータ/事例1/R7採点観点.json",
+    "relative_source_path": "☆事例1_整形済みinputデータ/事例1/R7採点観点.json",
+    "suffix": ".json",
+    "size_bytes": 6699
+  },
+  {
+    "category": "fuzoroi_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/ふぞろい_再現答案_（２０２０）.pdf",
+    "relative_source_path": "ふぞろい_再現答案_（２０２０）.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 1232793,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/ふぞろい_再現答案_（２０２０）.pdf",
+      "output_path": "source_documents/ふぞろい_再現答案_（２０２０）.json",
+      "char_count": 66732,
+      "line_count": 689,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "fuzoroi_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/ふぞろい_再現答案_（２０２２）.pdf",
+    "relative_source_path": "ふぞろい_再現答案_（２０２２）.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 367078,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/ふぞろい_再現答案_（２０２２）.pdf",
+      "output_path": "source_documents/ふぞろい_再現答案_（２０２２）.json",
+      "char_count": 22468,
+      "line_count": 301,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "fuzoroi_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/ふぞろい_２再現答案_（２０２１）.pdf",
+    "relative_source_path": "ふぞろい_２再現答案_（２０２１）.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 388533,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/ふぞろい_２再現答案_（２０２１）.pdf",
+      "output_path": "source_documents/ふぞろい_２再現答案_（２０２１）.json",
+      "char_count": 53408,
+      "line_count": 454,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2007.pdf",
+    "relative_source_path": "二次_過去問PDF/case1_2007.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 131873,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2007.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case1_2007.json",
+      "char_count": 4484,
+      "line_count": 163,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2008.pdf",
+    "relative_source_path": "二次_過去問PDF/case1_2008.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 142649,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2008.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case1_2008.json",
+      "char_count": 4370,
+      "line_count": 189,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2009.pdf",
+    "relative_source_path": "二次_過去問PDF/case1_2009.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 128769,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2009.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case1_2009.json",
+      "char_count": 3376,
+      "line_count": 127,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2010.pdf",
+    "relative_source_path": "二次_過去問PDF/case1_2010.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 132244,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2010.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case1_2010.json",
+      "char_count": 3592,
+      "line_count": 143,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2011.pdf",
+    "relative_source_path": "二次_過去問PDF/case1_2011.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 130578,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2011.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case1_2011.json",
+      "char_count": 3017,
+      "line_count": 121,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2012.pdf",
+    "relative_source_path": "二次_過去問PDF/case1_2012.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 178325,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2012.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case1_2012.json",
+      "char_count": 5039,
+      "line_count": 179,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2013.pdf",
+    "relative_source_path": "二次_過去問PDF/case1_2013.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 153536,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2013.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case1_2013.json",
+      "char_count": 4591,
+      "line_count": 169,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2014.pdf",
+    "relative_source_path": "二次_過去問PDF/case1_2014.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 172958,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2014.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case1_2014.json",
+      "char_count": 5852,
+      "line_count": 192,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2015.pdf",
+    "relative_source_path": "二次_過去問PDF/case1_2015.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 172147,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2015.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case1_2015.json",
+      "char_count": 5250,
+      "line_count": 177,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2016.pdf",
+    "relative_source_path": "二次_過去問PDF/case1_2016.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 195504,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2016.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case1_2016.json",
+      "char_count": 5753,
+      "line_count": 215,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2017.pdf",
+    "relative_source_path": "二次_過去問PDF/case1_2017.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 195212,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2017.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case1_2017.json",
+      "char_count": 4740,
+      "line_count": 173,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2018.pdf",
+    "relative_source_path": "二次_過去問PDF/case1_2018.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 202650,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2018.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case1_2018.json",
+      "char_count": 3172,
+      "line_count": 171,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2019.pdf",
+    "relative_source_path": "二次_過去問PDF/case1_2019.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 217073,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2019.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case1_2019.json",
+      "char_count": 3865,
+      "line_count": 168,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2020.pdf",
+    "relative_source_path": "二次_過去問PDF/case1_2020.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 201755,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2020.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case1_2020.json",
+      "char_count": 3369,
+      "line_count": 161,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2021.pdf",
+    "relative_source_path": "二次_過去問PDF/case1_2021.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 168527,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2021.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case1_2021.json",
+      "char_count": 3132,
+      "line_count": 146,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2022.pdf",
+    "relative_source_path": "二次_過去問PDF/case1_2022.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 213104,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2022.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case1_2022.json",
+      "char_count": 3820,
+      "line_count": 176,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2023.pdf",
+    "relative_source_path": "二次_過去問PDF/case1_2023.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 261433,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2023.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case1_2023.json",
+      "char_count": 6532,
+      "line_count": 204,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2024.pdf",
+    "relative_source_path": "二次_過去問PDF/case1_2024.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 307431,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2024.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case1_2024.json",
+      "char_count": 6023,
+      "line_count": 205,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2025.pdf",
+    "relative_source_path": "二次_過去問PDF/case1_2025.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 247429,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2025.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case1_2025.json",
+      "char_count": 6291,
+      "line_count": 208,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2007.pdf",
+    "relative_source_path": "二次_過去問PDF/case2_2007.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 133658,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2007.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case2_2007.json",
+      "char_count": 3600,
+      "line_count": 159,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2008.pdf",
+    "relative_source_path": "二次_過去問PDF/case2_2008.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 139054,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2008.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case2_2008.json",
+      "char_count": 3441,
+      "line_count": 144,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2009.pdf",
+    "relative_source_path": "二次_過去問PDF/case2_2009.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 131167,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2009.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case2_2009.json",
+      "char_count": 3562,
+      "line_count": 154,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2010.pdf",
+    "relative_source_path": "二次_過去問PDF/case2_2010.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 141157,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2010.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case2_2010.json",
+      "char_count": 4314,
+      "line_count": 167,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2011.pdf",
+    "relative_source_path": "二次_過去問PDF/case2_2011.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 138448,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2011.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case2_2011.json",
+      "char_count": 4131,
+      "line_count": 165,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2012.pdf",
+    "relative_source_path": "二次_過去問PDF/case2_2012.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 182272,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2012.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case2_2012.json",
+      "char_count": 5988,
+      "line_count": 216,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2013.pdf",
+    "relative_source_path": "二次_過去問PDF/case2_2013.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 219774,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2013.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case2_2013.json",
+      "char_count": 8379,
+      "line_count": 270,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2014.pdf",
+    "relative_source_path": "二次_過去問PDF/case2_2014.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 201220,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2014.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case2_2014.json",
+      "char_count": 8758,
+      "line_count": 258,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2015.pdf",
+    "relative_source_path": "二次_過去問PDF/case2_2015.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 263832,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2015.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case2_2015.json",
+      "char_count": 8437,
+      "line_count": 263,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2016.pdf",
+    "relative_source_path": "二次_過去問PDF/case2_2016.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 273493,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2016.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case2_2016.json",
+      "char_count": 9212,
+      "line_count": 302,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2017.pdf",
+    "relative_source_path": "二次_過去問PDF/case2_2017.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 282945,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2017.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case2_2017.json",
+      "char_count": 5683,
+      "line_count": 206,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2018.pdf",
+    "relative_source_path": "二次_過去問PDF/case2_2018.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 240339,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2018.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case2_2018.json",
+      "char_count": 3812,
+      "line_count": 197,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2019.pdf",
+    "relative_source_path": "二次_過去問PDF/case2_2019.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 623436,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2019.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case2_2019.json",
+      "char_count": 5325,
+      "line_count": 211,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2020.pdf",
+    "relative_source_path": "二次_過去問PDF/case2_2020.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 206191,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2020.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case2_2020.json",
+      "char_count": 3383,
+      "line_count": 172,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2021.pdf",
+    "relative_source_path": "二次_過去問PDF/case2_2021.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 232233,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2021.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case2_2021.json",
+      "char_count": 4074,
+      "line_count": 176,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2022.pdf",
+    "relative_source_path": "二次_過去問PDF/case2_2022.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 207038,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2022.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case2_2022.json",
+      "char_count": 3991,
+      "line_count": 180,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2023.pdf",
+    "relative_source_path": "二次_過去問PDF/case2_2023.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 235849,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2023.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case2_2023.json",
+      "char_count": 6458,
+      "line_count": 221,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2024.pdf",
+    "relative_source_path": "二次_過去問PDF/case2_2024.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 279191,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2024.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case2_2024.json",
+      "char_count": 7006,
+      "line_count": 217,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2025.pdf",
+    "relative_source_path": "二次_過去問PDF/case2_2025.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 219667,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case2_2025.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case2_2025.json",
+      "char_count": 4328,
+      "line_count": 141,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2007.pdf",
+    "relative_source_path": "二次_過去問PDF/case3_2007.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 139465,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2007.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case3_2007.json",
+      "char_count": 4281,
+      "line_count": 168,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2008.pdf",
+    "relative_source_path": "二次_過去問PDF/case3_2008.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 113934,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2008.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case3_2008.json",
+      "char_count": 3686,
+      "line_count": 188,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2009.pdf",
+    "relative_source_path": "二次_過去問PDF/case3_2009.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 115717,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2009.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case3_2009.json",
+      "char_count": 3206,
+      "line_count": 139,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2010.pdf",
+    "relative_source_path": "二次_過去問PDF/case3_2010.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 119803,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2010.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case3_2010.json",
+      "char_count": 3544,
+      "line_count": 145,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2011.pdf",
+    "relative_source_path": "二次_過去問PDF/case3_2011.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 121610,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2011.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case3_2011.json",
+      "char_count": 4065,
+      "line_count": 190,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2012.pdf",
+    "relative_source_path": "二次_過去問PDF/case3_2012.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 342120,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2012.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case3_2012.json",
+      "char_count": 7270,
+      "line_count": 288,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2013.pdf",
+    "relative_source_path": "二次_過去問PDF/case3_2013.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 159844,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2013.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case3_2013.json",
+      "char_count": 5077,
+      "line_count": 191,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2014.pdf",
+    "relative_source_path": "二次_過去問PDF/case3_2014.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 152283,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2014.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case3_2014.json",
+      "char_count": 4992,
+      "line_count": 177,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2015.pdf",
+    "relative_source_path": "二次_過去問PDF/case3_2015.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 272908,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2015.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case3_2015.json",
+      "char_count": 6691,
+      "line_count": 252,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2016.pdf",
+    "relative_source_path": "二次_過去問PDF/case3_2016.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 270711,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2016.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case3_2016.json",
+      "char_count": 7179,
+      "line_count": 221,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2017.pdf",
+    "relative_source_path": "二次_過去問PDF/case3_2017.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 163416,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2017.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case3_2017.json",
+      "char_count": 4530,
+      "line_count": 172,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2018.pdf",
+    "relative_source_path": "二次_過去問PDF/case3_2018.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 201311,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2018.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case3_2018.json",
+      "char_count": 6441,
+      "line_count": 267,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2019.pdf",
+    "relative_source_path": "二次_過去問PDF/case3_2019.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 174951,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2019.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case3_2019.json",
+      "char_count": 3313,
+      "line_count": 174,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2020.pdf",
+    "relative_source_path": "二次_過去問PDF/case3_2020.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 172741,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2020.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case3_2020.json",
+      "char_count": 3181,
+      "line_count": 167,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2021.pdf",
+    "relative_source_path": "二次_過去問PDF/case3_2021.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 162234,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2021.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case3_2021.json",
+      "char_count": 3000,
+      "line_count": 142,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2022.pdf",
+    "relative_source_path": "二次_過去問PDF/case3_2022.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 205370,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2022.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case3_2022.json",
+      "char_count": 4649,
+      "line_count": 219,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2023.pdf",
+    "relative_source_path": "二次_過去問PDF/case3_2023.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 347025,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2023.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case3_2023.json",
+      "char_count": 5575,
+      "line_count": 189,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2024.pdf",
+    "relative_source_path": "二次_過去問PDF/case3_2024.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 208295,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2024.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case3_2024.json",
+      "char_count": 4917,
+      "line_count": 183,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2025.pdf",
+    "relative_source_path": "二次_過去問PDF/case3_2025.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 229812,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case3_2025.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case3_2025.json",
+      "char_count": 4677,
+      "line_count": 176,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2007.pdf",
+    "relative_source_path": "二次_過去問PDF/case4_2007.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 211761,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2007.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case4_2007.json",
+      "char_count": 6467,
+      "line_count": 251,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2008.pdf",
+    "relative_source_path": "二次_過去問PDF/case4_2008.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 134855,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2008.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case4_2008.json",
+      "char_count": 5552,
+      "line_count": 226,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2009.pdf",
+    "relative_source_path": "二次_過去問PDF/case4_2009.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 124098,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2009.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case4_2009.json",
+      "char_count": 6342,
+      "line_count": 246,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2010.pdf",
+    "relative_source_path": "二次_過去問PDF/case4_2010.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 282640,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2010.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case4_2010.json",
+      "char_count": 6126,
+      "line_count": 243,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2011.pdf",
+    "relative_source_path": "二次_過去問PDF/case4_2011.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 131965,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2011.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case4_2011.json",
+      "char_count": 6499,
+      "line_count": 238,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2012.pdf",
+    "relative_source_path": "二次_過去問PDF/case4_2012.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 178821,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2012.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case4_2012.json",
+      "char_count": 10453,
+      "line_count": 277,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2013.pdf",
+    "relative_source_path": "二次_過去問PDF/case4_2013.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 179545,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2013.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case4_2013.json",
+      "char_count": 6238,
+      "line_count": 189,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2014.pdf",
+    "relative_source_path": "二次_過去問PDF/case4_2014.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 185658,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2014.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case4_2014.json",
+      "char_count": 10619,
+      "line_count": 294,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2015.pdf",
+    "relative_source_path": "二次_過去問PDF/case4_2015.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 175211,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2015.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case4_2015.json",
+      "char_count": 10384,
+      "line_count": 333,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2016.pdf",
+    "relative_source_path": "二次_過去問PDF/case4_2016.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 194919,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2016.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case4_2016.json",
+      "char_count": 11476,
+      "line_count": 360,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2017.pdf",
+    "relative_source_path": "二次_過去問PDF/case4_2017.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 193572,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2017.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case4_2017.json",
+      "char_count": 10725,
+      "line_count": 361,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2018.pdf",
+    "relative_source_path": "二次_過去問PDF/case4_2018.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 185372,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2018.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case4_2018.json",
+      "char_count": 6221,
+      "line_count": 266,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2019.pdf",
+    "relative_source_path": "二次_過去問PDF/case4_2019.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 190768,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2019.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case4_2019.json",
+      "char_count": 7673,
+      "line_count": 256,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2020.pdf",
+    "relative_source_path": "二次_過去問PDF/case4_2020.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 204585,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2020.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case4_2020.json",
+      "char_count": 6961,
+      "line_count": 295,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2021.pdf",
+    "relative_source_path": "二次_過去問PDF/case4_2021.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 201307,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2021.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case4_2021.json",
+      "char_count": 7434,
+      "line_count": 259,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2022.pdf",
+    "relative_source_path": "二次_過去問PDF/case4_2022.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 209773,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2022.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case4_2022.json",
+      "char_count": 7486,
+      "line_count": 304,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2023.pdf",
+    "relative_source_path": "二次_過去問PDF/case4_2023.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 310106,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2023.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case4_2023.json",
+      "char_count": 11594,
+      "line_count": 361,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2024.pdf",
+    "relative_source_path": "二次_過去問PDF/case4_2024.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 273655,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2024.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case4_2024.json",
+      "char_count": 11384,
+      "line_count": 338,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "past_exam_pdf",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2025.pdf",
+    "relative_source_path": "二次_過去問PDF/case4_2025.pdf",
+    "suffix": ".pdf",
+    "size_bytes": 271127,
+    "pdf_text": {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case4_2025.pdf",
+      "output_path": "source_documents/二次_過去問PDF/case4_2025.json",
+      "char_count": 10885,
+      "line_count": 306,
+      "status": "ok"
+    }
+  },
+  {
+    "category": "prompt_text",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/再現答案_整形用プロンプト.txt",
+    "relative_source_path": "再現答案_整形用プロンプト.txt",
+    "suffix": ".txt",
+    "size_bytes": 1256
+  },
+  {
+    "category": "prompt_text",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/問題文_整形用プロンプト.txt",
+    "relative_source_path": "問題文_整形用プロンプト.txt",
+    "suffix": ".txt",
+    "size_bytes": 1672
+  },
+  {
+    "category": "aas_extracted_json",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/抽出結果/aas_saigen/grouped_by_case.json",
+    "relative_source_path": "抽出結果/aas_saigen/grouped_by_case.json",
+    "suffix": ".json",
+    "size_bytes": 1414646
+  },
+  {
+    "category": "aas_extracted_json",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/抽出結果/aas_saigen/posts.json",
+    "relative_source_path": "抽出結果/aas_saigen/posts.json",
+    "suffix": ".json",
+    "size_bytes": 1349508
+  },
+  {
+    "category": "aas_extracted_json",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/抽出結果/aas_saigen/skipped_posts.json",
+    "relative_source_path": "抽出結果/aas_saigen/skipped_posts.json",
+    "suffix": ".json",
+    "size_bytes": 209
+  },
+  {
+    "category": "aas_extracted_json",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/抽出結果/aas_saigen/summary.json",
+    "relative_source_path": "抽出結果/aas_saigen/summary.json",
+    "suffix": ".json",
+    "size_bytes": 655
+  },
+  {
+    "category": "aas_extracted_json",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/抽出結果/aas_saigen_full/grouped_by_case.json",
+    "relative_source_path": "抽出結果/aas_saigen_full/grouped_by_case.json",
+    "suffix": ".json",
+    "size_bytes": 5687416
+  },
+  {
+    "category": "aas_extracted_json",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/抽出結果/aas_saigen_full/posts.json",
+    "relative_source_path": "抽出結果/aas_saigen_full/posts.json",
+    "suffix": ".json",
+    "size_bytes": 5275955
+  },
+  {
+    "category": "aas_extracted_json",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/抽出結果/aas_saigen_full/skipped_posts.json",
+    "relative_source_path": "抽出結果/aas_saigen_full/skipped_posts.json",
+    "suffix": ".json",
+    "size_bytes": 2
+  },
+  {
+    "category": "aas_extracted_json",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/抽出結果/aas_saigen_full/summary.json",
+    "relative_source_path": "抽出結果/aas_saigen_full/summary.json",
+    "suffix": ".json",
+    "size_bytes": 906
+  },
+  {
+    "category": "aas_extracted_json",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/抽出結果/aas_saigen_sample/grouped_by_case.json",
+    "relative_source_path": "抽出結果/aas_saigen_sample/grouped_by_case.json",
+    "suffix": ".json",
+    "size_bytes": 82988
+  },
+  {
+    "category": "aas_extracted_json",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/抽出結果/aas_saigen_sample/posts.json",
+    "relative_source_path": "抽出結果/aas_saigen_sample/posts.json",
+    "suffix": ".json",
+    "size_bytes": 72444
+  },
+  {
+    "category": "aas_extracted_json",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/抽出結果/aas_saigen_sample/skipped_posts.json",
+    "relative_source_path": "抽出結果/aas_saigen_sample/skipped_posts.json",
+    "suffix": ".json",
+    "size_bytes": 2
+  },
+  {
+    "category": "aas_extracted_json",
+    "source_path": "/Users/developer/★中小企業診断士_二次試験/抽出結果/aas_saigen_sample/summary.json",
+    "relative_source_path": "抽出結果/aas_saigen_sample/summary.json",
+    "suffix": ".json",
+    "size_bytes": 409
+  }
+]

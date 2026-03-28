@@ -1,0 +1,29 @@
+{
+  "ocr_sources": [
+    {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★R7,R6 _TAC解説_OCR/R6_page_dump.json",
+      "year_label": "R6",
+      "page_count": 109,
+      "item_count": 109
+    },
+    {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/★R7,R6 _TAC解説_OCR/R7_page_dump.json",
+      "year_label": "R7",
+      "page_count": 101,
+      "item_count": 101
+    }
+  ],
+  "prompt_files": [
+    {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/再現答案_整形用プロンプト.txt",
+      "file_name": "再現答案_整形用プロンプト.txt",
+      "char_count": 686
+    },
+    {
+      "source_path": "/Users/developer/★中小企業診断士_二次試験/問題文_整形用プロンプト.txt",
+      "file_name": "問題文_整形用プロンプト.txt",
+      "char_count": 760
+    }
+  ],
+  "aas_summary_path": "/Users/developer/★中小企業診断士_二次試験/抽出結果/aas_saigen_full/summary.json"
+}

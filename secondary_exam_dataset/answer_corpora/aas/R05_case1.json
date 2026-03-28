@@ -1,0 +1,4861 @@
+{
+  "year_label": "R05",
+  "case_no": 1,
+  "case_label": "R05年度事例1",
+  "source_pdf_path": "/Users/developer/★中小企業診断士_二次試験/二次_過去問PDF/case1_2023.pdf",
+  "source_pdf_blob_path": "second-pdf-mondai/case1_2023.pdf",
+  "submission_count": 93,
+  "questions": [
+    {
+      "question_no": 1,
+      "points": 20,
+      "heading_text": "第１問（配点20点）",
+      "answer_count": 93,
+      "score_stats": {
+        "count": 93,
+        "min": 31,
+        "max": 91,
+        "median": 56,
+        "mean": 56.65
+      },
+      "answer_char_stats": {
+        "count": 93,
+        "min": 49,
+        "max": 71,
+        "median": 67,
+        "mean": 66.41
+      },
+      "exemplars": {
+        "high": [
+          {
+            "post_id": 13427,
+            "score": 91,
+            "published_at": "2024-05-02",
+            "answer_text": "①強み\n①自前のコシの強い蕎麦②高いサービス③自主的に助け合う風土\n②弱み\n①原材料の仕入れ先不安定②新たな顧客層を取り込めていない"
+          },
+          {
+            "post_id": 13435,
+            "score": 77,
+            "published_at": "2024-05-02",
+            "answer_text": "①強み\n駅前やバス利用できる立地、助け合い自主的に接客改善する風土。\n②弱み\n原材料の仕入れ不安定、常連の地元の顧客が多く新規客が少ない。"
+          },
+          {
+            "post_id": 13409,
+            "score": 76,
+            "published_at": "2024-05-02",
+            "answer_text": "①強み\n商品やサービスの質が高く、社員が助け合い問題解決する組織風土。\n②弱み\n常連客の高齢化、原材料が高騰し収益を圧迫し、仕入も不安定な点。"
+          },
+          {
+            "post_id": 13413,
+            "score": 76,
+            "published_at": "2024-05-02",
+            "answer_text": "①強み\n差別化されたメニューと高いサービス品質。従業員の問題可決能力。\n②弱み\n仕入れ業者の高齢化と原材料高等で仕入が不安定。顧客の高齢化。"
+          },
+          {
+            "post_id": 13513,
+            "score": 76,
+            "published_at": "2024-05-02",
+            "answer_text": "①強み\n従業員の高い定着率、問題解決する風土、高品質なサービスと商品。\n②弱み\n不安定な原材料仕入れと高騰で収益圧迫、地元常連顧客の高齢化。"
+          }
+        ],
+        "middle": [
+          {
+            "post_id": 13371,
+            "score": 56,
+            "published_at": "2024-05-02",
+            "answer_text": "①強み\n高品質の蕎麦とサービス、従業員間で助け合い自主性を持つ風土\n②弱み\n原材料仕入が不安定、公共交通機関利用者の来店が困難な立地"
+          },
+          {
+            "post_id": 13405,
+            "score": 56,
+            "published_at": "2024-05-02",
+            "answer_text": "①強み\n①自前で打ちコシの強い蕎麦が人気②独自メニュー③従業員の定着\n②弱み\n①原材料の仕入れが不安定②原材料の高騰③顧客が高齢者に偏り"
+          },
+          {
+            "post_id": 13453,
+            "score": 56,
+            "published_at": "2024-05-02",
+            "answer_text": "①強み\n①商品とサービスの質の高さ、②従業員が定着し組織風土も良好\n②弱み\n①原材料の高騰により収益を圧迫、②地元の顧客の高齢化"
+          },
+          {
+            "post_id": 13467,
+            "score": 56,
+            "published_at": "2024-05-02",
+            "answer_text": "①強み\n全社方針浸透による従業員の互助、自主的な問題解決風土、高定着。\n②弱み\n原材料の調達不安定、新規顧客開拓力不足、立地の悪さ、商品開発。"
+          },
+          {
+            "post_id": 13477,
+            "score": 56,
+            "published_at": "2024-05-02",
+            "answer_text": "①強み\n特色あるメニューと高品質のサービスによる競合店との差別化。\n②弱み\n従業員の定着率が弱く、原材料の調達が不安定な点。"
+          }
+        ],
+        "low": [
+          {
+            "post_id": 13491,
+            "score": 31,
+            "published_at": "2024-05-02",
+            "answer_text": "①強み\n従業員の定着率が高い、目的や意思を統一し一体感のある組織\n②弱み\nメニュー開発力が弱い、原材料の仕入れが不安定なこと。"
+          },
+          {
+            "post_id": 13379,
+            "score": 34,
+            "published_at": "2024-05-02",
+            "answer_text": "①強み\n自前で打つコシの強い蕎麦の人気、県道沿いの立地、助け合う土壌。\n②弱み\n重要な役割の正社員の離職、サービス低下、従業員の業務負荷。"
+          },
+          {
+            "post_id": 13533,
+            "score": 36,
+            "published_at": "2024-05-02",
+            "answer_text": "①強み\n従業員間で目的意識の共有・意思統一があり相互扶助の風土\n②弱み\n原材料の仕入れ不安定で新たな供給先の確保ができていない"
+          },
+          {
+            "post_id": 13355,
+            "score": 37,
+            "published_at": "2024-05-02",
+            "answer_text": "①強み\n自前で人気の蕎麦、商品開発力、要望対応力、自律的な組織風土\n②弱み\n原材料高騰で収益圧迫、不安定な原材料仕入"
+          },
+          {
+            "post_id": 13369,
+            "score": 37,
+            "published_at": "2024-05-02",
+            "answer_text": "①強み\nチームで助け合う文化。自発的に問題解決する風土\n②弱み\n仕入れ先の高齢化対策や新規顧客の囲い込みをしていない。"
+          }
+        ]
+      },
+      "answers": [
+        {
+          "input_no": 1,
+          "post_id": 13427,
+          "score": 91,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13427",
+          "answer_text": "①強み\n①自前のコシの強い蕎麦②高いサービス③自主的に助け合う風土\n②弱み\n①原材料の仕入れ先不安定②新たな顧客層を取り込めていない",
+          "subquestions": []
+        },
+        {
+          "input_no": 2,
+          "post_id": 13435,
+          "score": 77,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13435",
+          "answer_text": "①強み\n駅前やバス利用できる立地、助け合い自主的に接客改善する風土。\n②弱み\n原材料の仕入れ不安定、常連の地元の顧客が多く新規客が少ない。",
+          "subquestions": []
+        },
+        {
+          "input_no": 3,
+          "post_id": 13409,
+          "score": 76,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13409",
+          "answer_text": "①強み\n商品やサービスの質が高く、社員が助け合い問題解決する組織風土。\n②弱み\n常連客の高齢化、原材料が高騰し収益を圧迫し、仕入も不安定な点。",
+          "subquestions": []
+        },
+        {
+          "input_no": 4,
+          "post_id": 13413,
+          "score": 76,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13413",
+          "answer_text": "①強み\n差別化されたメニューと高いサービス品質。従業員の問題可決能力。\n②弱み\n仕入れ業者の高齢化と原材料高等で仕入が不安定。顧客の高齢化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 5,
+          "post_id": 13513,
+          "score": 76,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13513",
+          "answer_text": "①強み\n従業員の高い定着率、問題解決する風土、高品質なサービスと商品。\n②弱み\n不安定な原材料仕入れと高騰で収益圧迫、地元常連顧客の高齢化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 6,
+          "post_id": 13481,
+          "score": 73,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13481",
+          "answer_text": "①強み\nオリジナルメニューの商品と高品質サービス、助け合う土壌と風土\n②弱み\n原材料の高騰と仕入が不安定、地元の顧客の減少で収益が悪化",
+          "subquestions": []
+        },
+        {
+          "input_no": 7,
+          "post_id": 13539,
+          "score": 73,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13539",
+          "answer_text": "①強み\n高品質な蕎麦に高い接客力が地元住民にさせられていること。\n②弱み\n原材料の高騰や仕入れが不安定地元顧客の高齢化で固定客減少の恐れ",
+          "subquestions": []
+        },
+        {
+          "input_no": 8,
+          "post_id": 13527,
+          "score": 72,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13527",
+          "answer_text": "①強み\n①質の高い商品・サービス②組織風土が生んだ従業員の高い定着率。\n②弱み\n①原材料の仕入れが不安定で、高騰による収益圧迫②常連客の高齢化",
+          "subquestions": []
+        },
+        {
+          "input_no": 9,
+          "post_id": 13445,
+          "score": 71,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13445",
+          "answer_text": "①強み\n①自前の蕎麦による地域需要の取り込みと固定客化②良いチーム力\n②弱み\n①原材料の仕入れが不安定で、高騰②地元の常連顧客の高齢化",
+          "subquestions": []
+        },
+        {
+          "input_no": 10,
+          "post_id": 13519,
+          "score": 71,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13519",
+          "answer_text": "①強み\n①自前で打つ蕎麦②相互に助け合い自主的に問題解決するチーム\n②弱み\n①原材料の仕入れが不安定で②常連顧客の高齢化で売上減少リスク",
+          "subquestions": []
+        },
+        {
+          "input_no": 11,
+          "post_id": 13495,
+          "score": 70,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13495",
+          "answer_text": "①強み\n高品質な商品とサービス、自主的な組織風土、チームの連携\n②弱み\n原材料の高騰、仕入れの不安定さ、地元客の高齢化",
+          "subquestions": []
+        },
+        {
+          "input_no": 12,
+          "post_id": 13511,
+          "score": 70,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13511",
+          "answer_text": "①強み\n①コシの強い蕎麦②相互に助け合う風土③従業員の定着の良さ\n②弱み\n①原材料の仕入れが不安定②新規メニューの開発力③顧客の高齢化",
+          "subquestions": []
+        },
+        {
+          "input_no": 13,
+          "post_id": 13529,
+          "score": 70,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13529",
+          "answer_text": "①強み\n自前蕎麦と接客の質の高さ、育成・助け合い・風通しの良い組織。\n②弱み\n仕入れ業者や常連客の高齢化で供給元・顧客の取り込みが不安定。",
+          "subquestions": []
+        },
+        {
+          "input_no": 14,
+          "post_id": 13387,
+          "score": 69,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13387",
+          "answer_text": "①強み\n相互に助け合う企業風土による従業員の定着とチームづくり\n②弱み\n原材料の仕入れの不安定化・高騰化、常連顧客の高齢化",
+          "subquestions": []
+        },
+        {
+          "input_no": 15,
+          "post_id": 13393,
+          "score": 69,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13393",
+          "answer_text": "①強み\n助け合う風土と一体感。厳選した原材料の高価な看板商品と接客力。\n②弱み\n地元の顧客と原材料の仕入先の高齢化。原材料の高騰。",
+          "subquestions": []
+        },
+        {
+          "input_no": 16,
+          "post_id": 13395,
+          "score": 69,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13395",
+          "answer_text": "①強み\n①メニュー開発力②相互に助け合う土壌③自主的に問題解決する風土\n②弱み\n①原材料の仕入れが不安定、②常連の地元顧客の高齢化",
+          "subquestions": []
+        },
+        {
+          "input_no": 17,
+          "post_id": 13517,
+          "score": 69,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13517",
+          "answer_text": "①強み\n商品とサービスの質が高い、相互扶助の文化、地域住民に人気。\n②弱み\n地元顧客の高齢化、原材料の仕入れが不安定で高騰により収益圧迫。",
+          "subquestions": []
+        },
+        {
+          "input_no": 18,
+          "post_id": 13509,
+          "score": 68,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13509",
+          "answer_text": "①強み\n素材にこだわった高品質な蕎麦と接客力。従業員の定着率が高い。\n②弱み\n商品開発力が弱く仕入れが不安定。常連が高齢化で離反防げない。",
+          "subquestions": []
+        },
+        {
+          "input_no": 19,
+          "post_id": 13399,
+          "score": 67,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13399",
+          "answer_text": "①強み\n①相互扶助精神のある風土②競合店と差別化された商品、サービス。\n②弱み\n①原材料の仕入が不安定②新規メニュー開発力が弱い。",
+          "subquestions": []
+        },
+        {
+          "input_no": 20,
+          "post_id": 13423,
+          "score": 67,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13423",
+          "answer_text": "①強み\n①相互扶助の風土で従業員定着②自前のコシの強い蕎麦が人気。\n②弱み\n①仕入不安定②原材料高騰で利益圧迫③高齢化で新規客が少ない。",
+          "subquestions": []
+        },
+        {
+          "input_no": 21,
+          "post_id": 13455,
+          "score": 67,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13455",
+          "answer_text": "①強み\n①商品とサービスの質が高い②相互助合の土壌③従業員の定着高い\n②弱み\n①地元顧客の高齢化②原材料高騰で収益性圧迫③原材料仕入不安定",
+          "subquestions": []
+        },
+        {
+          "input_no": 22,
+          "post_id": 13383,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13383",
+          "answer_text": "①強み\n①高品質商品とサービス、②地域住民の需要、③活性化された組織。\n②弱み\n①原材料高騰で収益低下、②新規仕入先未確保、③新規顧客未開拓。",
+          "subquestions": []
+        },
+        {
+          "input_no": 23,
+          "post_id": 13473,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13473",
+          "answer_text": "①強み\n①従業員にチームで助け合う土壌があり、離職率が低いこと。\n②弱み\n②原材料の新たな供給先確保と、新たな顧客層開拓が必要なこと。",
+          "subquestions": []
+        },
+        {
+          "input_no": 24,
+          "post_id": 13487,
+          "score": 65,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13487",
+          "answer_text": "①強み\n強みは①質の高いオリジナル商品とサービス②相互協力の組織風土\n②弱み\n弱みは①原材料の高騰と仕入れが不安定②常連の地元客の高齢化",
+          "subquestions": []
+        },
+        {
+          "input_no": 25,
+          "post_id": 13397,
+          "score": 64,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13397",
+          "answer_text": "①強み\n強みは①高品質で差別化されたメニュー②活性化された組織風土。\n②弱み\n弱みは①原材料仕入れの不安定さ②新規顧客が取り込めていない。",
+          "subquestions": []
+        },
+        {
+          "input_no": 26,
+          "post_id": 13403,
+          "score": 64,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13403",
+          "answer_text": "①強み\n差別化され高単価な商品と自主的に問題解決できるチームワーク\n②弱み\n常連客の高齢化と原料仕入れが不安定化し確保が必要であること",
+          "subquestions": []
+        },
+        {
+          "input_no": 27,
+          "post_id": 13363,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13363",
+          "answer_text": "①強み\n①商品とサービスの品質で差別化②助け合いの風土と従業員の定着\n②弱み\n①原材料の仕入不安定②原材料高騰で収益圧迫③新規顧客開拓不足",
+          "subquestions": []
+        },
+        {
+          "input_no": 28,
+          "post_id": 13411,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13411",
+          "answer_text": "①強み\n人気のあるコシの強い蕎麦。質の高いサービス。自律的な組織風土。\n②弱み\n原材料の仕入が不安定。原材料高騰により収益圧迫。常連客高齢化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 29,
+          "post_id": 13523,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13523",
+          "answer_text": "①強み\nチームとして互助する土壌。商品とサービスの質の高さ。\n②弱み\n原材料の高騰、仕入れ業者高齢化で、仕入れが不安定。",
+          "subquestions": []
+        },
+        {
+          "input_no": 30,
+          "post_id": 13357,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13357",
+          "answer_text": "①強み\n自主的な課題解決文化、コシ強い蕎麦、高品質な商品とサービス。\n②弱み\n地元顧客高齢化による固定客減、原材料仕入れ不安定、収益性悪化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 31,
+          "post_id": 13431,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13431",
+          "answer_text": "①強み\n相互扶助の精神と自主性の高い風土で商品とサービスの質が高い。\n②弱み\n①原材料の仕入れが不安定で②新規顧客開拓不足である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 32,
+          "post_id": 13471,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13471",
+          "answer_text": "①強み\n原料に拘りコシの強い蕎麦を打つ技術力、従\n業員の問題解決力。\n②弱み\n新規商品開発力、接客が粗雑、不安定な原料仕入れ、顧客開拓不足。",
+          "subquestions": []
+        },
+        {
+          "input_no": 33,
+          "post_id": 13483,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13483",
+          "answer_text": "①強み\n高品質の商品とサービスの開発力、チーム間で相互に助け合う土壌\n②弱み\n原材料仕入れ業者の高齢化による仕入の不安定、地元顧客の高齢化",
+          "subquestions": []
+        },
+        {
+          "input_no": 34,
+          "post_id": 13365,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13365",
+          "answer_text": "①強み\n商品とサービスの質の高さ、利益確保と問題解決できる企業体質。\n②弱み\n業者の高齢化により仕入れが不安定で高い。新規客が少ない。",
+          "subquestions": []
+        },
+        {
+          "input_no": 35,
+          "post_id": 13375,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13375",
+          "answer_text": "①強み\n高い質の商品とサービス、相互に助け合い自主的に問題解決する風土\n②弱み\n原材料の仕入れが不安定で地元の顧客が高齢化している点",
+          "subquestions": []
+        },
+        {
+          "input_no": 36,
+          "post_id": 13391,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13391",
+          "answer_text": "①強み\n自主的に問題点を解決する組織風土や高品質な商品とサービス。\n②弱み\n原材料の仕入れが不安定で価格高騰し、常連客が高齢化している点。",
+          "subquestions": []
+        },
+        {
+          "input_no": 37,
+          "post_id": 13417,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13417",
+          "answer_text": "①強み\n①チーム連携で問題解決する風土、②従業員教育による低離職率。\n②弱み\n①原材料の仕入の不安定さ、②新規顧客開拓能力への未対応。",
+          "subquestions": []
+        },
+        {
+          "input_no": 38,
+          "post_id": 13377,
+          "score": 59,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13377",
+          "answer_text": "①強み\n①目指す姿が明確で自主的に問題解決する風土②蕎麦の商品力\n②弱み\n①原材料高騰による収益圧迫と供給先確保②既存顧客の高齢化",
+          "subquestions": []
+        },
+        {
+          "input_no": 39,
+          "post_id": 13407,
+          "score": 59,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13407",
+          "answer_text": "①強み\n従業員が問題解決する社風と差別化された看板メニューとサービス\n②弱み\n①地元客の高齢化②仕入れ先が不安③材料の高騰",
+          "subquestions": []
+        },
+        {
+          "input_no": 40,
+          "post_id": 13389,
+          "score": 58,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13389",
+          "answer_text": "①強み\n高品質な蕎麦とサービスと、従業員が相互に助け合う風土を持つ点。\n②弱み\n原材料の高騰が収益を圧迫し、地元の常連客が高齢化している点。",
+          "subquestions": []
+        },
+        {
+          "input_no": 41,
+          "post_id": 13401,
+          "score": 58,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13401",
+          "answer_text": "①強み\nコシの強い自前で打つ蕎麦。県道沿いの立地。従業員が互助する風土\n②弱み\n常連の地元顧客の高齢化。原材料高騰未対応。原材料の仕入れ不安定",
+          "subquestions": []
+        },
+        {
+          "input_no": 42,
+          "post_id": 13459,
+          "score": 57,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13459",
+          "answer_text": "①強み\n➀看板メニューとコシの強いそば ②自主的に問題解決する風土\n②弱み\n➀原材料の仕入が不安定、②売上が地元高齢者に依存する体質",
+          "subquestions": []
+        },
+        {
+          "input_no": 43,
+          "post_id": 13461,
+          "score": 57,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13461",
+          "answer_text": "①強み\n県道沿いの立地、商品とサービスの質の高さ、コシの強い蕎麦。\n②弱み\n原材料の高騰による利益圧迫、常連と原材料仕入れ業者の高齢化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 44,
+          "post_id": 13531,
+          "score": 57,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13531",
+          "answer_text": "①強み\n①商品・サービスの質の高さ②高単価③リーダー制での互助の社風\n②弱み\n①原材料の仕入れが不安定で高騰②地元の常連客の高齢化",
+          "subquestions": []
+        },
+        {
+          "input_no": 45,
+          "post_id": 13371,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13371",
+          "answer_text": "①強み\n高品質の蕎麦とサービス、従業員間で助け合い自主性を持つ風土\n②弱み\n原材料仕入が不安定、公共交通機関利用者の来店が困難な立地",
+          "subquestions": []
+        },
+        {
+          "input_no": 46,
+          "post_id": 13405,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13405",
+          "answer_text": "①強み\n①自前で打ちコシの強い蕎麦が人気②独自メニュー③従業員の定着\n②弱み\n①原材料の仕入れが不安定②原材料の高騰③顧客が高齢者に偏り",
+          "subquestions": []
+        },
+        {
+          "input_no": 47,
+          "post_id": 13453,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13453",
+          "answer_text": "①強み\n①商品とサービスの質の高さ、②従業員が定着し組織風土も良好\n②弱み\n①原材料の高騰により収益を圧迫、②地元の顧客の高齢化",
+          "subquestions": []
+        },
+        {
+          "input_no": 48,
+          "post_id": 13467,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13467",
+          "answer_text": "①強み\n全社方針浸透による従業員の互助、自主的な問題解決風土、高定着。\n②弱み\n原材料の調達不安定、新規顧客開拓力不足、立地の悪さ、商品開発。",
+          "subquestions": []
+        },
+        {
+          "input_no": 49,
+          "post_id": 13477,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13477",
+          "answer_text": "①強み\n特色あるメニューと高品質のサービスによる競合店との差別化。\n②弱み\n従業員の定着率が弱く、原材料の調達が不安定な点。",
+          "subquestions": []
+        },
+        {
+          "input_no": 50,
+          "post_id": 13505,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13505",
+          "answer_text": "①強み\nコシが強く人気の蕎麦、高い商品・サービス品質、良好な組織風土。\n②弱み\n不安定な原材料供給と高騰で収益悪化、常連客の高齢化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 51,
+          "post_id": 13515,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13515",
+          "answer_text": "①強み\n蕎麦やサービスの品質、チームの相互扶助・自主的な風土。\n②弱み\n原材料の高騰、仕入れ不安定、顧客の高齢化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 52,
+          "post_id": 13381,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13381",
+          "answer_text": "①強み\n①自前の蕎麦が人気。②蕎麦に経営資源を集中させ、効率化。\n②弱み\n①高離職率。②接客サービスが粗雑。③開発力の低さ。",
+          "subquestions": []
+        },
+        {
+          "input_no": 53,
+          "post_id": 13415,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13415",
+          "answer_text": "①強み\nコシの強い蕎麦、リピート客の多さ、組織改革への前向きさ、立地\n②弱み\n原材料の高騰、仕入れの不安定さ、常連客の高齢化",
+          "subquestions": []
+        },
+        {
+          "input_no": 54,
+          "post_id": 13497,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13497",
+          "answer_text": "①強み\n自前で打ったコシの強い蕎麦、自主的問題解決し助け合う風土。\n②弱み\n地元の顧客が中心で高齢化で売上減少、低価格への対応が弱い。",
+          "subquestions": []
+        },
+        {
+          "input_no": 55,
+          "post_id": 13421,
+          "score": 54,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13421",
+          "answer_text": "①強み\nオリジナルメニュー、高サービス、組織凝集性、従業員の定着\n②弱み\n材料の高騰による収益性の低下、材料仕入れ不安定による調達不安。",
+          "subquestions": []
+        },
+        {
+          "input_no": 56,
+          "post_id": 13447,
+          "score": 54,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13447",
+          "answer_text": "①強み\n①品質の高い商品とサービス②従業員が互助し課題解決を行う社風\n②弱み\n①原材料の仕入れが不安定で②新しい顧客取込みが不足している事",
+          "subquestions": []
+        },
+        {
+          "input_no": 57,
+          "post_id": 13485,
+          "score": 54,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13485",
+          "answer_text": "①強み\n経営方針を明確にし、目的意識の共有や統一、自主的な問題解決風土\n②弱み\n常連である地元の顧客の高齢化で新たな顧客層の取り込み必要。",
+          "subquestions": []
+        },
+        {
+          "input_no": 58,
+          "post_id": 13501,
+          "score": 54,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13501",
+          "answer_text": "①強み\n①県道沿い立地の集客力②高品質な製品・サービス③改善図る風土\n②弱み\n①業者高齢化による仕入れの不安定化②地元顧客の高齢化",
+          "subquestions": []
+        },
+        {
+          "input_no": 59,
+          "post_id": 13373,
+          "score": 53,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13373",
+          "answer_text": "①強み\nコシの強い蕎麦、商品とサービス品質、自主的に問題解決できる風土\n②弱み\n原材料の供給先不安や高騰による収益圧迫、高齢化に伴う顧客減少。",
+          "subquestions": []
+        },
+        {
+          "input_no": 60,
+          "post_id": 13441,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13441",
+          "answer_text": "①強み\nコシの強い蕎麦、従業員の相互に助け合い問題解決型の企業風土\n②弱み\n原材料の仕入れが不安定で、原材料の高騰で収益圧迫、顧客高齢化",
+          "subquestions": []
+        },
+        {
+          "input_no": 61,
+          "post_id": 13457,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13457",
+          "answer_text": "①強み\n元々の看板の蕎麦、地域住民の需要、活発的なチーム組織と風土。\n②弱み\n原材料の高騰が収益性を低下させ、新たな顧客層を取り込めない。",
+          "subquestions": []
+        },
+        {
+          "input_no": 62,
+          "post_id": 13525,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13525",
+          "answer_text": "①強み\n自前で打つコシの強い高品質な蕎麦。自律性\nの高い組織風土。\n②弱み\n常連客の高齢化で離反の可能性、仕入業者\nの高齢化で仕入不安定",
+          "subquestions": []
+        },
+        {
+          "input_no": 63,
+          "post_id": 13535,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13535",
+          "answer_text": "①強み\n商品とサービスの高い品質　従業員間の相互に助け合い組織風土\n②弱み\n駅から離れた湿地、顧客の高齢化、原材料の高騰が収益を圧迫",
+          "subquestions": []
+        },
+        {
+          "input_no": 64,
+          "post_id": 13537,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13537",
+          "answer_text": "①強み\nオリジナルメニューの開発力と高い接客力により差別化をしている点\n②弱み\n原材料の仕入れが不安定で収益が圧迫されている点。",
+          "subquestions": []
+        },
+        {
+          "input_no": 65,
+          "post_id": 13433,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13433",
+          "answer_text": "①強み\n質の高い商品とサービスの提供と従業員の定着率の高さ。\n②弱み\n原材料の高騰化と仕入れ業者の高齢化による仕入れの不安定化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 66,
+          "post_id": 13437,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13437",
+          "answer_text": "①強み\n蕎麦に特化した経営、地域住民の支持、従業員の一体感\n②弱み\n仕入業者高齢化と材料費高騰による仕入れ不安定、顧客の高齢化",
+          "subquestions": []
+        },
+        {
+          "input_no": 67,
+          "post_id": 13521,
+          "score": 50,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13521",
+          "answer_text": "①強み\n人気の自前蕎麦、助け合う組織土壌、従業員の定着率と問題解決力。\n②弱み\n原材料仕入れの不安定さと高いコスト、主要顧客の高齢化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 68,
+          "post_id": 13385,
+          "score": 49,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13385",
+          "answer_text": "①強み\n蕎麦が地元で人気で助け合いの風土があり離職率も低く利益が多い。\n②弱み\n正社員が少なく独立する社員もいる為サービスの質が低下しやすい。",
+          "subquestions": []
+        },
+        {
+          "input_no": 69,
+          "post_id": 13419,
+          "score": 49,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13419",
+          "answer_text": "①強み\n①商品・サービス品質の高さ②自発的な組織文化③常連の地元顧客\n②弱み\n①原材料の高騰による収益圧迫②常連の地元顧客の高齢化",
+          "subquestions": []
+        },
+        {
+          "input_no": 70,
+          "post_id": 13469,
+          "score": 49,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13469",
+          "answer_text": "①強み\n高品質な商品とサービス、社内の一体感、優秀な社員\n②弱み\n原材料の仕入れが不安定かつ高騰、常連が地元高齢者に固定",
+          "subquestions": []
+        },
+        {
+          "input_no": 71,
+          "post_id": 13475,
+          "score": 49,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13475",
+          "answer_text": "①強み\n互助する土壌、接客の問題解決風土、商品開発力、高品質サービス\n②弱み\n原材料の仕入れ力不足、低収益体質、常連客の高齢化",
+          "subquestions": []
+        },
+        {
+          "input_no": 72,
+          "post_id": 13479,
+          "score": 48,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13479",
+          "answer_text": "①強み\n自前でコシの強い蕎麦や独自メニューとサービス品質を作る風土\n②弱み\n仕入先が不安定で原材料の高騰で収益を圧迫し常連客は減少気味。",
+          "subquestions": []
+        },
+        {
+          "input_no": 73,
+          "post_id": 13503,
+          "score": 48,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13503",
+          "answer_text": "①強み\n自前で打つコシの強い蕎麦、相互に助け合う風土、自主的な接客\n②弱み\n高齢化で不安定な仕入、高騰原材料と常連の高齢化で不安定な利益",
+          "subquestions": []
+        },
+        {
+          "input_no": 74,
+          "post_id": 13359,
+          "score": 47,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13359",
+          "answer_text": "①強み\n商品とサービス品質の高さ、チームワーク、自前で打つそばの人気\n②弱み\n不安定な原材料仕入れ体制、高コスト体質、常連の高齢者減少",
+          "subquestions": []
+        },
+        {
+          "input_no": 75,
+          "post_id": 13439,
+          "score": 47,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13439",
+          "answer_text": "①強み\n自前で打つコシの強い蕎麦と目的意識を共有し自主的な従業員\n②弱み\n新規メニュー開発力が弱く常連客が高齢化していること",
+          "subquestions": []
+        },
+        {
+          "input_no": 76,
+          "post_id": 13361,
+          "score": 46,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13361",
+          "answer_text": "①強み\nメニュー開発力と自主的に問題点を提起し解決できる組織力。\n②弱み\n原材料の供給先の廃業リスクと顧客の高齢化による来店客数の減少。",
+          "subquestions": []
+        },
+        {
+          "input_no": 77,
+          "post_id": 13465,
+          "score": 46,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13465",
+          "answer_text": "①強み\n顧客ニーズに応えた高品質な商品とサービス及び従業員教育力。\n②弱み\n近隣の競合の多さと原材料の仕入れの不安定さや原材料の高騰。",
+          "subquestions": []
+        },
+        {
+          "input_no": 78,
+          "post_id": 13493,
+          "score": 46,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13493",
+          "answer_text": "①強み\n接客、厨房、管理３チームの組織力、商品とサービスの質の高さ\n②弱み\n原材料の仕入れが不安定",
+          "subquestions": []
+        },
+        {
+          "input_no": 79,
+          "post_id": 13489,
+          "score": 45,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13489",
+          "answer_text": "①強み\n①地域住民の需要②看板メニュー③複数来店向き店内④組織一体感。\n②弱み\n①原材料高騰と仕入れの不安定さ②開発力の弱さ③常連客の高齢化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 80,
+          "post_id": 13499,
+          "score": 45,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13499",
+          "answer_text": "①強み\nメニュー開発力、接客力、チーム制で従業員定着、地元民の高評価\n②弱み\n原材料供給先の確保不安と収益圧迫、外国人観光客若者の獲得不足",
+          "subquestions": []
+        },
+        {
+          "input_no": 81,
+          "post_id": 13425,
+          "score": 43,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13425",
+          "answer_text": "①強み\n①原材料厳選で高単価化②適切な正社員育成で従業員定着。\n②弱み\n①仕入れの不安定化と原材料高騰②地元住民の高齢化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 82,
+          "post_id": 13429,
+          "score": 43,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13429",
+          "answer_text": "①強み\n従業員の役割分担が明確化、ビジョン共有した相互扶助の組織体制。\n②弱み\n原材料高騰による収益力低下。地元顧客依存した顧客構成。",
+          "subquestions": []
+        },
+        {
+          "input_no": 83,
+          "post_id": 13451,
+          "score": 43,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13451",
+          "answer_text": "①強み\n高品質な蕎麦、正社員の育成体制、相互扶助の風土、自律的な接客力\n②弱み\n原材料供給先が不安定、顧客が高齢化している中、新規顧客開拓不足",
+          "subquestions": []
+        },
+        {
+          "input_no": 84,
+          "post_id": 13463,
+          "score": 43,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13463",
+          "answer_text": "①強み\n高品質な商品とサービスの質の高さ、社員の自主性、看板の蕎麦商品\n②弱み\n不安定な原材料仕入れで収益性が低い、高い離職",
+          "subquestions": []
+        },
+        {
+          "input_no": 85,
+          "post_id": 13449,
+          "score": 41,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13449",
+          "answer_text": "①強み\n高品質な蕎麦、助け合い・自主的に問題解決する風土、高定着率。\n②弱み\n原材料の仕入れが不安定。新規顧客の取り込みができていない点。",
+          "subquestions": []
+        },
+        {
+          "input_no": 86,
+          "post_id": 13507,
+          "score": 40,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13507",
+          "answer_text": "①強み\nオリジナルメニューの開発力とサービスの質の高さ、高い定着率。\n②弱み\n原材料の仕入が不安定、高齢化している常連への依存度が高い。",
+          "subquestions": []
+        },
+        {
+          "input_no": 87,
+          "post_id": 13367,
+          "score": 39,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13367",
+          "answer_text": "①強み\n相互に助け合う土壌。自主的に問題点を提起し解決する風土。\n②弱み\n不安定な原材料の仕入れ。新たな顧客層を取り込めない低い営業力。",
+          "subquestions": []
+        },
+        {
+          "input_no": 88,
+          "post_id": 13443,
+          "score": 38,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13443",
+          "answer_text": "①強み\n蕎麦を自前で製造したコシの強い高品質な製品、ノウハウがある。\n②弱み\n業務負荷による離職率増加、メニュー開発やサービス品質が弱い事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 89,
+          "post_id": 13355,
+          "score": 37,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13355",
+          "answer_text": "①強み\n自前で人気の蕎麦、商品開発力、要望対応力、自律的な組織風土\n②弱み\n原材料高騰で収益圧迫、不安定な原材料仕入",
+          "subquestions": []
+        },
+        {
+          "input_no": 90,
+          "post_id": 13369,
+          "score": 37,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13369",
+          "answer_text": "①強み\nチームで助け合う文化。自発的に問題解決する風土\n②弱み\n仕入れ先の高齢化対策や新規顧客の囲い込みをしていない。",
+          "subquestions": []
+        },
+        {
+          "input_no": 91,
+          "post_id": 13533,
+          "score": 36,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13533",
+          "answer_text": "①強み\n従業員間で目的意識の共有・意思統一があり相互扶助の風土\n②弱み\n原材料の仕入れ不安定で新たな供給先の確保ができていない",
+          "subquestions": []
+        },
+        {
+          "input_no": 92,
+          "post_id": 13379,
+          "score": 34,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13379",
+          "answer_text": "①強み\n自前で打つコシの強い蕎麦の人気、県道沿いの立地、助け合う土壌。\n②弱み\n重要な役割の正社員の離職、サービス低下、従業員の業務負荷。",
+          "subquestions": []
+        },
+        {
+          "input_no": 93,
+          "post_id": 13491,
+          "score": 31,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13491",
+          "answer_text": "①強み\n従業員の定着率が高い、目的や意思を統一し一体感のある組織\n②弱み\nメニュー開発力が弱い、原材料の仕入れが不安定なこと。",
+          "subquestions": []
+        }
+      ]
+    },
+    {
+      "question_no": 2,
+      "points": 20,
+      "heading_text": "第２問（配点20点）",
+      "answer_count": 93,
+      "score_stats": {
+        "count": 93,
+        "min": 31,
+        "max": 91,
+        "median": 56,
+        "mean": 56.65
+      },
+      "answer_char_stats": {
+        "count": 93,
+        "min": 85,
+        "max": 101,
+        "median": 99,
+        "mean": 97.97
+      },
+      "exemplars": {
+        "high": [
+          {
+            "post_id": 13427,
+            "score": 91,
+            "published_at": "2024-05-02",
+            "answer_text": "差別化は①総花的・非効率メニュー見直し②出前廃止③客層絞り込み④オリジナルメニュー開発⑤サービスの向上で差別化。狙いは、経営資源を集中しターゲットを絞り高付加価値な商品提供で差別化し売上高を拡大する。"
+          },
+          {
+            "post_id": 13435,
+            "score": 77,
+            "published_at": "2024-05-02",
+            "answer_text": "差別化は、①メインの客層をファミリー層に絞り原材料を厳選し看板オリジナルメニューを開発したこと、②狙いは、元々の看板であった蕎麦に資源を集中することで商品とサービスの質を高めて近隣競合と差別化すること。"
+          },
+          {
+            "post_id": 13409,
+            "score": 76,
+            "published_at": "2024-05-02",
+            "answer_text": "原材料を厳選した蕎麦に経営資源を集中した、差別化集中戦略を採った。具体的には、地元\nファミリー層を対象に、オリジナルメニューを開発し、店舗を改装し、サービスの質を高め、高付加価値化により他社と差別化した"
+          },
+          {
+            "post_id": 13413,
+            "score": 76,
+            "published_at": "2024-05-02",
+            "answer_text": "総花的なメニューを絞り込み、来店のみの対応とし経営資源を集中、②家族層をメイン顧客に原材料を厳選したメニューで高付加価値化、③目的意識や方向性を共有し、従業員定着化し競争優位性を確保し差別化。"
+          },
+          {
+            "post_id": 13513,
+            "score": 76,
+            "published_at": "2024-05-02",
+            "answer_text": "蕎麦に資源を集中し、出前をやめて顧客を地元のファミリー層に絞り、店舗を改装し、厳選した素材の高単価なオリジナルメニューを開発して商品とサービスの質を高めた。狙いは競合との差別化を図り売上を拡大すること。"
+          }
+        ],
+        "middle": [
+          {
+            "post_id": 13371,
+            "score": 56,
+            "published_at": "2024-05-02",
+            "answer_text": "差別化は、総花的ではなく地元ファミリー層を対象に絞り、高品質の蕎麦とサービスの提供で差別化を図った。狙いは外食店との価格競争を回避し、強みである高品質の蕎麦とサービスで競争優位を確保するため。"
+          },
+          {
+            "post_id": 13405,
+            "score": 56,
+            "published_at": "2024-05-02",
+            "answer_text": "①総花的なメニューを見直し強みの蕎麦に集中②客層を家族層に絞り込み③原材料を厳選し単価増④会社の方向性を明確化⑤相互扶助の土壌を築き従業員定着率向上、により差別化集中・高付加価値化を狙った。"
+          },
+          {
+            "post_id": 13453,
+            "score": 56,
+            "published_at": "2024-05-02",
+            "answer_text": "戦略は蕎麦に経営資源を集中し、オリジナルメニューを開発して差別化し、地元のファミリー層をメイン客層とした差別化集中戦略である。狙いは①商品とサービスの質による収益性向上②従業員の負担軽減で、離職防止"
+          },
+          {
+            "post_id": 13467,
+            "score": 56,
+            "published_at": "2024-05-02",
+            "answer_text": "フルラインナップを展開する先代に対し、看板の蕎麦への資源集中と商品の改廃を行うと共に主顧客を地元家族層に絞り、原材料の厳選や席の改装でニーズに応える差別化集中戦略を展開。狙いは大手と競争を回避する事。"
+          },
+          {
+            "post_id": 13477,
+            "score": 56,
+            "published_at": "2024-05-02",
+            "answer_text": "先代は蕎麦の範疇を超えた総花的メニューで規模拡大したが現社長は蕎麦に経営資源を集中。狙いは、①自前打ち蕎麦の強みを活かし、②顧客層を絞り、③特色あるメニューとサービス品質で、③差別化し売上拡大を図った。"
+          }
+        ],
+        "low": [
+          {
+            "post_id": 13491,
+            "score": 31,
+            "published_at": "2024-05-02",
+            "answer_text": "差別化集中戦略で、ターゲットを絞り、経営資源を蕎麦に集中した。使用する原材料を厳選したメニューの開発など、商品やサービスの質を高めた。近隣の競合店と差別化するため高付加価値化を図った。"
+          },
+          {
+            "post_id": 13379,
+            "score": 34,
+            "published_at": "2024-05-02",
+            "answer_text": "看板の自前で打つコシの強い蕎麦に絞り込み、標的顧客を地元のファミリー層に設定し、近隣の飲食店と差別化し競争優位を気付いた。席数を減らし商品やサービスの質を高め、\n従業員の業務負荷軽減し離職低下を狙った。"
+          },
+          {
+            "post_id": 13533,
+            "score": 36,
+            "published_at": "2024-05-02",
+            "answer_text": "メインの客層を地元ファミリー層に絞り込み、席数縮小し、家族や友人達が来店しやすいよう個室化しオリジナルメニュー開発で差別化を行った。狙いは競合店との違いを明らかにし集中戦略を採るためである。"
+          },
+          {
+            "post_id": 13355,
+            "score": 37,
+            "published_at": "2024-05-02",
+            "answer_text": "狙いは、売上拡大による事業の立て直し。差別化の内容は①経営資源を蕎麦に集中させ②客層を絞った店舗改装③原材料を厳選した高付加価値化④働きやすい組織体制の構築⑤共通目的の共有で自律的な組織風土の醸成"
+          },
+          {
+            "post_id": 13369,
+            "score": 37,
+            "published_at": "2024-05-02",
+            "answer_text": "先代経営者は顧客ニーズに幅広く対応したが、現経営者は地元ファミリー層のみに絞った。方向性を明確にして目的意識共有し、正社員教育やサービス改善に注力し、助け合い組織文化醸成と離職率低下を狙った。"
+          }
+        ]
+      },
+      "answers": [
+        {
+          "input_no": 1,
+          "post_id": 13427,
+          "score": 91,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13427",
+          "answer_text": "差別化は①総花的・非効率メニュー見直し②出前廃止③客層絞り込み④オリジナルメニュー開発⑤サービスの向上で差別化。狙いは、経営資源を集中しターゲットを絞り高付加価値な商品提供で差別化し売上高を拡大する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 2,
+          "post_id": 13435,
+          "score": 77,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13435",
+          "answer_text": "差別化は、①メインの客層をファミリー層に絞り原材料を厳選し看板オリジナルメニューを開発したこと、②狙いは、元々の看板であった蕎麦に資源を集中することで商品とサービスの質を高めて近隣競合と差別化すること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 3,
+          "post_id": 13409,
+          "score": 76,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13409",
+          "answer_text": "原材料を厳選した蕎麦に経営資源を集中した、差別化集中戦略を採った。具体的には、地元\nファミリー層を対象に、オリジナルメニューを開発し、店舗を改装し、サービスの質を高め、高付加価値化により他社と差別化した",
+          "subquestions": []
+        },
+        {
+          "input_no": 4,
+          "post_id": 13413,
+          "score": 76,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13413",
+          "answer_text": "総花的なメニューを絞り込み、来店のみの対応とし経営資源を集中、②家族層をメイン顧客に原材料を厳選したメニューで高付加価値化、③目的意識や方向性を共有し、従業員定着化し競争優位性を確保し差別化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 5,
+          "post_id": 13513,
+          "score": 76,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13513",
+          "answer_text": "蕎麦に資源を集中し、出前をやめて顧客を地元のファミリー層に絞り、店舗を改装し、厳選した素材の高単価なオリジナルメニューを開発して商品とサービスの質を高めた。狙いは競合との差別化を図り売上を拡大すること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 6,
+          "post_id": 13481,
+          "score": 73,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13481",
+          "answer_text": "メインの顧客を地元のファミリー層に絞り、メニューを強みの蕎麦に絞り、オペレーション効率を改善し、サービスの質を向上。資源を集中して競合する他店との差別化を図り、高価格、高付加価値化を狙った",
+          "subquestions": []
+        },
+        {
+          "input_no": 7,
+          "post_id": 13539,
+          "score": 73,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13539",
+          "answer_text": "看板の蕎麦に経営資源を集中し、来店のみの経営を行い、客層を地元家族層に絞る。原材料も厳選しオリジナルメニューを開発したことで近隣と異なる商品の質と品質のサービスを高める差別化で人材確保と売上回復が狙い。",
+          "subquestions": []
+        },
+        {
+          "input_no": 8,
+          "post_id": 13527,
+          "score": 72,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13527",
+          "answer_text": "現経営者は先代が拡大した事業や客層、メニューを絞り込み\n強みである蕎麦とサービスの向上に経営資源を集中させた。\n狙いは、競合店舗との競争回避および差別化を図るとともに\n効率的な運営を行い売上回復するため",
+          "subquestions": []
+        },
+        {
+          "input_no": 9,
+          "post_id": 13445,
+          "score": 71,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13445",
+          "answer_text": "①出前を廃止②メニューの見直し、ターゲットを絞り、オリジナルメニューを開発し差別化。\n狙いは①強みの蕎麦に集中することで競合との差別化②商品とサービスの質向上し、利益率向上、安定的な利益確保体制を構築。",
+          "subquestions": []
+        },
+        {
+          "input_no": 10,
+          "post_id": 13519,
+          "score": 71,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13519",
+          "answer_text": "ターゲットを地元のファミリー層に絞り、原材料厳選の蕎麦にメニューを絞り高価格で販売する高付加価値戦略を実施。近隣のチェーン店との差別化を狙い、来店客数の増加で売上向上を狙った。",
+          "subquestions": []
+        },
+        {
+          "input_no": 11,
+          "post_id": 13495,
+          "score": 70,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13495",
+          "answer_text": "地元のファミリー層に客層を絞り複数来店客の獲得で効率化しサービス品質を高め、原材料厳選で高付加価値な商品を提供することで差別化した。狙いは売上高の拡大と業務負荷軽減による離職率の低下、開発余力の確保。",
+          "subquestions": []
+        },
+        {
+          "input_no": 12,
+          "post_id": 13511,
+          "score": 70,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13511",
+          "answer_text": "先代の拡大路線や総花的なメニューを見直し①効率重視し出前を廃止②強みの蕎麦に資源を集中し③客層を絞り込み④原材料厳選し価格引上げ④商品とサービスの質を高め差別化狙いは①競合回避②サービスの質低下の改善",
+          "subquestions": []
+        },
+        {
+          "input_no": 13,
+          "post_id": 13529,
+          "score": 70,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13529",
+          "answer_text": "内容：①総花メニューを蕎麦に集中②メイン客層をファミリーに絞る③原材料厳選で高付加価値・高価格化④独自メニュー開発⑤出前中止⑥正社員採用。狙い：商品とサービスの質を高め近隣競合外食店と差別化、離職防止。",
+          "subquestions": []
+        },
+        {
+          "input_no": 14,
+          "post_id": 13387,
+          "score": 69,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13387",
+          "answer_text": "差別化は、①総花的なメニューを見直しオリジナルメニューを開発②客数を絞り込み、来店のみの経営にした③方向性・目的意識・意思を共有。狙いは、そばに経営資源を集中し商品・サービスの質を高め売上高回復。",
+          "subquestions": []
+        },
+        {
+          "input_no": 15,
+          "post_id": 13393,
+          "score": 69,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13393",
+          "answer_text": "接客サービス・メニュー開発力強化で差別化し、経営安定化を狙い、①地元ファミリー層向け蕎麦に資源集中・負荷軽減②厳選した原材料で高価な蕎麦の看板メニュー開発③助け合う風土醸成で接客力を向上し、差別化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 16,
+          "post_id": 13395,
+          "score": 69,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13395",
+          "answer_text": "①従業員の士気向上と離職率低下をねらいに、会社の目指す方向性を明確にし目的意識の共有を図り、②サービスの質向上をねらいに経営資源を集中させ蕎麦にメニューを絞った。以上により差別化を図った。",
+          "subquestions": []
+        },
+        {
+          "input_no": 17,
+          "post_id": 13517,
+          "score": 69,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13517",
+          "answer_text": "経営方針を見直して、地元のファミリー層をメインとし、原材料を厳選やオリジナルメニューの開発で商品とサービスの質を高める差別化集中戦略を行った。狙いは、安定的に利益を確保できる体制を構築する為。",
+          "subquestions": []
+        },
+        {
+          "input_no": 18,
+          "post_id": 13509,
+          "score": 68,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13509",
+          "answer_text": "顧客の多様なニーズ応える独自性のないものから、資源を蕎麦に集中し顧客を絞り込み、素材にこだわった高品質な蕎麦と高品質なサービスで差別化を行った。狙いは、価格競争回避と人材定着で安定経営を行うこと。",
+          "subquestions": []
+        },
+        {
+          "input_no": 19,
+          "post_id": 13399,
+          "score": 67,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13399",
+          "answer_text": "先代は、顧客層を広く設定したが、現経営者は、客層を絞り込み、高付加価値化による収益性向上を狙い、経営資源を蕎麦に集中し、オリジナルメニューを開発し、近隣の競合店と差別化された商品とサービスを提供した。",
+          "subquestions": []
+        },
+        {
+          "input_no": 20,
+          "post_id": 13423,
+          "score": 67,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13423",
+          "answer_text": "規模の大きい多品種展開から地元家族層へ客層を絞り蕎麦に経営資源を集中し原材料厳選とメニュー開発、リーダー育成で商品とサービスを差別化。ねらいは業務効率化と一体感の醸成により安定的な利益確保の体制構築。",
+          "subquestions": []
+        },
+        {
+          "input_no": 21,
+          "post_id": 13455,
+          "score": 67,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13455",
+          "answer_text": "客層を地元のファミリー層に絞り込み、使用する原材料を厳選して商品とサービスの質を高めて差別化集中戦略をとった。また経営方針を見直し目的意識の共有や意思統一を図った。狙いは安定的に利益を確保できる体制。",
+          "subquestions": []
+        },
+        {
+          "input_no": 22,
+          "post_id": 13383,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13383",
+          "answer_text": "①新メニュー開発と原材料厳選による高付加価値化、②メニューとサービスの絞り込みによる経営資源集中と効率化、③標的顧客の絞り込みによる競争力向上、④社員への権限委譲とビジョン共有による組織活性化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 23,
+          "post_id": 13473,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13473",
+          "answer_text": "差別化したのは①メニューを絞り蕎麦に資源を集中②原材料を厳選し高価格化③客層を地元ファミリー層に絞ったこと。狙いは高付加価値な蕎麦専門店として特定の層に訴求し、他店と差別化して競争優位を築くことである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 24,
+          "post_id": 13487,
+          "score": 65,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13487",
+          "answer_text": "先代経営者は地域住民を顧客層とし、総花的メニューや出前で顧客ニーズに応えていた。現経営者は客層を地元のファミリー層に絞り込み、複数人で利用しやすい内装と高品質な商品とサービスで外食店との差別化を図った。",
+          "subquestions": []
+        },
+        {
+          "input_no": 25,
+          "post_id": 13397,
+          "score": 64,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13397",
+          "answer_text": "標的顧客を地元ファミリー層へ絞り、店舗を狭く改装、メニューを絞り価格を上げ、オリジナルメニューを開発し近隣店との差別化を行った。狙いはオペレーション効率を上げつつもサービス品質を高め固定客化を図るため",
+          "subquestions": []
+        },
+        {
+          "input_no": 26,
+          "post_id": 13403,
+          "score": 64,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13403",
+          "answer_text": "安定した利益を確保できる体制とするため差別化集中戦略をとった。具体的には①地元のファミリー層に特化し複数来店するようにし顧客数増加②蕎麦に集中したオリジナルメニューを開発し客単価アップ",
+          "subquestions": []
+        },
+        {
+          "input_no": 27,
+          "post_id": 13363,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13363",
+          "answer_text": "ターゲットを地元のファミリー層に絞り込み、高品質な商品とサービスの提供で差別化した。狙いは複数人での来店を増やし、高価格な商品で利益重視にし、従業員の業務負荷を下げつつも利益が出せる構造に変えること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 28,
+          "post_id": 13411,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13411",
+          "answer_text": "総花的なメニューの見直し、出前を辞めてＡ社の強みである蕎麦に経営資源を集中させ、ターゲット層をファミリー層に絞り込んだ。経営資源の集中により商品とサービスの質を高め差別化を図ることによる顧客獲得が狙い。",
+          "subquestions": []
+        },
+        {
+          "input_no": 29,
+          "post_id": 13523,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13523",
+          "answer_text": "オリジナルメニューの開発、効率の悪い商品の廃止、ファミリー層へ客層絞り込み、席数の減少により、ニーズへの対応から商品とサービスの質による差別化とし、業務負荷軽減、競争回避狙う。",
+          "subquestions": []
+        },
+        {
+          "input_no": 30,
+          "post_id": 13357,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13357",
+          "answer_text": "商品を蕎麦に絞り経営資源集中、原材料厳選・メニュー開発・自主的な課題解決文化で商品とサービスの質向上させ差別化を図り競争優位性確立・売上拡大。来店のみの経営でコスト削減し安定的な収益確保。",
+          "subquestions": []
+        },
+        {
+          "input_no": 31,
+          "post_id": 13431,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13431",
+          "answer_text": "先代は総花的なメニューでまちの食堂としての役割を狙ったが、現経営者は競合台頭による競争激化の中で標的をファミリー層に絞り、蕎麦に資源を集中し差別化を図った。狙いは、価格競争回避による安定的な利益確保。、",
+          "subquestions": []
+        },
+        {
+          "input_no": 32,
+          "post_id": 13471,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13471",
+          "answer_text": "先代は蕎麦の範疇超えメニュー拡大し街の食堂として顧客ニーズ対応したが、現経営者は①来店のみとし②看板商品の蕎麦に集中し原料に拘るメニュー開発③顧客を地元の家族層に絞り、経営資源集中し差別化を図った。",
+          "subquestions": []
+        },
+        {
+          "input_no": 33,
+          "post_id": 13483,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13483",
+          "answer_text": "顧客を地元ファミリー層に絞り、オリジナルメニューと高品質の商品サービスによる差別化集中戦略。狙いは、地元ファミリー層の中で市場を獲得してリピート客を得ることで、収益の安定確保・拡大を図ることである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 34,
+          "post_id": 13365,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13365",
+          "answer_text": "メイン客層を地元のファミリー層に絞り込み、原材料の厳選、オリジナルメニューの開発と従業員への権限移譲、サービスの質により差別化を実施した。狙いは経営資源の集中と業務負担軽減でサービスの質を上げ売上向上。",
+          "subquestions": []
+        },
+        {
+          "input_no": 35,
+          "post_id": 13375,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13375",
+          "answer_text": "先代は人口増加に合わせてメニューを豊富にし、店舗拡大したが現経営者はファミリー層にターゲットを絞り、蕎麦に資源を集中し差別化集中戦略を行なった。狙いはメニューの開発力強化と接客サービスの向上。",
+          "subquestions": []
+        },
+        {
+          "input_no": 36,
+          "post_id": 13391,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13391",
+          "answer_text": "A社は、①総花的なメニューを見直し資源を蕎麦に集中し、②客層を地元のファミリー層に絞り客層に合ったサービスを提供することで差別化を図り、③高付加価値な商品により利益向上を図った。",
+          "subquestions": []
+        },
+        {
+          "input_no": 37,
+          "post_id": 13417,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13417",
+          "answer_text": "①蕎麦に経営資源を集中するとともに原材料の厳選、新規メニューの開発を行い、②正社員を中心とした従業員の教育を通じてサービスの質を向上させることで差別化を図り、地元ファミリー層の需要取り込みを狙った。",
+          "subquestions": []
+        },
+        {
+          "input_no": 38,
+          "post_id": 13377,
+          "score": 59,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13377",
+          "answer_text": "狙いは、競合との価格競争を回避すること。先代経営者が規模を拡大してきたことに対し、現経営者は原材料を厳選し価格を引き上げ、看板メニューを開発、客層を家族に絞り、サービス力を高めることで、差別化を図った。",
+          "subquestions": []
+        },
+        {
+          "input_no": 39,
+          "post_id": 13407,
+          "score": 59,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13407",
+          "answer_text": "以前は昼食を取る顧客をターゲットとしたまちの食堂だったが、現在はファミリー層を主顧客としている。狙いは競合他社との差別化で看板メニューとサービスの向上により客単価向上と高付加価値化を狙った。",
+          "subquestions": []
+        },
+        {
+          "input_no": 40,
+          "post_id": 13389,
+          "score": 58,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13389",
+          "answer_text": "現経営者は、①先代が行った総花的メニューを見直して、そばに資源を集中し、②会社が目指す方向を明確にし、目的意識を高め相互に助け合う風土を作ったことで、③サービスの質を高め、安定的な収益を確保した。",
+          "subquestions": []
+        },
+        {
+          "input_no": 41,
+          "post_id": 13401,
+          "score": 58,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13401",
+          "answer_text": "先代は地元顧客ニーズに応えるため総花的な対応だったが、現経営者は①看板の蕎麦に資源集中し、②標的顧客を地元ファミリー層に絞り③原材料を厳選し高価格化した。以て、差別化集中戦略を採り高付加価値化を狙った。",
+          "subquestions": []
+        },
+        {
+          "input_no": 42,
+          "post_id": 13459,
+          "score": 57,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13459",
+          "answer_text": "戦略上の差別化点は、看板となるオリジナルメニューを開発し、ファミリー層に絞り込んだ接客したこと。狙いは、総花的なメニューから資源集中したソバで競合と差別化、顧客を地元ファミリー層に絞って集中したこと。",
+          "subquestions": []
+        },
+        {
+          "input_no": 43,
+          "post_id": 13461,
+          "score": 57,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13461",
+          "answer_text": "①総花的メニューから蕎麦に集中してオリジナルメニューの開発②出前をやめて来店のみ③店舗改装で客層をファミリー層に絞り込みを行った。狙いは商品とサービスの質向上で近隣の競合との差別化を図ることである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 44,
+          "post_id": 13531,
+          "score": 57,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13531",
+          "answer_text": "先代は近隣の競合と差別化できなかったが、現経営者は①個室やボックス席を中心に改装し②原材料を厳選の上で看板メニューを開発することで、地元のファミリー層を対象に商品・サービス面での差別化を狙った。",
+          "subquestions": []
+        },
+        {
+          "input_no": 45,
+          "post_id": 13371,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13371",
+          "answer_text": "差別化は、総花的ではなく地元ファミリー層を対象に絞り、高品質の蕎麦とサービスの提供で差別化を図った。狙いは外食店との価格競争を回避し、強みである高品質の蕎麦とサービスで競争優位を確保するため。",
+          "subquestions": []
+        },
+        {
+          "input_no": 46,
+          "post_id": 13405,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13405",
+          "answer_text": "①総花的なメニューを見直し強みの蕎麦に集中②客層を家族層に絞り込み③原材料を厳選し単価増④会社の方向性を明確化⑤相互扶助の土壌を築き従業員定着率向上、により差別化集中・高付加価値化を狙った。",
+          "subquestions": []
+        },
+        {
+          "input_no": 47,
+          "post_id": 13453,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13453",
+          "answer_text": "戦略は蕎麦に経営資源を集中し、オリジナルメニューを開発して差別化し、地元のファミリー層をメイン客層とした差別化集中戦略である。狙いは①商品とサービスの質による収益性向上②従業員の負担軽減で、離職防止",
+          "subquestions": []
+        },
+        {
+          "input_no": 48,
+          "post_id": 13467,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13467",
+          "answer_text": "フルラインナップを展開する先代に対し、看板の蕎麦への資源集中と商品の改廃を行うと共に主顧客を地元家族層に絞り、原材料の厳選や席の改装でニーズに応える差別化集中戦略を展開。狙いは大手と競争を回避する事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 49,
+          "post_id": 13477,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13477",
+          "answer_text": "先代は蕎麦の範疇を超えた総花的メニューで規模拡大したが現社長は蕎麦に経営資源を集中。狙いは、①自前打ち蕎麦の強みを活かし、②顧客層を絞り、③特色あるメニューとサービス品質で、③差別化し売上拡大を図った。",
+          "subquestions": []
+        },
+        {
+          "input_no": 50,
+          "post_id": 13505,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13505",
+          "answer_text": "飲食チェーンやコンビニが増加し競争激化する中①看板である蕎麦に経営資源を集中し②ファミリー層に標的を絞り込み③正社員の育成強化で商品とサービス向上し高付加価値化し競争優位発揮で他社と差別化を狙った。",
+          "subquestions": []
+        },
+        {
+          "input_no": 51,
+          "post_id": 13515,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13515",
+          "answer_text": "非効率なメニュー・出前を廃止し、客層をファミリーに絞り、看板メニューの蕎麦に資源を集中し差別化を行った。狙いは(1)商品・サービスの質向上、(2)負担軽減で特に重要な役割を担う正社員の離職防止。",
+          "subquestions": []
+        },
+        {
+          "input_no": 52,
+          "post_id": 13381,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13381",
+          "answer_text": "差別化は、①客層をファミリー客に絞り込み、個室等を増やした。②商品と接客の質を高めた。③看板メニューを開発。狙いは、①複数で来店する顧客の増加。②高付加価値化による利益確保。③目玉商品による訴求力向上。",
+          "subquestions": []
+        },
+        {
+          "input_no": 53,
+          "post_id": 13415,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13415",
+          "answer_text": "①メニューの見直しによる蕎麦への経営資源の集中、②業務の効率化、③原材料の厳選、高付加価値化、④新メニュー開発により、商品・サービスの質を高め、他社との差別化を図ることで利益の確保を狙った。",
+          "subquestions": []
+        },
+        {
+          "input_no": 54,
+          "post_id": 13497,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13497",
+          "answer_text": "地元のファミリー層の取り込みを狙い、個室やボックス席を整備、高品質な原材料を用いた独自メニューを開発し、高品質な接客サービスにより、高付加価値化することで、客単価・来店客数向上、愛顧向上、固定客化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 55,
+          "post_id": 13421,
+          "score": 54,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13421",
+          "answer_text": "先代の広い標的顧客に対して総花的メニュー、規模拡大に設備投資によるコストリーダーシップに対し現経営者は家族や友人の来店を標的に厳選材料のメニュー、高サービスで差別化し競争優位獲得、リピート、利益確保。",
+          "subquestions": []
+        },
+        {
+          "input_no": 56,
+          "post_id": 13447,
+          "score": 54,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13447",
+          "answer_text": "現経営者は①標的を地元家族層向けとし品質・サービスを向上し差別化②３部体制で互助する社風を確立。狙いは①資源を看板商品に集中し、他社との差別化②共通目的を明確化し、社員のモーラル向上を図る事である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 57,
+          "post_id": 13485,
+          "score": 54,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13485",
+          "answer_text": "現経営者はメニューを見直し、効率の悪いメニューを廃止し、来店のみで蕎麦に資源を集中し、ファミリー層に絞り、使用材料を厳選し、オリジナルメニュー開発を行い、商品とサービスの品質を高め、高付加価値化や差別化",
+          "subquestions": []
+        },
+        {
+          "input_no": 58,
+          "post_id": 13501,
+          "score": 54,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13501",
+          "answer_text": "まちの食堂的な総花的メニューから蕎麦に集中し原材料を厳選してオリジナルメニューを開発しサービス品質も高めた。狙いは大手チェーン等競合との差別化による価格競争、同質競争の回避である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 59,
+          "post_id": 13373,
+          "score": 53,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13373",
+          "answer_text": "①地元のファミリー層に標的を絞り②使用する原材料を厳選し商品単価を上げ③看板メニュー開発し商品をサービス品質高めた事。狙いは経営資源を集中投資し、価格競争や業務負荷を解消し、差別化、高付加価値化する為。",
+          "subquestions": []
+        },
+        {
+          "input_no": 60,
+          "post_id": 13441,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13441",
+          "answer_text": "客層を地元のファミリー層に絞り込み、蕎麦に資源を集中し出前をやめオリジナルメニューを開発し商品とサービス品質を高め差別化した。近隣の競合との競争を回避し従業員の負荷を軽減し離職を防ぐのが狙いである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 61,
+          "post_id": 13457,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13457",
+          "answer_text": "元々の看板であった蕎麦に資源を集中し地元のファミリー層に客層を絞り込み、看板となるオリジナルメニューを開発し商品とサービスの質を高め、競合との競争回避を図った。社内を3部体制とし、利益の確保を図った。",
+          "subquestions": []
+        },
+        {
+          "input_no": 62,
+          "post_id": 13525,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13525",
+          "answer_text": "ターゲットを明確に絞って、原材料を厳選し、\nオリジナルメニューの開発を行なって開発力\nを高め、競合店と異なる商品とサービスの品\n質を高めることで、差別化を図り、差別化集\n中、競合回避を狙った。",
+          "subquestions": []
+        },
+        {
+          "input_no": 63,
+          "post_id": 13535,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13535",
+          "answer_text": "先代経営者は、総花的なメニュー展開でサービスの質を招いた。現経営者は、客層を地元のファミリー層に絞り、蕎麦に資源集中、原料厳選し商品とサービスの質を高めた。狙いは効率を重視し、従業員の離職を防ぐこと。",
+          "subquestions": []
+        },
+        {
+          "input_no": 64,
+          "post_id": 13537,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13537",
+          "answer_text": "地元のファミリー層に対し、厳選した原材料を使用したオリジナルメニューを、高い商品力とサービスの質によって提供し近隣の飲食店との差別化を図った。狙いは、地域住民の信頼を獲得しリピート顧客を増やすことである",
+          "subquestions": []
+        },
+        {
+          "input_no": 65,
+          "post_id": 13433,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13433",
+          "answer_text": "メインの客層を地元ファミリー層に絞り、個室やボックス席を中心とし、使用する原材料を厳選し、メニューを絞り込み、看板メニューを開発し、商品とサービスの質を高めることにより、高付加価値化を図った。",
+          "subquestions": []
+        },
+        {
+          "input_no": 66,
+          "post_id": 13437,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13437",
+          "answer_text": "商品をそばに絞り込み顧客層を地元のファミリー層に絞り原材料を厳選し商品とサービスの質を高める差別化を行い、狙いは経営資源の集中による効率化と商品開発力の向上、正社員育成による権限委譲とモラール向上",
+          "subquestions": []
+        },
+        {
+          "input_no": 67,
+          "post_id": 13521,
+          "score": 50,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13521",
+          "answer_text": "差別化施策として①メニューの都度見直し②蕎麦に経営資源を集中③原材料の厳選④高価格設定⑤独自メニュー開発⑥正社員増員と教育⑦部門リーダー新設と権限委譲を行い、狙いは商品とサービスの質向上で競合差別化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 68,
+          "post_id": 13385,
+          "score": 49,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13385",
+          "answer_text": "先代が顧客ニーズに応えて地域住民を取り込みリピート客を増やした一方、現経営者はオペレーション効率を重視し、蕎麦に資源を集中した。狙いはチェーン店との差別化を図り、売上拡大・借入金返済をする事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 69,
+          "post_id": 13419,
+          "score": 49,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13419",
+          "answer_text": "①主な客層を地元のファミリー層に絞り、店舗改装等で再来店含めた客数増加②原材料厳選や独自メニュー開発で商品・サービスの質を高め客単価増加③社内体制整備、自主的な風土を醸成し、安定的な利益確保を狙う。",
+          "subquestions": []
+        },
+        {
+          "input_no": 70,
+          "post_id": 13469,
+          "score": 49,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13469",
+          "answer_text": "戦略上の差別化は①客層を地元家族連れに絞込み②看板メニュー開発や商品、サービスの質向上。狙いは①周辺住宅地住民を取り込み客単価向上②近隣の競合外食店との差別化で競争回避。",
+          "subquestions": []
+        },
+        {
+          "input_no": 71,
+          "post_id": 13475,
+          "score": 49,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13475",
+          "answer_text": "メニューを蕎麦のみとし、出前をやめ、ファミリー層に絞り、原材料を厳選した高価格製品と高品質なサービスで差別化した。経営資源集中で余力を作り、オリジナルメニュー開発やサービス向上への資源投入を狙った。",
+          "subquestions": []
+        },
+        {
+          "input_no": 72,
+          "post_id": 13479,
+          "score": 48,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13479",
+          "answer_text": "差別化は個室等を充実化し客層を地元の家族層に絞り、また独自メニューと高品質のサービスで差別化集中戦略を取った。その狙いは、近隣のチェーン店との競争を回避し、客単価を上げ、利益率を上げるため。",
+          "subquestions": []
+        },
+        {
+          "input_no": 73,
+          "post_id": 13503,
+          "score": 48,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13503",
+          "answer_text": "メインの客層を家族層に絞り個室やボックス席中心に席数を増やし原材料を厳選して看板のオリジナルメニューを開発し販売する差別化集中戦略。ねらいは競合の標準的な原材料・メニューと差別化し高付加価値化で高収益",
+          "subquestions": []
+        },
+        {
+          "input_no": 74,
+          "post_id": 13359,
+          "score": 47,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13359",
+          "answer_text": "人気のそばに経営資源集中し、店内を改装しファミリー層に絞りオリジナルメニュー開発を行なった。狙いは業務負荷軽減し、離職率抑制と商品とサービス品質向上を図り、売上拡大を図った。",
+          "subquestions": []
+        },
+        {
+          "input_no": 75,
+          "post_id": 13439,
+          "score": 47,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13439",
+          "answer_text": "先代経営者は顧客ニーズに総花的に応える戦略だったが、現経営者の狙いは自前で打つ腰の強い蕎麦で差別化し競合の発生を受けて効率化の観点でメニュー変更や出前廃止し夜の宴会対応に経営資源を集中する戦略である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 76,
+          "post_id": 13361,
+          "score": 46,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13361",
+          "answer_text": "①ターゲットを地元の複数のファミリー客層に絞り込み競争を回避し、②商品とサービスの質を高めて差別化、③席数を減らして従業員の負担を軽減、半減した売上高の回復と従業員の離職率低下を狙った。",
+          "subquestions": []
+        },
+        {
+          "input_no": 77,
+          "post_id": 13465,
+          "score": 46,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13465",
+          "answer_text": "先代は顧客ニーズに合わせ蕎麦以外のメニュー展開でリピート客を増やしたが現経営者は蕎麦に資源を集中し客層をファミリー層に絞り込み競合と異なる高品質な商品開発やサービス提供で高付加価値化し差別化を図った。",
+          "subquestions": []
+        },
+        {
+          "input_no": 78,
+          "post_id": 13493,
+          "score": 46,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13493",
+          "answer_text": "出前をやめて来店のみで提供メニューを看板の蕎麦に集約し、メインターゲットを地元ファミリー層に絞り込む集中戦略を執った。商品とサービスの質を高め価格を引き上げたことで収益性改善を図ったのが狙いである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 79,
+          "post_id": 13489,
+          "score": 45,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13489",
+          "answer_text": "①蕎麦に資源を集中②メイン客層をファミリー層にした③機能別組織という差別化をした。狙いは①競合と差別化した商品で競争優位性を獲得②周辺住民の変化にあわせ集客増③組織の一体感醸成で定着率を高めること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 80,
+          "post_id": 13499,
+          "score": 45,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13499",
+          "answer_text": "①メニューやオペレーション見直しで蕎麦に経営資源を集中させ、独自メニューを開発②客層を地元ファミリーに絞り、座席や原材料見直しで価格を引上げサービスの質を向上で、競合との差別化を狙い競争優位を確保した",
+          "subquestions": []
+        },
+        {
+          "input_no": 81,
+          "post_id": 13425,
+          "score": 43,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13425",
+          "answer_text": "内容は①競合出現による売上減に対応する為、商品数を絞り、②原材料を厳選し、③正社員の育成を行った事。狙いは、①看板の蕎麦に経営資源を集中させ、②高付加価値化を行い、③商品・サービスの質を高めて愛顧向上。",
+          "subquestions": []
+        },
+        {
+          "input_no": 82,
+          "post_id": 13429,
+          "score": 43,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13429",
+          "answer_text": "①標的顧客を地元のファミリー層に絞り込み②原材料を厳選し商品を高付加価値化③従業員に権限委譲し経営ビジョンを浸透させ差別化を図った。狙いは限られた経営資源を集中し差別化を図り競争優位性構築。",
+          "subquestions": []
+        },
+        {
+          "input_no": 83,
+          "post_id": 13451,
+          "score": 43,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13451",
+          "answer_text": "先代経営者が商品や店舗規模を拡大し、経営資源を分散したのに対し、現経営者は、商品力とサービス力の向上を狙いとして、メニューや標的顧客を絞込み、経営資源を集中することで差別化し、他社との競合回避を図った。",
+          "subquestions": []
+        },
+        {
+          "input_no": 84,
+          "post_id": 13463,
+          "score": 43,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13463",
+          "answer_text": "現経営者は、メイン客層を地元家族層に絞り看板商品の開発、商品やサービスの質を高める事で、近隣の競合と差別化を図り、収益を拡大するという狙いで、①メニューを蕎麦に絞った資源の集中②正社員の増強を実施。",
+          "subquestions": []
+        },
+        {
+          "input_no": 85,
+          "post_id": 13449,
+          "score": 41,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13449",
+          "answer_text": "ターゲットをファミリー層に絞り込み、座席数の削減や席形式の変更、原材料を厳選したオリジナルメニューにより、価格を引き上げることで、商品とサービスの質を高め差別化した。狙いは客単価向上による収益改善。",
+          "subquestions": []
+        },
+        {
+          "input_no": 86,
+          "post_id": 13507,
+          "score": 40,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13507",
+          "answer_text": "先代はオペレーション効率を追求し、蕎麦に資源を集中したが、①対象を地元のファミリー層に絞り、個室等を増やした、②厳選した原材料でメニュー開発し高付加価値化した。以上より、来店頻度客単価の向上を図った。",
+          "subquestions": []
+        },
+        {
+          "input_no": 87,
+          "post_id": 13367,
+          "score": 39,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13367",
+          "answer_text": "看板の蕎麦に資源を集中し、メインの客層を地元のファミリー層に絞り、使用する原材料を厳選して価格を引き上げ、看板のオリジナルメニューを開発し、商品とサービスの質を高めて差別化を行い、売上高拡大を図った。",
+          "subquestions": []
+        },
+        {
+          "input_no": 88,
+          "post_id": 13443,
+          "score": 38,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13443",
+          "answer_text": "メインの客層を地元のファミリー層に絞り競合と差別化戦略を図った事。狙いは①近隣の飲食店等競合が増加する中②メニュー開発や高品質製品を提供③サービス品質の向上④店舗をファミリー向けに改装し競合と差別化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 89,
+          "post_id": 13355,
+          "score": 37,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13355",
+          "answer_text": "狙いは、売上拡大による事業の立て直し。差別化の内容は①経営資源を蕎麦に集中させ②客層を絞った店舗改装③原材料を厳選した高付加価値化④働きやすい組織体制の構築⑤共通目的の共有で自律的な組織風土の醸成",
+          "subquestions": []
+        },
+        {
+          "input_no": 90,
+          "post_id": 13369,
+          "score": 37,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13369",
+          "answer_text": "先代経営者は顧客ニーズに幅広く対応したが、現経営者は地元ファミリー層のみに絞った。方向性を明確にして目的意識共有し、正社員教育やサービス改善に注力し、助け合い組織文化醸成と離職率低下を狙った。",
+          "subquestions": []
+        },
+        {
+          "input_no": 91,
+          "post_id": 13533,
+          "score": 36,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13533",
+          "answer_text": "メインの客層を地元ファミリー層に絞り込み、席数縮小し、家族や友人達が来店しやすいよう個室化しオリジナルメニュー開発で差別化を行った。狙いは競合店との違いを明らかにし集中戦略を採るためである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 92,
+          "post_id": 13379,
+          "score": 34,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13379",
+          "answer_text": "看板の自前で打つコシの強い蕎麦に絞り込み、標的顧客を地元のファミリー層に設定し、近隣の飲食店と差別化し競争優位を気付いた。席数を減らし商品やサービスの質を高め、\n従業員の業務負荷軽減し離職低下を狙った。",
+          "subquestions": []
+        },
+        {
+          "input_no": 93,
+          "post_id": 13491,
+          "score": 31,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13491",
+          "answer_text": "差別化集中戦略で、ターゲットを絞り、経営資源を蕎麦に集中した。使用する原材料を厳選したメニューの開発など、商品やサービスの質を高めた。近隣の競合店と差別化するため高付加価値化を図った。",
+          "subquestions": []
+        }
+      ]
+    },
+    {
+      "question_no": 3,
+      "points": 20,
+      "heading_text": "第３問（配点20点）",
+      "answer_count": 93,
+      "score_stats": {
+        "count": 93,
+        "min": 31,
+        "max": 91,
+        "median": 56,
+        "mean": 56.65
+      },
+      "answer_char_stats": {
+        "count": 93,
+        "min": 58,
+        "max": 101,
+        "median": 98,
+        "mean": 95.23
+      },
+      "exemplars": {
+        "high": [
+          {
+            "post_id": 13427,
+            "score": 91,
+            "published_at": "2024-05-02",
+            "answer_text": "留意点は①接客やサービスが省力化されている②従業員間の横のつながりが少なく意思疎通がとれていない、等A社の戦略や風土と異なる点。また、離職率が高く、統合に不安を感じる従業員がいること。"
+          },
+          {
+            "post_id": 13435,
+            "score": 77,
+            "published_at": "2024-05-02",
+            "answer_text": "留意点は、①客単価を抑えて顧客回転率を高めるオペレーションで接客やサービスを省力化している点、②経営者が定めた業務ルーティンで運営し横のつながりが少なく意思疎通を経営者が補う受動的な組織文化である点。"
+          },
+          {
+            "post_id": 13409,
+            "score": 76,
+            "published_at": "2024-05-02",
+            "answer_text": "A社との相違点に留意する。具体的には①駅利用の一見客が対象で②接客やサービスは省力化され回転率重視で③ルーティン業務を淡々と行い従業員間のコミュニケーションが悪いため、A社とは組織風土が異なっている。"
+          },
+          {
+            "post_id": 13413,
+            "score": 76,
+            "published_at": "2024-05-02",
+            "answer_text": "留意点は、①X社は客単価を抑え、接客サービスは省力化されている等、戦略がB社と異なりシナジー発揮が難しい点、②組織文化や方向性が異なるため一体感醸成が必要、③組織の意思疎通が少なく活性化が必要である点。"
+          },
+          {
+            "post_id": 13513,
+            "score": 76,
+            "published_at": "2024-05-02",
+            "answer_text": "Ｘ社経営者の個人的つながりがある中堅食品卸売業者からの原材料調達が継続できるか、顧客層が異なり接客やサービスが省力化されている点、従業員の横のつながりが少なく意思疎通が少ない組織文化の変革に留意する。"
+          }
+        ],
+        "middle": [
+          {
+            "post_id": 13371,
+            "score": 56,
+            "published_at": "2024-05-02",
+            "answer_text": "留意点は①不安を抱くX社従業員に対し面談してA社従業員の風土や就業条件を説明し安心させ勤務継続を促す、①食品卸売業者に対しX社前経営者共に事業承継の丁寧に説明し承継後も取引継続できるよう働きかける。"
+          },
+          {
+            "post_id": 13405,
+            "score": 56,
+            "published_at": "2024-05-02",
+            "answer_text": "①低価格・顧客回転率重視で接客省力化②各担当業務がルーティン化し連携が弱い③離職率が高い、といった点に対し、A社の①商品とサービスの質重視①相互扶助による連携と問題解決の裁量、への移行に留意する。"
+          },
+          {
+            "post_id": 13453,
+            "score": 56,
+            "published_at": "2024-05-02",
+            "answer_text": "留意点は①商品とサービスの質が悪く、価格競争に陥っている点の解消、②X社と食品卸売業者とのつながりを維持し、シナジー効果を生む事、③従業員の横のつながりが少なく、組織的な意思疎通を作る必要がある事"
+          },
+          {
+            "post_id": 13467,
+            "score": 56,
+            "published_at": "2024-05-02",
+            "answer_text": "①簿外債務や統合コストが過度でないか、X社を調査する②双方の従業員の待遇や職場環境の維持・改善を図り士気を高める③文化の違いを考慮した段階的な統合計画や人事管理体制を検討する事。"
+          },
+          {
+            "post_id": 13477,
+            "score": 56,
+            "published_at": "2024-05-02",
+            "answer_text": "A社長は、Xの①立地や顧客層や低客単価で高回転率の事業戦略の違い、②旧事業主の仕入れ先の商流の違い、③ルーティン作業に依存する従業員の低いモラール等のAとの企業文化、事業戦略の違いに留意すべき。"
+          }
+        ],
+        "low": [
+          {
+            "post_id": 13491,
+            "score": 31,
+            "published_at": "2024-05-02",
+            "answer_text": "留意点は、Ⅹ社従業員の不安や心配を面談や説明会を行い取り除くこと。また、Ａ社社長が、経営統合の目的や背景を直接説明する。Ａ社やＸ社従業員からの反発をを防ぐため経営理念やビジョンを共有し一体感を図る。"
+          },
+          {
+            "post_id": 13379,
+            "score": 34,
+            "published_at": "2024-05-02",
+            "answer_text": "留意点は①担当業務に専念するのみで横のつながりがないため、情報共有を図ること②X\n社の目指す方向性を明確にし、目的意識の共有をすること③全体を統括する役割を担うリーダーを育成し、権限委譲を図ること。"
+          },
+          {
+            "post_id": 13533,
+            "score": 36,
+            "published_at": "2024-05-02",
+            "answer_text": "留意点は、X社の業務運営方法がA社とは異なりルーチン化している事、組織構造は類似しているが、従業員間の連携がないなど組織風土が異なる事であり、これを理解した上で、経営統合を進めていく事を助言する。"
+          },
+          {
+            "post_id": 13355,
+            "score": 37,
+            "published_at": "2024-05-02",
+            "answer_text": "経営の方向性と統合後の目的やシナジー効果を明確にし、双方の社員との対話の機会を設け、情報共有して相互理解を進め、社員の意見を把握する。尚、組織文化の違いに配慮し、徐々に統合を進めるように留意する。"
+          },
+          {
+            "post_id": 13369,
+            "score": 37,
+            "published_at": "2024-05-02",
+            "answer_text": "留意点は①横のつながりを高めるためA社の組織文化を流入させること②ルーティン改善のためA社のノウハウをとりこませること③以上により助け合いの組織文化や自発的に問題解決に動けるようにすること。"
+          }
+        ]
+      },
+      "answers": [
+        {
+          "input_no": 1,
+          "post_id": 13427,
+          "score": 91,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13427",
+          "answer_text": "留意点は①接客やサービスが省力化されている②従業員間の横のつながりが少なく意思疎通がとれていない、等A社の戦略や風土と異なる点。また、離職率が高く、統合に不安を感じる従業員がいること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 2,
+          "post_id": 13435,
+          "score": 77,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13435",
+          "answer_text": "留意点は、①客単価を抑えて顧客回転率を高めるオペレーションで接客やサービスを省力化している点、②経営者が定めた業務ルーティンで運営し横のつながりが少なく意思疎通を経営者が補う受動的な組織文化である点。",
+          "subquestions": []
+        },
+        {
+          "input_no": 3,
+          "post_id": 13409,
+          "score": 76,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13409",
+          "answer_text": "A社との相違点に留意する。具体的には①駅利用の一見客が対象で②接客やサービスは省力化され回転率重視で③ルーティン業務を淡々と行い従業員間のコミュニケーションが悪いため、A社とは組織風土が異なっている。",
+          "subquestions": []
+        },
+        {
+          "input_no": 4,
+          "post_id": 13413,
+          "score": 76,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13413",
+          "answer_text": "留意点は、①X社は客単価を抑え、接客サービスは省力化されている等、戦略がB社と異なりシナジー発揮が難しい点、②組織文化や方向性が異なるため一体感醸成が必要、③組織の意思疎通が少なく活性化が必要である点。",
+          "subquestions": []
+        },
+        {
+          "input_no": 5,
+          "post_id": 13513,
+          "score": 76,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13513",
+          "answer_text": "Ｘ社経営者の個人的つながりがある中堅食品卸売業者からの原材料調達が継続できるか、顧客層が異なり接客やサービスが省力化されている点、従業員の横のつながりが少なく意思疎通が少ない組織文化の変革に留意する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 6,
+          "post_id": 13481,
+          "score": 73,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13481",
+          "answer_text": "①ターゲットが異なり、オペレーションに違いがある②統合で不安になった従業員の離職を無くす③売り上げが減少している為、回復させる④X社の食品卸業者の地元産の高品質な原材料を仕入れルートを生かすこと。",
+          "subquestions": []
+        },
+        {
+          "input_no": 7,
+          "post_id": 13539,
+          "score": 73,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13539",
+          "answer_text": "留意点は、勤務時間や業務プロセスを見直し、効率化を図る。サービスの質を低下させない為にも、悩み解決相談を行い離職を防ぐ。能力開発により生産性を高め、商品やサービスの差別化につなげる、ことである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 8,
+          "post_id": 13527,
+          "score": 72,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13527",
+          "answer_text": "留意点は、X社の①客単価や標的顧客の違い②省力化された接客や\nサービス③ルーティン的な運営で従業員の意思疎通が少なく離職率が\n高い事である。擦り合わせのためにA社の方向性を共有し従業員の\n不安を解消する",
+          "subquestions": []
+        },
+        {
+          "input_no": 9,
+          "post_id": 13445,
+          "score": 71,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13445",
+          "answer_text": "ターゲットや従業員の業務の仕方や戦略が異なり、業務多忙のため離職率も高く、横のつながりもなく、意欲なくルーティン業務をこなす従業員が退職しないように士気向上を図ることに留意しすべきである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 10,
+          "post_id": 13519,
+          "score": 71,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13519",
+          "answer_text": "留意点は①ターゲットや戦略が異なるため方向性を明確化し②従業員の意識が異なるため、自主的で協力的な風土の醸成を図り③個人的なつながりの原材料調達等X社の属人的な経営資源を引き継ぎ、意識統一を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 11,
+          "post_id": 13495,
+          "score": 70,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13495",
+          "answer_text": "省力化された接客やサービス、異なる顧客層や立地、従業員の横連携の少なさ、低価格対応といった企業風土の違いに留意し、従業員の連携を強化し組織文化の融合を図り、シナジーを発揮させるために円滑に統合を進める",
+          "subquestions": []
+        },
+        {
+          "input_no": 12,
+          "post_id": 13511,
+          "score": 70,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13511",
+          "answer_text": "留意点は①客単価を抑えて接客やサービスを省力化する戦略の違い②従業員の横のつながりが少なく一体感や連携力の不足と離職率のの高さ③駅構内の大手外食チェーンとの価格競争に留意し、慎重に経営統合を進めるべき",
+          "subquestions": []
+        },
+        {
+          "input_no": 13,
+          "post_id": 13529,
+          "score": 70,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13529",
+          "answer_text": "留意点は①近隣かつ同じのれん元によるカニバリ②一見客・通勤客でターゲットが異なる③効率重視でルーティンをこなす運営④従業員の士気が低く横のつながりが少ない。従ってA社の文化と異なり統合に時間を要す。",
+          "subquestions": []
+        },
+        {
+          "input_no": 14,
+          "post_id": 13387,
+          "score": 69,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13387",
+          "answer_text": "留意点は①X社経営者の定めた業務ルーティンに依存し、横のつながり・意思疎通が少なく、A社と組織風土が異なること②客単価を抑え顧客回転率を高める収益構造で、商品やサービスの差別化が必要なこと。",
+          "subquestions": []
+        },
+        {
+          "input_no": 15,
+          "post_id": 13393,
+          "score": 69,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13393",
+          "answer_text": "友好的な統合に留意する。具体的には①X社社員に雇用維持の方針・働きやすい職場・助け合う風土を訴求し、退職を回避②中堅の食品卸売業者との関係を構築し、地元の高品質な原材料の調達力を強化。",
+          "subquestions": []
+        },
+        {
+          "input_no": 16,
+          "post_id": 13395,
+          "score": 69,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13395",
+          "answer_text": "留意点は①X社の地元産の高品質な原材料の調達能力という強みがA社とのシナジーを発揮させるかの検討②従業員の横の繋がりの少なさへの対策③商品、サービスの差別化の検討、④離職率の高さへの対応である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 17,
+          "post_id": 13517,
+          "score": 69,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13517",
+          "answer_text": "①X社は業務負荷が大きく、離職しやすい環境で②接客やサービス面が低く③専任制で横の繋がりがない事に留意する。A社と同様に目指す方向性を明確にし、目的意識の共有や意思統一で、相互扶助の文化を作っていく。",
+          "subquestions": []
+        },
+        {
+          "input_no": 18,
+          "post_id": 13509,
+          "score": 68,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13509",
+          "answer_text": "留意点は、①接客力が弱いので自主的に問題提起し解決させる事。②業務の横のつながりが少ないので部門間で関係を強化し助け合う土壌を醸成させる事。③コミュニケーションを活発にし意思疎通を日常的に行わせる事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 19,
+          "post_id": 13399,
+          "score": 67,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13399",
+          "answer_text": "①組織風土が異なる点②サービス・接客スタイルが異なる点③売上高が減少している点④離職率が高い点⑤担当を横断する意思疎通が必要な場合、X社経営者がそれを補っている点に留意すべきである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 20,
+          "post_id": 13423,
+          "score": 67,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13423",
+          "answer_text": "留意点は①横の繋がりがなく一体感を醸成する風土がない点や②経営者が意思決定する為、自主的に提案する風土がない点や③低価格戦略であるといった違いを認識し、ビジョンを伝えて、人材の定着を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 21,
+          "post_id": 13455,
+          "score": 67,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13455",
+          "answer_text": "業務ルーティンは同じであるものの、低価格や従業員の離職率も高く、B社とは異なることに留意して、コンフリクトを避ける。",
+          "subquestions": []
+        },
+        {
+          "input_no": 22,
+          "post_id": 13383,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13383",
+          "answer_text": "留意点は①社員の業務が固定されており、配置転換で職務再設計を行い意欲向上の必要がある、②接客・サービスが省力化されマニュアル化・教育で品質向上の必要がある、③一体感がなく目的共有で組織活性化の必要ある。",
+          "subquestions": []
+        },
+        {
+          "input_no": 23,
+          "post_id": 13473,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13473",
+          "answer_text": "留意点は①A社と異なる客層を研究し、メニューや接客を工夫する②従業員に横のつながりが薄いので、チームでの助け合いを促進すること③離職率改善のため適切な営業時間を検討することである。以て円滑統合を目指す。",
+          "subquestions": []
+        },
+        {
+          "input_no": 24,
+          "post_id": 13487,
+          "score": 65,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13487",
+          "answer_text": "X社の強みである仕入先の食品卸売業者との関係性を維持し、弱みの社内での連携不足やアルバイトの離職率の高さ、大手外客チェーンとの価格競争で客足が離れ売上減少等の問題を解決することが留意点。",
+          "subquestions": []
+        },
+        {
+          "input_no": 25,
+          "post_id": 13397,
+          "score": 64,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13397",
+          "answer_text": "戦略面は①一見駅利用者等顧客層が異なる②競争により客単価が低く効率主義で省力化されたサービス。組織面は①業務ルーティン中心で社員間の意思疎通が弱い②終日営業で業務過多になり離職率が高い点に留意する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 26,
+          "post_id": 13403,
+          "score": 64,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13403",
+          "answer_text": "X社との統合でカニバリを起こさず互いにシナジーが出せるよう留意する。具体的には①単価が低く従業員の退職が多いため効率化を推進②高品質の仕入れができる業者を活用してA社に原料供給をする",
+          "subquestions": []
+        },
+        {
+          "input_no": 27,
+          "post_id": 13363,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13363",
+          "answer_text": "留意点は、①X社と取引のある食品卸売業者を活用し、地元産の高品質な原材料を調達すること。②X社の組織文化が活発でないことを解決すること、である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 28,
+          "post_id": 13411,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13411",
+          "answer_text": "Ｘ社と取引している地元産の高品質な原材料を扱える中堅食品卸売業者との取引継続が可能か。Ａ社の事業再建ノウハウをＸ社に適用できシナジーを得られるか。相違する組織風土を持つＸ社との統合コストは問題ないか。",
+          "subquestions": []
+        },
+        {
+          "input_no": 29,
+          "post_id": 13523,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13523",
+          "answer_text": "X社社員の不安を解消する必要がある事、企業風土や業務の違いがある事、中堅食品卸売業者とX社経営者と共に取引継続の交渉をする事、デューデリジェンスを行う事で円滑に経営統合。",
+          "subquestions": []
+        },
+        {
+          "input_no": 30,
+          "post_id": 13357,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13357",
+          "answer_text": "留意点は①仕入れ先や顧客層獲得に関するシナジーの有無②X社従業員の士気低下③規模の経済によるコスト削減④組織文化の統合が円滑にできること⑤X社従業員の教育にコストと時間を要する⑥経営資源の重複である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 31,
+          "post_id": 13431,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13431",
+          "answer_text": "留意点は①統合後の待遇についてX社社員にA社長自ら説明し士気の低下を防ぐ事②オペレーションを見直し業務負荷を軽減し、離職率を低減する事③競争激化により売上低迷している為競合と差別化を図り売上改善すること",
+          "subquestions": []
+        },
+        {
+          "input_no": 32,
+          "post_id": 13471,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13471",
+          "answer_text": "留意点は①目的意識や意志を統一し一体感醸成②X社の仕入れ先へ挨拶回りをし、統合後に迅速にシナジー発揮③X社社員に雇用維持の方針伝え、安心感を与えて士気低下防止④入念に事前調査し経営方針確認する事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 33,
+          "post_id": 13483,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13483",
+          "answer_text": "留意点は、①Ｘ社の横のつながりが少ない状況について、チーム間で助け合う土壌を作ること、②商品サービスの差別化ができていないことについて、新たな商品サービスを開発し競合との差別化を図ることである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 34,
+          "post_id": 13365,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13365",
+          "answer_text": "①競合との価格競争が激化して激しい点②それに対する差別化を業務マニュアル化による効率化等労働集約的に実施しており従業員への業務負荷が多い点③接客やサービスが省力化されている点。",
+          "subquestions": []
+        },
+        {
+          "input_no": 35,
+          "post_id": 13375,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13375",
+          "answer_text": "留意点は不安になっているxの正社員やアルバイトに目指す方向性を示して安心させる。X経営者に代わり、横の繋がりを強化する。中堅の食品卸売業者を活用して原材料の仕入れの不安定を解消する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 36,
+          "post_id": 13391,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13391",
+          "answer_text": "留意点は、①A社とX社が統合することで相乗効果や相補効果があるか、②組織文化や風土が大きく異なるが統合可能か、③買収でX社社員のモラールが低下し離職することによるノウハウの流出を防止できるか、という点。",
+          "subquestions": []
+        },
+        {
+          "input_no": 37,
+          "post_id": 13417,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13417",
+          "answer_text": "留意点は、①業務が定型化しているうえにオペレーション業務に忙殺されていて意欲が低いこと、②担当を横断する意思疎通によって問題を解決する仕組みや組織風土がないことによってモラールが低いことである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 38,
+          "post_id": 13377,
+          "score": 59,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13377",
+          "answer_text": "留意点は、①競合との価格競争を回避するために、商品やサービスの差別化を行うこと。②目指す姿を明確にしたうえで共通目的を共有し、X社の従業員の担当業務間の意思疎通を図り、従業員の定着を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 39,
+          "post_id": 13407,
+          "score": 59,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13407",
+          "answer_text": "A社とX社では社風、オペレーション、ターゲット顧客が異なっている事に留意にする。\n接客リーダーより目指す方向性を説明しX社の正社員やアルバイトの不安を解消させる。X社の良い所をつぶさないことにも留意する",
+          "subquestions": []
+        },
+        {
+          "input_no": 40,
+          "post_id": 13389,
+          "score": 58,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13389",
+          "answer_text": "A社は、①効率重視のルーティン化で欠けた横のつながりを増やして意思疎通を強化し、②競合店との競争で忙殺の従業員の負荷を下げることで、③サービスの質を高め、従業員の離職率を下げることに留意すべき。",
+          "subquestions": []
+        },
+        {
+          "input_no": 41,
+          "post_id": 13401,
+          "score": 58,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13401",
+          "answer_text": "留意点は①接客やサービスが省力化され、業務がルーティン化されていること②横のつながりが少なく意思疎通が無い③仕事がきつく離職率が高いことに対し、会社の方向性を事前理解を促し互助風土を定着させ統合進める。",
+          "subquestions": []
+        },
+        {
+          "input_no": 42,
+          "post_id": 13459,
+          "score": 57,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13459",
+          "answer_text": "留意点は➀Ａ社の原材料の高沸と仕入不安定の問題を解決するため、新たな仕入先としてＸ社の中古の食品卸売業者を検討すること②不安を感じるＸ社の社員に、目指す方向性の明確化、目的の共有や意思の統一を図ること",
+          "subquestions": []
+        },
+        {
+          "input_no": 43,
+          "post_id": 13461,
+          "score": 57,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13461",
+          "answer_text": "留意点は、Ｘ社の従業員にチームとして相互に助け合う文化を注入して離職を防ぐこと、仕入先をＡ社と共に中堅の卸売業者に統合して効率化、Ａ社ノウハウで商品やサービスを見直して差別化を図ることである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 44,
+          "post_id": 13531,
+          "score": 57,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13531",
+          "answer_text": "助言は①X社が大手外食チェーンに対し商品やサービスで差別化を図り②従業員間でのコミュニケーションを良好にし③店内オペレーションを改善して離職率を低く抑えることが必要で、統合に先立ちこれらに留意すべき。",
+          "subquestions": []
+        },
+        {
+          "input_no": 45,
+          "post_id": 13371,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13371",
+          "answer_text": "留意点は①不安を抱くX社従業員に対し面談してA社従業員の風土や就業条件を説明し安心させ勤務継続を促す、①食品卸売業者に対しX社前経営者共に事業承継の丁寧に説明し承継後も取引継続できるよう働きかける。",
+          "subquestions": []
+        },
+        {
+          "input_no": 46,
+          "post_id": 13405,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13405",
+          "answer_text": "①低価格・顧客回転率重視で接客省力化②各担当業務がルーティン化し連携が弱い③離職率が高い、といった点に対し、A社の①商品とサービスの質重視①相互扶助による連携と問題解決の裁量、への移行に留意する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 47,
+          "post_id": 13453,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13453",
+          "answer_text": "留意点は①商品とサービスの質が悪く、価格競争に陥っている点の解消、②X社と食品卸売業者とのつながりを維持し、シナジー効果を生む事、③従業員の横のつながりが少なく、組織的な意思疎通を作る必要がある事",
+          "subquestions": []
+        },
+        {
+          "input_no": 48,
+          "post_id": 13467,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13467",
+          "answer_text": "①簿外債務や統合コストが過度でないか、X社を調査する②双方の従業員の待遇や職場環境の維持・改善を図り士気を高める③文化の違いを考慮した段階的な統合計画や人事管理体制を検討する事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 49,
+          "post_id": 13477,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13477",
+          "answer_text": "A社長は、Xの①立地や顧客層や低客単価で高回転率の事業戦略の違い、②旧事業主の仕入れ先の商流の違い、③ルーティン作業に依存する従業員の低いモラール等のAとの企業文化、事業戦略の違いに留意すべき。",
+          "subquestions": []
+        },
+        {
+          "input_no": 50,
+          "post_id": 13505,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13505",
+          "answer_text": "留意点は①資源重複は少なく相乗効果は期待できるか②X社の経営者や社員は経営統合に協力的か③財務状況は健全であり不良債権等の事後発覚リスクはないか。以上で統合効果を最大化し収益向上に寄与するか留意。",
+          "subquestions": []
+        },
+        {
+          "input_no": 51,
+          "post_id": 13515,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13515",
+          "answer_text": "留意点は(1)既存顧客と異なる駅利用者に対し、既存事業とのシナジーを発揮し、商品・サービスの質で差別化を図る(2)組織文化対立による士気低下防止(3)X社の仕入先卸業者の利用可能性の検討。",
+          "subquestions": []
+        },
+        {
+          "input_no": 52,
+          "post_id": 13381,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13381",
+          "answer_text": "助言は、①X社のリーダーと共に、会社の目指す方向性を明確にする。②目的意識の共有や意思の統一を図るチームづくりを行う。以上で、自主的に問題点を解決する風土を醸成し、従業員の定着を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 53,
+          "post_id": 13415,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13415",
+          "answer_text": "留意点は①組織文化が異なること②原材料の調達や社内の意思疎通等X社経営者の果たしてきた役割が大きいこと③X社社員が経営統合に不安を感じていることであり、シナジー効果を発揮できる体制の構築が必要なこと。",
+          "subquestions": []
+        },
+        {
+          "input_no": 54,
+          "post_id": 13497,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13497",
+          "answer_text": "留意点は①地元産高品質な原材料の仕入れルートとの関係を維持すること②高付加価値化し新規顧客を獲得すること③定期会議を開催し交流を深め助け合う風土を醸成する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 55,
+          "post_id": 13421,
+          "score": 54,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13421",
+          "answer_text": "A社と異なりX社の効率重視のサービス省力化など目的の違いからくる現場の混乱。組織文化の違いからくる従業員のコンフリクトの発生。これらの不確実性からくる従業員の不安による離職。",
+          "subquestions": []
+        },
+        {
+          "input_no": 56,
+          "post_id": 13447,
+          "score": 54,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13447",
+          "answer_text": "留意点は①友好的な経営引継で食品卸売業者との関係を維持し②従業員に対し目指す方向性を説明、目的意識の共有と意思の統一を図り③A社社員との交流や、公平な評価基準を確立しモラールを向上、従業員定着を図る事",
+          "subquestions": []
+        },
+        {
+          "input_no": 57,
+          "post_id": 13485,
+          "score": 54,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13485",
+          "answer_text": "留意点は①ターゲットが異なり、客単価を抑えて効率性を重視した接客やサービスがA社経営方針と異なる点②担当業務に専念し、横連携がなくA社のチームとして助け合う風土と円滑で友好的に融和する必要がある点。",
+          "subquestions": []
+        },
+        {
+          "input_no": 58,
+          "post_id": 13501,
+          "score": 54,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13501",
+          "answer_text": "留意点は①厨房、接客、管理の担当間の横のつながり、意思疎通が少ない事の改善②競合との商品・サービスの差別化の検討③仕事がきついことを理由に離職率が高い事の改善、であり内外で店舗魅力の向上が必要である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 59,
+          "post_id": 13373,
+          "score": 53,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13373",
+          "answer_text": "留意点はX社社員に対し①A社社長が目指す方向性を明確にし、目的意識の共有を図り②労働条件を以前と同一であることを説明し士気低下を防ぎ③A社の現状風土を説明し、X社社員の不安解消し、円滑に統合する事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 60,
+          "post_id": 13441,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13441",
+          "answer_text": "客層や店舗立地、仕入先などの保管資源が確保できるか、X社長の仕入先とのつながりやノウハウが継続できるか、従業員の士気の維持や文化の融合が可能か、に留意すべきである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 61,
+          "post_id": 13457,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13457",
+          "answer_text": "厨房、接客、管理の従業員の横断的な意思疎通を促進し、大手外食チェーンに対抗できる商品やサービスの差別化を図り、従業員の負担軽減により従業員の定着率を向上させる。X社経営者の負担を軽減させる。",
+          "subquestions": []
+        },
+        {
+          "input_no": 62,
+          "post_id": 13525,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13525",
+          "answer_text": "留意点は①従業員の横のつながりが少なく\nコミュニケーション不足の解消②商品やサー\nビスの差別化必要③従業員が業務に忙殺で\n離職率が高いため人材強化④従業員の統合\nに対する不満を解消しスムーズな統合を図る",
+          "subquestions": []
+        },
+        {
+          "input_no": 63,
+          "post_id": 13535,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13535",
+          "answer_text": "留意点は、①Ｘ社従業員に経営統合の趣旨を説明し、Ａ社の目的意識の共有と意識の統一を図り、自主的に問題解決する風土作る。②大手外食チェーンと商品やサービスを差別化し、アルバイトの離職を抑えること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 64,
+          "post_id": 13537,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13537",
+          "answer_text": "留意点は、①X社の従業員は横のつながりが少なく日々のルーチンをこなす状況にあり離職率が増加しているのでモラールを高める、②経営統合に伴い不安になった従業員からの退職に関わる相談へ対応すること、である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 65,
+          "post_id": 13433,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13433",
+          "answer_text": "①従業員の仕事の負担を軽減し、定着率を高めること、②X社経営者との個人的つながりのある食品卸業者との取引を継続し、地元産の高品質な原材料の仕入れの安定化を図り、経営の基盤を安定させることである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 66,
+          "post_id": 13437,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13437",
+          "answer_text": "留意点はA社と事業の差別化戦略が客単価もサービスレベルも正反対で客層も異なる、横とのつながりが少なく受動的な従業員や正社員育成制度もない点で企業文化も戦略も異なるX社との一体感醸成が課題である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 67,
+          "post_id": 13521,
+          "score": 50,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13521",
+          "answer_text": "留意点は、Ｘ社社員へ雇用継続の約束による不安感軽減と士気向上で、そのために商品とサービスの質向上による競合差別化と社内コミュニケーションの活性化を行い、売上拡大とやめにくい職場づくりを図るべき。",
+          "subquestions": []
+        },
+        {
+          "input_no": 68,
+          "post_id": 13385,
+          "score": 49,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13385",
+          "answer_text": "A 社と顧客ターゲット、運営方法、組織風土が異なる事。具体的には一見客や通勤客がターゲットで、接客等を省略し顧客回転率を高める戦略で、担当を横断する意思疎通がなく目的意識の共有や意思の統一が図れていない",
+          "subquestions": []
+        },
+        {
+          "input_no": 69,
+          "post_id": 13419,
+          "score": 49,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13419",
+          "answer_text": "X社は①駅前立地を活かした一見客を客層とし②客単価を抑えた回転率を重視したオペレーションで③接客やサービスは省略化し④縦割りの組織文化、という違いがあるため、統合によるシナジーが効くか等、留意すべき。",
+          "subquestions": []
+        },
+        {
+          "input_no": 70,
+          "post_id": 13469,
+          "score": 49,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13469",
+          "answer_text": "留意点は①従業員の自主性や意思疎通が乏しい社風②看板商品がない③薄利多売の方針④主要顧客層が駅利用者や通勤客でA社と主要顧客層が異なる⑤大手外食チェーン店との競合が激しい⑥離職率の高さ。",
+          "subquestions": []
+        },
+        {
+          "input_no": 71,
+          "post_id": 13475,
+          "score": 49,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13475",
+          "answer_text": "留意点は、①食品卸売業者と情報共有促進して連携強化②商品やサービスの品質向上で差別化③担当業務間の従業員連携促進④リーダーを登用して権限委譲し士気向上⑤目的共有・意思統一で互助風土を作り離職を防止。",
+          "subquestions": []
+        },
+        {
+          "input_no": 72,
+          "post_id": 13479,
+          "score": 48,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13479",
+          "answer_text": "留意点は①仕入れの不安定なＡ社にＸ社の仕入れ先と連携しシナジー発揮し②異なる組織文化の融合で対立等が発生しないように1on1で従業員の相談に乗り、従業員の士気低下を抑制し、売上高の拡大を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 73,
+          "post_id": 13503,
+          "score": 48,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13503",
+          "answer_text": "留意点は①効率化重視のX社と品質重視のA社の組織文化が円滑に融合しシナジー効果が得られるか②担当業務間で一体感のないX社が連帯感を生み出させるか③関係者の納得獲得",
+          "subquestions": []
+        },
+        {
+          "input_no": 74,
+          "post_id": 13359,
+          "score": 47,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13359",
+          "answer_text": "留意点は①X社の業務ルーティンを見直し、横のつながり、意思疎通を図れるよう自主性を高める事。②育成、権限移譲し士気を高め、離職率抑制を図る事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 75,
+          "post_id": 13439,
+          "score": 47,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13439",
+          "answer_text": "留意点は①厨房・接客・管理の各部門の一体感醸成②３部門を統括する人材の育成③X社経営社の個人的繋がりによる中堅の食品卸売事業者からの調達関係の継続により相乗効果で売上向上を図る。",
+          "subquestions": []
+        },
+        {
+          "input_no": 76,
+          "post_id": 13361,
+          "score": 46,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13361",
+          "answer_text": "留意点は、①Ｘ社の経営方針や顧客先、財務状況を確認しシナジー効果が発揮できるか、②日々のルーティン業務統合に支障はないか、③異なる組織文化の融合により組織の一体感が醸成できるかを事前に精査検討すること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 77,
+          "post_id": 13465,
+          "score": 46,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13465",
+          "answer_text": "X社の課題が①従業員間の横断的な意思疎通の増加②ルーティン作業からの脱却③労働環境改善による離職率低下④駅前の価格競争が難しいことによる商品やサービスの差別化であることに留意し解決策を検討する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 78,
+          "post_id": 13493,
+          "score": 46,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13493",
+          "answer_text": "接客やサービスを省力化し客単価を抑えて回転率を高める収益構造、顧客層が一見の駅利用客や通勤客である、従業員の担当職務に対する姿勢や意識、などがA社と全く異なる点に留意する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 79,
+          "post_id": 13489,
+          "score": 45,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13489",
+          "answer_text": "助言は①X社経営者と顧問契約で生産者とのつながりを維持し②一見客向け低価格戦略を見直し高価格帯で大手外食チェーンと差別化を図り③一体感の無い組織体制や働き方を見直し定着率を高めることに留意すべきである。",
+          "subquestions": []
+        },
+        {
+          "input_no": 80,
+          "post_id": 13499,
+          "score": 45,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13499",
+          "answer_text": "留意点は①X社従業員に方針目的を共有し、チーム制で助け合い担当を横断した意思疎通を促す事で従業員の定着を向上②食べ歩きの外国人観光客や若者のニーズを収集し商品開発に反映し、安定利益を確保する体制を構築。",
+          "subquestions": []
+        },
+        {
+          "input_no": 81,
+          "post_id": 13425,
+          "score": 43,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13425",
+          "answer_text": "留意点は、同社の過去の経験を踏まえ、①従業員の働きやすい環境作りの為、多工程持ち従業員を育成、意思疎通の活性化、②価格競争に陥らない組織作り。以上により、士気向上、組織活発化で離職防止、品質向上で差別化",
+          "subquestions": []
+        },
+        {
+          "input_no": 82,
+          "post_id": 13429,
+          "score": 43,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13429",
+          "answer_text": "Ａ社は①Ｘ社の地元産の高品質な原材料を調達できる仕入先と取引継続の可能性②Ｘ社の業務効率優先のオペレーションを改善できるか③自社とシナジーが可能な経営統合であるかを検討すべきと助言する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 83,
+          "post_id": 13451,
+          "score": 43,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13451",
+          "answer_text": "留意点は、X社社員をA社の育成体制に組入れ、部門のリーダーに権限移譲した上で、部門横断の共有を促し、自律的に業務が出来るようにすること",
+          "subquestions": []
+        },
+        {
+          "input_no": 84,
+          "post_id": 13463,
+          "score": 43,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13463",
+          "answer_text": "留意点は、①X社が低価格販売で回転率を高め、接客販売を省力化している為、企業イメージが損なわれる②高品質な原料を扱っている為収益性が低い③社員の情報共有や主体性が無い為モラールが低下、等である。",
+          "subquestions": []
+        },
+        {
+          "input_no": 85,
+          "post_id": 13449,
+          "score": 41,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13449",
+          "answer_text": "ターゲットや接客・サービスを省力化するなどのA社との戦略の違いに対する対応。横の繋がりが少なく、日々のルーティンをこなす風土の改善可能性。売上の落ち込みや価格をさげていること、忙しさや高離職率への対応。",
+          "subquestions": []
+        },
+        {
+          "input_no": 86,
+          "post_id": 13507,
+          "score": 40,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13507",
+          "answer_text": "A社とX社は同じ蕎麦店であり同業種である。また商圏は郊外と駅前であり異なっている。よって、シナジーやリスク分散の有無について留意する。また、重複する設備や人員の活用方法についても留意する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 87,
+          "post_id": 13367,
+          "score": 39,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13367",
+          "answer_text": "買収後の待遇を説明し、X社の正社員やアルバイトの不安を解消すること。X社でも会社の方向性を共有して目的意識の共有や意思の統一を図り、相互に助け合う土壌を醸成して従業員を定着させること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 88,
+          "post_id": 13443,
+          "score": 38,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13443",
+          "answer_text": "留意する事は①X社従業員の横のつながりを作り、従業員の意思疎通を図れる組織風土の構築②新しい人事施策を検討し従業員の離職率低下を図る事。③接客やサービス品質向上と高品質商品提供で競合との差別化を図る事。",
+          "subquestions": []
+        },
+        {
+          "input_no": 89,
+          "post_id": 13355,
+          "score": 37,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13355",
+          "answer_text": "経営の方向性と統合後の目的やシナジー効果を明確にし、双方の社員との対話の機会を設け、情報共有して相互理解を進め、社員の意見を把握する。尚、組織文化の違いに配慮し、徐々に統合を進めるように留意する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 90,
+          "post_id": 13369,
+          "score": 37,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13369",
+          "answer_text": "留意点は①横のつながりを高めるためA社の組織文化を流入させること②ルーティン改善のためA社のノウハウをとりこませること③以上により助け合いの組織文化や自発的に問題解決に動けるようにすること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 91,
+          "post_id": 13533,
+          "score": 36,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13533",
+          "answer_text": "留意点は、X社の業務運営方法がA社とは異なりルーチン化している事、組織構造は類似しているが、従業員間の連携がないなど組織風土が異なる事であり、これを理解した上で、経営統合を進めていく事を助言する。",
+          "subquestions": []
+        },
+        {
+          "input_no": 92,
+          "post_id": 13379,
+          "score": 34,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13379",
+          "answer_text": "留意点は①担当業務に専念するのみで横のつながりがないため、情報共有を図ること②X\n社の目指す方向性を明確にし、目的意識の共有をすること③全体を統括する役割を担うリーダーを育成し、権限委譲を図ること。",
+          "subquestions": []
+        },
+        {
+          "input_no": 93,
+          "post_id": 13491,
+          "score": 31,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13491",
+          "answer_text": "留意点は、Ⅹ社従業員の不安や心配を面談や説明会を行い取り除くこと。また、Ａ社社長が、経営統合の目的や背景を直接説明する。Ａ社やＸ社従業員からの反発をを防ぐため経営理念やビジョンを共有し一体感を図る。",
+          "subquestions": []
+        }
+      ]
+    },
+    {
+      "question_no": 4,
+      "points": 40,
+      "heading_text": "第４問（配点40点）",
+      "answer_count": 93,
+      "score_stats": {
+        "count": 93,
+        "min": 31,
+        "max": 91,
+        "median": 56,
+        "mean": 56.65
+      },
+      "answer_char_stats": {
+        "count": 0,
+        "min": null,
+        "max": null,
+        "median": null,
+        "mean": null
+      },
+      "exemplars": {
+        "high": [
+          {
+            "post_id": 13427,
+            "score": 91,
+            "published_at": "2024-05-02",
+            "answer_text": ""
+          },
+          {
+            "post_id": 13435,
+            "score": 77,
+            "published_at": "2024-05-02",
+            "answer_text": ""
+          },
+          {
+            "post_id": 13409,
+            "score": 76,
+            "published_at": "2024-05-02",
+            "answer_text": ""
+          },
+          {
+            "post_id": 13413,
+            "score": 76,
+            "published_at": "2024-05-02",
+            "answer_text": ""
+          },
+          {
+            "post_id": 13513,
+            "score": 76,
+            "published_at": "2024-05-02",
+            "answer_text": ""
+          }
+        ],
+        "middle": [
+          {
+            "post_id": 13371,
+            "score": 56,
+            "published_at": "2024-05-02",
+            "answer_text": ""
+          },
+          {
+            "post_id": 13405,
+            "score": 56,
+            "published_at": "2024-05-02",
+            "answer_text": ""
+          },
+          {
+            "post_id": 13453,
+            "score": 56,
+            "published_at": "2024-05-02",
+            "answer_text": ""
+          },
+          {
+            "post_id": 13467,
+            "score": 56,
+            "published_at": "2024-05-02",
+            "answer_text": ""
+          },
+          {
+            "post_id": 13477,
+            "score": 56,
+            "published_at": "2024-05-02",
+            "answer_text": ""
+          }
+        ],
+        "low": [
+          {
+            "post_id": 13491,
+            "score": 31,
+            "published_at": "2024-05-02",
+            "answer_text": ""
+          },
+          {
+            "post_id": 13379,
+            "score": 34,
+            "published_at": "2024-05-02",
+            "answer_text": ""
+          },
+          {
+            "post_id": 13533,
+            "score": 36,
+            "published_at": "2024-05-02",
+            "answer_text": ""
+          },
+          {
+            "post_id": 13355,
+            "score": 37,
+            "published_at": "2024-05-02",
+            "answer_text": ""
+          },
+          {
+            "post_id": 13369,
+            "score": 37,
+            "published_at": "2024-05-02",
+            "answer_text": ""
+          }
+        ]
+      },
+      "answers": [
+        {
+          "input_no": 1,
+          "post_id": 13427,
+          "score": 91,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13427",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "接客リーダーにX店を任せ、会社の目指す方向性を明確にし、目的意識の共有や意思疎通の統一を図り、横のつながりを作り、組織活性化、貢献意欲向上により定着を図る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "競争戦略は、高品質な原材料で大手外食と差別化し、両社のシナジーを発揮する差別化戦略とする。成長戦略は、強みの蕎麦で商品開発し公共交通機関を利用する外国人観光客等の新たな顧客を取り込む新市場開拓戦略。"
+            }
+          ]
+        },
+        {
+          "input_no": 2,
+          "post_id": 13435,
+          "score": 77,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13435",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "組織の統合は、①会社の目指す方向性を明確にし目的意識の共有を行ってＸ社従業員の不安払拭、②両社で混成の３部体制とし意思疎通を図ることでチーム意識を高める。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "助言は、①Ｘ社つながりの食品卸売業者から地元産の高品質な原材料を仕入れオリジナルメニュー開発で差別化する、②駅前やバス利用できる立地を活かしてオリジナルメニューを提供し外国人観光客や若者を取り込む。"
+            }
+          ]
+        },
+        {
+          "input_no": 3,
+          "post_id": 13409,
+          "score": 76,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13409",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "X社従業員に対しA社社長が経営統合の目的と目指す組織風土を伝え、社員の提案を採り入れた接客マニュアルを作成し接客の質を高め、A社社員との交流会を開催し定着を図る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "駅を利用する食べ歩き目的の外国人と若者を対象に、厳選した原材料の蕎麦を提供し、原材料をＡ社でも活用し相乗効果を高め、サービスの質を高めて大手外食店と差別化する。高付加価値化により収益・事業を拡大する。"
+            }
+          ]
+        },
+        {
+          "input_no": 4,
+          "post_id": 13413,
+          "score": 76,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13413",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "組織文化が異なるため一体感の醸成を図り、②業務内容を標準化しマニュアル化、\n共有し教育を図る等、各種施策をA社社長が先頭に立ち組織の統合を進めていく。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "競争戦略は、①A社の差別化されたメニューと高いサービス品質を活用し、②B社の地元産高品質原材料の使用等で融合を図り、SNS等を活用し、増えてきた外国人観光客や若者の需要を取り込み、成長を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 5,
+          "post_id": 13513,
+          "score": 76,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13513",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "接客リーダーを中心にＸ社従業員に対して目的意識の共有や意思統一を図り、チームとして助け合う土壌を作る。Ｘ社の正社員やアルバイトの待遇面に配慮して動機付けを図る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "Ｘ社の駅前の立地を活かして公共交通機関を利用する地域の食べ歩きを目的とした外国人観光客や若者向けにＡ社の各リーダーを活用して商品やサービスを開発に経営資源を配分してチェーン経営の蕎麦店と差別化を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 6,
+          "post_id": 13481,
+          "score": 73,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13481",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①A社接客リーダーをX社の後任として②店舗として目指す方向性を明確にし、目的意識の共有や意思統一を図り③A社の組織文化との融合を進めてモラール向上を図る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "①地域の食べ歩きを目的とした外国人観光客や若者をターゲットに、地元の高品質材料を利用した新製品開発を行い、他店との差別化、高付加価値化を図り②SNSや口コミを利用して、売上拡大と事業拡張を図ることである"
+            }
+          ]
+        },
+        {
+          "input_no": 7,
+          "post_id": 13539,
+          "score": 73,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13539",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "助言は、トップ主導により行い、丁寧な説明と合意形成を長期的段階的に行う。目指す方向性を明確に目的意識の共有や意思の統一を図る。自主的に問題解決を行う風土を醸成。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "事業は食べ歩きが目的の外国人観光客や若者を対象にSNS等で顧客を取り込む体制をととのえる新規開拓戦略で、成長戦略につなげる。"
+            }
+          ]
+        },
+        {
+          "input_no": 8,
+          "post_id": 13527,
+          "score": 72,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13527",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "両社の接客、厨房、管理の部内でリーダーを中心に目的意識の共有や\n意思の統一を図る。自主的に問題点を解決するような風土を醸成し、\n士気向上と組織活性化に繋げる。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "公共交通機関を利用する来訪者の増加に対し、A社の強みである質の\n高い商品サービスとX社の好立地を活かし競合と差別化を図る。原材料の仕入れは食品卸売業者を利用し供給安定させSNSや口コミで売上拡大を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 9,
+          "post_id": 13445,
+          "score": 71,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13445",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "X社経営者は潤滑油として期待し顧問で残し①社長が目指す方向性訴え②店舗間、内での人材交流、連携推進③丁寧な社員育成で、士気向上、人材定着を図り、円滑な統合実現。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "X社経営者の人脈を活用し、地元の高品質な原材料を仕入れ、外国人観光客や若者に対し、看板メニューを開発し、地域の食べ歩き需要を取り込み、サービス、商品の質を高め、差別化を図り、売上拡大を目指す。"
+            }
+          ]
+        },
+        {
+          "input_no": 10,
+          "post_id": 13519,
+          "score": 71,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13519",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "組織統合は、事前にX社従業員に対し①雇用の維持を説明し②目指す方向性や企業風土への理解を研修で醸成で、統合後のスムーズな組織運営を図る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "駅利用の外国人観光客や若者の増加を活かしX社の駅前立地を利用した新市場開拓戦略。A社の高品質なこだわり手打ち蕎麦を訴求することでチェーン店との差別化を図り、新たな顧客層を取り込み売上向上を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 11,
+          "post_id": 13495,
+          "score": 70,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13495",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "事前に統合の目的意識を全社員に共有し、納得感を得て、雇用条件や労働環境等を整備して、教育や権限委譲により士気低下を防ぎ、一体感を醸成して円滑に統合を進める。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "X社の高品質原材料の仕入ルートの強みを活かし、高品質な蕎麦を提供することで差別化集中戦略をとり、増加する外国人観光客や若者等の来訪者を獲得し、従業員の連携強化により蕎麦の新メニューを開発し市場開発する。"
+            }
+          ]
+        },
+        {
+          "input_no": 12,
+          "post_id": 13511,
+          "score": 70,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13511",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①B社の目指す方向性や目的意識を共有し②店舗間の配置替えや社内行事により人材交流を活発にしコミュニケーション活性化を図りコンフリクトを回避し円滑な統合を図る"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "展開する事業は、高品質な原材料と質の高い商品・サービスで差別化し、地域の食べ歩きを目的とした公共交通機関を利用する外国人観光客や若者に向けて、駅構内への新規出店など新市場を開拓するなどシナジー発揮する"
+            }
+          ]
+        },
+        {
+          "input_no": 13,
+          "post_id": 13529,
+          "score": 70,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13529",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "X社の従業員に対して、会社として目指す方向を明確にし、目的意識の共有や意思の統一を図るチーム作りを行う。これにより経営統合に伴う不安を解消し退職を防止する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "公共交通機関を利用する、地域の食べ歩きを目的とした外国人観光客や若者をターゲットとした事業を展開。SNSの口コミやグルメアプリに適した商品で駅構内の大手外食チェーンとの差別化を図る（差別化集中戦略）。"
+            }
+          ]
+        },
+        {
+          "input_no": 14,
+          "post_id": 13387,
+          "score": 69,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13387",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "統合は、①正社員に接客・厨房・管理のリーダーを任せモラール向上し②A社と組織文化を統合し③勤務体系の改善を説明しX社社員の不安解消。以上を、段階的計画的に進める。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "事業は、SNSの口コミ等で食べ歩きをする外国人観光客や若者を対象にした差別化集中戦略で新製品を開発する多角化戦略を展開すべき。原材料をX社経営者の繋がりのある食品卸売業者から確保して実現する。"
+            }
+          ]
+        },
+        {
+          "input_no": 15,
+          "post_id": 13393,
+          "score": 69,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13393",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "A社接客リーダーにX社統括、X社社員に厨房・接客・管理のリーダーを任せ、①意思統一と助け合う風土を醸成し、士気向上②高価な看板メニュー開発・接客力向上で差別化。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "戦略は①公平な基準の成果給の導入・研修等の教育・適正配置で組織活性化し、高価な蕎麦の看板メニュー開発と接客力向上で差別化②SNS等で口コミ誘発し、外国人観光客や若者の地域の食べ歩き需要を獲得し、売上増。"
+            }
+          ]
+        },
+        {
+          "input_no": 16,
+          "post_id": 13395,
+          "score": 69,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13395",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "X社の従業員やアルバイトに対して経営統合の意図やビジョンを経営者が説明するとともに、現行処遇での雇用維持を伝えることで不安を無くし士気を高め円滑な組織統合を図る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "X社の高品質な原材料の調達力と駅近の立地という強みを、A社のメニュー開発力とかけあわせることで高付加価値の製品を開発し、公共交通機関を利用する外国人観光客や若者に販売。差別化し成長を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 17,
+          "post_id": 13517,
+          "score": 69,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13517",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①X社の勤務条件を引継ぎ②人材交流や知識・情報の共有化を行い③A社と同様に商品やサービス面で他社との差別化を行っていく。以上で、円滑な組織統合を進めていく。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "増加する公共交通機関利用者に対し、SNSの口コミを通して新規顧客を獲得する。\n食品卸売業者が扱う地元産の高品質な原材料使用と、相互扶助の文化で、商品とサービス面の差別化を図り、売上拡大とリスク分散を図る"
+            }
+          ]
+        },
+        {
+          "input_no": 18,
+          "post_id": 13509,
+          "score": 68,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13509",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "全社員に目指す方向性を明確にし、目的意識の共有や意思の統一を図った上で交流を活性化させ全社的に助け合う土壌を醸成させる。X社社員の不安を解消し定着率を高める。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "今後は、中堅食品卸売業者から地元産の高品質な原材料を安定的に仕入れ、高品質、高付加価値な蕎麦とサービスで更なる差別化を図り価格競争を回避。又、外国人観光客や若者を獲得するメニューを開発し売上拡大図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 19,
+          "post_id": 13399,
+          "score": 67,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13399",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "A社とX社で配置転換を行い、人事交流を深めていく。以て、組織文化を徐々にすり合わせていき、一体感のある組織風土を作りながら、組織統合を進めていくべき。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "地域の食べ歩きを目的とした外国人観光客や若者をターゲットに、地元産の高品質な原材料を用いた差別化された高付加価値商品を販売し、売上拡大を図っていくべき。"
+            }
+          ]
+        },
+        {
+          "input_no": 20,
+          "post_id": 13423,
+          "score": 67,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13423",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①Ｘ社の顧客と関係性を維持し統合後も呼び込む②Ｘ社の仕入先の食品卸売業者との関係を引き継ぐ③Ｘ社の従業員にビジョンや働き方を伝え、円滑な文化の融合を図る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "①Ｘ社と関わりある食品卸売業者から地元産の高品質な原材料を仕入れ、OJT等で教育し商品やサービスの品質を高め差別化し②品質の高さをSNSで訴求し駅利用通勤客、外国人観光客、若者等へ新市場開拓で売上を拡大"
+            }
+          ]
+        },
+        {
+          "input_no": 21,
+          "post_id": 13455,
+          "score": 67,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13455",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "Ａ社の人事制度や組織を説明し、X社の従業員の不安を取り除く。また、経営方針や目的意識の共有や意思統一を図る。以上でコンフリクトを避けて、統合を成功させる。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "Ｘ社も含めて差別化集中戦略を進める。地域の食べ歩きを目的とした外国人観光客や若者を顧客層を取り込み、統合によるシナジー効果を発揮し、売上拡大目指す。また、Ｘ社の取引先を確保して安定化させる。"
+            }
+          ]
+        },
+        {
+          "input_no": 22,
+          "post_id": 13383,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13383",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①統合後のビジョンを社員に共有する、②ビジョンに沿う行動を評価する基準を作る、③Ａ社ノウハウを生かし業務をマニュアル化し、教育する。組織と業務の円滑な統合を図る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "①Ｘ社の仕入先の高品質原材料、Ａ社のノウハウを生かした高付加価値な蕎麦で差別化戦略を、②商品や駅前の立地をSNＳやグルメアプリで訴求し、外国人観光客や若者を獲得する新市場開拓戦略を行う。事業拡大を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 23,
+          "post_id": 13473,
+          "score": 66,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13473",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①トップから目指す方向性を示し②A社の各部リーダーをX社に派遣して接客力、協力意識を向上③処遇の公平性、透明性と自主的問題解決で士気低下や離職を防止する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "戦略は①X社のつてを生かし両店で地元産の高品質な原材料を用い地元密着店として差別化し、チェーン店との価格競争を回避。②駅前の立地を生かしXでもオリジナルメニューを提供、SNS投稿を促し新規顧客獲得。"
+            }
+          ]
+        },
+        {
+          "input_no": 24,
+          "post_id": 13487,
+          "score": 65,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13487",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "X社経営者のサポートの元、円滑な経営統合を行う為にA社の経営理念や組織風土を浸透させ、離職を防止する。A社スタッフの派遣等で段階的な承継をする。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "競争戦略は質の高いメニューとサービスの高付加価値化で大手外食チェーン店と差別化する。成長戦略はX社との連携で商品開発を行い、食品卸売業者の高品質な原材料を安定的に仕入れ、新規顧客開拓と売上拡大を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 25,
+          "post_id": 13397,
+          "score": 64,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13397",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "助言は競合店との差別化されたメニュー開発②A社より社員派遣しX社でOJT・研修等行う③権限委譲を行い提案体制を構築以上で文化統合し意思疎通を増やし組織活性化を図る"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "助言はソバへの差別化集中を継続しつつも新市場開拓を行う。具体的には地元産の高品質な原材料を使い、地域の食べ歩き目的の外国人観光客や若者向けに独自メニューをSNSやグルメアプリで発信し新規顧客を取り込む"
+            }
+          ]
+        },
+        {
+          "input_no": 26,
+          "post_id": 13403,
+          "score": 64,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13403",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "A社の接客リーダーに店舗を任せ権限を委譲し教育を進めることで従業員の士気を向上させサービス品質を向上するとともにA社と管理部門を統合しコスト削減"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "会社として目指す方向を明確にしA社はファミリー層、X社は駅利用者とターゲットを明確に分ける。食べ歩き客に対してメニュー開発力を活かした商品を提供し差別化されたメニューを提供する"
+            }
+          ]
+        },
+        {
+          "input_no": 27,
+          "post_id": 13363,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13363",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①経営統合による両社の目的や目標を従業員に語り共有することや、②X社とA社の人材交流やコミュニケーションを活発にすることで、相互に助け合い自発的な文化を醸成する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "A社店舗は地元のファミリー層に、X社店舗は公共交通機関を利用する外国人観光客や若者に対し、メニューや品質で差別化された製品を販売する。原材料調達においてはX社と取引のある食品卸売業者を活用する。"
+            }
+          ]
+        },
+        {
+          "input_no": 28,
+          "post_id": 13411,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13411",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "Ａ社の各リーダーをＸ社に派遣し人事交流を行う。各リーダーがＸ社の従業員を指導することで接客やサービスを向上させ、動機付けを行っていくことで離職率を低減させる。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "A社はX社と取引している中堅食品卸売業者との関係性を強化し、高品質な原材料の仕入で差別化を図り、新規顧客を確保していく。X社はA社の指導で接客力・サービス力を高め、近隣店舗との差別化を図り顧客獲得する。"
+            }
+          ]
+        },
+        {
+          "input_no": 29,
+          "post_id": 13523,
+          "score": 62,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13523",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "段階的に企業風土の統合を進める事、会社として目指す方向性を明確化する事、研修やリーダーによるOJTを行う事、人事交流で円滑に経営統合を図る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "SNSやグルメアプリでの発信をし、地域の食べ歩きを目的とした外国人観光客や若者を取り込むことで、新規顧客を獲得し、常連客の高齢化に対応し、経営リスクを分散する。"
+            }
+          ]
+        },
+        {
+          "input_no": 30,
+          "post_id": 13357,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13357",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①A社の目指す方向性を共有して一体感醸成しX社従業員の士気向上、研修制度による能力開発②横断的組織でコミュニケーション促進し組織活性化で組織文化の早期統合を図る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "①自前で打つコシの強い蕎麦や地元産の高品質な原材料②食べ歩き可能なメニューの開発で大手外食チェーン等の競合と差別化し競争回避。観光客や若者の需要に応え新規顧客獲得し、多角化によるシナジーで売上拡大。"
+            }
+          ]
+        },
+        {
+          "input_no": 31,
+          "post_id": 13431,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13431",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①横断的な人材配置で相互扶助の精神や自主性の高い風土等A社の企業文化を浸透させ②会社の目指す方向を共有し、共通目的による貢献意欲を喚起する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "成長戦略の観点は、①自分の店を持ちたい社員に対しのれん分けを行いA社ブランドの拡大を図る事②A社とX社でシナジーを発揮し顧客開拓。競争戦略は、A社の接客力とX社の仕入力を活用し更なる高付加価値化を推進。"
+            }
+          ]
+        },
+        {
+          "input_no": 32,
+          "post_id": 13471,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13471",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①目的意識や意思の統一図り組織文化融合・一体感醸成②担当間の配置転換で連携強化し情報共有促進・相互互助の雰囲気醸成し職場環境整備し雇用を維持し、統合進めるべき。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "地域の食べ歩き目的の外国人観光客や若者、交通機関の来訪者増加捉え新市場開拓図る。X社の高品質な仕入れルート活用し、原料に拘るコシの強い蕎麦開発で差別化、SNSで発信し来訪促進し新規顧客獲得を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 33,
+          "post_id": 13483,
+          "score": 61,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13483",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "進め方は、①両社の統合後の目指す方向性を明確にし、全員の目的意識の共有や意志の統一を行うこと、②上記の進め方を事前に伝え、Ｘ社の正社員やアルバイトの不安をなくす"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "競争戦略は、Ｘ社にもオリジナルメニューを開発し、商品とサービスの品質を高めることによる差別化戦略。成長戦略は、Ａ社は現状を維持し、Ｘ社は駅の来訪者向けに、開発した商品やサービスを投入する新商品開発戦略。"
+            }
+          ]
+        },
+        {
+          "input_no": 34,
+          "post_id": 13365,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13365",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "従業員の統括登用やメニュー開発参画等の権限移譲、業務目的の伝達、社員教育で組織活性化、モラールを向上させ、接客の向上や商品差別化で売上拡大、顧客満足を目指す。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "価格競争を避け、X社の地元産の高品質な材料という強みとA社の商品開発力を使った、増加する食べ歩き目的の観光客や若者向けテイクアウト事業をする。写真映え商品でSNS投稿や口コミを狙い、売上向上を目指す。"
+            }
+          ]
+        },
+        {
+          "input_no": 35,
+          "post_id": 13375,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13375",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "A社のリーダーがアドバイザーとして関わる、x社の正社員にアルバイトの統括を権限委譲する。目指す方向性を明確にし、目的の意識共有と意思の統一で離職防止を図る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "事業は食べ歩きができる蕎麦のお菓子等を開発し外国人観光客や若者へ販売していく。差別化集中戦略で、成長段階である蕎麦事業の強化を推進していく。以上で組織を活性化させて売上向上を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 36,
+          "post_id": 13391,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13391",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "A社は、①雇用継続を明言することで離職を防止し、②情報共有や人事交流により互いの強みを共有し、③全体で団結できる組織を目指すべき。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "A社は、①増加する食べ歩きの観光客や若者の需要を取り込み、②強みであるA社の高品質な蕎麦とX社の良質な原材料を生かし、③顧客層にあった商品開発の事業を展開し、差別化と成長を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 37,
+          "post_id": 13417,
+          "score": 60,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13417",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①接客リーダーにX社の統括を任せ、②X社内でチームによる問題解決に取り組ませ、③A社と合同勉強会や人事交流を実施することで組織の一体感の醸成とモラール向上を図る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "①中堅食品卸売業者から入手した地元産の高品質な原材料を用いて高付加価値の商品を提供する差別化集中戦略、②地域の食べ歩きを目的とした外国人観光客や若者に既存の商品を提供する新市場開拓戦略を展開する。"
+            }
+          ]
+        },
+        {
+          "input_no": 38,
+          "post_id": 13377,
+          "score": 59,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13377",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "Ａ社の従業員との人材交流を実施し、OJT等によりサービス力向上に向けて教育を図る。公平な評価・報酬体系とすることで、X社の従業員の士気向上を図る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "X社の高品質な原材料の調達力と好立地を活かして、地元限定メニューを開発し、観光客や公共交通機関利用客を取り込む。A社とX社のシナジーを発揮して高付加価値戦略で差別化を図り、売上拡大する。"
+            }
+          ]
+        },
+        {
+          "input_no": 39,
+          "post_id": 13407,
+          "score": 59,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13407",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "接客リーダーより自社の目指す方向性を説明し、自社のやり方や社員が自主的に問題解決する社風を理解して貰い目的意識を共有の上、組織の一体化を目指す"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "食べ歩きを目的とした外国人観光客や若者をターゲットとし、地元産の高品質な原材料を用いた蕎麦を看板メニューとした店を展開し、新規顧客開拓と売上向上を目指す。店は自分の店を持ちたい接客リーダーに任す。"
+            }
+          ]
+        },
+        {
+          "input_no": 40,
+          "post_id": 13389,
+          "score": 58,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13389",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "A社は、①X社の経営者を顧問に迎え、経営ノウハウと人脈を引き継ぎ、②従業員の雇用継続を保証して不安を解消することで、円滑な組織統合を進めるべき。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "A社は、①助け合う風土をX社に醸成し、サービスの質を高めて差別化すると共に、②X社の仕入先から地元産の原料を仕入れ、地元産そばとして商品力を高めて、③食べ歩き目的の来訪者を取り込み、売上成長を図るべき。"
+            }
+          ]
+        },
+        {
+          "input_no": 41,
+          "post_id": 13401,
+          "score": 58,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13401",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "統合は①会社の目指す方向性の理解のため事前交流の実施②目的意識の共有や意思統一を図る体制構築③雇用契約条件を調整し適材適所に配置して進める。以て士気向上を図る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "事業展開において、成長戦略は①標的顧客を外国人観光客や若者等公共交通機関を利用する客に定め②強みである高付加価値な蕎麦を訴求する新市場開拓戦略を採り、差別化を図る。X社取引の高品質原材料使用も訴求。"
+            }
+          ]
+        },
+        {
+          "input_no": 42,
+          "post_id": 13459,
+          "score": 57,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13459",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "留意点は、➀Ａ社の接客リーダーにＸ店を任せ、Ａ社のような組織風土を醸成させること、②接客・厨房・管理の3部門制とし、各部門の専門力を強化すること、である。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "展開する事業は、➀原材料を管理し高価格帯のソバにメニューを絞り、競合と差別化し地元ファミリー層の獲得を狙うこと、 ②かんばんとなるメニューを開発し、自主的に問題解決する接客力で、外国人顧客・若者を開拓"
+            }
+          ]
+        },
+        {
+          "input_no": 43,
+          "post_id": 13461,
+          "score": 57,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13461",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "進め方としては①従業員の雇用や取引先との関係維持②機能別の３部体制でＡ社リーダーの元に統合③意思疎通を強化して一体感の醸成④Ａ社とのシナジーで売上拡大である。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "事業内容は、駅前の立地を活かして地域の食べ歩き目的の外国人観光客や若者に向けてテイクアウトメニューを開発する。戦略としては多角化であり、差別化戦略に該当する。ＳＮＳやグルメアプリも活用する。"
+            }
+          ]
+        },
+        {
+          "input_no": 44,
+          "post_id": 13531,
+          "score": 57,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13531",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "助言は①現経営者より両社従業員に統合の目的や効果を語った上で②A社で奏功しているリーダー制や店内オペレーションを手本にX社の内部改善を漸進的に進め統合効果を得る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "助言は①X社は公共交通機関で来訪する外国人や若者を対象に、SNS映えするメニュー開発や内装整備で差別化する。②A社はX社の仕入れ先を活用し高単価戦略で差別化する。両社で棲み分けし差別化と競争力向上を期す"
+            }
+          ]
+        },
+        {
+          "input_no": 45,
+          "post_id": 13371,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13371",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①A社の接客リーダーをX社の責任者に配置しA社従業員の風土をX社正社員に浸透させる、②A社との人事交流を進めA社の高品質な蕎麦技術とサービスをX社従業員と共有。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "助言は①外食店との価格競争を回避し各店舗毎にターゲットを絞り高品質の蕎麦とサービスを訴求する差別化集中を図る。②駅を利用する外国人環境客や若者を新規顧客にSNｓやグルメアプリで集客し新市場開拓を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 46,
+          "post_id": 13405,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13405",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "経営統合に不安なX社員に① 相互扶助による連携②問題解決の裁量③売上の伸長、といったA社の魅力を訴求し、不安を軽減して退職を減らし円滑な経営統合を目指すべき"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "近年増加する、地域の食べ歩きが目的の外国人観光客や若者を対象に①WEB発信強化②個々でも入りやすい店内作り③独自メニュー強化、を行い、またX社の原材料調達ルートを生かし、差別化・持続的な成長を目指す。"
+            }
+          ]
+        },
+        {
+          "input_no": 47,
+          "post_id": 13453,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13453",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "助言は①全社の目指す方向性の発信や目的意識の共有を行い、モラール向上する事。②人員の配置転換で負荷の平準化とスキル向上を図り、従業員の定着と組織力を向上する事"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "助言は①地元の高品質な原材料を使用した地域ブランドの蕎麦のメニューを開発して差別化し、 外国人観光客や若者の口コミは促進し、売上拡大を図る事、②社員の独立制度を設け組織活性化と店舗数拡大を図ること"
+            }
+          ]
+        },
+        {
+          "input_no": 48,
+          "post_id": 13467,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13467",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①流動的配置で従業員間の意思疎通を活発化する②リーダーが教育しサービス水準を高めると共にX社従業員を新商品開発やサービス向上施策検討に巻き込む③業務負荷を下げる。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "互助や自主的な問題解決風土をX社従業員に浸透させサービス水準の向上を図ると共に地元産の高品質原材料の仕入を安定化し新商品開発による差別化で大手との競争を回避し新規需要取込による多角化で収益拡大する。"
+            }
+          ]
+        },
+        {
+          "input_no": 49,
+          "post_id": 13477,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13477",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "統合は、①X社とA社の企業文化の違いを考慮②一旦はX社の体制を維持し③A社のリーダー層をX社に派遣し段階的に統合④従業員のモラール維持し円滑な統合を図る点に留意。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "A社は、①外国人観光客や若者層へ向け、②X社取引先を利用した地元産品で高価格な商品開発を行い、③営業時間を短縮化し従業員をモラールを向上し高付加価値なサービス品質を高めた差別化した事業を行うべき。"
+            }
+          ]
+        },
+        {
+          "input_no": 50,
+          "post_id": 13505,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13505",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "A社ビジョンを共有し、公平な人事制度を導入し、配置転換で業務負荷やオペレーションを平準化し、チーム間の意思疎通を促進し、一体感を醸成し帰属意識を高め組織活性化。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "助言は①X社の仕入先活用で原材料供給を安定化し②X社の駅前立地を活かしインバウンド需要を取り込み③高い商品・サービス品質で高付加価値化し顧客満足度を高め、口コミ誘発し新規顧客獲得し統合のシナジー最大化。"
+            }
+          ]
+        },
+        {
+          "input_no": 51,
+          "post_id": 13515,
+          "score": 56,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13515",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "(1)リーダーの育成し、権限移譲で士気向上を図る(2)明確なビジョンを共有し相互扶助・自主的な風土を醸成し、円滑な統合を進める。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "駅利用の外国人・若者に対し、和風蕎麦や写真映えするサービスを提供し差別化を図る。社内交流の強化や相互扶助の風土を醸成し組織活性化、離職防止を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 52,
+          "post_id": 13381,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13381",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "助言は、①X社のリーダーと共に、方向性を明確にする。②目的意識の共有や意思の統一を図る。以上で、自主的に問題点を解決する風土を醸成し、従業員の定着を図る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "助言は、①X社は外国人観光客に対し、全社的に仕入れる地元産の高品質な原材料で高付加価値商品を開発し、差別化する。②X社の経営権を管理リーダーに委譲し、人材交流をして、組織活性化を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 53,
+          "post_id": 13415,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13415",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①X社社員への統合についての丁寧な説明、②A社経営方針、ルールの浸透化、③X社経営者の役員登用により、円滑に組織文化の統合を進めるべき。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "強みの蕎麦を活かして、サービスの質を向上させ、他社との差別化、高付加価値化を図り、格安店との価格競争を避け、職場環境の改善を行う。また、新メニューを開発し、食べ歩きの需要に応え収益増加を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 54,
+          "post_id": 13497,
+          "score": 55,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13497",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①統合後の経営方針を明確化し共有②業務や制度を整理し重複業務を統合③両社従業員の交流の場を作り意識や文化の統合。以上により、効率の高いシナジーを発揮する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "公共交通機関を利用する地域の食べ歩きを目的とした外国人観光客や若者に対し、駅近の立地を活かし、高品質な原材料を使用したコシの強い蕎麦や独自メニューを活かし、高付加価値化することで、口コミ拡散、売上向上。"
+            }
+          ]
+        },
+        {
+          "input_no": 55,
+          "post_id": 13421,
+          "score": 54,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13421",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "経営者が望ましい統合後の組織像を示した上で、元X社員の雇用環境を改善。1on1面談の実施で不安を排除し心理的安全性を確保。元X社員もリーダー育成し配置。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "X社で利用していた食品卸業者からの高品質材料を使用したオリジナルメニューを開発、地産地消のこだわりで更に差別化し、既存顧客に加えて半調理製品を新規客にうる。"
+            }
+          ]
+        },
+        {
+          "input_no": 56,
+          "post_id": 13447,
+          "score": 54,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13447",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①X社前経営者の支援で食品卸売業者都の関係を継続し②A社とX社間の従業員の人材交流を図り③目的意識の共有を図り、公正な評価基準を設定。組織の統合を進めていく。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "外国人観光客や若者を標的に、地元産の高品質の原材料で作る蕎麦の提供に集中する。SNSで原材料への拘りや利便性を訴求し差別化。接客・厨房リーダを中心に商品・サービスの改善を図り新しい顧客層の開拓を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 57,
+          "post_id": 13485,
+          "score": 54,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13485",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "A社経営方針を共有、理解させ、目的意識の共有や意思の統一を図るチームに参画させ、チームとして相互に助け合う土壌をX社に拡張させ、円滑友好的に組織の統合を図る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "競争面は食品卸売業者と提携し、原材料の高騰による収益の改善を図る。成長面はグルメアプリの来訪者を対象に地元産の高品質な原材料で良質な蕎麦と高い接客とサービスで高付加価値化し、他社と差別化を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 58,
+          "post_id": 13501,
+          "score": 54,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13501",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①商品戦略を統一、オペレーションをマニュアル化し組織と役割を共通化し②人材交流により組織風土を一体化しX社社員の不安を解消し、組織統合を進めていく。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "助言は統合シナジーによる地元産の高品質な原材料を使った蕎麦に集中し大手チェーン等競合と差別化し、X社の駅前立地を活かし外国人観光客や若者を取り込み、客層拡大・売上向上による成長を図る事である。"
+            }
+          ]
+        },
+        {
+          "input_no": 59,
+          "post_id": 13373,
+          "score": 53,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13373",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①厨房、接客、管理の3部体制とし②A社ベテランリーダーの元、社内研修や交流を通し技術力向上や自己解決する風土醸成し③公平公正な評価制度導入④適材適所の配置を行う事"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "地域の食べ歩きを目的とする外国人観光客や若者に対し差別化集中戦略を展開し、中堅の食品卸売業者より仕入れた地元産の高品質な原材料を活用し、高付加価値な新製品開発し、SNSや口コミで新規顧客獲得を図るべき。"
+            }
+          ]
+        },
+        {
+          "input_no": 60,
+          "post_id": 13441,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13441",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "仕入先の食品卸売業者とのつながりをA社社長が引き継ぐ。各リーダーがB社の担当と交流しルーティン業務のノウハウを引き継ぎ、目的意識の共有で満天星的意思疎通を図る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "地域の食べ歩きを目的とした外国人観光客や若者向けに、コシの強い蕎麦を使ったメニューを紹介しSNSでの口コミを促す。蕎麦を打つ場所を設置する。"
+            }
+          ]
+        },
+        {
+          "input_no": 61,
+          "post_id": 13457,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13457",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "不安なX社正社員等と時間をかけて対話し納得させ、両社の交流会で会社として目指す方向性を明確にし目的意識を共有して組織の一体感を醸成し、従業員の士気向上を図る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "地域の食べ歩きを目的とした外国人観光客や若者に対し、A社看板メニューを販売する市場開拓戦略をとる。食品卸売業者を活用して原材料の供給先を確保、高品質な商品をSNSで発信し、新規顧客獲得と売上拡大を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 62,
+          "post_id": 13525,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13525",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "X社の従業員の統合に対する不満を解消させる\nため双方向コミュニケーションを図る。また\n処遇の引継ぎを行い、徐々に組織文化の統合\nを図り、スムーズな統合を実現する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "営業力を強化し、Ｘ社の地元産の高品質な原\n材料を扱う食品卸売業者から安定的に仕入れ\nA社商品とサービスの質でシナジ\nー効果を発揮。以上で差別化し上記強み\nを増える来訪者に訴求し、新規顧客獲得する。"
+            }
+          ]
+        },
+        {
+          "input_no": 63,
+          "post_id": 13535,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13535",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "助言は、①出店願望のある接客リーダーに権限を委譲し、A社の相互に助け合う風土を浸透させ、②Ｘ社が起用する食品品卸売業者を活用し、シナジーの発現を図る事。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "Ａ社は、増加する地域の食べ歩きを目的とする外国人観光客や若者の需要を取り込み、駅近くのＸ社店舗にて地元産の高品質な原材料による蕎麦のメニューを開発、提供する。ＳＮＳによる口コミの誘発し差別化図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 64,
+          "post_id": 13537,
+          "score": 52,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13537",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "助言は、①接客リーダーをX社へ派遣しA社の価値観を体感してもらう、②経営統合の目的を伝え、目的意識の共有や意思の統一を図りモラール低下を防ぐ、である。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "助言は、①人財の交流を図りA社の高いオリジナルメニューの開発力と接客力をX社と共有し、SNSでの評判を高めることで差別化を図る、②X社が利用している食品卸売業者をA社も利用し収益率の向上を図る、である。"
+            }
+          ]
+        },
+        {
+          "input_no": 65,
+          "post_id": 13433,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13433",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "目的意識の共有や意思の統一を図り、配置転換やOff-ＪＴ、研修会などでコミュニケーションの活性化やモラール向上を図り、組織の一体感を醸成し、組織の活性化を図る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "原材料を厳選して商品とサービスの質を改善し、看板となるオリジナル商品を開発し、外国人観光客や若者の来店者にＳＮＳやグルメアプリでの口コミを誘発し、来店客増加と高付加価値化により、売上・収益拡大を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 66,
+          "post_id": 13437,
+          "score": 51,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13437",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "始めに仕入れ業者の共通化による仕入れ安定化の課題解消を図り、次にX社社員へのA社育成制度の適用により相互に助け合うA社企業文化浸透を図りA社３部体制に組み込む。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "X社駅中店舗を活用し地域の食べ歩きを目的とした外国人観光客や若者を客層とした原材料にこだわった高価格帯メニューやB級グルメ事業を展開することで他店との差別化と増加する客層を取り込み売上向上を図りたい。"
+            }
+          ]
+        },
+        {
+          "input_no": 67,
+          "post_id": 13521,
+          "score": 50,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13521",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "まず、X社の経営資源の確認を行い、全社で目指すべき方向性の共有と意志の統一を図った上で、業務統合を行い、人材と情報の交流で、士気向上とコンフリクトの回避を図る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "今後は、統合による人材や情報の交流でシナジーを発揮し、全社で地元産の高品質原材料を食品卸売業者から仕入れ、商品とサービスの質向上による競合差別化を図り、新規客獲得を目指しつつ、高付加価値事業を行う。"
+            }
+          ]
+        },
+        {
+          "input_no": 68,
+          "post_id": 13385,
+          "score": 49,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13385",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "A 社のリーダーを X 社に配置しOJT や研修等で考え方や風土を徐々に浸透させチーム作りを行う。X 社の経営者のフォロー体制を取りながら段階的な組織統合を進める"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "差別化集中・市場浸透戦略を採用し、共喰いしないように顧客ターゲットを明確に分け、中堅の食品卸売業者からの共同仕入でコスト削減し、コシの強い蕎麦や高いサービスを訴求して新規顧客を取り込み、売上拡大を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 69,
+          "post_id": 13419,
+          "score": 49,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13419",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "不安を感じるX社従業員に対して雇用維持を伝える。その後、適切な人材配置、公平な評価制度、OJT等の教育体制を導入し、従業員のモラール向上しながら組織統合を進める。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "X社と従来より繋がりある中堅食品卸売業社から、地元産の高品質な原材料を仕入れ、高品質な商品提供する。また、A社社長によるA社変革の経験を活かしX社変革を行い、より良い企業文化醸成により、成長に繋げる。"
+            }
+          ]
+        },
+        {
+          "input_no": 70,
+          "post_id": 13469,
+          "score": 49,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13469",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "シナジー効果により、Ａ社とＸ社それぞれの強みを生かし弱みを補うよう統合。その際、Ｘ社の駅近立地"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "競争戦略の観点では、Ｘ社の立地を生かし外国人観光客や若者をターゲットとしチェーン店と差別化を図る。成長戦略の観点では商品開発に長けたＡ社の強みを生かし地元産の食材を使った新商品開発を実施する。"
+            }
+          ]
+        },
+        {
+          "input_no": 71,
+          "post_id": 13475,
+          "score": 49,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13475",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①不安を抱えたX社従業員と時間をかけて信頼関係構築②両社の目指す方向性をX社経営者と共に統合③原材料調達のノウハウを獲得。以上で迅速かつ友好的に統合を進める。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "差別化集中戦略及び多角化戦略を取る。外国人観光客や若者向けの食べ歩きできる新商品を開発して差別化し、高価格品開発に経営資源を集中する。SNS投稿を促し新規顧客層を取り込み新市場開拓する事業を展開すべき。"
+            }
+          ]
+        },
+        {
+          "input_no": 72,
+          "post_id": 13479,
+          "score": 48,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13479",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "進め方は①Ａ社とＸ社で共有するビジョンを作り、目指すべき方向と目的意識の共有等を図り、②自己解決できるような企業風土を醸成③人材交流を図り士気と組織を活性化する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "地域の食べ歩き目的の若者等が増加する中、Ａ社の仕入先をＸ社の仕入先とし高品質食材を安定的に仕入れ、独自メニューや高品質サービスで高付加価値で差別化し、駅前立地のＸ社から顧客を回し、新規顧客を獲得する。"
+            }
+          ]
+        },
+        {
+          "input_no": 73,
+          "post_id": 13503,
+          "score": 48,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13503",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "統合後のA社の方向性を再定義して従業員に説明し目的意識を共有して納得させチーム活動で一体感を醸成しお互いの企業文化を段階的に融合していく。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "A社もX社の高品質な原材料を扱う仕入先から調達しX社の接客リーダーを定めA社でOJTで研修を積ませX社の接客力を向上させ一体感を醸成し高品質の蕎麦を高付加価値化し高収益化を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 74,
+          "post_id": 13359,
+          "score": 47,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13359",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①段階的に納得性を高め、組織連携を図る事。②接客、厨房、管理の体制に人員を配置③供給調達力を活かし、シナジー効果を高める。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "接客、厨房、管理の機能別組織とし、専門性を高め、商品、サービス品質を強化し他社と差別化を図る。外国人観光客や若者向けにテイクアウトの新商品を開発し、新たな顧客獲得を図る多角化戦略により売上を拡大する。"
+            }
+          ]
+        },
+        {
+          "input_no": 75,
+          "post_id": 13439,
+          "score": 47,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13439",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "X社にA社と同じ３部体制を導入し、X社社員をそのまま雇用することを打ち出して不安を解消し、両社で人事交流を行い、A社のリーダーの指導の下、段階的に統合を進める。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "地域の食べ歩きを目的とした外国人観光客等の増加を活かし、中堅食品卸売業者から仕入れた高級な食材と蕎麦により差別化集中戦略で蕎麦打ちを顧客に見える化した店舗でSNSによる口コミを誘発し新規顧客を獲得し成長"
+            }
+          ]
+        },
+        {
+          "input_no": 76,
+          "post_id": 13361,
+          "score": 46,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13361",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①厨房、接客、管理や全体統括の担当制のチームづくりを導入し、②アルバイト統括リーダーによる業務ルーティンの教育を実施、③従業員の不安を払しょくし働く意欲を高める。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "駅を利用する地域の食べ歩きを目的とした外国人観光客や若者の需要を取り込むため、①Ｘ社の卸売業者から高品質原材料を調達し蕎麦専門店としての魅力を向上させ、②のれん分け制度を導入し従業員の独立を支援する。"
+            }
+          ]
+        },
+        {
+          "input_no": 77,
+          "post_id": 13465,
+          "score": 46,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13465",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "A社社員によるOJT教育、権限委譲で相互に助け合う風土を醸成し自主性、モラール向上により相乗効果で組織活性化及び労働負荷低減で離職率を抑え円滑に経営統合する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "外国人観光客や若者に対し地域の食べ歩きができる蕎麦事業を展開する。強みを生かし顧客ニーズに対応した高品質な商品開発、サービス提供を行い高付加価値化で競合と差別化して成長し販路拡大して売上向上を狙う。"
+            }
+          ]
+        },
+        {
+          "input_no": 78,
+          "post_id": 13493,
+          "score": 46,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13493",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "A社の経営方針をX社従業員に伝え理解してもらい、待遇条件を十分に説明し理解してもらうことでモチベーション低下を回避する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "交通の便がよい駅前立地の優位性を活かして、公共交通機関を利用して来訪する、地域の食べ歩きを目的とした外国人観光客や若者向けに事業展開する。"
+            }
+          ]
+        },
+        {
+          "input_no": 79,
+          "post_id": 13489,
+          "score": 45,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13489",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "助言は①機能別組織とし新規採用した正社員をＡ社でＯＪＴなどの研修をしＸ社に配属し②Ｘ社経営者に同様の教育をし統括を任せ徐々に体制移行することに留意すべき。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "助言は、立地をいかして外国人観光客や若者をターゲットに、高品質材料で和の魅力ある新商品を提供し競合と差別化することで既存店とシナジーを発揮した多角化戦略を取り差別化集中戦略とすることで事業拡大すべき。"
+            }
+          ]
+        },
+        {
+          "input_no": 80,
+          "post_id": 13499,
+          "score": 45,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13499",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①X社の優秀人材をリーダーに登用し、業務運営等を権限移譲する②両者間で人事交流を行い、接客等の能力開発の機会を設けることで、組織活性化とモラール向上を図る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "事業は、安価な商品の大手チェーンに対し、メニュー開発力・接客力・チーム体制を活かした差別化戦略を展開する。既存の蕎麦の独自メニューを、食べ歩きの外国人観光客や若者を対象とする新市場開拓戦略を展開する。"
+            }
+          ]
+        },
+        {
+          "input_no": 81,
+          "post_id": 13425,
+          "score": 43,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13425",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "助言はA社の正社員の持つ目的意識の共有や意思の統一方法をX社にも応用し、相互に助け合う風土醸成により、従業員の定着を図りつつ、不安を取り除き、シナジーを創出。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "増加するSNS等を頼りに、公共交通機関を利用する地域の食べ歩きを目的とした外国人観光客や若者向けに、こだわりの蕎麦をX社の店舗で販売する。以上により、差別化集中戦略で、高付加価値化し、収益増を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 82,
+          "post_id": 13429,
+          "score": 43,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13429",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①社長同士の面談で相互理解を深め新たなビジョンを策定②従業員同士の交流でビジョン共有と連携強化③人事、会計等の管理業務のルール制定、の手順で統合を進めるべき。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "Ａ社は商圏と標的顧客を拡大して他社と差別化するよう助言する。具体的には①Ｘ社仕入先の原材料を活用して商品の更なる高付加価値化②Ｘ社の組織体制の改善を実施しＡ社とＸ社がバランス良く成長を図るべきである。"
+            }
+          ]
+        },
+        {
+          "input_no": 83,
+          "post_id": 13451,
+          "score": 43,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13451",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "A社は①人事面で担当者へ権限委譲し、A社とX社の計画的な配置転換により、X社従業員のモラール維持し、②組織面で目的意識を共有し、社内活性化し、徐々に統合を図る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "A社は、公共交通機関を利用する外国人観光客や若者に対して、X社との統合で得た仕入力を活かした新商品を開発し、他社と差別化し、従来とは異なるターゲットに対して事業を展開していくべきである。"
+            }
+          ]
+        },
+        {
+          "input_no": 84,
+          "post_id": 13463,
+          "score": 43,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13463",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "A社は、PMI実施で早期の文化や風土の融合、醸成を図る。理念明確化で、目的意識共有や主体性、相互支援の風土を醸成。権限移譲と教育実施で、主体性を促し、士気向上。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "展開すべき事業は、強みの商品やサービスの質を生かし、高品質な蕎麦を販売する差別化集中戦略を採用、増加傾向の観光客等の来訪者を対象に新市場開拓戦略を実施。以上で、仕入強化、強み強化、機会取得で売上拡大。"
+            }
+          ]
+        },
+        {
+          "input_no": 85,
+          "post_id": 13449,
+          "score": 41,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13449",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "会社として目指す方向性を明確にし、目的意識の共有や意思の統一を図る。そして、各部リーダーにより風土の改善を行う。これらにより段階的に組織の統合を進めていくべき。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "高付加価値のオリジナルメニューを開発し、大手外食チェーンとの商品・サービスの差別化を図る。中堅の食品卸売業者より地元産の高品質な原材料をA社と共同で仕入れることで収益向上を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 86,
+          "post_id": 13507,
+          "score": 40,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13507",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①統合後に会社の目指す方向性を明確にし、共有する。②重複する3部門体制を一本化し、権限を委譲する。③公平な評価制度や就業規則を作成し、整備する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "①地元産の高品質な原材料を使ってSNS映えのするオリジナルメニューを開発、②OJT等の教育の実施、マニュアル整備によりサービスの質を向上させる。以上より、ファーストフード店やチェーン店と差別化を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 87,
+          "post_id": 13367,
+          "score": 39,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13367",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "X社の従業員の待遇を維持し、モチベーション低下を回避する。従業員の交流を促進し、横のつながりを強化して担当を横断する意思疎通を行わせる。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "X社経営者とつながりがある中堅の食品卸売業者を仕入れ先とし、地域の食べ歩きが目的で公共交通機関を利用する外国人観光客や若者が対象の事業を展開し、新たな顧客層を取り込んでこれまで以上の売上高を獲得する。"
+            }
+          ]
+        },
+        {
+          "input_no": 88,
+          "post_id": 13443,
+          "score": 38,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13443",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①社長が組織統合により目指す方向性を自ら従業員に明確化し②従業員の目的意識の共有や意思統一で組織活性化と従業員の士気向上を図る事を統合で進めて行くべきである。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "A社は①X社と取引している食品卸売業者と関係性強化し高品質な原材料獲得で収益の圧迫を軽減し②近年増加傾向の外国人観光客や若者にあうサービスや製品を提供③従業員研修や正社員登用制度導入で離職率低下を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 89,
+          "post_id": 13355,
+          "score": 37,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13355",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①推進体制と役割分担の明確化②定期的な意見交換で、双方が納得感を得ながら推進する③早期に効果が発現する管理・業務改善の精査と実行④Ｘ社経営者への支援協力の依頼"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "競争戦略は①Ａ社の原材料の調達先をＸ社に合わせたコスト低減②Ｘ社の商品等をＡ社に合わせた高付加価値化で駅利用者の取込み。成長戦略は、社員の配置転換により徐々にＡ社の組織風土を浸透させ、売上拡大を図る。"
+            }
+          ]
+        },
+        {
+          "input_no": 90,
+          "post_id": 13369,
+          "score": 37,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13369",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "計画的かつ段階的な統合を行うべき。X社経営者を顧問に据えたり、人事制度を考慮することで組織間の対立を予防する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "X社のある駅前で食べ歩きの若者や外国人にむけた事業を行う。X社と取引している高品質な原材料を扱う卸業者と連携し高付加価値商品を提供、またSNSなどでA社を知ってもらい来訪してもらい顧客を獲得する。"
+            }
+          ]
+        },
+        {
+          "input_no": 91,
+          "post_id": 13533,
+          "score": 36,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13533",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "A社は、①経営統合の狙いをX社従業員に説明し理解を得る事、②X社従業員の処遇について担保する旨を話して不安の除去を図り組織統合を進めていく事を助言する。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "競争戦略は、地元産高品質の食材を使ったメニュー準備や、Ａ社の高い接客力を継承して競合の外食チェーンとの差別化である。成長戦略は、外国人観光客や若者をターゲットにする新市場戦略である。"
+            }
+          ]
+        },
+        {
+          "input_no": 92,
+          "post_id": 13379,
+          "score": 34,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13379",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①A社とX社で一部正社員の配置転換②A社厨房リーダーがX社従業員にOJT で能力開発③X社の正社員に権限委譲④目指す方向を明確化し社内共有し士気向上、組織活性化。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "X社が繋がりのある食品卸売業者より地元産の高品質な残材料を仕入れ他社との差別化集中戦略を撮る。A社はマイカーで来店する地元のファミリー層を更に取込み、X社は地域を食べ歩く外国人・若者の市場を開拓する。"
+            }
+          ]
+        },
+        {
+          "input_no": 93,
+          "post_id": 13491,
+          "score": 31,
+          "published_at": "2024-05-02",
+          "url": "https://www.aas-clover.com/tokyoblog/13491",
+          "answer_text": "",
+          "subquestions": [
+            {
+              "subquestion_no": 1,
+              "label": "（設問１）",
+              "answer_text": "①経営理念やビジョンを共有する。②経営統合でのシナジー効果が発揮するよう、両社の強みやノウハウを共有する。③両店で責任者を育成し一体感のある組織を作る。"
+            },
+            {
+              "subquestion_no": 2,
+              "label": "（設問２）",
+              "answer_text": "差別化集中戦略で、経営資源を蕎麦に集中し、商品やサービスの高付加価値化を図る。既存市場に両店の商圏の顧客に合ったメニューを開発し、新規顧客を獲得し事業を発展させ組織活性化を図る。"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
