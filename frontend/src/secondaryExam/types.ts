@@ -187,6 +187,20 @@ export interface SecondaryAttemptHistoryItem {
   }>;
 }
 
+export interface SecondaryOralVivaTurn {
+  role: 'assistant' | 'user';
+  content: string;
+}
+
+export interface SecondaryOralVivaResponse {
+  exam_id: string;
+  attempt_id: string;
+  assistant_message: string;
+  cited_question_keys: string[];
+  suggested_followups: string[];
+  used_ai: boolean;
+}
+
 export interface SecondaryExamDetailResponse {
   exam_id: string;
   bundle: SecondaryExamBundle;

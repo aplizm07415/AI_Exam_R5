@@ -63,3 +63,40 @@ def test_secondary_exam_draft_and_grade_flow():
         result_response = client.get(f"/api/secondary-exam/results/{grade_payload['attempt_id']}")
         assert result_response.status_code == 200
         assert result_response.json()["attempt_id"] == grade_payload["attempt_id"]
+
+
+def test_secondary_exam_oral_viva_flow():
+    with _build_client() as client:
+        catalog = client.get("/api/secondary-exam/catalog").json()["items"]
+        target = next(item for item in catalog if item["year_label"] == "R07" and item["case_no"] == 1)
+
+        detail_payload = client.get(f"/api/secondary-exam/exams/{target['year_label']}/{target['case_no']}").json()
+        packets = detail_payload["bundle"]["normalized_scoring_input"]["question_prompt_packets"]
+        answers = {
+            packets[0]["question_key"]: "既存顧客との関係性強化を軸に、地域密着の提案力を活かして差別化する。",
+        }
+
+        grade_payload = client.post(
+            "/api/secondary-exam/grade",
+            json={
+                "year_label": target["year_label"],
+                "case_no": target["case_no"],
+                "answers": answers,
+            },
+        ).json()
+
+        oral_viva_response = client.post(
+            "/api/secondary-exam/oral-viva",
+            json={
+                "year_label": target["year_label"],
+                "case_no": target["case_no"],
+                "attempt_id": grade_payload["attempt_id"],
+                "user_message": "設問1の強みの置き方、このままで合っていますか？",
+                "conversation": [],
+            },
+        )
+        assert oral_viva_response.status_code == 200
+        payload = oral_viva_response.json()
+        assert payload["attempt_id"] == grade_payload["attempt_id"]
+        assert payload["assistant_message"]
+        assert isinstance(payload["cited_question_keys"], list)

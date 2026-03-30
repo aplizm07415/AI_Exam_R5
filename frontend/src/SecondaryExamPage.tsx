@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import LoadingSpinner from './components/LoadingSpinner';
 import { BarChartIcon, FileTextIcon, LoaderIcon, PencilIcon } from './components/icons';
 import {
+  askSecondaryExamOralViva,
   fetchSecondaryExamDashboard,
   fetchSecondaryExamDetail,
   gradeSecondaryExam,
@@ -13,6 +14,7 @@ import type {
   SecondaryExamDashboardResponse,
   SecondaryExamDetailResponse,
   SecondaryGradeResult,
+  SecondaryOralVivaTurn,
   SecondaryQuestionPromptPacket,
   SecondaryQuestionReferenceStats,
 } from './secondaryExam/types';
@@ -234,6 +236,11 @@ export default function SecondaryExamPage() {
   const [sessionStarted, setSessionStarted] = useState(false);
   const [sessionEndsAt, setSessionEndsAt] = useState<number | null>(null);
   const [remainingSeconds, setRemainingSeconds] = useState<number>(80 * 60);
+  const [oralVivaInput, setOralVivaInput] = useState('');
+  const [oralVivaConversation, setOralVivaConversation] = useState<SecondaryOralVivaTurn[]>([]);
+  const [oralVivaSuggestedFollowups, setOralVivaSuggestedFollowups] = useState<string[]>([]);
+  const [oralVivaCitedQuestionKeys, setOralVivaCitedQuestionKeys] = useState<string[]>([]);
+  const [isAskingOralViva, setIsAskingOralViva] = useState(false);
   const autosaveTimerRef = useRef<number | null>(null);
 
   const catalog = dashboard?.catalog ?? [];
@@ -310,6 +317,10 @@ export default function SecondaryExamPage() {
         setAnswers(merged.answers);
         setSaveMessage(merged.updatedAt ? `保存済み: ${formatDateTime(merged.updatedAt)}` : '未保存');
         setSelectedHistoryAttemptId(nextDetail.latest_result?.attempt_id ?? nextDetail.result_history[0]?.attempt_id ?? null);
+        setOralVivaConversation([]);
+        setOralVivaSuggestedFollowups([]);
+        setOralVivaCitedQuestionKeys([]);
+        setOralVivaInput('');
 
         const firstQuestionKey = nextDetail.bundle.normalized_scoring_input.question_prompt_packets[0]?.question_key ?? null;
         setActiveQuestionKey(nextDetail.draft?.active_question_key ?? firstQuestionKey);
@@ -450,12 +461,47 @@ export default function SecondaryExamPage() {
       const nextResult = await gradeSecondaryExam(detail.bundle.year_label, detail.bundle.case_no, answers);
       setResult(nextResult);
       setSelectedHistoryAttemptId(nextResult.attempt_id);
+      setOralVivaConversation([]);
+      setOralVivaSuggestedFollowups([]);
+      setOralVivaCitedQuestionKeys([]);
+      setOralVivaInput('');
       setSaveMessage(`採点反映: ${formatDateTime(nextResult.scored_at)}`);
       await refreshDashboard(detail.exam_id);
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : '採点に失敗しました。');
     } finally {
       setIsGrading(false);
+    }
+  };
+
+  const handleAskOralViva = async (prefilledQuestion?: string) => {
+    if (!detail || !result) {
+      return;
+    }
+    const question = (prefilledQuestion ?? oralVivaInput).trim();
+    if (!question) {
+      return;
+    }
+    const nextConversation = [...oralVivaConversation, { role: 'user', content: question } satisfies SecondaryOralVivaTurn];
+    setOralVivaConversation(nextConversation);
+    setOralVivaInput('');
+    setIsAskingOralViva(true);
+    setError('');
+    try {
+      const response = await askSecondaryExamOralViva(detail.bundle.year_label, detail.bundle.case_no, {
+        attempt_id: result.attempt_id,
+        user_message: question,
+        conversation: oralVivaConversation,
+      });
+      setOralVivaConversation((current) => [...current, { role: 'assistant', content: response.assistant_message }]);
+      setOralVivaSuggestedFollowups(response.suggested_followups);
+      setOralVivaCitedQuestionKeys(response.cited_question_keys);
+    } catch (nextError) {
+      setOralVivaConversation((current) => current.slice(0, -1));
+      setError(nextError instanceof Error ? nextError.message : '口頭試問Q&Aに失敗しました。');
+      setOralVivaInput(question);
+    } finally {
+      setIsAskingOralViva(false);
     }
   };
 
@@ -793,6 +839,96 @@ export default function SecondaryExamPage() {
                         {result.overall_feedback.priority_actions.map((item) => (
                           <span key={item} className="rounded-full bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700">{item}</span>
                         ))}
+                      </div>
+                    </div>
+
+                    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                        <div>
+                          <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Case Oral Viva</div>
+                          <h3 className="mt-1 text-xl font-semibold text-slate-900">年度/事例横断の口頭試問Q&A</h3>
+                          <p className="mt-2 text-sm leading-7 text-slate-600">
+                            採点済み答案全体を前提に、「設問1のこの解釈で合ってる？」のような横断質問をそのまま投げられます。
+                          </p>
+                        </div>
+                        <div className="rounded-2xl bg-slate-100 px-4 py-3 text-xs font-semibold text-slate-600">
+                          対象: {detail.bundle.year_label} 事例{detail.bundle.case_no}
+                        </div>
+                      </div>
+
+                      {oralVivaCitedQuestionKeys.length > 0 ? (
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          {oralVivaCitedQuestionKeys.map((questionKey) => (
+                            <button
+                              key={questionKey}
+                              type="button"
+                              onClick={() => setActiveQuestionKey(questionKey)}
+                              className="rounded-full bg-sky-50 px-3 py-2 text-xs font-semibold text-sky-700 hover:bg-sky-100"
+                            >
+                              関連設問 {questionKey}
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
+
+                      <div className="mt-5 space-y-3">
+                        {oralVivaConversation.length > 0 ? (
+                          oralVivaConversation.map((turn, index) => (
+                            <div
+                              key={`${turn.role}-${index}`}
+                              className={`rounded-2xl px-4 py-3 text-sm leading-7 ${
+                                turn.role === 'assistant'
+                                  ? 'bg-slate-50 text-slate-800'
+                                  : 'bg-sky-50 text-sky-950'
+                              }`}
+                            >
+                              <div className="mb-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                                {turn.role === 'assistant' ? 'Examiner' : 'You'}
+                              </div>
+                              <div className="whitespace-pre-wrap">{turn.content}</div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="rounded-2xl bg-slate-50 px-4 py-4 text-sm leading-7 text-slate-600">
+                            例: 「設問1と設問2で一貫して言うべき強みは何？」「自分の答案で因果が弱いのはどこ？」
+                          </div>
+                        )}
+                      </div>
+
+                      {oralVivaSuggestedFollowups.length > 0 ? (
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          {oralVivaSuggestedFollowups.map((item) => (
+                            <button
+                              key={item}
+                              type="button"
+                              onClick={() => void handleAskOralViva(item)}
+                              disabled={isAskingOralViva}
+                              className="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+                            >
+                              {item}
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
+
+                      <div className="mt-5">
+                        <textarea
+                          value={oralVivaInput}
+                          onChange={(event) => setOralVivaInput(event.target.value)}
+                          placeholder="設問横断で確認したいことを入力します。"
+                          className="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-7 text-slate-900 outline-none transition focus:border-sky-400"
+                        />
+                        <div className="mt-3 flex justify-end">
+                          <button
+                            type="button"
+                            onClick={() => void handleAskOralViva()}
+                            disabled={isAskingOralViva || !oralVivaInput.trim()}
+                            className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-60"
+                          >
+                            {isAskingOralViva ? <LoaderIcon className="h-4 w-4 animate-spin" /> : null}
+                            {isAskingOralViva ? '回答生成中...' : '質問する'}
+                          </button>
+                        </div>
                       </div>
                     </div>
 

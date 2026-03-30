@@ -3,6 +3,8 @@ import type {
   SecondaryExamDashboardResponse,
   SecondaryExamDetailResponse,
   SecondaryGradeResult,
+  SecondaryOralVivaResponse,
+  SecondaryOralVivaTurn,
 } from './types';
 
 const API_BASE_URL = '/api/secondary-exam';
@@ -58,6 +60,27 @@ export async function gradeSecondaryExam(
       year_label: yearLabel,
       case_no: caseNo,
       answers,
+    }),
+  });
+}
+
+export async function askSecondaryExamOralViva(
+  yearLabel: string,
+  caseNo: number,
+  payload: {
+    user_message: string;
+    attempt_id?: string | null;
+    conversation?: SecondaryOralVivaTurn[];
+  },
+): Promise<SecondaryOralVivaResponse> {
+  return requestJson<SecondaryOralVivaResponse>('/oral-viva', {
+    method: 'POST',
+    body: JSON.stringify({
+      year_label: yearLabel,
+      case_no: caseNo,
+      user_message: payload.user_message,
+      attempt_id: payload.attempt_id ?? null,
+      conversation: payload.conversation ?? [],
     }),
   });
 }

@@ -764,6 +764,195 @@ class SecondaryGradeRequest(BaseModel):
     answers: dict[str, str] = Field(default_factory=dict)
 
 
+class SecondaryOralVivaTurn(BaseModel):
+    role: str
+    content: str
+
+
+class SecondaryOralVivaRequest(BaseModel):
+    year_label: str
+    case_no: int
+    user_message: str = Field(min_length=1, max_length=2000)
+    attempt_id: Optional[str] = None
+    conversation: list[SecondaryOralVivaTurn] = Field(default_factory=list)
+
+
+class SecondaryOralVivaResponse(BaseModel):
+    exam_id: str
+    attempt_id: str
+    assistant_message: str
+    cited_question_keys: list[str] = Field(default_factory=list)
+    suggested_followups: list[str] = Field(default_factory=list)
+    used_ai: bool = False
+
+
+def _sanitize_secondary_oral_viva_turns(turns: list[SecondaryOralVivaTurn]) -> list[dict[str, str]]:
+    sanitized: list[dict[str, str]] = []
+    for turn in turns[-12:]:
+        role = "assistant" if str(turn.role).strip().lower() == "assistant" else "user"
+        content = str(turn.content or "").strip()
+        if not content:
+            continue
+        sanitized.append({
+            "role": role,
+            "content": content[:1200],
+        })
+    return sanitized
+
+
+def _resolve_secondary_oral_viva_result(exam_id: str, attempt_id: Optional[str]) -> dict[str, Any]:
+    if attempt_id:
+        candidate = _load_runtime_json(_result_path(attempt_id), _result_blob_name(attempt_id), None)
+        if not isinstance(candidate, dict):
+            raise HTTPException(status_code=404, detail="Requested grading result was not found.")
+        if candidate.get("exam_id") != exam_id:
+            raise HTTPException(status_code=400, detail="The grading result does not belong to this exam.")
+        return candidate
+
+    latest = _get_latest_result(exam_id)
+    if not isinstance(latest, dict):
+        raise HTTPException(status_code=400, detail="This exam has not been graded yet.")
+    return latest
+
+
+def _secondary_question_context(bundle: dict[str, Any], result: dict[str, Any]) -> list[dict[str, Any]]:
+    packets = (bundle.get("normalized_scoring_input") or {}).get("question_prompt_packets") or []
+    result_map = {
+        str(item.get("question_key")): item
+        for item in (result.get("question_results") or [])
+        if isinstance(item, dict) and item.get("question_key")
+    }
+    answers = result.get("answers") or {}
+    contexts: list[dict[str, Any]] = []
+    for packet in packets:
+        question_key = str(packet.get("question_key") or "")
+        question_result = result_map.get(question_key) or {}
+        contexts.append(
+            {
+                "question_key": question_key,
+                "prompt_text": packet.get("prompt_text_clean") or packet.get("prompt_text") or "",
+                "answer_text": str(answers.get(question_key) or ""),
+                "score": question_result.get("score"),
+                "max_score": question_result.get("max_score"),
+                "positives": question_result.get("positives") or [],
+                "improvement_points": question_result.get("improvement_points") or [],
+                "advice": question_result.get("advice") or "",
+                "matched_keywords": question_result.get("matched_keywords") or [],
+                "missing_keywords": question_result.get("missing_keywords") or [],
+            }
+        )
+    return contexts
+
+
+def _fallback_secondary_oral_viva_response(
+    bundle: dict[str, Any],
+    result: dict[str, Any],
+    user_message: str,
+) -> dict[str, Any]:
+    question_contexts = _secondary_question_context(bundle, result)
+    normalized_message = str(user_message or "").strip()
+    cited_keys: list[str] = []
+    for context in question_contexts:
+        question_key = str(context.get("question_key") or "")
+        if question_key and question_key.lower() in normalized_message.lower():
+            cited_keys.append(question_key)
+    if not cited_keys:
+        weakest = sorted(
+            question_contexts,
+            key=lambda item: float(item.get("score") or 0),
+        )
+        cited_keys = [str(item.get("question_key")) for item in weakest[:2] if item.get("question_key")]
+
+    focus_contexts = [item for item in question_contexts if str(item.get("question_key")) in cited_keys] or question_contexts[:2]
+    summary_lines: list[str] = []
+    for item in focus_contexts[:2]:
+        prompt_text = str(item.get("prompt_text") or "")
+        answer_text = str(item.get("answer_text") or "").strip() or "未回答"
+        positives = [str(x) for x in (item.get("positives") or []) if str(x).strip()]
+        improvements = [str(x) for x in (item.get("improvement_points") or []) if str(x).strip()]
+        summary_lines.append(
+            f"{item.get('question_key')}では「{prompt_text}」に対し、答案は「{answer_text[:120]}」です。"
+            f" 良い点は{positives[0] if positives else 'まだ明確に拾えていません'}、"
+            f"詰めたい点は{improvements[0] if improvements else '設問要求と根拠のつなぎ'}です。"
+        )
+
+    overall_summary = str((result.get("overall_feedback") or {}).get("summary") or "")
+    assistant_message = (
+        f"{overall_summary} "
+        f"{' '.join(summary_lines)} "
+        "設問横断で確認するなら、各設問で一貫している因果と、与件根拠の置き方をそろえるのが大事です。"
+        " どの設問のどの主張を確かめたいかまで書いてもらえれば、さらに具体化できます。"
+    ).strip()
+    return {
+        "assistant_message": assistant_message,
+        "cited_question_keys": cited_keys[:3],
+        "suggested_followups": [
+            "設問1と設問2で一貫している強み・課題の置き方は？",
+            "自分の答案で与件根拠が薄い設問はどれ？",
+            "次に書き直すなら最優先で直す1点は？",
+        ],
+        "used_ai": False,
+    }
+
+
+def _ask_secondary_oral_viva_with_ai(
+    bundle: dict[str, Any],
+    result: dict[str, Any],
+    user_message: str,
+    conversation: list[dict[str, str]],
+) -> dict[str, Any]:
+    question_contexts = _secondary_question_context(bundle, result)
+    transcript_lines = []
+    for turn in conversation:
+        role_label = "受験者" if turn["role"] == "user" else "口頭試問官"
+        transcript_lines.append(f"{role_label}: {turn['content']}")
+    transcript = "\n".join(transcript_lines) or "(なし)"
+
+    prompt = f"""
+あなたは中小企業診断士二次試験の採点後フォローを行う口頭試問官です。
+以下は同一年度・同一事例の全設問答案と採点結果です。設問横断で整合性を見ながら、日本語で簡潔かつ実務的に回答してください。
+
+# 試験情報
+- 年度: {bundle.get("year_label")}
+- 事例: {bundle.get("case_no")}
+- 総合点: {result.get("overall_score")} / {result.get("total_possible_score")}
+- 総評: {(result.get("overall_feedback") or {}).get("summary") or ""}
+- 優先改善: {json.dumps((result.get("overall_feedback") or {}).get("priority_actions") or [], ensure_ascii=False)}
+
+# 設問別コンテキスト
+{json.dumps(question_contexts, ensure_ascii=False)}
+
+# 既存会話
+{transcript}
+
+# 今回の受験者質問
+{user_message}
+
+# 出力ルール
+- 必ずJSONオブジェクトのみを返してください。
+- assistant_message は200〜500字程度で、問いに直接答えた上で、必要なら設問横断の整合ポイントを補足してください。
+- cited_question_keys には関連が強い question_key を0〜3件返してください。
+- suggested_followups には次に聞くと良い短い質問を3件返してください。
+
+# JSONスキーマ
+{{
+  "assistant_message": "string",
+  "cited_question_keys": ["q1"],
+  "suggested_followups": ["string"],
+  "used_ai": true
+}}
+"""
+    model = create_generative_model()
+    response = model.generate_content(prompt)
+    payload = _extract_json_object(getattr(response, "text", "") or "")
+    return {
+        "assistant_message": str(payload.get("assistant_message") or "").strip(),
+        "cited_question_keys": [str(x) for x in (payload.get("cited_question_keys") or []) if str(x).strip()][:3],
+        "suggested_followups": [str(x) for x in (payload.get("suggested_followups") or []) if str(x).strip()][:3],
+        "used_ai": True,
+    }
+
+
 @router.get("/catalog")
 def get_secondary_exam_catalog():
     return {"items": _bundle_catalog()}
@@ -927,6 +1116,37 @@ def grade_secondary_exam(payload: SecondaryGradeRequest):
     exam_attempt_cache[answer_key] = result_payload["attempt_id"]
     _save_grade_cache(cache)
     return result_payload
+
+
+@router.post("/oral-viva", response_model=SecondaryOralVivaResponse)
+def ask_secondary_exam_oral_viva(payload: SecondaryOralVivaRequest):
+    bundle = _load_bundle(payload.year_label, payload.case_no)
+    exam_id = str(bundle.get("exam_id") or _exam_id(payload.year_label, payload.case_no))
+    result = _resolve_secondary_oral_viva_result(exam_id, payload.attempt_id)
+    conversation = _sanitize_secondary_oral_viva_turns(payload.conversation)
+
+    try:
+        response_payload = (
+            _ask_secondary_oral_viva_with_ai(bundle, result, payload.user_message, conversation)
+            if is_gemini_available()
+            else _fallback_secondary_oral_viva_response(bundle, result, payload.user_message)
+        )
+    except Exception:
+        response_payload = _fallback_secondary_oral_viva_response(bundle, result, payload.user_message)
+
+    assistant_message = str(response_payload.get("assistant_message") or "").strip()
+    if not assistant_message:
+        response_payload = _fallback_secondary_oral_viva_response(bundle, result, payload.user_message)
+        assistant_message = str(response_payload.get("assistant_message") or "").strip()
+
+    return SecondaryOralVivaResponse(
+        exam_id=exam_id,
+        attempt_id=str(result.get("attempt_id") or ""),
+        assistant_message=assistant_message,
+        cited_question_keys=[str(x) for x in (response_payload.get("cited_question_keys") or []) if str(x).strip()][:3],
+        suggested_followups=[str(x) for x in (response_payload.get("suggested_followups") or []) if str(x).strip()][:3],
+        used_ai=bool(response_payload.get("used_ai")),
+    )
 
 
 @router.get("/results/{attempt_id}")

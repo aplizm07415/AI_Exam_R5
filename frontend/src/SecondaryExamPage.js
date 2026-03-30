@@ -2,7 +2,7 @@ import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-run
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import LoadingSpinner from './components/LoadingSpinner';
 import { BarChartIcon, FileTextIcon, LoaderIcon, PencilIcon } from './components/icons';
-import { fetchSecondaryExamDashboard, fetchSecondaryExamDetail, gradeSecondaryExam, saveSecondaryExamDraft, } from './secondaryExam/api';
+import { askSecondaryExamOralViva, fetchSecondaryExamDashboard, fetchSecondaryExamDetail, gradeSecondaryExam, saveSecondaryExamDraft, } from './secondaryExam/api';
 const LOCAL_DRAFT_KEY_PREFIX = 'secondary-exam-draft';
 const PRACTICE_DURATION_OPTIONS = [40, 60, 80, 100, 120];
 function getLocalDraftKey(examId) {
@@ -136,6 +136,11 @@ export default function SecondaryExamPage() {
     const [sessionStarted, setSessionStarted] = useState(false);
     const [sessionEndsAt, setSessionEndsAt] = useState(null);
     const [remainingSeconds, setRemainingSeconds] = useState(80 * 60);
+    const [oralVivaInput, setOralVivaInput] = useState('');
+    const [oralVivaConversation, setOralVivaConversation] = useState([]);
+    const [oralVivaSuggestedFollowups, setOralVivaSuggestedFollowups] = useState([]);
+    const [oralVivaCitedQuestionKeys, setOralVivaCitedQuestionKeys] = useState([]);
+    const [isAskingOralViva, setIsAskingOralViva] = useState(false);
     const autosaveTimerRef = useRef(null);
     const catalog = dashboard?.catalog ?? [];
     const selectedCatalogItem = useMemo(() => catalog.find((item) => item.exam_id === selectedExamId) ?? null, [catalog, selectedExamId]);
@@ -197,6 +202,10 @@ export default function SecondaryExamPage() {
                 setAnswers(merged.answers);
                 setSaveMessage(merged.updatedAt ? `保存済み: ${formatDateTime(merged.updatedAt)}` : '未保存');
                 setSelectedHistoryAttemptId(nextDetail.latest_result?.attempt_id ?? nextDetail.result_history[0]?.attempt_id ?? null);
+                setOralVivaConversation([]);
+                setOralVivaSuggestedFollowups([]);
+                setOralVivaCitedQuestionKeys([]);
+                setOralVivaInput('');
                 const firstQuestionKey = nextDetail.bundle.normalized_scoring_input.question_prompt_packets[0]?.question_key ?? null;
                 setActiveQuestionKey(nextDetail.draft?.active_question_key ?? firstQuestionKey);
             }
@@ -329,6 +338,10 @@ export default function SecondaryExamPage() {
             const nextResult = await gradeSecondaryExam(detail.bundle.year_label, detail.bundle.case_no, answers);
             setResult(nextResult);
             setSelectedHistoryAttemptId(nextResult.attempt_id);
+            setOralVivaConversation([]);
+            setOralVivaSuggestedFollowups([]);
+            setOralVivaCitedQuestionKeys([]);
+            setOralVivaInput('');
             setSaveMessage(`採点反映: ${formatDateTime(nextResult.scored_at)}`);
             await refreshDashboard(detail.exam_id);
         }
@@ -337,6 +350,38 @@ export default function SecondaryExamPage() {
         }
         finally {
             setIsGrading(false);
+        }
+    };
+    const handleAskOralViva = async (prefilledQuestion) => {
+        if (!detail || !result) {
+            return;
+        }
+        const question = (prefilledQuestion ?? oralVivaInput).trim();
+        if (!question) {
+            return;
+        }
+        const nextConversation = [...oralVivaConversation, { role: 'user', content: question }];
+        setOralVivaConversation(nextConversation);
+        setOralVivaInput('');
+        setIsAskingOralViva(true);
+        setError('');
+        try {
+            const response = await askSecondaryExamOralViva(detail.bundle.year_label, detail.bundle.case_no, {
+                attempt_id: result.attempt_id,
+                user_message: question,
+                conversation: oralVivaConversation,
+            });
+            setOralVivaConversation((current) => [...current, { role: 'assistant', content: response.assistant_message }]);
+            setOralVivaSuggestedFollowups(response.suggested_followups);
+            setOralVivaCitedQuestionKeys(response.cited_question_keys);
+        }
+        catch (nextError) {
+            setOralVivaConversation((current) => current.slice(0, -1));
+            setError(nextError instanceof Error ? nextError.message : '口頭試問Q&Aに失敗しました。');
+            setOralVivaInput(question);
+        }
+        finally {
+            setIsAskingOralViva(false);
         }
     };
     if (isLoading) {
@@ -351,7 +396,9 @@ export default function SecondaryExamPage() {
                                             const ref = referenceStatsMap.get(packet.question_key)?.references.aas?.answer_char_stats;
                                             const overLimit = typeof limit === 'number' && charCount > limit;
                                             return (_jsxs("div", { className: "rounded-3xl border border-slate-200 bg-white p-5 shadow-sm", children: [_jsxs("div", { className: "flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between", children: [_jsxs("div", { className: "space-y-2", children: [_jsx("button", { type: "button", onClick: () => setActiveQuestionKey(packet.question_key), className: `rounded-full px-3 py-1 text-xs font-semibold ${activeQuestionKey === packet.question_key ? 'bg-sky-100 text-sky-700' : 'bg-slate-100 text-slate-600'}`, children: packet.question_key }), _jsx("div", { className: "text-sm font-semibold leading-7 text-slate-900", children: packet.prompt_text_clean })] }), _jsxs("div", { className: "flex flex-wrap gap-2 text-xs", children: [_jsxs("span", { className: "rounded-full bg-slate-100 px-3 py-2 font-semibold text-slate-700", children: ["\u5236\u9650 ", limit ?? 'なし', "\u5B57"] }), ref ? (_jsxs("span", { className: "rounded-full bg-sky-50 px-3 py-2 font-semibold text-sky-700", children: ["\u518D\u73FE\u7B54\u6848\u4E2D\u592E\u5024 ", Math.round(ref.median ?? ref.mean ?? 0), "\u5B57"] })) : null] })] }), _jsx("div", { className: "mt-4", children: _jsx("textarea", { value: text, onChange: (event) => handleAnswerChange(packet.question_key, event.target.value, limit), className: `min-h-[180px] w-full rounded-2xl border bg-slate-50 px-4 py-4 text-sm leading-7 text-slate-900 outline-none transition ${overLimit ? 'border-rose-300 focus:border-rose-400' : 'border-slate-200 focus:border-sky-400'}`, placeholder: "\u3053\u3053\u306B\u7B54\u6848\u3092\u5165\u529B\u3057\u307E\u3059\u3002" }) }), _jsx("div", { className: "mt-3 flex flex-wrap items-center justify-between gap-3 text-xs", children: _jsxs("div", { className: `${overLimit ? 'text-rose-600' : 'text-slate-500'}`, children: ["\u6587\u5B57\u6570 ", charCount, typeof limit === 'number' ? ` / ${limit}` : ''] }) })] }, packet.question_key));
-                                        }) }), result ? (_jsxs("div", { className: "space-y-4", children: [_jsxs("div", { className: "rounded-3xl border border-slate-200 bg-white p-6 shadow-sm", children: [_jsxs("div", { className: "flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between", children: [_jsxs("div", { children: [_jsx("div", { className: "text-xs font-semibold uppercase tracking-[0.2em] text-slate-400", children: "Scoring Result" }), _jsxs("h3", { className: "mt-1 text-xl font-semibold text-slate-900", children: ["\u7DCF\u5408 ", formatPoints(result.overall_score), " / ", formatPoints(result.total_possible_score), "\u70B9"] }), _jsxs("div", { className: "mt-1 text-sm font-semibold text-sky-700", children: [result.overall_percentage, "%"] }), _jsx("p", { className: "mt-2 text-sm leading-7 text-slate-600", children: result.overall_feedback.summary })] }), _jsxs("div", { className: "rounded-3xl bg-slate-900 px-5 py-4 text-white", children: [_jsx("div", { className: "text-xs uppercase tracking-[0.2em] text-slate-300", children: "Last Graded" }), _jsx("div", { className: "mt-2 text-sm font-semibold", children: formatDateTime(result.scored_at) }), _jsx("div", { className: "mt-1 text-xs text-slate-300", children: result.cached ? '同一答案のキャッシュ結果' : result.overall_feedback.used_ai ? 'AI採点を使用' : 'ローカル評価を使用' })] })] }), _jsx("div", { className: "mt-4 flex flex-wrap gap-2", children: result.overall_feedback.priority_actions.map((item) => (_jsx("span", { className: "rounded-full bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700", children: item }, item))) })] }), questionPackets.map((packet) => (_jsxs("div", { className: "space-y-4", children: [_jsx(QuestionResultCard, { packet: packet, result: result.question_results.find((item) => item.question_key === packet.question_key) }), _jsxs("div", { className: "rounded-2xl border border-slate-200 bg-white p-5 shadow-sm", children: [_jsx("div", { className: "text-xs font-semibold uppercase tracking-[0.2em] text-slate-400", children: "Reference After Scoring" }), _jsx("div", { className: "mt-4 space-y-4", children: (() => {
+                                        }) }), result ? (_jsxs("div", { className: "space-y-4", children: [_jsxs("div", { className: "rounded-3xl border border-slate-200 bg-white p-6 shadow-sm", children: [_jsxs("div", { className: "flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between", children: [_jsxs("div", { children: [_jsx("div", { className: "text-xs font-semibold uppercase tracking-[0.2em] text-slate-400", children: "Scoring Result" }), _jsxs("h3", { className: "mt-1 text-xl font-semibold text-slate-900", children: ["\u7DCF\u5408 ", formatPoints(result.overall_score), " / ", formatPoints(result.total_possible_score), "\u70B9"] }), _jsxs("div", { className: "mt-1 text-sm font-semibold text-sky-700", children: [result.overall_percentage, "%"] }), _jsx("p", { className: "mt-2 text-sm leading-7 text-slate-600", children: result.overall_feedback.summary })] }), _jsxs("div", { className: "rounded-3xl bg-slate-900 px-5 py-4 text-white", children: [_jsx("div", { className: "text-xs uppercase tracking-[0.2em] text-slate-300", children: "Last Graded" }), _jsx("div", { className: "mt-2 text-sm font-semibold", children: formatDateTime(result.scored_at) }), _jsx("div", { className: "mt-1 text-xs text-slate-300", children: result.cached ? '同一答案のキャッシュ結果' : result.overall_feedback.used_ai ? 'AI採点を使用' : 'ローカル評価を使用' })] })] }), _jsx("div", { className: "mt-4 flex flex-wrap gap-2", children: result.overall_feedback.priority_actions.map((item) => (_jsx("span", { className: "rounded-full bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700", children: item }, item))) })] }), _jsxs("div", { className: "rounded-3xl border border-slate-200 bg-white p-6 shadow-sm", children: [_jsxs("div", { className: "flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between", children: [_jsxs("div", { children: [_jsx("div", { className: "text-xs font-semibold uppercase tracking-[0.2em] text-slate-400", children: "Case Oral Viva" }), _jsx("h3", { className: "mt-1 text-xl font-semibold text-slate-900", children: "\u5E74\u5EA6/\u4E8B\u4F8B\u6A2A\u65AD\u306E\u53E3\u982D\u8A66\u554FQ&A" }), _jsx("p", { className: "mt-2 text-sm leading-7 text-slate-600", children: "\u63A1\u70B9\u6E08\u307F\u7B54\u6848\u5168\u4F53\u3092\u524D\u63D0\u306B\u3001\u300C\u8A2D\u554F1\u306E\u3053\u306E\u89E3\u91C8\u3067\u5408\u3063\u3066\u308B\uFF1F\u300D\u306E\u3088\u3046\u306A\u6A2A\u65AD\u8CEA\u554F\u3092\u305D\u306E\u307E\u307E\u6295\u3052\u3089\u308C\u307E\u3059\u3002" })] }), _jsxs("div", { className: "rounded-2xl bg-slate-100 px-4 py-3 text-xs font-semibold text-slate-600", children: ["\u5BFE\u8C61: ", detail.bundle.year_label, " \u4E8B\u4F8B", detail.bundle.case_no] })] }), oralVivaCitedQuestionKeys.length > 0 ? (_jsx("div", { className: "mt-4 flex flex-wrap gap-2", children: oralVivaCitedQuestionKeys.map((questionKey) => (_jsxs("button", { type: "button", onClick: () => setActiveQuestionKey(questionKey), className: "rounded-full bg-sky-50 px-3 py-2 text-xs font-semibold text-sky-700 hover:bg-sky-100", children: ["\u95A2\u9023\u8A2D\u554F ", questionKey] }, questionKey))) })) : null, _jsx("div", { className: "mt-5 space-y-3", children: oralVivaConversation.length > 0 ? (oralVivaConversation.map((turn, index) => (_jsxs("div", { className: `rounded-2xl px-4 py-3 text-sm leading-7 ${turn.role === 'assistant'
+                                                                ? 'bg-slate-50 text-slate-800'
+                                                                : 'bg-sky-50 text-sky-950'}`, children: [_jsx("div", { className: "mb-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400", children: turn.role === 'assistant' ? 'Examiner' : 'You' }), _jsx("div", { className: "whitespace-pre-wrap", children: turn.content })] }, `${turn.role}-${index}`)))) : (_jsx("div", { className: "rounded-2xl bg-slate-50 px-4 py-4 text-sm leading-7 text-slate-600", children: "\u4F8B: \u300C\u8A2D\u554F1\u3068\u8A2D\u554F2\u3067\u4E00\u8CAB\u3057\u3066\u8A00\u3046\u3079\u304D\u5F37\u307F\u306F\u4F55\uFF1F\u300D\u300C\u81EA\u5206\u306E\u7B54\u6848\u3067\u56E0\u679C\u304C\u5F31\u3044\u306E\u306F\u3069\u3053\uFF1F\u300D" })) }), oralVivaSuggestedFollowups.length > 0 ? (_jsx("div", { className: "mt-4 flex flex-wrap gap-2", children: oralVivaSuggestedFollowups.map((item) => (_jsx("button", { type: "button", onClick: () => void handleAskOralViva(item), disabled: isAskingOralViva, className: "rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60", children: item }, item))) })) : null, _jsxs("div", { className: "mt-5", children: [_jsx("textarea", { value: oralVivaInput, onChange: (event) => setOralVivaInput(event.target.value), placeholder: "\u8A2D\u554F\u6A2A\u65AD\u3067\u78BA\u8A8D\u3057\u305F\u3044\u3053\u3068\u3092\u5165\u529B\u3057\u307E\u3059\u3002", className: "min-h-[120px] w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-7 text-slate-900 outline-none transition focus:border-sky-400" }), _jsx("div", { className: "mt-3 flex justify-end", children: _jsxs("button", { type: "button", onClick: () => void handleAskOralViva(), disabled: isAskingOralViva || !oralVivaInput.trim(), className: "inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-60", children: [isAskingOralViva ? _jsx(LoaderIcon, { className: "h-4 w-4 animate-spin" }) : null, isAskingOralViva ? '回答生成中...' : '質問する'] }) })] })] }), questionPackets.map((packet) => (_jsxs("div", { className: "space-y-4", children: [_jsx(QuestionResultCard, { packet: packet, result: result.question_results.find((item) => item.question_key === packet.question_key) }), _jsxs("div", { className: "rounded-2xl border border-slate-200 bg-white p-5 shadow-sm", children: [_jsx("div", { className: "text-xs font-semibold uppercase tracking-[0.2em] text-slate-400", children: "Reference After Scoring" }), _jsx("div", { className: "mt-4 space-y-4", children: (() => {
                                                                     const explanation = getBundleExplanation(detail, packet);
                                                                     const rubric = getBundleRubric(detail, packet);
                                                                     const fallbackRubrics = packet.rubric_candidates.flatMap((candidate) => candidate.checklist_items ?? []);
