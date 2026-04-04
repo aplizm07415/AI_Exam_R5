@@ -96,6 +96,12 @@ interface OralVivaResponse {
   memo_summary?: string | null;
 }
 
+interface QuestionHelpResponse {
+  assistant_message: string;
+  suggested_followups: string[];
+  used_ai: boolean;
+}
+
 type IpadProfile = 'air' | 'mini';
 
 const getCustomImageUrls = (
@@ -207,10 +213,16 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     miniQuizAnswer: string;
   } | null>(null);
   const [isOralVivaLoading, setIsOralVivaLoading] = useState(false);
+  const [isQuestionHelpActive, setIsQuestionHelpActive] = useState(false);
+  const [questionHelpMessages, setQuestionHelpMessages] = useState<OralVivaMessage[]>([]);
+  const [questionHelpInput, setQuestionHelpInput] = useState('');
+  const [questionHelpSuggestedFollowups, setQuestionHelpSuggestedFollowups] = useState<string[]>([]);
+  const [isQuestionHelpLoading, setIsQuestionHelpLoading] = useState(false);
   const [isSpeechSupported, setIsSpeechSupported] = useState(false);
   const [isListeningSpeech, setIsListeningSpeech] = useState(false);
   const questionTopRef = useRef<HTMLDivElement | null>(null);
   const oralVivaMessagesEndRef = useRef<HTMLDivElement | null>(null);
+  const questionHelpMessagesEndRef = useRef<HTMLDivElement | null>(null);
   const shuffledChoicesByQuestionRef = useRef<Record<string, Choice[]>>({});
   const prefetchedImageUrlsRef = useRef<Set<string>>(new Set());
   const speechRecognitionRef = useRef<SpeechRecognitionLike | null>(null);
@@ -747,6 +759,11 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     setOralVivaScores({ logicality: 0, specificity: 0, reproducibility: 0 });
     setOralVivaResult(null);
     setIsOralVivaLoading(false);
+    setIsQuestionHelpActive(false);
+    setQuestionHelpMessages([]);
+    setQuestionHelpInput('');
+    setQuestionHelpSuggestedFollowups([]);
+    setIsQuestionHelpLoading(false);
     setIsListeningSpeech(false);
     setQuestionStartedAt(Date.now());
   };
@@ -1104,6 +1121,61 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     handleSaveCustomExplanation,
   ]);
 
+  const submitQuestionHelp = useCallback(async (prefilledQuestion?: string) => {
+    if (!currentQuestion || !isAnswered || isQuestionHelpLoading) return;
+    const message = (prefilledQuestion ?? questionHelpInput).trim();
+    if (!message) return;
+
+    const userTurn: OralVivaMessage = { role: 'user', content: message };
+    const nextConversation = [...questionHelpMessages, userTurn];
+    setIsQuestionHelpActive(true);
+    setQuestionHelpMessages(nextConversation);
+    setQuestionHelpInput('');
+    setIsQuestionHelpLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/quiz/question-help`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question: {
+            problem_id: currentQuestion.id,
+            question_text: currentQuestion.question_text,
+            explanation_text: feedback?.explanation?.text ?? currentQuestion.explanation?.text ?? '',
+            correct_answer: currentQuestion.answer,
+            selected_answer: selectedAnswer,
+            was_correct: feedback?.correct ?? false,
+          },
+          conversation: questionHelpMessages,
+          user_message: message,
+        }),
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.detail || '質問相談の送信に失敗しました。');
+      }
+      const payload: QuestionHelpResponse = await response.json();
+      setQuestionHelpMessages((prev) => [...prev, { role: 'assistant', content: payload.assistant_message }]);
+      setQuestionHelpSuggestedFollowups(payload.suggested_followups ?? []);
+    } catch (e) {
+      const errMsg = e instanceof Error ? e.message : '質問相談の送信に失敗しました。';
+      setError(errMsg);
+      setQuestionHelpMessages((prev) => prev.slice(0, -1));
+      setQuestionHelpInput(message);
+    } finally {
+      setIsQuestionHelpLoading(false);
+    }
+  }, [
+    currentQuestion,
+    isAnswered,
+    isQuestionHelpLoading,
+    questionHelpInput,
+    questionHelpMessages,
+    feedback,
+    selectedAnswer,
+  ]);
+
     const currentReviewKey = currentQuestion ? buildReviewKey(currentQuestion.subject, currentQuestion.id) : null;
     const isCurrentQuestionReviewLater = currentReviewKey ? reviewLaterKeys.includes(currentReviewKey) : false;
     const displayedChoices = useMemo(
@@ -1162,6 +1234,10 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     useEffect(() => {
       oralVivaMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [oralVivaMessages]);
+
+    useEffect(() => {
+      questionHelpMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [questionHelpMessages]);
 
     useEffect(() => {
       if (isOralVivaActive) return;
@@ -1488,6 +1564,93 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                     <p className="text-xs text-gray-500">最終要約は My Memo に自動追記・保存されます。</p>
                   </div>
                 )}
+              </div>
+            )}
+          </div>
+          <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h4 className="text-base md:text-lg font-semibold text-emerald-900">質問相談モード</h4>
+                <p className="mt-1 text-xs text-emerald-800">この問題で引っかかった点を自由に聞けます。理解できたところでそのまま閉じてOKです。</p>
+              </div>
+              {!isQuestionHelpActive ? (
+                <button
+                  type="button"
+                  onClick={() => setIsQuestionHelpActive(true)}
+                  className="px-4 py-2 rounded-md bg-emerald-700 text-white text-sm font-medium hover:bg-emerald-800"
+                >
+                  質問相談を開く
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setIsQuestionHelpActive(false)}
+                  disabled={isQuestionHelpLoading}
+                  className="px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400"
+                >
+                  質問相談を閉じる
+                </button>
+              )}
+            </div>
+
+            {isQuestionHelpActive && (
+              <div className="mt-4 space-y-3">
+                <div className="max-h-72 overflow-y-auto rounded-md border border-emerald-200 bg-white p-3 space-y-2">
+                  {questionHelpMessages.length === 0 && (
+                    <p className="text-sm text-gray-500">例: 「なぜこれが正解？」「他の選択肢はどこが違う？」</p>
+                  )}
+                  {questionHelpMessages.map((msg, idx) => (
+                    <div key={`${msg.role}-${idx}`} className={`rounded-lg px-3 py-2 text-sm ${msg.role === 'assistant' ? 'bg-emerald-100 text-emerald-950' : 'bg-gray-100 text-gray-800'}`}>
+                      <p className="text-[11px] font-semibold mb-1">{msg.role === 'assistant' ? 'AI講師' : 'あなた'}</p>
+                      <p className="whitespace-pre-wrap">{msg.content}</p>
+                    </div>
+                  ))}
+                  <div ref={questionHelpMessagesEndRef} />
+                </div>
+
+                {questionHelpSuggestedFollowups.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {questionHelpSuggestedFollowups.map((item) => (
+                      <button
+                        key={item}
+                        type="button"
+                        onClick={() => void submitQuestionHelp(item)}
+                        disabled={isQuestionHelpLoading}
+                        className="px-3 py-1.5 rounded-full border border-emerald-200 bg-white text-xs font-medium text-emerald-800 hover:bg-emerald-100 disabled:opacity-60"
+                      >
+                        {item}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <textarea
+                    value={questionHelpInput}
+                    onChange={(e) => setQuestionHelpInput(e.target.value)}
+                    className="w-full p-2 border border-emerald-300 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+                    rows={3}
+                    placeholder="この問題で気になる点を入力してください"
+                  />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void submitQuestionHelp()}
+                      disabled={isQuestionHelpLoading || !questionHelpInput.trim()}
+                      className="px-4 py-2 rounded-md bg-emerald-700 text-white text-sm font-medium hover:bg-emerald-800 disabled:bg-gray-300"
+                    >
+                      {isQuestionHelpLoading ? '回答中...' : '質問する'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsQuestionHelpActive(false)}
+                      disabled={isQuestionHelpLoading}
+                      className="px-4 py-2 rounded-md text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400"
+                    >
+                      閉じる
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </div>

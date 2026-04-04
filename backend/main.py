@@ -285,6 +285,16 @@ class OralVivaStepResponse(BaseModel):
     mini_quiz_answer: Optional[str] = None
     memo_summary: Optional[str] = None
 
+class QuestionHelpRequest(BaseModel):
+    question: OralVivaQuestionContext
+    conversation: list[OralVivaTurn] = Field(default_factory=list)
+    user_message: str = Field(min_length=1, max_length=2000)
+
+class QuestionHelpResponse(BaseModel):
+    assistant_message: str
+    suggested_followups: list[str] = Field(default_factory=list)
+    used_ai: bool = False
+
 class SimilarQuestionSearchResponse(BaseModel):
     topic_keywords: list[str] = Field(default_factory=list)
     quiz_set: list[dict] = Field(default_factory=list)
@@ -1413,6 +1423,111 @@ def _coerce_score(value, default_value: int = 50) -> int:
         return default_value
 
 
+def _sanitize_question_help_conversation(turns: list[OralVivaTurn]) -> list[dict[str, str]]:
+    sanitized: list[dict[str, str]] = []
+    for turn in turns[-12:]:
+        content = str(turn.content or "").strip()
+        if not content:
+            continue
+        sanitized.append({
+            "role": "assistant" if turn.role == "assistant" else "user",
+            "content": content[:1200],
+        })
+    return sanitized
+
+
+def _fallback_question_help_response(request: QuestionHelpRequest) -> dict:
+    was_correct = request.question.was_correct
+    correct_answer = request.question.correct_answer or "未設定"
+    selected_answer = request.question.selected_answer or "未回答"
+    explanation_text = (request.question.explanation_text or "").strip()
+
+    if was_correct is True:
+        opening = f"この問題では、あなたの回答 {selected_answer} は正解です。"
+    elif was_correct is False:
+        opening = f"この問題では、正解は {correct_answer}、あなたの回答は {selected_answer} でした。"
+    else:
+        opening = f"この問題では、正解候補は {correct_answer} です。"
+
+    explanation_part = (
+        f"解説ベースでは「{explanation_text[:180]}」がポイントです。"
+        if explanation_text
+        else "手元の解説情報は少ないため、問題文と正解情報を軸に整理します。"
+    )
+
+    return {
+        "assistant_message": (
+            f"{opening} {explanation_part} "
+            "知りたいのが「なぜその選択肢になるか」「他の選択肢が違う理由か」「覚え方か」を絞ってもらえると、さらに具体的に答えられます。"
+        ).strip(),
+        "suggested_followups": [
+            "正解になる根拠を短く教えて",
+            "他の選択肢が違う理由は？",
+            "次に同じ論点が出たときの見分け方は？",
+        ],
+        "used_ai": False,
+    }
+
+
+def _ask_question_help_with_ai(request: QuestionHelpRequest) -> dict:
+    transcript_lines = []
+    for turn in _sanitize_question_help_conversation(request.conversation):
+        role = "学習者" if turn["role"] == "user" else "AI講師"
+        transcript_lines.append(f"{role}: {turn['content']}")
+    transcript = "\n".join(transcript_lines) or "(なし)"
+
+    prompt = f"""
+あなたは学習者の疑問解消を支援する、簡潔で親切なAI講師です。
+以下の問題情報と会話履歴だけを根拠に、日本語で回答してください。
+口頭試問ではありません。ユーザーの疑問に直接答えることを最優先し、会話を無理に引き延ばさないでください。
+
+# 問題情報
+- 問題ID: {request.question.problem_id}
+- 問題文: {request.question.question_text}
+- 正解: {request.question.correct_answer or "(未指定)"}
+- ユーザー回答: {request.question.selected_answer or "(未回答)"}
+- 正誤: {"正解" if request.question.was_correct else "不正解" if request.question.was_correct is False else "不明"}
+- 解説: {request.question.explanation_text or "(なし)"}
+
+# 既存会話
+{transcript}
+
+# 今回の質問
+{request.user_message}
+
+# 出力ルール
+- 必ずJSONオブジェクト1つのみを返す。
+- assistant_message は150〜400字程度で、質問に直接答える。
+- 情報が足りない場合は、足りないと明示した上で分かる範囲を説明する。
+- 試問のような採点・評価・圧迫感のある表現は使わない。
+- suggested_followups には次に聞くと理解が深まりやすい短い質問を3件返す。
+
+# JSONスキーマ
+{{
+  "assistant_message": "string",
+  "suggested_followups": ["string"],
+  "used_ai": true
+}}
+"""
+    model = create_generative_model()
+    response = model.generate_content(prompt)
+    raw_text = (response.text or "").strip()
+
+    json_text = raw_text
+    if not json_text.startswith("{"):
+        start = json_text.find("{")
+        end = json_text.rfind("}")
+        if start >= 0 and end > start:
+            json_text = json_text[start:end + 1]
+
+    payload = json.loads(json_text)
+    return {
+        "assistant_message": str(payload.get("assistant_message") or "").strip(),
+        "suggested_followups": [str(x) for x in (payload.get("suggested_followups") or []) if str(x).strip()][:3],
+        "used_ai": True,
+    }
+
+
 @api_router.post("/quiz/oral-viva/step", response_model=OralVivaStepResponse)
 def generate_oral_viva_step(request: OralVivaStepRequest):
     """解説後に任意で実行する、1問単位の口頭試問ターンを生成する。"""
@@ -1516,6 +1631,32 @@ def generate_oral_viva_step(request: OralVivaStepRequest):
     except Exception as e:
         print(f"Error generating oral viva step: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to generate oral viva step: {e}")
+
+
+@api_router.post("/quiz/question-help", response_model=QuestionHelpResponse)
+def generate_question_help(request: QuestionHelpRequest):
+    gemini_unavailable_reason = get_gemini_unavailable_reason()
+
+    try:
+        payload = (
+            _ask_question_help_with_ai(request)
+            if not gemini_unavailable_reason
+            else _fallback_question_help_response(request)
+        )
+    except Exception as e:
+        print(f"Error generating question help: {e}")
+        payload = _fallback_question_help_response(request)
+
+    assistant_message = str(payload.get("assistant_message") or "").strip()
+    if not assistant_message:
+        payload = _fallback_question_help_response(request)
+        assistant_message = str(payload.get("assistant_message") or "").strip()
+
+    return QuestionHelpResponse(
+        assistant_message=assistant_message,
+        suggested_followups=[str(x) for x in (payload.get("suggested_followups") or []) if str(x).strip()][:3],
+        used_ai=bool(payload.get("used_ai")),
+    )
 
 def _validate_soragaki_date(date_str: str) -> None:
     try:

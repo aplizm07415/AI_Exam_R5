@@ -348,6 +348,36 @@ def test_save_custom_explanation_uses_new_fields(client: TestClient):
     }
 
 
+def test_question_help_returns_fallback_response(client: TestClient, monkeypatch):
+    from backend import main
+
+    monkeypatch.setattr(main, "get_gemini_unavailable_reason", lambda: "Gemini unavailable for test")
+
+    response = client.post(
+        "/api/quiz/question-help",
+        json={
+            "question": {
+                "problem_id": "q1",
+                "question_text": "Question 1",
+                "explanation_text": "Choice A is correct because it matches the definition.",
+                "correct_answer": "A",
+                "selected_answer": "B",
+                "was_correct": False,
+            },
+            "conversation": [
+                {"role": "assistant", "content": "どこが気になりますか？"},
+            ],
+            "user_message": "なぜAが正解なんですか？",
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["used_ai"] is False
+    assert "正解は A" in payload["assistant_message"]
+    assert len(payload["suggested_followups"]) == 3
+
+
 def test_get_offline_study_package(client: TestClient):
     response = client.get("/api/offline-study/package", params={"subjects": ["subject1.json"]})
     assert response.status_code == 200

@@ -227,5 +227,13 @@ export interface SecondaryExamDashboardResponse {
     overall_score: number;
     scored_at: string;
   }>;
+  all_attempts: Array<{
+    attempt_id: string;
+    exam_id: string;
+    year_label: string;
+    case_no: number;
+    overall_score: number;
+    scored_at: string;
+  }>;
   catalog: SecondaryExamCatalogItem[];
 }

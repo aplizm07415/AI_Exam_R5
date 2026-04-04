@@ -45,6 +45,32 @@ function formatDateTime(value?: string | null) {
   });
 }
 
+function formatMonthDay(value: Date) {
+  return value.toLocaleDateString('ja-JP', {
+    month: 'numeric',
+    day: 'numeric',
+  });
+}
+
+function toDateKey(value: Date) {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, '0');
+  const day = String(value.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function startOfWeekSunday(value: Date) {
+  const next = new Date(value);
+  next.setDate(value.getDate() - value.getDay());
+  return next;
+}
+
+function endOfWeekSaturday(value: Date) {
+  const next = new Date(value);
+  next.setDate(value.getDate() + (6 - value.getDay()));
+  return next;
+}
+
 function countAnswerChars(text: string) {
   return text.replace(/\s+/g, '').length;
 }
@@ -271,6 +297,76 @@ export default function SecondaryExamPage() {
     [catalog, selectedPracticeYear],
   );
   const timerLabel = sessionEndsAt ? formatRemainingTime(remainingSeconds) : null;
+  const dashboardCalendar = useMemo(() => {
+    if (!dashboard) {
+      return null;
+    }
+
+    const today = new Date();
+    const displayYear = today.getFullYear();
+    const calendarStart = new Date(displayYear, 3, 1);
+    const calendarEnd = new Date(displayYear, 9, 31);
+    const gridStart = startOfWeekSunday(calendarStart);
+    const gridEnd = endOfWeekSaturday(calendarEnd);
+    const dayMap = new Map<string, SecondaryExamDashboardResponse['all_attempts']>();
+
+    for (const attempt of dashboard.all_attempts) {
+      const scoredAt = new Date(attempt.scored_at);
+      if (Number.isNaN(scoredAt.getTime())) {
+        continue;
+      }
+      if (scoredAt < calendarStart || scoredAt > calendarEnd) {
+        continue;
+      }
+      const key = toDateKey(scoredAt);
+      const current = dayMap.get(key) ?? [];
+      current.push(attempt);
+      current.sort((left, right) => {
+        const leftTime = new Date(left.scored_at).getTime();
+        const rightTime = new Date(right.scored_at).getTime();
+        return rightTime - leftTime;
+      });
+      dayMap.set(key, current);
+    }
+
+    const weeks: Array<Array<{
+      date: Date;
+      key: string;
+      inRange: boolean;
+      isCurrentMonth: boolean;
+      attempts: SecondaryExamDashboardResponse['all_attempts'];
+    }>> = [];
+
+    for (let cursor = new Date(gridStart); cursor <= gridEnd; cursor.setDate(cursor.getDate() + 7)) {
+      const week: Array<{
+        date: Date;
+        key: string;
+        inRange: boolean;
+        isCurrentMonth: boolean;
+        attempts: SecondaryExamDashboardResponse['all_attempts'];
+      }> = [];
+      for (let offset = 0; offset < 7; offset += 1) {
+        const date = new Date(cursor);
+        date.setDate(cursor.getDate() + offset);
+        const key = toDateKey(date);
+        week.push({
+          date,
+          key,
+          inRange: date >= calendarStart && date <= calendarEnd,
+          isCurrentMonth: date.getMonth() >= 3 && date.getMonth() <= 9,
+          attempts: dayMap.get(key) ?? [],
+        });
+      }
+      weeks.push(week);
+    }
+
+    return {
+      displayYear,
+      startLabel: formatMonthDay(calendarStart),
+      endLabel: formatMonthDay(calendarEnd),
+      weeks,
+    };
+  }, [dashboard]);
 
   const refreshDashboard = async (preferredExamId?: string | null) => {
     const nextDashboard = await fetchSecondaryExamDashboard();
@@ -612,6 +708,66 @@ export default function SecondaryExamPage() {
                     )}
                   </div>
                 </div>
+
+                {dashboardCalendar ? (
+                  <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <div className="flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
+                      <div>
+                        <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Scoring Calendar</div>
+                        <h3 className="mt-1 text-lg font-semibold text-slate-900">
+                          {dashboardCalendar.displayYear}年 {dashboardCalendar.startLabel} - {dashboardCalendar.endLabel}
+                        </h3>
+                      </div>
+                      <div className="text-xs text-slate-500">日曜始まりで、採点実施日の年度・事例・点数を表示します。</div>
+                    </div>
+
+                    <div className="mt-5 overflow-x-auto">
+                      <div className="min-w-[980px]">
+                        <div className="grid grid-cols-7 gap-2">
+                          {['日', '月', '火', '水', '木', '金', '土'].map((label) => (
+                            <div key={label} className="px-2 py-2 text-center text-xs font-semibold text-slate-500">
+                              {label}
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="mt-2 space-y-2">
+                          {dashboardCalendar.weeks.map((week) => (
+                            <div key={week[0]?.key ?? 'week'} className="grid grid-cols-7 gap-2">
+                              {week.map((day) => (
+                                <div
+                                  key={day.key}
+                                  className={`min-h-[132px] rounded-2xl border p-2 ${
+                                    day.inRange
+                                      ? 'border-slate-200 bg-slate-50'
+                                      : 'border-slate-100 bg-slate-50/40'
+                                  }`}
+                                >
+                                  <div className={`text-xs font-semibold ${day.inRange ? 'text-slate-700' : 'text-slate-300'}`}>
+                                    {day.date.getMonth() + 1}/{day.date.getDate()}
+                                  </div>
+                                  <div className="mt-2 space-y-1.5">
+                                    {day.attempts.map((attempt) => (
+                                      <button
+                                        key={attempt.attempt_id}
+                                        type="button"
+                                        onClick={() => handleSelectExam(attempt.exam_id)}
+                                        className="block w-full rounded-xl bg-white px-2 py-2 text-left shadow-sm ring-1 ring-slate-200 hover:bg-sky-50 hover:ring-sky-200"
+                                      >
+                                        <div className="text-[11px] font-semibold text-slate-900">{attempt.year_label} 事例{attempt.case_no}</div>
+                                        <div className="mt-0.5 text-[11px] text-sky-700">{formatPoints(attempt.overall_score)}点</div>
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
 
                 <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                   <div className="flex items-center gap-3">

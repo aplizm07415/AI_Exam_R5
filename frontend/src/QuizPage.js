@@ -85,10 +85,16 @@ export default function QuizPage({ subjects: allSubjects }) {
     });
     const [oralVivaResult, setOralVivaResult] = useState(null);
     const [isOralVivaLoading, setIsOralVivaLoading] = useState(false);
+    const [isQuestionHelpActive, setIsQuestionHelpActive] = useState(false);
+    const [questionHelpMessages, setQuestionHelpMessages] = useState([]);
+    const [questionHelpInput, setQuestionHelpInput] = useState('');
+    const [questionHelpSuggestedFollowups, setQuestionHelpSuggestedFollowups] = useState([]);
+    const [isQuestionHelpLoading, setIsQuestionHelpLoading] = useState(false);
     const [isSpeechSupported, setIsSpeechSupported] = useState(false);
     const [isListeningSpeech, setIsListeningSpeech] = useState(false);
     const questionTopRef = useRef(null);
     const oralVivaMessagesEndRef = useRef(null);
+    const questionHelpMessagesEndRef = useRef(null);
     const shuffledChoicesByQuestionRef = useRef({});
     const prefetchedImageUrlsRef = useRef(new Set());
     const speechRecognitionRef = useRef(null);
@@ -582,6 +588,11 @@ export default function QuizPage({ subjects: allSubjects }) {
         setOralVivaScores({ logicality: 0, specificity: 0, reproducibility: 0 });
         setOralVivaResult(null);
         setIsOralVivaLoading(false);
+        setIsQuestionHelpActive(false);
+        setQuestionHelpMessages([]);
+        setQuestionHelpInput('');
+        setQuestionHelpSuggestedFollowups([]);
+        setIsQuestionHelpLoading(false);
         setIsListeningSpeech(false);
         setQuestionStartedAt(Date.now());
     };
@@ -941,6 +952,62 @@ export default function QuizPage({ subjects: allSubjects }) {
         customExplanationText,
         handleSaveCustomExplanation,
     ]);
+    const submitQuestionHelp = useCallback(async (prefilledQuestion) => {
+        if (!currentQuestion || !isAnswered || isQuestionHelpLoading)
+            return;
+        const message = (prefilledQuestion ?? questionHelpInput).trim();
+        if (!message)
+            return;
+        const userTurn = { role: 'user', content: message };
+        const nextConversation = [...questionHelpMessages, userTurn];
+        setIsQuestionHelpActive(true);
+        setQuestionHelpMessages(nextConversation);
+        setQuestionHelpInput('');
+        setIsQuestionHelpLoading(true);
+        setError('');
+        try {
+            const response = await fetch(`${API_BASE_URL}/quiz/question-help`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    question: {
+                        problem_id: currentQuestion.id,
+                        question_text: currentQuestion.question_text,
+                        explanation_text: feedback?.explanation?.text ?? currentQuestion.explanation?.text ?? '',
+                        correct_answer: currentQuestion.answer,
+                        selected_answer: selectedAnswer,
+                        was_correct: feedback?.correct ?? false,
+                    },
+                    conversation: questionHelpMessages,
+                    user_message: message,
+                }),
+            });
+            if (!response.ok) {
+                const payload = await response.json().catch(() => null);
+                throw new Error(payload?.detail || '質問相談の送信に失敗しました。');
+            }
+            const payload = await response.json();
+            setQuestionHelpMessages((prev) => [...prev, { role: 'assistant', content: payload.assistant_message }]);
+            setQuestionHelpSuggestedFollowups(payload.suggested_followups ?? []);
+        }
+        catch (e) {
+            const errMsg = e instanceof Error ? e.message : '質問相談の送信に失敗しました。';
+            setError(errMsg);
+            setQuestionHelpMessages((prev) => prev.slice(0, -1));
+            setQuestionHelpInput(message);
+        }
+        finally {
+            setIsQuestionHelpLoading(false);
+        }
+    }, [
+        currentQuestion,
+        isAnswered,
+        isQuestionHelpLoading,
+        questionHelpInput,
+        questionHelpMessages,
+        feedback,
+        selectedAnswer,
+    ]);
     const currentReviewKey = currentQuestion ? buildReviewKey(currentQuestion.subject, currentQuestion.id) : null;
     const isCurrentQuestionReviewLater = currentReviewKey ? reviewLaterKeys.includes(currentReviewKey) : false;
     const displayedChoices = useMemo(() => (currentQuestion ? ensureShuffledChoicesForQuestion(currentQuestion) : []), [currentQuestion, ensureShuffledChoicesForQuestion]);
@@ -985,6 +1052,9 @@ export default function QuizPage({ subjects: allSubjects }) {
     useEffect(() => {
         oralVivaMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [oralVivaMessages]);
+    useEffect(() => {
+        questionHelpMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [questionHelpMessages]);
     useEffect(() => {
         if (isOralVivaActive)
             return;
@@ -1075,7 +1145,7 @@ export default function QuizPage({ subjects: allSubjects }) {
                                         ['論理性', oralVivaScores.logicality],
                                         ['具体性', oralVivaScores.specificity],
                                         ['再現性', oralVivaScores.reproducibility],
-                                    ].map(([label, value]) => (_jsxs("div", { className: "rounded-md bg-white border border-sky-200 px-3 py-2", children: [_jsxs("div", { className: "flex items-center justify-between text-xs text-sky-900 mb-1", children: [_jsx("span", { children: label }), _jsx("span", { children: value })] }), _jsx("div", { className: "h-2 rounded bg-sky-100 overflow-hidden", children: _jsx("div", { className: "h-full bg-sky-500", style: { width: `${Math.max(0, Math.min(100, value))}%` } }) })] }, label))) }), _jsxs("div", { className: "max-h-72 overflow-y-auto rounded-md border border-sky-200 bg-white p-3 space-y-2", children: [oralVivaMessages.length === 0 && (_jsx("p", { className: "text-sm text-gray-500", children: "\u958B\u59CB\u3059\u308B\u3068\u3001AI\u9762\u63A5\u5B98\u304C\u8CEA\u554F\u3057\u307E\u3059\u3002" })), oralVivaMessages.map((msg, idx) => (_jsxs("div", { className: `rounded-lg px-3 py-2 text-sm ${msg.role === 'assistant' ? 'bg-sky-100 text-sky-900' : 'bg-gray-100 text-gray-800'}`, children: [_jsx("p", { className: "text-[11px] font-semibold mb-1", children: msg.role === 'assistant' ? 'AI面接官' : 'あなた' }), _jsx("p", { className: "whitespace-pre-wrap", children: msg.content })] }, `${msg.role}-${idx}`))), _jsx("div", { ref: oralVivaMessagesEndRef })] }), !oralVivaResult && (_jsxs("div", { className: "space-y-2", children: [_jsx("textarea", { value: oralVivaInput, onChange: (e) => setOralVivaInput(e.target.value), className: "w-full p-2 border border-sky-300 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 bg-white", rows: 3, placeholder: "\u56DE\u7B54\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044\uFF08\u4EFB\u610F\u3067\u97F3\u58F0\u5165\u529B\u3082\u53EF\uFF09" }), _jsxs("div", { className: "flex flex-wrap items-center gap-2", children: [_jsx("button", { type: "button", onClick: () => void submitOralVivaAnswer(), disabled: isOralVivaLoading || !oralVivaInput.trim(), className: "px-4 py-2 rounded-md bg-sky-700 text-white text-sm font-medium hover:bg-sky-800 disabled:bg-gray-300", children: isOralVivaLoading ? '送信中...' : '送信' }), isSpeechSupported && (_jsx("button", { type: "button", onClick: toggleSpeechInput, className: `px-4 py-2 rounded-md text-sm font-medium border ${isListeningSpeech ? 'border-rose-300 bg-rose-50 text-rose-700' : 'border-sky-300 bg-white text-sky-800'}`, children: isListeningSpeech ? '音声入力停止' : '音声入力開始' })), _jsx("button", { type: "button", onClick: () => void skipOralVivaToSummary(), disabled: isOralVivaLoading, className: "px-4 py-2 rounded-md text-sm font-medium border border-sky-300 bg-white text-sky-800 hover:bg-sky-100 disabled:bg-gray-100 disabled:text-gray-400", children: "\u8981\u7D04\u3078\u30B9\u30AD\u30C3\u30D7" }), _jsx("button", { type: "button", onClick: () => setIsOralVivaActive(false), disabled: isOralVivaLoading, className: "px-4 py-2 rounded-md text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400", children: "\u53E3\u982D\u8A66\u554F\u3092\u9589\u3058\u308B" })] })] })), oralVivaResult && (_jsxs("div", { className: "rounded-md border border-sky-200 bg-white p-3 space-y-2", children: [_jsx("h5", { className: "text-sm font-semibold text-sky-900", children: "\u6700\u7D42\u30D5\u30A3\u30FC\u30C9\u30D0\u30C3\u30AF" }), _jsx("ul", { className: "list-disc pl-5 text-sm text-gray-700 space-y-1", children: oralVivaResult.improvementPoints.map((point, idx) => (_jsx("li", { children: point }, `${point}-${idx}`))) }), oralVivaResult.miniQuizQuestion && (_jsxs("div", { className: "text-sm text-gray-800", children: [_jsx("p", { className: "font-semibold", children: "\u6B21\u56DE\u78BA\u8A8D\u30DF\u30CB\u554F\u984C" }), _jsx("p", { className: "whitespace-pre-wrap", children: oralVivaResult.miniQuizQuestion })] })), oralVivaResult.miniQuizAnswer && (_jsxs("div", { className: "text-sm text-gray-700", children: [_jsx("p", { className: "font-semibold", children: "\u60F3\u5B9A\u89E3\u7B54" }), _jsx("p", { className: "whitespace-pre-wrap", children: oralVivaResult.miniQuizAnswer })] })), _jsx("p", { className: "text-xs text-gray-500", children: "\u6700\u7D42\u8981\u7D04\u306F My Memo \u306B\u81EA\u52D5\u8FFD\u8A18\u30FB\u4FDD\u5B58\u3055\u308C\u307E\u3059\u3002" })] }))] }))] }), _jsxs("div", { className: "mt-6 pt-4 border-t border-gray-200 flex justify-between items-center", children: [_jsx("button", { onClick: openProblemEditor, className: "px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200", children: "\u3053\u306E\u554F\u984C\u3092\u7DE8\u96C6\u3059\u308B" }), _jsx("button", { id: "next-question-button-bottom", type: "button", onClick: handleNextQuestion, disabled: isSavingCustomExplanation, className: "px-8 py-3 border border-transparent rounded-md shadow-sm text-sm md:text-base font-medium text-dark bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 disabled:cursor-not-allowed", children: currentQuestionIndex < questions.length - 1 ? '次の問題へ' : '終了' })] })] })) : null;
+                                    ].map(([label, value]) => (_jsxs("div", { className: "rounded-md bg-white border border-sky-200 px-3 py-2", children: [_jsxs("div", { className: "flex items-center justify-between text-xs text-sky-900 mb-1", children: [_jsx("span", { children: label }), _jsx("span", { children: value })] }), _jsx("div", { className: "h-2 rounded bg-sky-100 overflow-hidden", children: _jsx("div", { className: "h-full bg-sky-500", style: { width: `${Math.max(0, Math.min(100, value))}%` } }) })] }, label))) }), _jsxs("div", { className: "max-h-72 overflow-y-auto rounded-md border border-sky-200 bg-white p-3 space-y-2", children: [oralVivaMessages.length === 0 && (_jsx("p", { className: "text-sm text-gray-500", children: "\u958B\u59CB\u3059\u308B\u3068\u3001AI\u9762\u63A5\u5B98\u304C\u8CEA\u554F\u3057\u307E\u3059\u3002" })), oralVivaMessages.map((msg, idx) => (_jsxs("div", { className: `rounded-lg px-3 py-2 text-sm ${msg.role === 'assistant' ? 'bg-sky-100 text-sky-900' : 'bg-gray-100 text-gray-800'}`, children: [_jsx("p", { className: "text-[11px] font-semibold mb-1", children: msg.role === 'assistant' ? 'AI面接官' : 'あなた' }), _jsx("p", { className: "whitespace-pre-wrap", children: msg.content })] }, `${msg.role}-${idx}`))), _jsx("div", { ref: oralVivaMessagesEndRef })] }), !oralVivaResult && (_jsxs("div", { className: "space-y-2", children: [_jsx("textarea", { value: oralVivaInput, onChange: (e) => setOralVivaInput(e.target.value), className: "w-full p-2 border border-sky-300 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 bg-white", rows: 3, placeholder: "\u56DE\u7B54\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044\uFF08\u4EFB\u610F\u3067\u97F3\u58F0\u5165\u529B\u3082\u53EF\uFF09" }), _jsxs("div", { className: "flex flex-wrap items-center gap-2", children: [_jsx("button", { type: "button", onClick: () => void submitOralVivaAnswer(), disabled: isOralVivaLoading || !oralVivaInput.trim(), className: "px-4 py-2 rounded-md bg-sky-700 text-white text-sm font-medium hover:bg-sky-800 disabled:bg-gray-300", children: isOralVivaLoading ? '送信中...' : '送信' }), isSpeechSupported && (_jsx("button", { type: "button", onClick: toggleSpeechInput, className: `px-4 py-2 rounded-md text-sm font-medium border ${isListeningSpeech ? 'border-rose-300 bg-rose-50 text-rose-700' : 'border-sky-300 bg-white text-sky-800'}`, children: isListeningSpeech ? '音声入力停止' : '音声入力開始' })), _jsx("button", { type: "button", onClick: () => void skipOralVivaToSummary(), disabled: isOralVivaLoading, className: "px-4 py-2 rounded-md text-sm font-medium border border-sky-300 bg-white text-sky-800 hover:bg-sky-100 disabled:bg-gray-100 disabled:text-gray-400", children: "\u8981\u7D04\u3078\u30B9\u30AD\u30C3\u30D7" }), _jsx("button", { type: "button", onClick: () => setIsOralVivaActive(false), disabled: isOralVivaLoading, className: "px-4 py-2 rounded-md text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400", children: "\u53E3\u982D\u8A66\u554F\u3092\u9589\u3058\u308B" })] })] })), oralVivaResult && (_jsxs("div", { className: "rounded-md border border-sky-200 bg-white p-3 space-y-2", children: [_jsx("h5", { className: "text-sm font-semibold text-sky-900", children: "\u6700\u7D42\u30D5\u30A3\u30FC\u30C9\u30D0\u30C3\u30AF" }), _jsx("ul", { className: "list-disc pl-5 text-sm text-gray-700 space-y-1", children: oralVivaResult.improvementPoints.map((point, idx) => (_jsx("li", { children: point }, `${point}-${idx}`))) }), oralVivaResult.miniQuizQuestion && (_jsxs("div", { className: "text-sm text-gray-800", children: [_jsx("p", { className: "font-semibold", children: "\u6B21\u56DE\u78BA\u8A8D\u30DF\u30CB\u554F\u984C" }), _jsx("p", { className: "whitespace-pre-wrap", children: oralVivaResult.miniQuizQuestion })] })), oralVivaResult.miniQuizAnswer && (_jsxs("div", { className: "text-sm text-gray-700", children: [_jsx("p", { className: "font-semibold", children: "\u60F3\u5B9A\u89E3\u7B54" }), _jsx("p", { className: "whitespace-pre-wrap", children: oralVivaResult.miniQuizAnswer })] })), _jsx("p", { className: "text-xs text-gray-500", children: "\u6700\u7D42\u8981\u7D04\u306F My Memo \u306B\u81EA\u52D5\u8FFD\u8A18\u30FB\u4FDD\u5B58\u3055\u308C\u307E\u3059\u3002" })] }))] }))] }), _jsxs("div", { className: "mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4", children: [_jsxs("div", { className: "flex flex-wrap items-center justify-between gap-2", children: [_jsxs("div", { children: [_jsx("h4", { className: "text-base md:text-lg font-semibold text-emerald-900", children: "\u8CEA\u554F\u76F8\u8AC7\u30E2\u30FC\u30C9" }), _jsx("p", { className: "mt-1 text-xs text-emerald-800", children: "\u3053\u306E\u554F\u984C\u3067\u5F15\u3063\u304B\u304B\u3063\u305F\u70B9\u3092\u81EA\u7531\u306B\u805E\u3051\u307E\u3059\u3002\u7406\u89E3\u3067\u304D\u305F\u3068\u3053\u308D\u3067\u305D\u306E\u307E\u307E\u9589\u3058\u3066OK\u3067\u3059\u3002" })] }), !isQuestionHelpActive ? (_jsx("button", { type: "button", onClick: () => setIsQuestionHelpActive(true), className: "px-4 py-2 rounded-md bg-emerald-700 text-white text-sm font-medium hover:bg-emerald-800", children: "\u8CEA\u554F\u76F8\u8AC7\u3092\u958B\u304F" })) : (_jsx("button", { type: "button", onClick: () => setIsQuestionHelpActive(false), disabled: isQuestionHelpLoading, className: "px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400", children: "\u8CEA\u554F\u76F8\u8AC7\u3092\u9589\u3058\u308B" }))] }), isQuestionHelpActive && (_jsxs("div", { className: "mt-4 space-y-3", children: [_jsxs("div", { className: "max-h-72 overflow-y-auto rounded-md border border-emerald-200 bg-white p-3 space-y-2", children: [questionHelpMessages.length === 0 && (_jsx("p", { className: "text-sm text-gray-500", children: "\u4F8B: \u300C\u306A\u305C\u3053\u308C\u304C\u6B63\u89E3\uFF1F\u300D\u300C\u4ED6\u306E\u9078\u629E\u80A2\u306F\u3069\u3053\u304C\u9055\u3046\uFF1F\u300D" })), questionHelpMessages.map((msg, idx) => (_jsxs("div", { className: `rounded-lg px-3 py-2 text-sm ${msg.role === 'assistant' ? 'bg-emerald-100 text-emerald-950' : 'bg-gray-100 text-gray-800'}`, children: [_jsx("p", { className: "text-[11px] font-semibold mb-1", children: msg.role === 'assistant' ? 'AI講師' : 'あなた' }), _jsx("p", { className: "whitespace-pre-wrap", children: msg.content })] }, `${msg.role}-${idx}`))), _jsx("div", { ref: questionHelpMessagesEndRef })] }), questionHelpSuggestedFollowups.length > 0 && (_jsx("div", { className: "flex flex-wrap gap-2", children: questionHelpSuggestedFollowups.map((item) => (_jsx("button", { type: "button", onClick: () => void submitQuestionHelp(item), disabled: isQuestionHelpLoading, className: "px-3 py-1.5 rounded-full border border-emerald-200 bg-white text-xs font-medium text-emerald-800 hover:bg-emerald-100 disabled:opacity-60", children: item }, item))) })), _jsxs("div", { className: "space-y-2", children: [_jsx("textarea", { value: questionHelpInput, onChange: (e) => setQuestionHelpInput(e.target.value), className: "w-full p-2 border border-emerald-300 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500 bg-white", rows: 3, placeholder: "\u3053\u306E\u554F\u984C\u3067\u6C17\u306B\u306A\u308B\u70B9\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044" }), _jsxs("div", { className: "flex flex-wrap items-center gap-2", children: [_jsx("button", { type: "button", onClick: () => void submitQuestionHelp(), disabled: isQuestionHelpLoading || !questionHelpInput.trim(), className: "px-4 py-2 rounded-md bg-emerald-700 text-white text-sm font-medium hover:bg-emerald-800 disabled:bg-gray-300", children: isQuestionHelpLoading ? '回答中...' : '質問する' }), _jsx("button", { type: "button", onClick: () => setIsQuestionHelpActive(false), disabled: isQuestionHelpLoading, className: "px-4 py-2 rounded-md text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400", children: "\u9589\u3058\u308B" })] })] })] }))] }), _jsxs("div", { className: "mt-6 pt-4 border-t border-gray-200 flex justify-between items-center", children: [_jsx("button", { onClick: openProblemEditor, className: "px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200", children: "\u3053\u306E\u554F\u984C\u3092\u7DE8\u96C6\u3059\u308B" }), _jsx("button", { id: "next-question-button-bottom", type: "button", onClick: handleNextQuestion, disabled: isSavingCustomExplanation, className: "px-8 py-3 border border-transparent rounded-md shadow-sm text-sm md:text-base font-medium text-dark bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 disabled:cursor-not-allowed", children: currentQuestionIndex < questions.length - 1 ? '次の問題へ' : '終了' })] })] })) : null;
         const questionColumn = (_jsxs("div", { className: "bg-white rounded-xl shadow p-6 md:p-8 h-full flex flex-col", children: [_jsx("p", { className: "text-base md:text-lg font-semibold text-gray-700 mb-6", children: currentQuestion.question_text }), _jsx(TimerProgressBar, { durationMs: isForcedSession ? FORCED_ANSWER_TIMER_MS : QUESTION_TIMER_MS, isActive: quizState === 'active' && !isAnswered && !isSubmittingAnswer, resetToken: `${currentQuestion.id}-${questionStartedAt}-${isForcedSession ? 'forced' : 'normal'}`, onExpire: isForcedSession ? () => void handleAnswerSubmit(true) : undefined }), _jsx("div", { className: "md:hidden my-4", children: layoutType === 'image' && imagesComponent }), _jsx("div", { className: "space-y-3", children: displayedChoices.map((option, index) => {
                         const isCorrectAnswer = option.label === currentQuestion.answer;
                         const isSelectedAnswer = option.label === selectedAnswer;

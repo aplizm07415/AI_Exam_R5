@@ -534,29 +534,12 @@ def _heuristic_grade_question(bundle: dict[str, Any], packet: dict[str, Any], an
     matched_keywords = [kw for kw in keywords if kw and kw.casefold() in normalized_answer]
     missing_keywords = [kw for kw in keywords if kw and kw.casefold() not in normalized_answer][:5]
 
-    has_explicit_char_limit = isinstance(char_limit, int) and char_limit > 0
-    char_score = 0
-    if not clean_answer:
-        char_score = 0
-    elif has_explicit_char_limit:
-        if char_count > char_limit:
-            over = char_count - char_limit
-            char_score = max(20, 100 - over * 4)
-        elif char_count < max(20, int(char_limit * 0.55)):
-            char_score = max(35, int((char_count / max(char_limit, 1)) * 100))
-        elif char_count < max(20, int(char_limit * 0.8)):
-            char_score = 84
-        else:
-            char_score = 92
-    else:
-        char_score = 100 if clean_answer else 0
-
     coverage_ratio = min(1.0, len(matched_keywords) / max(3, min(8, len(keywords) or 3)))
     coverage_score = int(round(coverage_ratio * 100))
     prompt_ratio = min(1.0, sum(1 for kw in prompt_keywords if kw.casefold() in normalized_answer) / max(2, len(prompt_keywords) or 2))
     prompt_score = int(round(prompt_ratio * 100))
 
-    overall_score = int(round((char_score * 0.2) + (coverage_score * 0.45) + (prompt_score * 0.35)))
+    overall_score = int(round((coverage_score * 0.6) + (prompt_score * 0.4)))
     overall_score = max(0, min(100, overall_score))
     max_score = packet.get("max_score")
     try:
@@ -570,19 +553,10 @@ def _heuristic_grade_question(bundle: dict[str, Any], packet: dict[str, Any], an
         positives.append("設問に対して答案を作成できています。")
     if matched_keywords:
         positives.append(f"重要語を{len(matched_keywords)}件盛り込めています。")
-    if has_explicit_char_limit and char_count <= char_limit:
-        positives.append("字数制限内で収まっています。")
 
     improvements: list[str] = []
     if not clean_answer:
         improvements.append("未入力です。まずは設問要求に直接答える骨子を1文で入れてください。")
-    if has_explicit_char_limit:
-        if char_count > char_limit:
-            improvements.append(f"字数超過です。{char_limit}字以内に削り、重複表現を整理してください。")
-        elif char_count < max(20, int(char_limit * 0.55)):
-            improvements.append("字数が短く、論点が出し切れていない可能性があります。因果と根拠を補ってください。")
-        elif char_count < max(20, int(char_limit * 0.8)):
-            improvements.append("字数がやや少なめです。制限字数の8割程度までは使って、論点や根拠を補うと安定します。")
     if missing_keywords:
         improvements.append(f"不足論点候補: {', '.join(missing_keywords[:3])}")
     if not missing_keywords and not matched_keywords and clean_answer:
@@ -652,7 +626,6 @@ def _grade_question_with_ai(bundle: dict[str, Any], packet: dict[str, Any], answ
 - 事例: {bundle.get("case_no")}
 - 設問キー: {packet.get("question_key")}
 - 設問文: {packet.get("prompt_text_clean") or packet.get("prompt_text")}
-- 字数制限: {packet.get("char_limit") if isinstance(packet.get("char_limit"), int) and packet.get("char_limit") > 0 else "指定なし（字数で評価しない）"}
 
 # 採点観点候補
 {json.dumps(snippets[:8], ensure_ascii=False)}
@@ -663,7 +636,6 @@ def _grade_question_with_ai(bundle: dict[str, Any], packet: dict[str, Any], answ
 # 参考答案サマリ
 {json.dumps({
     "score_stats": aas_stats.get("score_stats"),
-    "answer_char_stats": aas_stats.get("answer_char_stats"),
     "exemplars": compact_exemplars,
 }, ensure_ascii=False)}
 
@@ -676,7 +648,8 @@ def _grade_question_with_ai(bundle: dict[str, Any], packet: dict[str, Any], answ
 - positives と improvement_points は各3件以内。
 - advice は次回答案で再現できる具体策にしてください。
 - missing_keywords は不足論点候補を最大5件返してください。
-- 字数制限が「指定なし」の場合、字数の多寡は採点理由に含めないでください。
+- 字数や文字数制限は採点材料に含めないでください。
+- 内容面を優先し、設問要求への対応、論点の充足、根拠のつながりを重視してください。
 
 # JSONスキーマ
 {{
@@ -734,6 +707,17 @@ def _build_dashboard_payload() -> dict[str, Any]:
         }
         for item in results[:12]
     ]
+    all_attempts = [
+        {
+            "attempt_id": item.get("attempt_id"),
+            "exam_id": item.get("exam_id"),
+            "year_label": item.get("year_label"),
+            "case_no": item.get("case_no"),
+            "overall_score": item.get("overall_score"),
+            "scored_at": item.get("scored_at"),
+        }
+        for item in results
+    ]
     best_by_case: dict[int, int] = {}
     for item in catalog:
         case_no = int(item["case_no"])
@@ -749,6 +733,7 @@ def _build_dashboard_payload() -> dict[str, Any]:
         },
         "best_scores_by_case": best_by_case,
         "recent_attempts": recent_attempts,
+        "all_attempts": all_attempts,
         "catalog": catalog,
     }
 
@@ -1089,7 +1074,7 @@ def grade_secondary_exam(payload: SecondaryGradeRequest):
         "answered_questions": answered_questions,
         "question_results": question_results,
         "overall_feedback": {
-            "summary": "設問単位で不足論点と字数運用を見直すと安定しやすい状態です。" if answered_questions else "未回答が多いため、まずは全設問に骨子レベルでも答案を入れるのが先です。",
+            "summary": "設問単位で不足論点と設問要求への対応を見直すと安定しやすい状態です。" if answered_questions else "未回答が多いため、まずは全設問に骨子レベルでも答案を入れるのが先です。",
             "priority_actions": weak_points[:4],
             "used_ai": any(item.get("used_ai") for item in question_results),
         },
