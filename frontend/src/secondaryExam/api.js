@@ -38,6 +38,9 @@ export async function gradeSecondaryExam(yearLabel, caseNo, answers) {
         }),
     });
 }
+export async function fetchSecondaryExamResult(attemptId) {
+    return requestJson(`/results/${encodeURIComponent(attemptId)}`);
+}
 export async function askSecondaryExamOralViva(yearLabel, caseNo, payload) {
     return requestJson('/oral-viva', {
         method: 'POST',

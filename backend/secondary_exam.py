@@ -741,6 +741,10 @@ def _build_dashboard_payload() -> dict[str, Any]:
 class SecondaryDraftRequest(BaseModel):
     answers: dict[str, str] = Field(default_factory=dict)
     active_question_key: Optional[str] = None
+    session_started: bool = False
+    timer_paused: bool = False
+    timer_remaining_seconds: Optional[int] = None
+    timer_duration_minutes: Optional[int] = None
 
 
 class SecondaryGradeRequest(BaseModel):
@@ -987,7 +991,18 @@ def get_secondary_exam_pdf(year_label: str, case_no: int):
 @router.get("/drafts/{year_label}/{case_no}")
 def get_secondary_exam_draft(year_label: str, case_no: int):
     exam_id = _exam_id(year_label, case_no)
-    return _load_runtime_json(_draft_path(exam_id), _draft_blob_name(exam_id), {"answers": {}, "active_question_key": None})
+    return _load_runtime_json(
+        _draft_path(exam_id),
+        _draft_blob_name(exam_id),
+        {
+            "answers": {},
+            "active_question_key": None,
+            "session_started": False,
+            "timer_paused": False,
+            "timer_remaining_seconds": None,
+            "timer_duration_minutes": None,
+        },
+    )
 
 
 @router.put("/drafts/{year_label}/{case_no}")
@@ -1000,6 +1015,10 @@ def put_secondary_exam_draft(year_label: str, case_no: int, payload: SecondaryDr
         "case_no": bundle.get("case_no"),
         "answers": payload.answers,
         "active_question_key": payload.active_question_key,
+        "session_started": payload.session_started,
+        "timer_paused": payload.timer_paused,
+        "timer_remaining_seconds": payload.timer_remaining_seconds,
+        "timer_duration_minutes": payload.timer_duration_minutes,
         "updated_at": _now_iso(),
     }
     _save_runtime_json(_draft_path(exam_id), _draft_blob_name(exam_id), draft_payload)
@@ -1094,6 +1113,10 @@ def grade_secondary_exam(payload: SecondaryGradeRequest):
             "case_no": bundle.get("case_no"),
             "answers": payload.answers,
             "active_question_key": None,
+            "session_started": False,
+            "timer_paused": False,
+            "timer_remaining_seconds": None,
+            "timer_duration_minutes": None,
             "updated_at": result_payload["scored_at"],
             "latest_attempt_id": result_payload["attempt_id"],
         },

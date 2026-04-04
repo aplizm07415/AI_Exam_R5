@@ -41,7 +41,14 @@ export async function fetchSecondaryExamDetail(yearLabel: string, caseNo: number
 export async function saveSecondaryExamDraft(
   yearLabel: string,
   caseNo: number,
-  payload: { answers: Record<string, string>; active_question_key?: string | null },
+  payload: {
+    answers: Record<string, string>;
+    active_question_key?: string | null;
+    session_started?: boolean;
+    timer_paused?: boolean;
+    timer_remaining_seconds?: number | null;
+    timer_duration_minutes?: number | null;
+  },
 ): Promise<SecondaryDraft> {
   return requestJson<SecondaryDraft>(`/drafts/${encodeURIComponent(yearLabel)}/${caseNo}`, {
     method: 'PUT',
@@ -62,6 +69,10 @@ export async function gradeSecondaryExam(
       answers,
     }),
   });
+}
+
+export async function fetchSecondaryExamResult(attemptId: string): Promise<SecondaryGradeResult> {
+  return requestJson<SecondaryGradeResult>(`/results/${encodeURIComponent(attemptId)}`);
 }
 
 export async function askSecondaryExamOralViva(

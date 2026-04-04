@@ -118,6 +118,10 @@ export interface SecondaryDraft {
   case_no?: number;
   answers: Record<string, string>;
   active_question_key?: string | null;
+  session_started?: boolean;
+  timer_paused?: boolean;
+  timer_remaining_seconds?: number | null;
+  timer_duration_minutes?: number | null;
   updated_at?: string | null;
   latest_attempt_id?: string | null;
 }
@@ -158,8 +162,10 @@ export interface SecondaryGradeResult {
     priority_actions: string[];
     used_ai: boolean;
   };
+  answers: Record<string, string>;
   scored_at: string;
   cached: boolean;
+  newly_graded_questions?: number;
 }
 
 export interface SecondaryAttemptHistoryItem {
