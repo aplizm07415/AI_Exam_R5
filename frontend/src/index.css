@@ -39,7 +39,16 @@
   }
 }
 
+.print-review-layout {
+  display: none;
+}
+
 @media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm;
+  }
+
   .print-chart-fix,
   .print-chart-fix *,
   .print-color-graph,
@@ -64,5 +73,145 @@
 
   .print-chart-fix .recharts-wrapper {
     max-width: 100% !important;
+  }
+
+  .print-hidden {
+    display: none !important;
+  }
+
+  .print-config-modal {
+    display: none !important;
+  }
+
+  body.print-secondary-exam-review {
+    background: #ffffff !important;
+  }
+
+  body.print-secondary-exam-review #root,
+  body.print-secondary-exam-review .secondary-result-page {
+    background: #ffffff !important;
+  }
+
+  body.print-secondary-exam-review .secondary-result-screen {
+    display: none !important;
+  }
+
+  body.print-secondary-exam-review .print-review-layout {
+    display: block !important;
+  }
+
+  body.print-secondary-exam-review .print-review-block + .print-review-block {
+    margin-top: 10px !important;
+  }
+
+  body.print-secondary-exam-review .print-placement-break-before {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  body.print-secondary-exam-review .print-placement-keep-with-previous,
+  body.print-secondary-exam-review .print-placement-auto {
+    break-before: auto;
+    page-break-before: auto;
+  }
+
+  body.print-secondary-exam-review .print-review-block,
+  body.print-secondary-exam-review .print-review-block-card {
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+  }
+
+  body.print-secondary-exam-review .secondary-result-hero {
+    padding: 14px 16px !important;
+    border: 1px solid #cbd5e1 !important;
+    background: #f8fafc !important;
+    color: #0f172a !important;
+    box-shadow: none !important;
+  }
+
+  body.print-secondary-exam-review .secondary-result-hero * {
+    color: inherit !important;
+  }
+
+  body.print-secondary-exam-review .secondary-result-summary {
+    padding: 14px 16px !important;
+    box-shadow: none !important;
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+  }
+
+  body.print-secondary-exam-review .secondary-result-summary .bg-slate-900 {
+    border: 1px solid #cbd5e1 !important;
+    background: #f8fafc !important;
+    color: #0f172a !important;
+  }
+
+  body.print-secondary-exam-review .secondary-result-summary .text-slate-300 {
+    color: #475569 !important;
+  }
+
+  body.print-secondary-exam-review .secondary-result-question-list {
+    display: block !important;
+  }
+
+  body.print-secondary-exam-review .secondary-result-question-card,
+  body.print-secondary-exam-review .print-review-block-card {
+    margin-top: 10px !important;
+    padding: 14px 16px !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: none !important;
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+  }
+
+  body.print-secondary-exam-review .secondary-result-question-card:first-child,
+  body.print-secondary-exam-review .print-review-block:first-child .print-review-block-card {
+    margin-top: 0 !important;
+  }
+
+  body.print-secondary-exam-review .secondary-result-question-card .leading-7,
+  body.print-secondary-exam-review .print-review-block-card .leading-7 {
+    line-height: 1.55 !important;
+  }
+
+  body.print-secondary-exam-review .secondary-result-question-card .text-sm,
+  body.print-secondary-exam-review .print-review-block-card .text-sm {
+    font-size: 12px !important;
+  }
+
+  body.print-secondary-exam-review .secondary-result-question-card .mt-4,
+  body.print-secondary-exam-review .print-review-block-card .mt-4 {
+    margin-top: 10px !important;
+  }
+
+  body.print-secondary-exam-review .secondary-result-question-card .px-4,
+  body.print-secondary-exam-review .print-review-block-card .px-4,
+  body.print-secondary-exam-review .secondary-result-question-card .py-4,
+  body.print-secondary-exam-review .print-review-block-card .py-4,
+  body.print-secondary-exam-review .secondary-result-question-card .py-3,
+  body.print-secondary-exam-review .print-review-block-card .py-3,
+  body.print-secondary-exam-review .secondary-result-question-card .px-3,
+  body.print-secondary-exam-review .print-review-block-card .px-3,
+  body.print-secondary-exam-review .secondary-result-question-card .py-2,
+  body.print-secondary-exam-review .print-review-block-card .py-2 {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  body.print-secondary-exam-review .secondary-result-question-card .gap-4,
+  body.print-secondary-exam-review .print-review-block-card .gap-4 {
+    gap: 10px !important;
+  }
+
+  body.print-secondary-exam-review .secondary-result-question-card ul,
+  body.print-secondary-exam-review .print-review-block-card ul {
+    margin-top: 6px !important;
+  }
+
+  body.print-secondary-exam-review .secondary-result-question-card .whitespace-pre-wrap,
+  body.print-secondary-exam-review .print-review-block-card .whitespace-pre-wrap {
+    white-space: pre-wrap !important;
   }
 }

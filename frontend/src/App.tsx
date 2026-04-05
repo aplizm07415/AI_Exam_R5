@@ -10,6 +10,7 @@ import MusclePage from './MusclePage';
 import SoragakiPage from './SoragakiPage'; // Import SoragakiPage
 import SecondaryExamPage from './SecondaryExamPage';
 import SecondaryExamResultPage from './SecondaryExamResultPage';
+import SecondaryExamExplanationPage from './SecondaryExamExplanationPage';
 import { BarChartIcon, FileTextIcon, CalendarDaysIcon, PencilIcon, PhotoIcon, DumbbellIcon } from './components/icons';
 import LoadingSpinner from './components/LoadingSpinner';
 
@@ -122,6 +123,7 @@ export default function App() {
               <Route path="/soragaki" element={<SoragakiPage />} />
               <Route path="/secondary-exam" element={<SecondaryExamPage />} />
               <Route path="/secondary-exam/results/:attemptId" element={<SecondaryExamResultPage />} />
+              <Route path="/secondary-exam/results/:attemptId/explanations" element={<SecondaryExamExplanationPage />} />
               <Route path="/" element={<QuizPage subjects={subjects} />} />
               <Route path="/dashboard" element={<DashboardPage subjects={subjects} key={subjects.map(s => s.name).join(',')} />} />
               <Route path="/dashboard/review-later" element={<ReviewLaterPage />} />
