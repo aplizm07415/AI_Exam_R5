@@ -1,19 +1,74 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import LoadingSpinner from './components/LoadingSpinner';
 import { PencilIcon } from './components/icons';
 import { fetchSecondaryExamDetail, fetchSecondaryExamResult } from './secondaryExam/api';
+function normalizeOcrText(value) {
+    const blocks = value
+        .replace(/\r\n/g, '\n')
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => {
+        const compact = line.replace(/\s+/g, '');
+        if (!compact) {
+            return true;
+        }
+        if (/^[\-－]?\d+[\-－]?$/.test(compact)) {
+            return false;
+        }
+        if (/^事例[ⅠⅡⅢⅣ1-4]+$/.test(compact)) {
+            return false;
+        }
+        if (/^(事|例|[ⅠⅡⅢⅣ])$/.test(compact)) {
+            return false;
+        }
+        return true;
+    })
+        .join('\n')
+        .split(/\n{2,}/)
+        .map((block) => block
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .join(' ')
+        .replace(/([一-龠ぁ-んァ-ヶー々〇Ａ-Ｚａ-ｚ０-９ⅠⅡⅢⅣ])\s+(?=[一-龠ぁ-んァ-ヶー々〇Ａ-Ｚａ-ｚ０-９ⅠⅡⅢⅣ])/g, '$1')
+        .replace(/\s+([、。）」』】％])+/g, '$1')
+        .replace(/([（「『【])\s+/g, '$1')
+        .replace(/\s{2,}/g, ' ')
+        .trim())
+        .filter(Boolean);
+    return blocks
+        .join('\n\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .replace(/(（設問\s*\d+）)/g, '\n\n$1\n')
+        .replace(/([（(][1-4][)）]\s*[^\n]+)/g, '\n\n$1\n')
+        .replace(/(●[^\n]+)/g, '\n\n$1\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+}
 function formatRichText(value) {
     if (typeof value === 'string') {
-        return value.trim();
+        return normalizeOcrText(value);
     }
     if (value && typeof value === 'object') {
         return Object.entries(value)
-            .map(([key, item]) => `${key}: ${typeof item === 'string' ? item : JSON.stringify(item)}`)
+            .map(([key, item]) => `${key}: ${typeof item === 'string' ? normalizeOcrText(item) : JSON.stringify(item)}`)
             .join('\n');
     }
     return '';
+}
+function parseStructuredBlocks(content) {
+    return content
+        .split(/\n{2,}/)
+        .map((block) => block.trim())
+        .filter(Boolean)
+        .map((block) => {
+        if (/^(（設問\s*\d+）|[（(][1-4][)）]\s*.+|●.+)$/.test(block)) {
+            return { kind: 'heading', content: block };
+        }
+        return { kind: 'paragraph', content: block };
+    });
 }
 function getChecklistItems(packet) {
     const rubricCandidates = Array.isArray(packet.rubric_candidates) ? packet.rubric_candidates : [];
@@ -32,7 +87,8 @@ function ExplanationSection({ title, content, }) {
     if (!content.trim()) {
         return null;
     }
-    return (_jsxs("section", { className: "rounded-2xl bg-slate-50 px-4 py-4", children: [_jsx("div", { className: "text-xs font-semibold uppercase tracking-[0.2em] text-slate-400", children: title }), _jsx("div", { className: "mt-2 whitespace-pre-wrap text-sm leading-7 text-slate-700", children: content })] }));
+    const blocks = parseStructuredBlocks(content);
+    return (_jsxs("section", { className: "rounded-2xl bg-slate-50 px-4 py-4", children: [_jsx("div", { className: "text-xs font-semibold uppercase tracking-[0.2em] text-slate-400", children: title }), _jsx("div", { className: "mt-3 space-y-3 text-sm leading-7 text-slate-700", children: blocks.map((block, index) => (block.kind === 'heading' ? (_jsx("div", { className: "rounded-xl border border-slate-200 bg-white px-3 py-2 font-semibold text-slate-900", children: block.content }, `${title}:${index}`)) : (_jsx("p", { className: "whitespace-pre-wrap", children: block.content }, `${title}:${index}`)))) })] }));
 }
 function ChecklistSection({ items }) {
     if (items.length === 0) {
@@ -105,6 +161,6 @@ export default function SecondaryExamExplanationPage() {
     if (!detail || !result) {
         return _jsx("div", { className: "rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600", children: "\u89E3\u8AAC\u30DA\u30FC\u30B8\u3092\u8868\u793A\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F\u3002" });
     }
-    return (_jsxs("div", { className: "space-y-6", children: [_jsx("section", { className: "rounded-[2rem] bg-gradient-to-br from-[#172554] via-[#1d4ed8] to-[#60a5fa] p-6 text-white shadow-xl md:p-8", children: _jsxs("div", { className: "flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between", children: [_jsxs("div", { className: "max-w-3xl", children: [_jsx("div", { className: "text-xs font-semibold uppercase tracking-[0.28em] text-sky-100", children: "Explanations" }), _jsxs("h2", { className: "mt-3 text-3xl font-bold leading-tight md:text-4xl", children: [detail.bundle.year_label, " \u4E8B\u4F8B", detail.bundle.case_no, " \u89E3\u8AAC\u30FB\u63A1\u70B9\u89B3\u70B9"] }), _jsx("p", { className: "mt-3 text-sm leading-7 text-sky-50", children: "\u6A21\u7BC4\u89E3\u7B54\u3001\u8A2D\u554F\u5225\u306E\u89E3\u8AAC\u3001\u63A1\u70B9\u89B3\u70B9\u3092\u307E\u3068\u3081\u3066\u78BA\u8A8D\u3067\u304D\u307E\u3059\u3002\u63A1\u70B9\u7D50\u679C\u3068\u306F\u5206\u96E2\u3057\u3066\u5FA9\u7FD2\u7528\u306B\u8AAD\u3081\u308B\u30DA\u30FC\u30B8\u3067\u3059\u3002" })] }), _jsx("div", { className: "flex flex-wrap gap-3", children: _jsxs("button", { type: "button", onClick: () => navigate(`/secondary-exam/results/${result.attempt_id}`), className: "inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold text-white hover:bg-white/15", children: [_jsx(PencilIcon, { className: "h-4 w-4" }), "\u63A1\u70B9\u7D50\u679C\u3078\u623B\u308B"] }) })] }) }), error ? (_jsx("div", { className: "rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700", children: error })) : null, explanationCards.length === 0 ? (_jsx("div", { className: "rounded-3xl border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm", children: "\u5229\u7528\u53EF\u80FD\u306A\u89E3\u8AAC\u30C7\u30FC\u30BF\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093\u3067\u3057\u305F\u3002" })) : (explanationCards.map(({ packet, modelAnswer, explanationText, checklistItems }) => (_jsxs("article", { className: "rounded-3xl border border-slate-200 bg-white p-6 shadow-sm", children: [_jsxs("div", { className: "flex items-start justify-between gap-4", children: [_jsxs("div", { children: [_jsx("div", { className: "text-xs font-semibold uppercase tracking-[0.2em] text-slate-400", children: packet.question_key }), _jsx("h3", { className: "mt-1 text-xl font-semibold leading-8 text-slate-900", children: packet.prompt_text_clean })] }), _jsx("div", { className: "rounded-2xl bg-slate-900 px-3 py-2 text-right text-white", children: _jsx("div", { className: "text-sm font-semibold", children: "\u89E3\u8AAC" }) })] }), _jsxs("div", { className: "mt-5 space-y-4", children: [_jsx(ExplanationSection, { title: "\u6A21\u7BC4\u89E3\u7B54", content: modelAnswer }), _jsx(ExplanationSection, { title: "\u89E3\u8AAC", content: explanationText }), _jsx(ChecklistSection, { items: checklistItems })] })] }, packet.question_key))))] }));
+    return (_jsxs("div", { className: "space-y-6", children: [_jsx("section", { className: "rounded-[2rem] bg-gradient-to-br from-[#172554] via-[#1d4ed8] to-[#60a5fa] p-6 text-white shadow-xl md:p-8", children: _jsxs("div", { className: "flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between", children: [_jsxs("div", { className: "max-w-3xl", children: [_jsx("div", { className: "text-xs font-semibold uppercase tracking-[0.28em] text-sky-100", children: "Explanations" }), _jsxs("h2", { className: "mt-3 text-3xl font-bold leading-tight md:text-4xl", children: [detail.bundle.year_label, " \u4E8B\u4F8B", detail.bundle.case_no, " \u89E3\u8AAC\u30FB\u63A1\u70B9\u89B3\u70B9"] }), _jsx("p", { className: "mt-3 text-sm leading-7 text-sky-50", children: "\u6A21\u7BC4\u89E3\u7B54\u3001\u8A2D\u554F\u5225\u306E\u89E3\u8AAC\u3001\u63A1\u70B9\u89B3\u70B9\u3092\u307E\u3068\u3081\u3066\u78BA\u8A8D\u3067\u304D\u307E\u3059\u3002\u63A1\u70B9\u7D50\u679C\u3068\u306F\u5206\u96E2\u3057\u3066\u5FA9\u7FD2\u7528\u306B\u8AAD\u3081\u308B\u30DA\u30FC\u30B8\u3067\u3059\u3002" })] }), _jsx("div", { className: "flex flex-wrap gap-3", children: _jsxs("button", { type: "button", onClick: () => navigate(`/secondary-exam/results/${result.attempt_id}`), className: "inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold text-white hover:bg-white/15", children: [_jsx(PencilIcon, { className: "h-4 w-4" }), "\u63A1\u70B9\u7D50\u679C\u3078\u623B\u308B"] }) })] }) }), error ? (_jsx("div", { className: "rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700", children: error })) : null, explanationCards.length === 0 ? (_jsx("div", { className: "rounded-3xl border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm", children: "\u5229\u7528\u53EF\u80FD\u306A\u89E3\u8AAC\u30C7\u30FC\u30BF\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093\u3067\u3057\u305F\u3002" })) : (_jsxs(_Fragment, { children: [_jsxs("section", { className: "sticky top-16 z-10 rounded-3xl border border-slate-200 bg-white/95 p-4 shadow-sm backdrop-blur", children: [_jsx("div", { className: "text-xs font-semibold uppercase tracking-[0.2em] text-slate-400", children: "Question Jump" }), _jsx("div", { className: "mt-3 flex flex-wrap gap-2", children: explanationCards.map(({ packet }) => (_jsx("button", { type: "button", onClick: () => document.getElementById(`explanation-${packet.question_key}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), className: "rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-700", children: packet.question_key }, `jump:${packet.question_key}`))) })] }), explanationCards.map(({ packet, modelAnswer, explanationText, checklistItems }) => (_jsxs("article", { id: `explanation-${packet.question_key}`, className: "scroll-mt-28 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm", children: [_jsxs("div", { className: "flex items-start justify-between gap-4", children: [_jsxs("div", { children: [_jsx("div", { className: "text-xs font-semibold uppercase tracking-[0.2em] text-slate-400", children: packet.question_key }), _jsx("h3", { className: "mt-1 text-xl font-semibold leading-8 text-slate-900", children: formatRichText(packet.prompt_text_clean) })] }), _jsx("div", { className: "rounded-2xl bg-slate-900 px-3 py-2 text-right text-white", children: _jsx("div", { className: "text-sm font-semibold", children: "\u89E3\u8AAC" }) })] }), _jsxs("div", { className: "mt-5 space-y-4", children: [_jsx(ExplanationSection, { title: "\u6A21\u7BC4\u89E3\u7B54", content: modelAnswer }), _jsx(ExplanationSection, { title: "\u6574\u7406\u6E08\u307F\u89E3\u8AAC", content: explanationText }), _jsx(ChecklistSection, { items: checklistItems.map((item) => normalizeOcrText(item)) })] })] }, packet.question_key)))] }))] }));
 }
 //# sourceMappingURL=SecondaryExamExplanationPage.js.map

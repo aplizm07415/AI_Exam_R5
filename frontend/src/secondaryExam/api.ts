@@ -1,4 +1,5 @@
 import type {
+  CustomExplanationLibraryResponse,
   SecondaryDraft,
   SecondaryExamDashboardResponse,
   SecondaryExamDetailResponse,
@@ -32,6 +33,18 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
 
 export async function fetchSecondaryExamDashboard(): Promise<SecondaryExamDashboardResponse> {
   return requestJson<SecondaryExamDashboardResponse>('/dashboard');
+}
+
+export async function fetchCustomExplanationLibrary(subjects?: string[]): Promise<CustomExplanationLibraryResponse> {
+  const params = new URLSearchParams();
+  (subjects ?? []).forEach((subject) => params.append('subjects', subject));
+  const suffix = params.toString();
+  const response = await fetch(`/api/custom-explanations/library${suffix ? `?${suffix}` : ''}`);
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(detail || `Request failed: ${response.status}`);
+  }
+  return response.json() as Promise<CustomExplanationLibraryResponse>;
 }
 
 export async function fetchSecondaryExamDetail(yearLabel: string, caseNo: number): Promise<SecondaryExamDetailResponse> {

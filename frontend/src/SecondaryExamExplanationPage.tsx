@@ -9,16 +9,78 @@ import type {
   SecondaryQuestionPromptPacket,
 } from './secondaryExam/types';
 
+type StructuredBlock =
+  | { kind: 'heading'; content: string }
+  | { kind: 'paragraph'; content: string };
+
+function normalizeOcrText(value: string) {
+  const blocks = value
+    .replace(/\r\n/g, '\n')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => {
+      const compact = line.replace(/\s+/g, '');
+      if (!compact) {
+        return true;
+      }
+      if (/^[\-－]?\d+[\-－]?$/.test(compact)) {
+        return false;
+      }
+      if (/^事例[ⅠⅡⅢⅣ1-4]+$/.test(compact)) {
+        return false;
+      }
+      if (/^(事|例|[ⅠⅡⅢⅣ])$/.test(compact)) {
+        return false;
+      }
+      return true;
+    })
+    .join('\n')
+    .split(/\n{2,}/)
+    .map((block) => block
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .join(' ')
+      .replace(/([一-龠ぁ-んァ-ヶー々〇Ａ-Ｚａ-ｚ０-９ⅠⅡⅢⅣ])\s+(?=[一-龠ぁ-んァ-ヶー々〇Ａ-Ｚａ-ｚ０-９ⅠⅡⅢⅣ])/g, '$1')
+      .replace(/\s+([、。）」』】％])+/g, '$1')
+      .replace(/([（「『【])\s+/g, '$1')
+      .replace(/\s{2,}/g, ' ')
+      .trim())
+    .filter(Boolean);
+
+  return blocks
+    .join('\n\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .replace(/(（設問\s*\d+）)/g, '\n\n$1\n')
+    .replace(/([（(][1-4][)）]\s*[^\n]+)/g, '\n\n$1\n')
+    .replace(/(●[^\n]+)/g, '\n\n$1\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 function formatRichText(value: unknown) {
   if (typeof value === 'string') {
-    return value.trim();
+    return normalizeOcrText(value);
   }
   if (value && typeof value === 'object') {
     return Object.entries(value as Record<string, unknown>)
-      .map(([key, item]) => `${key}: ${typeof item === 'string' ? item : JSON.stringify(item)}`)
+      .map(([key, item]) => `${key}: ${typeof item === 'string' ? normalizeOcrText(item) : JSON.stringify(item)}`)
       .join('\n');
   }
   return '';
+}
+
+function parseStructuredBlocks(content: string): StructuredBlock[] {
+  return content
+    .split(/\n{2,}/)
+    .map((block) => block.trim())
+    .filter(Boolean)
+    .map((block) => {
+      if (/^(（設問\s*\d+）|[（(][1-4][)）]\s*.+|●.+)$/.test(block)) {
+        return { kind: 'heading', content: block } as StructuredBlock;
+      }
+      return { kind: 'paragraph', content: block } as StructuredBlock;
+    });
 }
 
 function getChecklistItems(packet: SecondaryQuestionPromptPacket) {
@@ -48,10 +110,23 @@ function ExplanationSection({
     return null;
   }
 
+  const blocks = parseStructuredBlocks(content);
   return (
     <section className="rounded-2xl bg-slate-50 px-4 py-4">
       <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{title}</div>
-      <div className="mt-2 whitespace-pre-wrap text-sm leading-7 text-slate-700">{content}</div>
+      <div className="mt-3 space-y-3 text-sm leading-7 text-slate-700">
+        {blocks.map((block, index) => (
+          block.kind === 'heading' ? (
+            <div key={`${title}:${index}`} className="rounded-xl border border-slate-200 bg-white px-3 py-2 font-semibold text-slate-900">
+              {block.content}
+            </div>
+          ) : (
+            <p key={`${title}:${index}`} className="whitespace-pre-wrap">
+              {block.content}
+            </p>
+          )
+        ))}
+      </div>
     </section>
   );
 }
@@ -179,25 +254,43 @@ export default function SecondaryExamExplanationPage() {
           利用可能な解説データが見つかりませんでした。
         </div>
       ) : (
-        explanationCards.map(({ packet, modelAnswer, explanationText, checklistItems }) => (
-          <article key={packet.question_key} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{packet.question_key}</div>
-                <h3 className="mt-1 text-xl font-semibold leading-8 text-slate-900">{packet.prompt_text_clean}</h3>
-              </div>
-              <div className="rounded-2xl bg-slate-900 px-3 py-2 text-right text-white">
-                <div className="text-sm font-semibold">解説</div>
-              </div>
+        <>
+          <section className="sticky top-16 z-10 rounded-3xl border border-slate-200 bg-white/95 p-4 shadow-sm backdrop-blur">
+            <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Question Jump</div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {explanationCards.map(({ packet }) => (
+                <button
+                  key={`jump:${packet.question_key}`}
+                  type="button"
+                  onClick={() => document.getElementById(`explanation-${packet.question_key}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                  className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-700"
+                >
+                  {packet.question_key}
+                </button>
+              ))}
             </div>
+          </section>
 
-            <div className="mt-5 space-y-4">
-              <ExplanationSection title="模範解答" content={modelAnswer} />
-              <ExplanationSection title="解説" content={explanationText} />
-              <ChecklistSection items={checklistItems} />
-            </div>
-          </article>
-        ))
+          {explanationCards.map(({ packet, modelAnswer, explanationText, checklistItems }) => (
+            <article id={`explanation-${packet.question_key}`} key={packet.question_key} className="scroll-mt-28 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{packet.question_key}</div>
+                  <h3 className="mt-1 text-xl font-semibold leading-8 text-slate-900">{formatRichText(packet.prompt_text_clean)}</h3>
+                </div>
+                <div className="rounded-2xl bg-slate-900 px-3 py-2 text-right text-white">
+                  <div className="text-sm font-semibold">解説</div>
+                </div>
+              </div>
+
+              <div className="mt-5 space-y-4">
+                <ExplanationSection title="模範解答" content={modelAnswer} />
+                <ExplanationSection title="整理済み解説" content={explanationText} />
+                <ChecklistSection items={checklistItems.map((item) => normalizeOcrText(item))} />
+              </div>
+            </article>
+          ))}
+        </>
       )}
     </div>
   );

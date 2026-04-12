@@ -235,4 +235,16 @@ export interface SecondaryExamDashboardResponse {
     }>;
     catalog: SecondaryExamCatalogItem[];
 }
+export interface CustomExplanationLibraryItem {
+    subject: string;
+    problem_id: string;
+    question_text: string;
+    category?: string | null;
+    custom_explanation: string;
+    custom_explanation_image_data_urls: string[];
+    custom_question_image_data_urls: string[];
+}
+export interface CustomExplanationLibraryResponse {
+    items: CustomExplanationLibraryItem[];
+}
 //# sourceMappingURL=types.d.ts.map

@@ -220,7 +220,7 @@ export default function AnalysisDashboard({
         </div>
         <div className="w-full sm:flex-1">
           <div className="flex items-center justify-between mb-2">
-            <label className="text-sm font-medium text-gray-700">対象科目（複数選択可）</label>
+            <label className="heading-2 text-sm font-medium text-gray-700">対象科目（複数選択可）</label>
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -270,7 +270,7 @@ export default function AnalysisDashboard({
           </div>
           {/* Category Filter */}
           <div>
-            <label htmlFor="category-filter" className="block text-sm font-medium text-gray-700 mb-1">カテゴリ</label>
+            <label htmlFor="category-filter" className="heading-2 block text-sm font-medium text-gray-700 mb-1">カテゴリ</label>
             <select
               id="category-filter"
               value={selectedCategory}

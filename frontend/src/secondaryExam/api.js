@@ -19,6 +19,17 @@ async function requestJson(path, init) {
 export async function fetchSecondaryExamDashboard() {
     return requestJson('/dashboard');
 }
+export async function fetchCustomExplanationLibrary(subjects) {
+    const params = new URLSearchParams();
+    (subjects ?? []).forEach((subject) => params.append('subjects', subject));
+    const suffix = params.toString();
+    const response = await fetch(`/api/custom-explanations/library${suffix ? `?${suffix}` : ''}`);
+    if (!response.ok) {
+        const detail = await response.text();
+        throw new Error(detail || `Request failed: ${response.status}`);
+    }
+    return response.json();
+}
 export async function fetchSecondaryExamDetail(yearLabel, caseNo) {
     return requestJson(`/exams/${encodeURIComponent(yearLabel)}/${caseNo}`);
 }

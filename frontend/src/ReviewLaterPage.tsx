@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import LoadingSpinner from './components/LoadingSpinner';
+import mplusRegularFontUrl from './assets/fonts/MPLUS1p-Regular.ttf';
 
 const API_BASE_URL = '/api';
 
@@ -76,8 +77,47 @@ const getCustomImageUrls = (
   return legacyUrl && legacyUrl.trim() ? [legacyUrl] : [];
 };
 
+const PDF_FONT_FILE_NAME = 'MPLUS1p-Regular.ttf';
+const PDF_FONT_NAME = 'MPLUS1p';
+
+let pdfFontBinaryStringPromise: Promise<string> | null = null;
+
+function arrayBufferToBinaryString(buffer: ArrayBuffer) {
+  const bytes = new Uint8Array(buffer);
+  const chunkSize = 0x8000;
+  let binary = '';
+
+  for (let index = 0; index < bytes.length; index += chunkSize) {
+    const chunk = bytes.subarray(index, index + chunkSize);
+    binary += String.fromCharCode(...chunk);
+  }
+
+  return binary;
+}
+
+function loadPdfFontBinaryString() {
+  if (!pdfFontBinaryStringPromise) {
+    pdfFontBinaryStringPromise = fetch(mplusRegularFontUrl)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('PDF用フォントの取得に失敗しました。');
+        }
+        return response.arrayBuffer();
+      })
+      .then(arrayBufferToBinaryString);
+  }
+
+  return pdfFontBinaryStringPromise;
+}
+
+function normalizePdfText(value: string | undefined | null) {
+  return (value ?? '').replace(/\r\n/g, '\n').trim();
+}
+
 export default function ReviewLaterPage() {
   const navigate = useNavigate();
+  const subjectProblemsCacheRef = useRef<Record<string, SubjectProblem[]>>({});
+  const firstMissedCacheRef = useRef<Record<string, { ids: string[]; dates: Record<string, string> }>>({});
   const [items, setItems] = useState<ReviewLaterEntry[]>([]);
   const [subjectNames, setSubjectNames] = useState<string[]>([]);
   const [selectedSubjectName, setSelectedSubjectName] = useState('');
@@ -109,6 +149,8 @@ export default function ReviewLaterPage() {
     miniQuizAnswer: string;
   } | null>(null);
   const [isOralVivaLoading, setIsOralVivaLoading] = useState(false);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [pdfExportProgress, setPdfExportProgress] = useState('');
   const [error, setError] = useState('');
   const oralVivaSteps: OralVivaStep[] = ['root', 'refute', 'apply', 'summary'];
   const oralVivaStepLabels: Record<OralVivaStep, string> = { root: '根拠', refute: '反証', apply: '応用', summary: '要約' };
@@ -234,6 +276,20 @@ export default function ReviewLaterPage() {
   );
 
   useEffect(() => {
+    if (subjectNames.length === 0) {
+      return;
+    }
+    setSelectedSubjectName((prev) => {
+      if (prev && subjectNames.includes(prev)) {
+        return prev;
+      }
+      return selectedItem?.subject && subjectNames.includes(selectedItem.subject)
+        ? selectedItem.subject
+        : subjectNames[0] || '';
+    });
+  }, [selectedItem?.subject, subjectNames]);
+
+  useEffect(() => {
     if (selectedProblem) {
       setEditingProblem({ ...selectedProblem });
       setCustomExplanationText(selectedProblem.custom_explanation || '');
@@ -255,6 +311,15 @@ export default function ReviewLaterPage() {
       if (!selectedSubjectName) {
         setSubjectProblems([]);
         setFirstMissedIds(new Set());
+        setFirstMissedDateById({});
+        return;
+      }
+      const cachedProblems = subjectProblemsCacheRef.current[selectedSubjectName];
+      const cachedFirstMissed = firstMissedCacheRef.current[selectedSubjectName];
+      if (cachedProblems && cachedFirstMissed) {
+        setSubjectProblems(cachedProblems);
+        setFirstMissedIds(new Set(cachedFirstMissed.ids));
+        setFirstMissedDateById(cachedFirstMissed.dates);
         return;
       }
       setIsLoadingSubjectProblems(true);
@@ -268,19 +333,22 @@ export default function ReviewLaterPage() {
           throw new Error(payload?.detail || '科目問題一覧の取得に失敗しました。');
         }
         const problems: SubjectProblem[] = await problemsResponse.json();
+        subjectProblemsCacheRef.current[selectedSubjectName] = problems;
         setSubjectProblems(problems);
         if (firstMissedResponse.ok) {
           const payload: { questions?: QuizQuestion[] } = await firstMissedResponse.json();
           const firstMissedQuestions = payload.questions || [];
-          setFirstMissedIds(new Set(firstMissedQuestions.map((question) => question.id)));
-          setFirstMissedDateById(
-            Object.fromEntries(
-              firstMissedQuestions
-                .filter((question) => question.first_missed_answered_at)
-                .map((question) => [question.id, question.first_missed_answered_at as string])
-            )
+          const ids = firstMissedQuestions.map((question) => question.id);
+          const dates = Object.fromEntries(
+            firstMissedQuestions
+              .filter((question) => question.first_missed_answered_at)
+              .map((question) => [question.id, question.first_missed_answered_at as string])
           );
+          firstMissedCacheRef.current[selectedSubjectName] = { ids, dates };
+          setFirstMissedIds(new Set(ids));
+          setFirstMissedDateById(dates);
         } else {
+          firstMissedCacheRef.current[selectedSubjectName] = { ids: [], dates: {} };
           setFirstMissedIds(new Set());
           setFirstMissedDateById({});
         }
@@ -351,6 +419,11 @@ export default function ReviewLaterPage() {
       throw new Error(payload?.detail || '問題の更新に失敗しました。');
     }
     const updatedProblem: QuizQuestion = await response.json();
+    subjectProblemsCacheRef.current[updatedProblem.subject] = (
+      subjectProblemsCacheRef.current[updatedProblem.subject] ?? []
+    ).map((problem) => (
+      problem.id === updatedProblem.id ? { ...problem, ...updatedProblem } : problem
+    ));
     setItems((prev) =>
       prev.map((item) =>
         item.subject === updatedProblem.subject && item.problem_id === updatedProblem.id
@@ -376,6 +449,20 @@ export default function ReviewLaterPage() {
       const payload = await response.json().catch(() => null);
       throw new Error(payload?.detail || 'My Memo の保存に失敗しました。');
     }
+    subjectProblemsCacheRef.current[editingProblem.subject] = (
+      subjectProblemsCacheRef.current[editingProblem.subject] ?? []
+    ).map((problem) => (
+      problem.id === editingProblem.id
+        ? {
+            ...problem,
+            custom_explanation: customExplanationText,
+            custom_explanation_image_data_urls: explanationSupplementImageUrls,
+            custom_question_image_data_urls: questionSupplementImageUrls,
+            custom_explanation_image_data_url: explanationSupplementImageUrls[0],
+            custom_question_image_data_url: questionSupplementImageUrls[0],
+          }
+        : problem
+    ));
     setItems((prev) =>
       prev.map((item) =>
         item.subject === editingProblem.subject && item.problem_id === editingProblem.id && item.question
@@ -760,6 +847,132 @@ export default function ReviewLaterPage() {
     }
   };
 
+  const exportReviewLaterPdf = async () => {
+    const exportItems = items.filter((item): item is ReviewLaterEntry & { question: QuizQuestion } => Boolean(item.question));
+    if (exportItems.length === 0 || isExportingPdf) {
+      return;
+    }
+
+    setIsExportingPdf(true);
+    setPdfExportProgress('PDFを準備しています...');
+    setError('');
+
+    try {
+      const { jsPDF } = await import('jspdf');
+      const fontBinary = await loadPdfFontBinaryString();
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+        compress: true,
+      });
+
+      pdf.addFileToVFS(PDF_FONT_FILE_NAME, fontBinary);
+      pdf.addFont(PDF_FONT_FILE_NAME, PDF_FONT_NAME, 'normal');
+      pdf.setFont(PDF_FONT_NAME, 'normal');
+
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const marginX = 12;
+      const marginTop = 12;
+      const marginBottom = 12;
+      const contentWidth = pageWidth - marginX * 2;
+      const maxY = pageHeight - marginBottom;
+
+      const drawSection = (
+        title: string,
+        body: string,
+        cursorY: number,
+      ) => {
+        const normalizedBody = normalizePdfText(body);
+        if (!normalizedBody) {
+          return { cursorY, truncated: false };
+        }
+
+        pdf.setFontSize(10);
+        pdf.text(title, marginX, cursorY);
+        cursorY += 5;
+
+        pdf.setFontSize(9);
+        const lines = pdf.splitTextToSize(normalizedBody, contentWidth);
+        const remainingHeight = maxY - cursorY;
+        const maxLines = Math.max(1, Math.floor(remainingHeight / 4.4));
+        let truncated = false;
+        let printableLines = lines as string[];
+
+        if (printableLines.length > maxLines) {
+          truncated = true;
+          printableLines = printableLines.slice(0, maxLines);
+          const lastLine = printableLines[printableLines.length - 1] || '';
+          printableLines[printableLines.length - 1] = lastLine.length > 2 ? `${lastLine.slice(0, Math.max(0, lastLine.length - 2))}…` : '…';
+        }
+
+        pdf.text(printableLines, marginX, cursorY);
+        cursorY += printableLines.length * 4.4 + 3;
+        return { cursorY, truncated };
+      };
+
+      exportItems.forEach((item, index) => {
+        if (index > 0) {
+          pdf.addPage('a4', 'portrait');
+          pdf.setFont(PDF_FONT_NAME, 'normal');
+        }
+
+        setPdfExportProgress(`PDFを生成中... ${index + 1} / ${exportItems.length}`);
+
+        const question = item.question;
+        let cursorY = marginTop;
+        let truncatedAny = false;
+
+        pdf.setFontSize(12);
+        pdf.text(`${question.subject} / ${question.id}`, marginX, cursorY);
+        cursorY += 6;
+
+        const metaParts = [
+          question.category ? `カテゴリ: ${question.category}` : null,
+          question.first_missed_answered_at ? `初回不正解: ${question.first_missed_answered_at.slice(0, 10)}` : null,
+          `登録日: ${item.created_at.slice(0, 10)}`,
+        ].filter((part): part is string => Boolean(part));
+
+        pdf.setFontSize(9);
+        pdf.text(metaParts.join(' / '), marginX, cursorY);
+        cursorY += 7;
+
+        const sections = [
+          { title: '問題文', body: question.question_text },
+          { title: '選択肢', body: question.choices.map((choice) => `${choice.label}. ${choice.text}`).join('\n') },
+          { title: '正解', body: question.answer },
+          { title: '解説', body: question.explanation?.text || '' },
+          { title: 'My Memo', body: question.custom_explanation || '' },
+        ];
+
+        sections.forEach((section) => {
+          if (cursorY >= maxY - 4) {
+            truncatedAny = true;
+            return;
+          }
+          const result = drawSection(section.title, section.body, cursorY);
+          cursorY = result.cursorY;
+          truncatedAny = truncatedAny || result.truncated;
+        });
+
+        if (truncatedAny) {
+          pdf.setFontSize(8);
+          pdf.text('※ 1問1ページに収めるため、一部を省略しています。', marginX, maxY);
+        }
+      });
+
+      pdf.save(`review-later-${new Date().toISOString().slice(0, 10)}.pdf`);
+      setPdfExportProgress('');
+    } catch (exportError) {
+      console.error(exportError);
+      setError(exportError instanceof Error ? exportError.message : '後で確認PDFの生成に失敗しました。');
+    } finally {
+      setIsExportingPdf(false);
+      setPdfExportProgress('');
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -767,12 +980,25 @@ export default function ReviewLaterPage() {
           <h2 className="text-3xl font-bold text-dark">後で確認</h2>
           <p className="text-sm text-gray-500 mt-1">現在も登録状態の問題をすべて表示します。登録解除時に、実績を2件計上するか、未計上のまま解除するかを選べます。</p>
         </div>
-        <Link to="/dashboard" className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg shadow-sm hover:bg-gray-50">
-          分析ダッシュボードへ戻る
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => { void exportReviewLaterPdf(); }}
+            disabled={isExportingPdf || items.every((item) => !item.question)}
+            className="px-4 py-2 bg-slate-900 text-white rounded-lg shadow-sm hover:bg-slate-800 disabled:bg-gray-300 disabled:cursor-not-allowed"
+          >
+            {isExportingPdf ? 'PDF生成中...' : '一覧をPDF出力'}
+          </button>
+          <Link to="/dashboard" className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg shadow-sm hover:bg-gray-50">
+            分析ダッシュボードへ戻る
+          </Link>
+        </div>
       </div>
 
       {error && <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">{error}</div>}
+      {pdfExportProgress ? (
+        <div className="rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-800">{pdfExportProgress}</div>
+      ) : null}
 
       {isLoading ? (
         <LoadingSpinner />
@@ -925,7 +1151,7 @@ export default function ReviewLaterPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">カテゴリ</label>
+                      <label className="heading-2 block text-sm font-medium text-gray-700 mb-1">カテゴリ</label>
                       <input
                         name="category"
                         value={editingProblem.category || ''}
@@ -1181,12 +1407,12 @@ export default function ReviewLaterPage() {
       <div className="bg-white rounded-xl shadow p-6 space-y-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
-            <h3 className="text-xl font-semibold text-gray-800">科目別の問題一覧</h3>
+            <h3 className="heading-2 text-xl font-semibold text-gray-800">科目別の問題一覧</h3>
             <p className="text-sm text-gray-500 mt-1">ここでの後で確認の登録切り替えは、実績を記録しません。</p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
             <label className="text-sm text-gray-600">
-              <span className="block mb-1">科目</span>
+              <span className="heading-2 block mb-1">科目</span>
               <select
                 value={selectedSubjectName}
                 onChange={(event) => setSelectedSubjectName(event.target.value)}
@@ -1200,7 +1426,7 @@ export default function ReviewLaterPage() {
               </select>
             </label>
             <label className="text-sm text-gray-600">
-              <span className="block mb-1">並び順</span>
+              <span className="heading-2 block mb-1">並び順</span>
               <select
                 value={sortMode}
                 onChange={(event) => setSortMode(event.target.value as 'default' | 'first_missed')}

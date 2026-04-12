@@ -104,6 +104,12 @@ interface QuestionHelpResponse {
 
 type IpadProfile = 'air' | 'mini';
 
+type QuizTimelineItem = {
+  key: string;
+  label: string;
+  state: 'prev' | 'current' | 'upcoming' | 'gap';
+};
+
 const getCustomImageUrls = (
   urls: string[] | undefined,
   legacyUrl: string | undefined,
@@ -162,6 +168,67 @@ function TimerProgressBar({
       />
     </div>
   );
+}
+
+function buildQuizTimelineItems(total: number, currentIndex: number): QuizTimelineItem[] {
+  if (total <= 0) {
+    return [];
+  }
+
+  const currentStep = currentIndex + 1;
+  const visibleSteps = new Set<number>();
+
+  if (total <= 7) {
+    for (let step = 1; step <= total; step += 1) {
+      visibleSteps.add(step);
+    }
+  } else {
+    visibleSteps.add(1);
+    visibleSteps.add(total);
+
+    for (let step = currentStep - 1; step <= currentStep + 1; step += 1) {
+      if (step >= 1 && step <= total) {
+        visibleSteps.add(step);
+      }
+    }
+
+    if (currentStep <= 3) {
+      visibleSteps.add(2);
+      visibleSteps.add(3);
+      visibleSteps.add(4);
+    }
+
+    if (currentStep >= total - 2) {
+      visibleSteps.add(total - 3);
+      visibleSteps.add(total - 2);
+      visibleSteps.add(total - 1);
+    }
+  }
+
+  const orderedSteps = Array.from(visibleSteps)
+    .filter((step) => step >= 1 && step <= total)
+    .sort((a, b) => a - b);
+
+  const items: QuizTimelineItem[] = [];
+
+  orderedSteps.forEach((step, index) => {
+    const previousStep = index > 0 ? orderedSteps[index - 1] : undefined;
+    if (previousStep !== undefined && step - previousStep > 1) {
+      items.push({
+        key: `gap-${previousStep}-${step}`,
+        label: '...',
+        state: 'gap',
+      });
+    }
+
+    items.push({
+      key: `step-${step}`,
+      label: String(step),
+      state: step < currentStep ? 'prev' : step === currentStep ? 'current' : 'upcoming',
+    });
+  });
+
+  return items;
 }
 
 export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
@@ -1784,13 +1851,13 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
         </div>
       );
       
-      const progressPercentage = questions.length > 0 ? ((currentQuestionIndex + 1) / questions.length) * 100 : 0;
+      const timelineItems = buildQuizTimelineItems(questions.length, currentQuestionIndex);
 
       return (
         <div className="md:h-screen md:overflow-hidden text-sm md:text-base">
             <div ref={questionTopRef} className="p-4 md:p-6">
-                <div className="flex justify-end items-center mb-2">
-                    <div className="flex items-center gap-4">
+                <div className="flex flex-col gap-4 mb-4">
+                    <div className="flex flex-wrap justify-end items-center gap-4">
                         {isForcedSession && (
                             <div className="text-sm font-semibold text-[#e8383d] whitespace-nowrap">
                                 強制モード: 80秒
@@ -1815,11 +1882,21 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                             {adhocQuizLabel}
                           </span>
                         )}
-                        <p className="text-gray-500">問題 {currentQuestionIndex + 1} / {questions.length}</p>
+                        <p className="text-sm font-semibold text-slate-600">問題 {currentQuestionIndex + 1} / {questions.length}</p>
                     </div>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div className="bg-primary-new h-2.5 rounded-full transition-all duration-500" style={{ width: `${progressPercentage}%` }}></div>
+                    <div className="rounded-[1.5rem] border border-slate-200 bg-white px-4 py-4 shadow-sm">
+                      <ol className="quiz-progress-timeline" aria-label={`問題進捗 ${currentQuestionIndex + 1} / ${questions.length}`}>
+                        {timelineItems.map((item) => (
+                          <li
+                            key={item.key}
+                            className={item.state === 'gap' ? 'gap' : item.state}
+                            aria-current={item.state === 'current' ? 'step' : undefined}
+                          >
+                            {item.label}
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
                 </div>
             </div>
             
@@ -1920,7 +1997,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
                             <div className="flex items-center justify-between mb-2">
 
-                              <label className="block text-sm font-medium text-gray-700">科目 (複数選択可)</label>
+                              <label className="heading-2 block text-sm font-medium text-gray-700">科目 (複数選択可)</label>
 
                               <button onClick={() => setIsVisibilityModalOpen(true)} className="p-1 rounded-md hover:bg-gray-200" title="表示科目の制御">
 
@@ -2016,7 +2093,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
                           <div>
 
-                            <label className="block text-sm font-medium text-gray-700">モード</label>
+                            <label className="heading-2 block text-sm font-medium text-gray-700">モード</label>
 
                             <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-3">
 
@@ -2034,7 +2111,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
                           <div>
 
-                            <label className="block text-sm font-medium text-gray-700">問題数</label>
+                            <label className="heading-2 block text-sm font-medium text-gray-700">問題数</label>
 
                             <div className="mt-2 text-sm text-gray-500 mb-2">
 
@@ -2352,7 +2429,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
                 <div>
 
-                  <label className="block text-sm font-medium text-gray-700">カテゴリ</label>
+                  <label className="heading-2 block text-sm font-medium text-gray-700">カテゴリ</label>
 
                   <input type="text" name="category" value={editingProblem.category || ''} onChange={handleProblemFormChange} className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"/>
 
@@ -2362,7 +2439,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
                 <div>
 
-                  <label className="block text-sm font-medium text-gray-700">解説</label>
+                  <label className="heading-2 block text-sm font-medium text-gray-700">解説</label>
 
                   <textarea name="explanation.text" value={editingProblem.explanation.text} onChange={handleProblemFormChange} rows={6} className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"/>
 

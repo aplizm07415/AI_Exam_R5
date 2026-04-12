@@ -1,5 +1,6 @@
-import type { SecondaryDraft, SecondaryExamDashboardResponse, SecondaryExamDetailResponse, SecondaryGradeResult, SecondaryOralVivaResponse, SecondaryOralVivaTurn } from './types';
+import type { CustomExplanationLibraryResponse, SecondaryDraft, SecondaryExamDashboardResponse, SecondaryExamDetailResponse, SecondaryGradeResult, SecondaryOralVivaResponse, SecondaryOralVivaTurn } from './types';
 export declare function fetchSecondaryExamDashboard(): Promise<SecondaryExamDashboardResponse>;
+export declare function fetchCustomExplanationLibrary(subjects?: string[]): Promise<CustomExplanationLibraryResponse>;
 export declare function fetchSecondaryExamDetail(yearLabel: string, caseNo: number): Promise<SecondaryExamDetailResponse>;
 export declare function saveSecondaryExamDraft(yearLabel: string, caseNo: number, payload: {
     answers: Record<string, string>;

@@ -12,6 +12,7 @@
     "@holiday-jp/holiday_jp": "^2.5.1",
     "@types/recharts": "^1.8.29",
     "@types/uuid": "^10.0.0",
+    "jspdf": "^4.2.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-markdown": "^9.0.1",

@@ -204,6 +204,17 @@ def mock_fastapi_app():
             return mock_blob_client_instance
 
         mock_container_client.get_blob_client.side_effect = get_blob_client_side_effect
+        def list_blobs_side_effect(name_starts_with=None):
+            blob_names = list(subject_payloads.keys())
+            blob_names.extend(f"history/{subject}.jsonl" for subject in history_payloads.keys())
+            blob_names.extend(f"custom-explanations/{problem_id}.json" for problem_id in custom_explanations.keys())
+            blob_names.append("review-later/items.json")
+            for blob_name in blob_names:
+                if name_starts_with and not blob_name.startswith(name_starts_with):
+                    continue
+                yield type("BlobItem", (), {"name": blob_name})()
+
+        mock_container_client.list_blobs.side_effect = list_blobs_side_effect
 
         # `backend.main` モジュールをリロードして、モックが適用されたFastAPIアプリを取得
         # reloadが必要なのは、BlobServiceClientがモジュールのロード時に初期化されるため
@@ -346,6 +357,19 @@ def test_save_custom_explanation_uses_new_fields(client: TestClient):
         "explanation_image_data_url": "data:image/png;base64,ZXhwbA==",
         "question_image_data_url": "data:image/png;base64,cXVlc3Q=",
     }
+
+
+def test_get_custom_explanations_library(client: TestClient):
+    response = client.get("/api/custom-explanations/library")
+    assert response.status_code == 200
+    payload = response.json()
+    assert "items" in payload
+    assert len(payload["items"]) == 1
+    item = payload["items"][0]
+    assert item["subject"] == "subject1.json"
+    assert item["problem_id"] == "q1"
+    assert item["custom_explanation"] == "Saved memo"
+    assert item["custom_explanation_image_data_urls"] == ["data:image/png;base64,ZmFrZQ=="]
 
 
 def test_question_help_returns_fallback_response(client: TestClient, monkeypatch):

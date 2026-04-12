@@ -294,9 +294,9 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
     const today = new Date(getTodayYmdJst());
     today.setHours(0, 0, 0, 0);
     const from = new Date(today);
-    from.setDate(from.getDate() - 4);
+    from.setDate(from.getDate() - 2);
     const to = new Date(today);
-    to.setDate(to.getDate() + 4);
+    to.setDate(to.getDate() + 2);
     const fromYmd = formatDateYmd(from);
     const toYmd = formatDateYmd(to);
 
@@ -341,11 +341,11 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
         <div className="mb-8 p-6 border border-gray-200 rounded-lg bg-gray-50">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700">予定タイトル</label>
+              <label htmlFor="title" className="heading-2 block text-sm font-medium text-gray-700">予定タイトル</label>
               <input type="text" id="title" value={title} onChange={e => setTitle(e.target.value)} required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-new focus:border-primary-new sm:text-sm" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">対象科目 (複数選択可)</label>
+              <label className="heading-2 block text-sm font-medium text-gray-700">対象科目 (複数選択可)</label>
               <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {subjects.map(s => (
                   <button type="button" key={s.name} onClick={() => handleSubjectChange(s.name)} className={`px-3 py-2 rounded-md text-sm font-medium text-left truncate ${selectedSubjects.includes(s.name) ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
@@ -356,18 +356,18 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="fromDate" className="block text-sm font-medium text-gray-700">対象期間 (From)</label>
+                <label htmlFor="fromDate" className="heading-2 block text-sm font-medium text-gray-700">対象期間 (From)</label>
                 <input type="date" id="fromDate" value={fromDate} onChange={e => setFromDate(e.target.value)} required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-new focus:border-primary-new sm:text-sm" />
               </div>
               <div>
-                <label htmlFor="toDate" className="block text-sm font-medium text-gray-700">対象期間 (To)</label>
+                <label htmlFor="toDate" className="heading-2 block text-sm font-medium text-gray-700">対象期間 (To)</label>
                 <input type="date" id="toDate" value={toDate} onChange={e => setToDate(e.target.value)} required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-new focus:border-primary-new sm:text-sm" />
               </div>
             </div>
             
             {/* Plan Creation Mode Switcher */}
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">計画方法</label>
+                <label className="heading-2 block text-sm font-medium text-gray-700 mb-2">計画方法</label>
                 <div className="flex rounded-md shadow-sm">
                     <button type="button" onClick={() => setPlanCreationMode('daily')} className={`px-4 py-2 text-sm font-medium rounded-l-md w-1/2 ${planCreationMode === 'daily' ? 'bg-primary-new text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}>
                         日別目標

@@ -249,6 +249,20 @@ class OfflineStudySyncResponse(BaseModel):
     updated_review_later: int
     updated_history_subjects: list[str]
 
+
+class CustomExplanationLibraryItem(BaseModel):
+    subject: str
+    problem_id: str
+    question_text: str
+    category: Optional[str] = None
+    custom_explanation: str = ""
+    custom_explanation_image_data_urls: list[str] = Field(default_factory=list)
+    custom_question_image_data_urls: list[str] = Field(default_factory=list)
+
+
+class CustomExplanationLibraryResponse(BaseModel):
+    items: list[CustomExplanationLibraryItem]
+
 class QuizStartRequest(BaseModel):
     subjects: list[str]
     count: int = 10
@@ -643,7 +657,7 @@ def _enrich_question_with_custom_explanation(question: dict) -> dict:
     return enriched
 
 
-def _prepare_question_for_client(question: dict) -> dict:
+def _prepare_question_assets_for_client(question: dict) -> dict:
     prepared = question.copy()
     if 'image' in prepared and prepared['image']:
         if 'images' not in prepared or not isinstance(prepared['images'], list):
@@ -662,7 +676,100 @@ def _prepare_question_for_client(question: dict) -> dict:
     ):
         prepared['explanation_image_urls'] = [f"/api/images/{img_name}" for img_name in prepared['explanation']['images']]
 
+    return prepared
+
+
+def _prepare_question_for_client(question: dict) -> dict:
+    prepared = _prepare_question_assets_for_client(question)
     return _enrich_question_with_custom_explanation(prepared)
+
+
+def _load_custom_explanations_map() -> dict[str, dict]:
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+
+    payload_by_problem_id: dict[str, dict] = {}
+    try:
+        for blob in container_client.list_blobs(name_starts_with=f"{CUSTOM_EXPLANATIONS_DIR}/"):
+            blob_name = getattr(blob, "name", "")
+            if not blob_name.endswith(".json"):
+                continue
+            problem_id = Path(blob_name).stem
+            if not problem_id:
+                continue
+            blob_client = container_client.get_blob_client(blob_name)
+            content = blob_client.download_blob().readall()
+            payload = json.loads(content)
+            if isinstance(payload, dict):
+                payload_by_problem_id[problem_id] = payload
+    except Exception as e:
+        print(f"Error reading custom explanations index: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to read custom explanations index: {e}")
+
+    return payload_by_problem_id
+
+
+def _collect_custom_explanation_library_items(subjects: Optional[list[str]] = None) -> list[CustomExplanationLibraryItem]:
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+
+    selected_subjects = subjects or get_subjects()
+    custom_explanations_map = _load_custom_explanations_map()
+    if not custom_explanations_map:
+        return []
+
+    unique_subjects: list[str] = []
+    seen_subjects: set[str] = set()
+    for subject_name in selected_subjects:
+        if subject_name in seen_subjects:
+            continue
+        seen_subjects.add(subject_name)
+        unique_subjects.append(subject_name)
+
+    items: list[CustomExplanationLibraryItem] = []
+    for subject_name in unique_subjects:
+        questions = _get_all_questions_for_subject(subject_name)
+        for _, question in sorted(questions.items(), key=lambda item: str(item[0])):
+            problem_id = str(question.get("id") or "")
+            if not problem_id:
+                continue
+            explanation_data = custom_explanations_map.get(problem_id)
+            if not explanation_data:
+                continue
+
+            prepared = _prepare_question_assets_for_client({**question, "subject": subject_name})
+            custom_explanation = str(explanation_data.get("text") or "").strip()
+            explanation_images = [
+                value for value in (explanation_data.get("explanation_image_data_urls") or [])
+                if isinstance(value, str) and value.strip()
+            ]
+            legacy_explanation_image = explanation_data.get("explanation_image_data_url") or explanation_data.get("image_data_url")
+            if not explanation_images and isinstance(legacy_explanation_image, str) and legacy_explanation_image.strip():
+                explanation_images = [legacy_explanation_image]
+            question_images = [
+                value for value in (explanation_data.get("question_image_data_urls") or [])
+                if isinstance(value, str) and value.strip()
+            ]
+            legacy_question_image = explanation_data.get("question_image_data_url")
+            if not question_images and isinstance(legacy_question_image, str) and legacy_question_image.strip():
+                question_images = [legacy_question_image]
+            if not custom_explanation and not explanation_images and not question_images:
+                continue
+
+            items.append(
+                CustomExplanationLibraryItem(
+                    subject=subject_name,
+                    problem_id=problem_id,
+                    question_text=str(prepared.get("question_text") or ""),
+                    category=str(prepared.get("category")) if prepared.get("category") is not None else None,
+                    custom_explanation=custom_explanation,
+                    custom_explanation_image_data_urls=explanation_images,
+                    custom_question_image_data_urls=question_images,
+                )
+            )
+
+    items.sort(key=lambda item: (item.subject, item.problem_id))
+    return items
 
 def _photo_meta_blob_name(photo_id: str) -> str:
     return f"{PHOTO_META_DIR}/{photo_id}.json"
@@ -2608,11 +2715,15 @@ def get_review_later():
     """後で振り返る問題の一覧を返す"""
     items = _load_review_later_items()
     response_items: list[dict] = []
+    questions_by_subject: dict[str, dict[str, dict]] = {}
     for item in items:
         question_payload = None
         error_detail = None
         try:
-            questions = _get_all_questions_for_subject(item.subject)
+            questions = questions_by_subject.get(item.subject)
+            if questions is None:
+                questions = _get_all_questions_for_subject(item.subject)
+                questions_by_subject[item.subject] = questions
             question = questions.get(item.problem_id)
             if question:
                 question_with_subject = question.copy()
@@ -2632,6 +2743,14 @@ def get_review_later():
             "error": error_detail,
         })
     return response_items
+
+
+@api_router.get("/custom-explanations/library", response_model=CustomExplanationLibraryResponse)
+def get_custom_explanations_library(subjects: list[str] = Query(default_factory=list)):
+    """保存済み mymemo / 補足画像を一覧取得する。"""
+    return CustomExplanationLibraryResponse(
+        items=_collect_custom_explanation_library_items(subjects or None)
+    )
 
 
 def _extract_candidate_terms(text: str) -> list[str]:
