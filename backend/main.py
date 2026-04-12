@@ -258,6 +258,8 @@ class CustomExplanationLibraryItem(BaseModel):
     custom_explanation: str = ""
     custom_explanation_image_data_urls: list[str] = Field(default_factory=list)
     custom_question_image_data_urls: list[str] = Field(default_factory=list)
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
 
 
 class CustomExplanationLibraryResponse(BaseModel):
@@ -701,6 +703,10 @@ def _load_custom_explanations_map() -> dict[str, dict]:
             content = blob_client.download_blob().readall()
             payload = json.loads(content)
             if isinstance(payload, dict):
+                last_modified = getattr(blob, "last_modified", None)
+                fallback_iso = last_modified.isoformat() if last_modified else None
+                payload.setdefault("created_at", fallback_iso)
+                payload.setdefault("updated_at", fallback_iso)
                 payload_by_problem_id[problem_id] = payload
     except Exception as e:
         print(f"Error reading custom explanations index: {e}")
@@ -765,6 +771,8 @@ def _collect_custom_explanation_library_items(subjects: Optional[list[str]] = No
                     custom_explanation=custom_explanation,
                     custom_explanation_image_data_urls=explanation_images,
                     custom_question_image_data_urls=question_images,
+                    created_at=str(explanation_data.get("created_at")) if explanation_data.get("created_at") is not None else None,
+                    updated_at=str(explanation_data.get("updated_at")) if explanation_data.get("updated_at") is not None else None,
                 )
             )
 
@@ -2974,6 +2982,23 @@ def save_custom_explanation(problem_id: str, explanation: CustomExplanation):
         }
         blob_name = f"{CUSTOM_EXPLANATIONS_DIR}/{problem_id}.json"
         blob_client = container_client.get_blob_client(blob_name)
+        now_iso = _now_utc_iso()
+        if blob_client.exists():
+            try:
+                existing_payload = json.loads(blob_client.download_blob().readall())
+            except Exception:
+                existing_payload = {}
+            if isinstance(existing_payload, dict):
+                existing_created_at = existing_payload.get("created_at")
+                if isinstance(existing_created_at, str) and existing_created_at.strip():
+                    normalized_payload["created_at"] = existing_created_at
+                normalized_payload["updated_at"] = now_iso
+            else:
+                normalized_payload["created_at"] = now_iso
+                normalized_payload["updated_at"] = now_iso
+        else:
+            normalized_payload["created_at"] = now_iso
+            normalized_payload["updated_at"] = now_iso
         blob_client.upload_blob(json.dumps(normalized_payload, ensure_ascii=False), overwrite=True)
     except Exception as e:
         print(f"Error saving custom explanation to blob: {e}")

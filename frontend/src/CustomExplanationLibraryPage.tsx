@@ -7,6 +7,36 @@ import { fetchCustomExplanationLibrary } from './secondaryExam/api';
 import type { CustomExplanationLibraryItem } from './secondaryExam/types';
 import mplusRegularFontUrl from './assets/fonts/MPLUS1p-Regular.ttf';
 
+type LibrarySortMode = 'subject' | 'created_desc';
+
+function getLibraryItemSortTime(createdAt?: string | null, updatedAt?: string | null) {
+  const candidate = createdAt || updatedAt;
+  if (!candidate) {
+    return 0;
+  }
+  const parsed = Date.parse(candidate);
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
+
+function sortLibraryItems(items: CustomExplanationLibraryItem[], sortMode: LibrarySortMode) {
+  const sorted = [...items];
+  sorted.sort((a, b) => {
+    if (sortMode === 'created_desc') {
+      const timeDiff = getLibraryItemSortTime(b.created_at, b.updated_at) - getLibraryItemSortTime(a.created_at, a.updated_at);
+      if (timeDiff !== 0) {
+        return timeDiff;
+      }
+    }
+
+    const subjectDiff = a.subject.localeCompare(b.subject);
+    if (subjectDiff !== 0) {
+      return subjectDiff;
+    }
+    return a.problem_id.localeCompare(b.problem_id);
+  });
+  return sorted;
+}
+
 function buildMarkdown(items: CustomExplanationLibraryItem[], includeQuestionText: boolean) {
   const lines: string[] = ['# mymemo Export', ''];
   items.forEach((item, index) => {
@@ -108,6 +138,7 @@ export default function CustomExplanationLibraryPage({
   const [imageExportProgress, setImageExportProgress] = useState('');
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const [showQuestionText, setShowQuestionText] = useState(true);
+  const [sortMode, setSortMode] = useState<LibrarySortMode>('subject');
 
   useEffect(() => {
     const load = async () => {
@@ -147,19 +178,30 @@ export default function CustomExplanationLibraryPage({
     [items],
   );
 
-  const filteredMemoItems = useMemo(
-    () => memoItems.filter((item) => selectedSubjects.includes(item.subject)),
-    [memoItems, selectedSubjects],
-  );
+  const filteredMemoItems = useMemo(() => {
+    const filtered = memoItems.filter((item) => selectedSubjects.includes(item.subject));
+    return sortLibraryItems(filtered, sortMode);
+  }, [memoItems, selectedSubjects, sortMode]);
 
   const memoItemsBySubject = useMemo(
-    () => selectedSubjects
-      .map((subject) => ({
-        subject,
-        items: filteredMemoItems.filter((item) => item.subject === subject),
-      }))
-      .filter((group) => group.items.length > 0),
-    [filteredMemoItems, selectedSubjects],
+    () => {
+      const groups = selectedSubjects
+        .map((subject) => ({
+          subject,
+          items: filteredMemoItems.filter((item) => item.subject === subject),
+        }))
+        .filter((group) => group.items.length > 0);
+
+      if (sortMode === 'created_desc') {
+        groups.sort((a, b) => (
+          getLibraryItemSortTime(b.items[0]?.created_at, b.items[0]?.updated_at)
+          - getLibraryItemSortTime(a.items[0]?.created_at, a.items[0]?.updated_at)
+        ));
+      }
+
+      return groups;
+    },
+    [filteredMemoItems, selectedSubjects, sortMode],
   );
 
   const imageItems = useMemo(
@@ -169,23 +211,50 @@ export default function CustomExplanationLibraryPage({
       problemId: item.problem_id,
       questionText: item.question_text,
       imageUrl,
+      createdAt: item.created_at,
+      updatedAt: item.updated_at,
     }))),
     [items],
   );
 
-  const filteredImageItems = useMemo(
-    () => imageItems.filter((item) => selectedSubjects.includes(item.subject)),
-    [imageItems, selectedSubjects],
-  );
+  const filteredImageItems = useMemo(() => {
+    const filtered = imageItems.filter((item) => selectedSubjects.includes(item.subject));
+    return [...filtered].sort((a, b) => {
+      if (sortMode === 'created_desc') {
+        const timeDiff = getLibraryItemSortTime(b.createdAt, b.updatedAt)
+          - getLibraryItemSortTime(a.createdAt, a.updatedAt);
+        if (timeDiff !== 0) {
+          return timeDiff;
+        }
+      }
+
+      const subjectDiff = a.subject.localeCompare(b.subject);
+      if (subjectDiff !== 0) {
+        return subjectDiff;
+      }
+      return a.key.localeCompare(b.key);
+    });
+  }, [imageItems, selectedSubjects, sortMode]);
 
   const imageItemsBySubject = useMemo(
-    () => selectedSubjects
-      .map((subject) => ({
-        subject,
-        items: filteredImageItems.filter((item) => item.subject === subject),
-      }))
-      .filter((group) => group.items.length > 0),
-    [filteredImageItems, selectedSubjects],
+    () => {
+      const groups = selectedSubjects
+        .map((subject) => ({
+          subject,
+          items: filteredImageItems.filter((item) => item.subject === subject),
+        }))
+        .filter((group) => group.items.length > 0);
+
+      if (sortMode === 'created_desc') {
+        groups.sort((a, b) => (
+          getLibraryItemSortTime(b.items[0]?.createdAt ?? null, b.items[0]?.updatedAt ?? null)
+          - getLibraryItemSortTime(a.items[0]?.createdAt ?? null, a.items[0]?.updatedAt ?? null)
+        ));
+      }
+
+      return groups;
+    },
+    [filteredImageItems, selectedSubjects, sortMode],
   );
 
   const toggleSubject = (subject: string) => {
@@ -413,6 +482,31 @@ export default function CustomExplanationLibraryPage({
             />
             問題文を表示する
           </label>
+        </div>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <div className="heading-2 text-sm font-semibold text-slate-900">並び順</div>
+          <button
+            type="button"
+            onClick={() => setSortMode('subject')}
+            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+              sortMode === 'subject'
+                ? 'bg-slate-900 text-white'
+                : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+            }`}
+          >
+            科目順
+          </button>
+          <button
+            type="button"
+            onClick={() => setSortMode('created_desc')}
+            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+              sortMode === 'created_desc'
+                ? 'bg-slate-900 text-white'
+                : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+            }`}
+          >
+            追加順
+          </button>
         </div>
         <div className="mt-4 flex flex-wrap gap-3">
           {availableSubjects.map((subject) => (

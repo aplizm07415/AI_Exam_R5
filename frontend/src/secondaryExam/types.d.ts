@@ -243,6 +243,8 @@ export interface CustomExplanationLibraryItem {
     custom_explanation: string;
     custom_explanation_image_data_urls: string[];
     custom_question_image_data_urls: string[];
+    created_at?: string | null;
+    updated_at?: string | null;
 }
 export interface CustomExplanationLibraryResponse {
     items: CustomExplanationLibraryItem[];
