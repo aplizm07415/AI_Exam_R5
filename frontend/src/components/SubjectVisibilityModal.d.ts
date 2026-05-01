@@ -13,7 +13,7 @@ interface SubjectVisibilityModalProps {
     onSubjectWeightsChange: (newWeights: {
         [key: string]: 'light' | 'normal' | 'heavy';
     }) => void;
-    quizMode: 'random' | 'weak_area' | 'unanswered' | 'today_remaining';
+    quizMode: 'random' | 'weak_area' | 'unanswered' | 'today_remaining' | 'specific_area';
 }
 export default function SubjectVisibilityModal({ isOpen, onClose, subjects, hiddenSubjects, onHiddenSubjectsChange, subjectWeights, onSubjectWeightsChange, quizMode, }: SubjectVisibilityModalProps): import("react/jsx-runtime").JSX.Element | null;
 export {};

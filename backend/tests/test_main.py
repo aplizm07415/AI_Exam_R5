@@ -18,7 +18,7 @@ TEST_BLOB_CONTAINER_NAME = "test-exam-json"
 TEST_EXAMS_DATA = [
     {
         "id": "q1",
-        "question_text": "Question 1",
+        "question_text": "Question 1 about NPV",
         "choices": [{"label": "A", "text": "Choice A"}],
         "answer": "A",
         "subject": "subject1.json"
@@ -26,7 +26,7 @@ TEST_EXAMS_DATA = [
     {
         "id": "q2",
         "question_text": "Question 2",
-        "choices": [{"label": "B", "text": "Choice B"}],
+        "choices": [{"label": "B", "text": "This choice mentions IRR"}],
         "answer": "B",
         "subject": "subject1.json"
     },
@@ -35,7 +35,8 @@ TEST_EXAMS_DATA = [
         "question_text": "Question 3",
         "choices": [{"label": "C", "text": "Choice C"}],
         "answer": "C",
-        "subject": "subject2.json"
+        "subject": "subject2.json",
+        "explanation": {"text": "The explanation covers CCC.", "images": []},
     },
     {
         "id": "q4",
@@ -79,7 +80,10 @@ TEST_CUSTOM_EXPLANATIONS = {
     "q1": {
         "text": "Saved memo",
         "image_data_url": "data:image/png;base64,ZmFrZQ==",
-    }
+    },
+    "q4": {
+        "text": "This memo includes NPV and WACC.",
+    },
 }
 
 TEST_REVIEW_LATER_ITEMS = [
@@ -301,6 +305,200 @@ def test_start_quiz_no_questions_found(client: TestClient):
     assert response.status_code == 404
     assert "有効な質問がありません。" in response.json()["detail"]
 
+
+def test_start_quiz_specific_area_mode_matches_question_choice_explanation_and_memo(client: TestClient):
+    response = client.post(
+        "/api/quiz/start",
+        json={
+            "subjects": ["subject1.json", "subject2.json"],
+            "count": 10,
+            "mode": "specific_area",
+            "keywords": ["NPV", "IRR", "CCC"],
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    problem_ids = {q["id"] for q in data["quiz_set"]}
+    assert problem_ids == {"q1", "q2", "q3", "q4"}
+
+
+def test_start_quiz_specific_area_mode_requires_keywords(client: TestClient):
+    response = client.post(
+        "/api/quiz/start",
+        json={
+            "subjects": ["subject1.json"],
+            "count": 10,
+            "mode": "specific_area",
+            "keywords": [],
+        },
+    )
+    assert response.status_code == 400
+    assert "キーワード" in response.json()["detail"]
+
+
+def test_specific_area_count_uses_exact_ascii_match(client: TestClient):
+    from backend import main
+
+    subject_payloads = main._test_subject_payloads
+    subject_payloads["subject1.json"].append(
+        {
+            "id": "q7",
+            "question_text": "Question 7 about ENPV only",
+            "choices": [{"label": "A", "text": "Choice A"}],
+            "answer": "A",
+            "subject": "subject1.json",
+        }
+    )
+
+    response = client.get(
+        "/api/quiz/specific-area-count",
+        params=[("subjects", "subject1.json"), ("keywords", "NPV")],
+    )
+    assert response.status_code == 200
+    assert response.json()["specific_area_count"] == 2
+
+    response = client.get(
+        "/api/quiz/specific-area-count",
+        params=[("subjects", "subject1.json"), ("keywords", "NPV"), ("history_scope", "unanswered")],
+    )
+    assert response.status_code == 200
+    assert response.json()["specific_area_count"] == 1
+
+    response = client.get(
+        "/api/quiz/specific-area-count",
+        params=[("subjects", "subject1.json"), ("keywords", "NPV"), ("history_scope", "answered")],
+    )
+    assert response.status_code == 200
+    assert response.json()["specific_area_count"] == 1
+
+
+def test_specific_area_count_handles_japanese_exact_match(client: TestClient):
+    from backend import main
+
+    subject_payloads = main._test_subject_payloads
+    subject_payloads["subject1.json"].extend(
+        [
+            {
+                "id": "q8",
+                "question_text": "この論点は収益性を重視する。",
+                "choices": [{"label": "A", "text": "Choice A"}],
+                "answer": "A",
+                "subject": "subject1.json",
+            },
+            {
+                "id": "q9",
+                "question_text": "この論点は収益性分析を重視する。",
+                "choices": [{"label": "A", "text": "Choice A"}],
+                "answer": "A",
+                "subject": "subject1.json",
+            },
+            {
+                "id": "q10",
+                "question_text": "Question 10",
+                "choices": [{"label": "A", "text": "Choice A"}],
+                "answer": "A",
+                "subject": "subject1.json",
+                "explanation": {"text": "原価を下げる施策を考える。", "images": []},
+            },
+            {
+                "id": "q11",
+                "question_text": "CVP分析を活用する問題",
+                "choices": [{"label": "A", "text": "Choice A"}],
+                "answer": "A",
+                "subject": "subject1.json",
+            },
+        ]
+    )
+
+    response = client.get(
+        "/api/quiz/specific-area-count",
+        params=[("subjects", "subject1.json"), ("keywords", "収益性")],
+    )
+    assert response.status_code == 200
+    assert response.json()["specific_area_count"] == 1
+
+    response = client.get(
+        "/api/quiz/specific-area-count",
+        params=[("subjects", "subject1.json"), ("keywords", "原価")],
+    )
+    assert response.status_code == 200
+    assert response.json()["specific_area_count"] == 1
+
+    response = client.get(
+        "/api/quiz/specific-area-count",
+        params=[("subjects", "subject1.json"), ("keywords", "CVP分析")],
+    )
+    assert response.status_code == 200
+    assert response.json()["specific_area_count"] == 1
+
+
+def test_specific_area_answer_history_updates_analytics_and_daily_summary(client: TestClient):
+    from backend import main
+
+    response = client.post(
+        "/api/quiz/start",
+        json={
+            "subjects": ["subject1.json"],
+            "count": 10,
+            "mode": "specific_area",
+            "keywords": ["NPV"],
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    q4 = next(item for item in data["quiz_set"] if item["id"] == "q4")
+
+    response = client.post(
+        "/api/history",
+        json={
+            "problem_id": q4["id"],
+            "subject": q4["subject"],
+            "selected_answer": q4["answer"],
+            "is_correct": True,
+            "category": q4.get("category"),
+        },
+    )
+    assert response.status_code == 200
+
+    main._test_blob_clients.pop("history/subject1.jsonl", None)
+
+    analytics_response = client.get("/api/analytics/subject1.json")
+    assert analytics_response.status_code == 200
+    analytics = analytics_response.json()
+    assert analytics["total_runs"] == 7
+    assert analytics["unanswered_problems_count"] == 0
+
+    progress_response = client.get("/api/progress/subjects?subject_names=subject1.json")
+    assert progress_response.status_code == 200
+    progress = progress_response.json()["subject1.json"]
+    assert progress["unanswered_problems"] == 0
+
+    daily_summary_response = client.get("/api/history/daily-summary/all?subjects=subject1.json")
+    assert daily_summary_response.status_code == 200
+    assert any(item["total_questions"] >= 1 for item in daily_summary_response.json())
+
+
+def test_specific_area_suggestions_returns_ai_keywords(client: TestClient, monkeypatch):
+    from backend import main
+
+    class FakeModel:
+        def generate_content(self, prompt: str):
+            class Response:
+                text = "DCF, IRR, 資本コスト, NPV"
+            return Response()
+
+    monkeypatch.setattr(main, "get_gemini_unavailable_reason", lambda: None)
+    monkeypatch.setattr(main, "create_generative_model", lambda: FakeModel())
+
+    response = client.post(
+        "/api/quiz/specific-area-suggestions",
+        json={"keywords": ["NPV"]},
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["used_ai"] is True
+    assert payload["suggestions"] == ["DCF", "IRR", "資本コスト"]
+
 def test_save_history(client: TestClient):
     """回答履歴を保存できることをテスト"""
     now = datetime.now(timezone.utc)
@@ -344,19 +542,18 @@ def test_save_custom_explanation_uses_new_fields(client: TestClient):
     assert response.status_code == 204
     upload_arg = mock_blob_client.upload_blob.call_args.args[0]
     saved_payload = json.loads(upload_arg)
-    assert saved_payload == {
-        "text": "updated memo",
-        "explanation_image_data_urls": [
-            "data:image/png;base64,ZXhwbA==",
-            "data:image/png;base64,ZXhwbDI=",
-        ],
-        "question_image_data_urls": [
-            "data:image/png;base64,cXVlc3Q=",
-            "data:image/png;base64,cXVlc3Qy",
-        ],
-        "explanation_image_data_url": "data:image/png;base64,ZXhwbA==",
-        "question_image_data_url": "data:image/png;base64,cXVlc3Q=",
-    }
+    assert saved_payload["text"] == "updated memo"
+    assert saved_payload["explanation_image_data_urls"] == [
+        "data:image/png;base64,ZXhwbA==",
+        "data:image/png;base64,ZXhwbDI=",
+    ]
+    assert saved_payload["question_image_data_urls"] == [
+        "data:image/png;base64,cXVlc3Q=",
+        "data:image/png;base64,cXVlc3Qy",
+    ]
+    assert saved_payload["explanation_image_data_url"] == "data:image/png;base64,ZXhwbA=="
+    assert saved_payload["question_image_data_url"] == "data:image/png;base64,cXVlc3Q="
+    assert "updated_at" in saved_payload
 
 
 def test_get_custom_explanations_library(client: TestClient):
@@ -364,12 +561,13 @@ def test_get_custom_explanations_library(client: TestClient):
     assert response.status_code == 200
     payload = response.json()
     assert "items" in payload
-    assert len(payload["items"]) == 1
-    item = payload["items"][0]
-    assert item["subject"] == "subject1.json"
-    assert item["problem_id"] == "q1"
-    assert item["custom_explanation"] == "Saved memo"
-    assert item["custom_explanation_image_data_urls"] == ["data:image/png;base64,ZmFrZQ=="]
+    assert len(payload["items"]) == 2
+    items_by_problem_id = {item["problem_id"]: item for item in payload["items"]}
+    assert items_by_problem_id["q1"]["subject"] == "subject1.json"
+    assert items_by_problem_id["q1"]["custom_explanation"] == "Saved memo"
+    assert items_by_problem_id["q1"]["custom_explanation_image_data_urls"] == ["data:image/png;base64,ZmFrZQ=="]
+    assert items_by_problem_id["q4"]["subject"] == "subject1.json"
+    assert items_by_problem_id["q4"]["custom_explanation"] == "This memo includes NPV and WACC."
 
 
 def test_question_help_returns_fallback_response(client: TestClient, monkeypatch):

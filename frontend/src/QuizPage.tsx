@@ -71,7 +71,7 @@ interface HistoryStat {
   correct: number;
 }
 
-type QuizMode = 'random' | 'weak_area' | 'unanswered' | 'today_remaining';
+type QuizMode = 'random' | 'weak_area' | 'unanswered' | 'today_remaining' | 'specific_area';
 type OralVivaStep = 'root' | 'refute' | 'apply' | 'summary';
 
 interface OralVivaMessage {
@@ -103,6 +103,7 @@ interface QuestionHelpResponse {
 }
 
 type IpadProfile = 'air' | 'mini';
+type SpecificAreaHistoryScope = 'all' | 'unanswered' | 'answered';
 
 type QuizTimelineItem = {
   key: string;
@@ -479,6 +480,16 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   const [isCountLoading, setIsCountLoading] = useState(false);
   const [weakAreaCount, setWeakAreaCount] = useState<number | null>(null);
   const [isWeakCountLoading, setIsWeakCountLoading] = useState(false);
+  const [specificAreaKeywords, setSpecificAreaKeywords] = useState<string[]>(['']);
+  const [specificAreaCount, setSpecificAreaCount] = useState<number | null>(null);
+  const [isSpecificAreaCountLoading, setIsSpecificAreaCountLoading] = useState(false);
+  const [specificAreaHistoryScope, setSpecificAreaHistoryScope] = useState<SpecificAreaHistoryScope>('all');
+  const [specificAreaSuggestions, setSpecificAreaSuggestions] = useState<string[]>([]);
+  const [isSpecificAreaSuggestionsLoading, setIsSpecificAreaSuggestionsLoading] = useState(false);
+  const normalizedSpecificAreaKeywords = useMemo(
+    () => specificAreaKeywords.map((keyword) => keyword.trim()).filter((keyword) => keyword.length > 0),
+    [specificAreaKeywords],
+  );
 
   useEffect(() => {
     localStorage.setItem('subjectWeights', JSON.stringify(subjectWeights));
@@ -656,6 +667,35 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     fetchWeakAreaCount();
   }, [quizMode, selectedSubjectNames]);
 
+  useEffect(() => {
+    const fetchSpecificAreaCount = async () => {
+      if (quizMode === 'specific_area' && selectedSubjectNames.length > 0 && normalizedSpecificAreaKeywords.length > 0) {
+        setIsSpecificAreaCountLoading(true);
+        setSpecificAreaCount(null);
+        try {
+          const params = new URLSearchParams();
+          selectedSubjectNames.forEach((name) => params.append('subjects', name));
+          normalizedSpecificAreaKeywords.forEach((keyword) => params.append('keywords', keyword));
+          params.append('history_scope', specificAreaHistoryScope);
+          const response = await fetch(`${API_BASE_URL}/quiz/specific-area-count?${params.toString()}`);
+          if (!response.ok) {
+            throw new Error('Failed to fetch specific-area count.');
+          }
+          const data = await response.json();
+          setSpecificAreaCount(data.specific_area_count);
+        } catch (error) {
+          console.error(error);
+        } finally {
+          setIsSpecificAreaCountLoading(false);
+        }
+      } else {
+        setSpecificAreaCount(null);
+      }
+    };
+
+    fetchSpecificAreaCount();
+  }, [quizMode, selectedSubjectNames, normalizedSpecificAreaKeywords, specificAreaHistoryScope]);
+
   const fetchHistoryStats = useCallback(async () => {
     if (questions.length === 0) {
       setHistoryStats({});
@@ -692,6 +732,69 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     );
   };
 
+  const updateSpecificAreaKeyword = (index: number, value: string) => {
+    setSpecificAreaKeywords((prev) => prev.map((keyword, idx) => (idx === index ? value : keyword)));
+  };
+
+  const addSpecificAreaKeywordField = () => {
+    setSpecificAreaKeywords((prev) => [...prev, '']);
+  };
+
+  const removeSpecificAreaKeywordField = (index: number) => {
+    setSpecificAreaKeywords((prev) => {
+      if (prev.length === 1) {
+        return [''];
+      }
+      return prev.filter((_, idx) => idx !== index);
+    });
+  };
+
+  const applySpecificAreaSuggestion = (suggestion: string) => {
+    setSpecificAreaKeywords((prev) => {
+      const normalizedSuggestion = suggestion.trim();
+      if (!normalizedSuggestion) return prev;
+      const alreadyExists = prev.some((keyword) => keyword.trim() === normalizedSuggestion);
+      if (alreadyExists) {
+        return prev;
+      }
+      const firstEmptyIndex = prev.findIndex((keyword) => keyword.trim().length === 0);
+      if (firstEmptyIndex >= 0) {
+        return prev.map((keyword, index) => (index === firstEmptyIndex ? normalizedSuggestion : keyword));
+      }
+      return [...prev, normalizedSuggestion];
+    });
+  };
+
+  const fetchSpecificAreaSuggestions = async () => {
+    if (normalizedSpecificAreaKeywords.length === 0) {
+      setError('関連語を提案するには、先にキーワードを1つ以上入力してください。');
+      return;
+    }
+
+    try {
+      setIsSpecificAreaSuggestionsLoading(true);
+      setError('');
+      const response = await fetch(`${API_BASE_URL}/quiz/specific-area-suggestions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keywords: normalizedSpecificAreaKeywords }),
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.detail || '関連語の提案に失敗しました。');
+      }
+      const data = await response.json();
+      setSpecificAreaSuggestions(Array.isArray(data.suggestions) ? data.suggestions : []);
+    } catch (suggestionError) {
+      console.error(suggestionError);
+      const message = suggestionError instanceof Error ? suggestionError.message : '関連語の提案に失敗しました。';
+      setError(message);
+      setSpecificAreaSuggestions([]);
+    } finally {
+      setIsSpecificAreaSuggestionsLoading(false);
+    }
+  };
+
   const startQuiz = async (forcedSession = false) => {
     if (selectedSubjectNames.length === 0) {
       setError('科目を1つ以上選択してください。');
@@ -711,6 +814,16 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
         return;
       }
       questionsToFetch = Math.min(numQuestions, unansweredCount);
+    } else if (quizMode === 'specific_area') {
+      if (normalizedSpecificAreaKeywords.length === 0) {
+        setError('特定領域モードではキーワードを1つ以上入力してください。');
+        return;
+      }
+      if (specificAreaCount === null || specificAreaCount === 0) {
+        setError('該当する問題はありません。');
+        return;
+      }
+      questionsToFetch = Math.min(numQuestions, specificAreaCount);
     }
     
     if (questionsToFetch <= 0) {
@@ -733,6 +846,8 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
           mode: apiMode,
           count: questionsToFetch,
           weights: quizMode === 'random' ? subjectWeights : undefined,
+          keywords: quizMode === 'specific_area' ? normalizedSpecificAreaKeywords : undefined,
+          specific_area_history_scope: quizMode === 'specific_area' ? specificAreaHistoryScope : undefined,
         }),
       });
       
@@ -798,6 +913,9 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
         return;
       }
       questionsToFetch = Math.min(numQuestions, weakAreaCount);
+    } else if (quizMode === 'specific_area') {
+      setError('特定領域モードはiPadモード未対応です。Web画面から開始してください。');
+      return;
     }
 
     const subjectQuery = selectedSubjectNames
@@ -2095,7 +2213,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
                             <label className="heading-2 block text-sm font-medium text-gray-700">モード</label>
 
-                            <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div className="mt-2 grid grid-cols-2 sm:grid-cols-5 gap-3">
 
                               <button type="button" onClick={() => setQuizMode('today_remaining')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'today_remaining' ? 'bg-[#e8383d] text-white' : 'bg-red-100 text-gray-700 hover:bg-red-200'}`}>今日の残り</button>
 
@@ -2105,9 +2223,102 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
                               <button type="button" onClick={() => setQuizMode('unanswered')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'unanswered' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>未解答問題</button>
 
+                              <button type="button" onClick={() => setQuizMode('specific_area')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'specific_area' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>特定領域</button>
+
                             </div>
 
                           </div>
+
+                          {quizMode === 'specific_area' && (
+                            <div>
+                              <div className="flex items-center justify-between gap-3">
+                                <label className="heading-2 block text-sm font-medium text-gray-700">検索キーワード</label>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => void fetchSpecificAreaSuggestions()}
+                                    disabled={isSpecificAreaSuggestionsLoading || normalizedSpecificAreaKeywords.length === 0}
+                                    className="px-3 py-1.5 rounded-md text-sm font-medium bg-emerald-100 text-emerald-800 hover:bg-emerald-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  >
+                                    {isSpecificAreaSuggestionsLoading ? '関連語を提案中...' : '関連語を提案'}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={addSpecificAreaKeywordField}
+                                    className="px-3 py-1.5 rounded-md text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200"
+                                  >
+                                    入力欄を追加
+                                  </button>
+                                </div>
+                              </div>
+                              <p className="mt-2 text-xs text-gray-500">1つの入力欄を1ワードとして扱います。いずれか1つでも一致すれば対象になります。</p>
+                              <div className="mt-3 space-y-3">
+                                {specificAreaKeywords.map((keyword, index) => (
+                                  <div key={`specific-area-keyword-${index}`} className="flex items-center gap-2">
+                                    <input
+                                      type="text"
+                                      value={keyword}
+                                      onChange={(event) => updateSpecificAreaKeyword(index, event.target.value)}
+                                      placeholder={index === 0 ? '例: NPV' : `キーワード ${index + 1}`}
+                                      className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary-new focus:outline-none focus:ring-2 focus:ring-primary-new/20"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => removeSpecificAreaKeywordField(index)}
+                                      disabled={specificAreaKeywords.length === 1}
+                                      className="px-3 py-2 rounded-md text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                      削除
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="mt-4">
+                                <label className="heading-2 block text-sm font-medium text-gray-700">対象条件</label>
+                                <div className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                  <button
+                                    type="button"
+                                    onClick={() => setSpecificAreaHistoryScope('all')}
+                                    className={`px-4 py-2 rounded-md text-sm font-medium ${specificAreaHistoryScope === 'all' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                                  >
+                                    全問題
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setSpecificAreaHistoryScope('unanswered')}
+                                    className={`px-4 py-2 rounded-md text-sm font-medium ${specificAreaHistoryScope === 'unanswered' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                                  >
+                                    未回答のみ
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setSpecificAreaHistoryScope('answered')}
+                                    className={`px-4 py-2 rounded-md text-sm font-medium ${specificAreaHistoryScope === 'answered' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                                  >
+                                    既回答のみ
+                                  </button>
+                                </div>
+                              </div>
+                              <div className="mt-4">
+                                <label className="heading-2 block text-sm font-medium text-gray-700">関連語候補</label>
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                  {specificAreaSuggestions.map((suggestion) => (
+                                    <button
+                                      key={suggestion}
+                                      type="button"
+                                      onClick={() => applySpecificAreaSuggestion(suggestion)}
+                                      className="px-3 py-1.5 rounded-full text-sm font-medium bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100"
+                                    >
+                                      {suggestion}
+                                    </button>
+                                  ))}
+                                  {!isSpecificAreaSuggestionsLoading && specificAreaSuggestions.length === 0 && (
+                                    <p className="text-xs text-gray-500">必要なら関連語を提案で候補を出し、使いたいものだけ追加できます。</p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
 
                           <div>
 
@@ -2123,6 +2334,12 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                               {quizMode === 'unanswered' && unansweredCount !== null && `(未解答: ${unansweredCount} 問)`}
 
                               {quizMode === 'weak_area' && weakAreaCount !== null && `(苦手問題: ${weakAreaCount} 問)`}
+
+                              {quizMode === 'specific_area' && normalizedSpecificAreaKeywords.length === 0 && '(キーワードを1つ以上入力してください)'}
+
+                              {quizMode === 'specific_area' && normalizedSpecificAreaKeywords.length > 0 && !isSpecificAreaCountLoading && specificAreaCount !== null && `(対象問題数: ${specificAreaCount} 問)`}
+
+                              {quizMode === 'specific_area' && isSpecificAreaCountLoading && '(対象選定中...)'}
 
                             </div>
 
@@ -2166,6 +2383,12 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
                                     displayButtonLabel = `MAX (${weakAreaCount})`;
 
+                                  } else if (quizMode === 'specific_area' && specificAreaCount !== null) {
+
+                                    actualButtonValue = specificAreaCount;
+
+                                    displayButtonLabel = `MAX (${specificAreaCount})`;
+
                                   }
 
                                 }
@@ -2177,6 +2400,8 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                                                    (quizMode === 'unanswered' && unansweredCount !== null && actualButtonValue > unansweredCount) ||
 
                                                    (quizMode === 'weak_area' && weakAreaCount !== null && actualButtonValue > weakAreaCount) ||
+
+                                                   (quizMode === 'specific_area' && specificAreaCount !== null && actualButtonValue > specificAreaCount) ||
 
                                                    actualButtonValue <= 0; // Disable if value is 0 or less
 
@@ -2233,7 +2458,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                             <button
                               type="button"
                               onClick={() => openIpadMode('air')}
-                              disabled={isLoading || selectedSubjectNames.length === 0}
+                              disabled={isLoading || selectedSubjectNames.length === 0 || quizMode === 'specific_area'}
                               className="w-full py-3 px-4 border border-cyan-600 rounded-md shadow-sm text-base font-medium text-cyan-700 bg-cyan-50 hover:bg-cyan-100 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               iPad Airモード
@@ -2241,7 +2466,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                             <button
                               type="button"
                               onClick={() => openIpadMode('mini')}
-                              disabled={isLoading || selectedSubjectNames.length === 0}
+                              disabled={isLoading || selectedSubjectNames.length === 0 || quizMode === 'specific_area'}
                               className="w-full py-3 px-4 border border-sky-600 rounded-md shadow-sm text-base font-medium text-sky-700 bg-sky-50 hover:bg-sky-100 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               iPad miniモード

@@ -2,6 +2,8 @@ import os
 import json
 import random
 import datetime
+import re
+import unicodedata
 from pathlib import Path
 from fastapi import FastAPI, APIRouter, HTTPException, Query, Response, UploadFile, File, Form
 from pydantic import BaseModel, Field, ValidationError # BaseModelをインポート
@@ -35,6 +37,18 @@ class DailySummaryItem(BaseModel):
 
 class GenerateKeywordsRequest(BaseModel):
     memo_text: str
+
+
+SpecificAreaHistoryScope = Literal["all", "unanswered", "answered"]
+
+
+class SpecificAreaSuggestionRequest(BaseModel):
+    keywords: list[str] = Field(default_factory=list)
+
+
+class SpecificAreaSuggestionResponse(BaseModel):
+    suggestions: list[str] = Field(default_factory=list)
+    used_ai: bool = False
 
 class SoragakiRecordPagePayload(BaseModel):
     page: int = Field(ge=1)
@@ -270,6 +284,8 @@ class QuizStartRequest(BaseModel):
     count: int = 10
     mode: str = "random"
     weights: dict[str, str] | None = None
+    keywords: list[str] = Field(default_factory=list)
+    specific_area_history_scope: SpecificAreaHistoryScope = "all"
 
 OralVivaStep = Literal["root", "refute", "apply", "summary"]
 
@@ -684,6 +700,143 @@ def _prepare_question_assets_for_client(question: dict) -> dict:
 def _prepare_question_for_client(question: dict) -> dict:
     prepared = _prepare_question_assets_for_client(question)
     return _enrich_question_with_custom_explanation(prepared)
+
+
+def _normalize_keyword_value(value: str) -> str:
+    return unicodedata.normalize("NFKC", value).strip().casefold()
+
+
+def _char_class(char: str) -> str:
+    if re.fullmatch(r"[0-9A-Za-z_]", char):
+        return "ascii_word"
+    if re.fullmatch(r"[\u3040-\u309f]", char):
+        return "hiragana"
+    if re.fullmatch(r"[\u30a0-\u30ff\u31f0-\u31ff\uff65-\uff9f]", char):
+        return "katakana"
+    if re.fullmatch(r"[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]", char):
+        return "han"
+    if char.isspace():
+        return "space"
+    return "other"
+
+
+def _has_exact_keyword_boundary(text: str, keyword: str, start: int, end: int) -> bool:
+    keyword_start_class = _char_class(keyword[0])
+    keyword_end_class = _char_class(keyword[-1])
+
+    if start > 0:
+        left_class = _char_class(text[start - 1])
+        if keyword_start_class == "ascii_word":
+            if left_class == "ascii_word":
+                return False
+        elif left_class == keyword_start_class:
+            return False
+
+    if end < len(text):
+        right_class = _char_class(text[end])
+        if keyword_end_class == "ascii_word":
+            if right_class == "ascii_word":
+                return False
+        elif right_class == keyword_end_class:
+            return False
+
+    return True
+
+
+def _contains_exact_keyword(text: str, keyword: str) -> bool:
+    normalized_text = _normalize_keyword_value(text)
+    normalized_keyword = _normalize_keyword_value(keyword)
+    if not normalized_text or not normalized_keyword:
+        return False
+
+    start = 0
+    while True:
+        match_index = normalized_text.find(normalized_keyword, start)
+        if match_index == -1:
+            return False
+        match_end = match_index + len(normalized_keyword)
+        if _has_exact_keyword_boundary(normalized_text, normalized_keyword, match_index, match_end):
+            return True
+        start = match_index + 1
+
+
+def _question_search_texts(question: dict, custom_explanations_map: Optional[dict[str, dict]] = None) -> list[str]:
+    texts: list[str] = []
+
+    question_text = question.get("question_text")
+    if isinstance(question_text, str) and question_text.strip():
+        texts.append(question_text)
+
+    for choice in question.get("choices", []):
+        if isinstance(choice, dict):
+            choice_text = choice.get("text")
+            if isinstance(choice_text, str) and choice_text.strip():
+                texts.append(choice_text)
+
+    explanation = question.get("explanation")
+    if isinstance(explanation, dict):
+        explanation_text = explanation.get("text")
+        if isinstance(explanation_text, str) and explanation_text.strip():
+            texts.append(explanation_text)
+    elif isinstance(explanation, str) and explanation.strip():
+        texts.append(explanation)
+
+    if custom_explanations_map is not None:
+        problem_id = str(question.get("id") or "")
+        custom_explanation = custom_explanations_map.get(problem_id, {})
+        memo_text = custom_explanation.get("text")
+        if isinstance(memo_text, str) and memo_text.strip():
+            texts.append(memo_text)
+
+    return texts
+
+
+def _filter_questions_by_keywords(
+    questions: list[dict],
+    keywords: list[str],
+    custom_explanations_map: Optional[dict[str, dict]] = None,
+) -> list[dict]:
+    normalized_keywords = [keyword.strip() for keyword in keywords if isinstance(keyword, str) and keyword.strip()]
+    if not normalized_keywords:
+        return []
+
+    matched_questions: list[dict] = []
+    for question in questions:
+        texts = _question_search_texts(question, custom_explanations_map)
+        if any(
+            _contains_exact_keyword(text, keyword)
+            for keyword in normalized_keywords
+            for text in texts
+        ):
+            matched_questions.append(question)
+
+    return matched_questions
+
+
+def _filter_questions_by_history_scope(
+    questions: list[dict],
+    history_items: list[HistoryItem],
+    history_scope: SpecificAreaHistoryScope,
+) -> list[dict]:
+    if history_scope == "all":
+        return questions
+
+    answered_problem_ids = {item.problem_id for item in history_items}
+    if history_scope == "unanswered":
+        return [q for q in questions if q.get("id") not in answered_problem_ids]
+    return [q for q in questions if q.get("id") in answered_problem_ids]
+
+
+def _dedupe_preserve_order(values: list[str]) -> list[str]:
+    seen: set[str] = set()
+    deduped: list[str] = []
+    for value in values:
+        normalized = _normalize_keyword_value(value)
+        if not normalized or normalized in seen:
+            continue
+        seen.add(normalized)
+        deduped.append(value.strip())
+    return deduped
 
 
 def _load_custom_explanations_map() -> dict[str, dict]:
@@ -1530,6 +1683,47 @@ def generate_keywords_from_memo(request: GenerateKeywordsRequest):
         raise HTTPException(status_code=500, detail=f"Failed to generate keywords using Gemini API: {e}")
 
 
+@api_router.post("/quiz/specific-area-suggestions", response_model=SpecificAreaSuggestionResponse)
+def suggest_specific_area_keywords(request: SpecificAreaSuggestionRequest):
+    base_keywords = _dedupe_preserve_order([kw for kw in request.keywords if isinstance(kw, str)])
+    if not base_keywords:
+        return SpecificAreaSuggestionResponse(suggestions=[], used_ai=False)
+
+    gemini_unavailable_reason = get_gemini_unavailable_reason()
+    if gemini_unavailable_reason:
+        return SpecificAreaSuggestionResponse(suggestions=[], used_ai=False)
+
+    try:
+        model = create_generative_model()
+        prompt = f"""
+あなたは中小企業診断士試験に詳しい学習アシスタントです。
+以下のキーワードに対して、近い論点として一緒に学ぶ価値が高い関連語を提案してください。
+
+# 入力キーワード
+{", ".join(base_keywords)}
+
+# 指示
+- 入力キーワードそのものは繰り返さない
+- 中小企業診断士試験の学習で同じ論点群として扱いやすい語だけを挙げる
+- 広げすぎない
+- 1語または短い複合語で出す
+- 最大8個
+- 必ずカンマ区切りの単一文字列のみを返す
+"""
+        response = model.generate_content(prompt)
+        suggestions = _dedupe_preserve_order([
+            part.strip() for part in response.text.strip().split(",") if part.strip()
+        ])
+        filtered = [
+            suggestion for suggestion in suggestions
+            if _normalize_keyword_value(suggestion) not in {_normalize_keyword_value(keyword) for keyword in base_keywords}
+        ]
+        return SpecificAreaSuggestionResponse(suggestions=filtered[:8], used_ai=True)
+    except Exception as e:
+        print(f"Error suggesting specific area keywords: {e}")
+        return SpecificAreaSuggestionResponse(suggestions=[], used_ai=False)
+
+
 def _coerce_score(value, default_value: int = 50) -> int:
     try:
         as_int = int(value)
@@ -2127,6 +2321,46 @@ def get_missed_problems_count(subjects: list[str] = Query(...)):
     
     return {"missed_problems_count": count}
 
+
+@api_router.get("/quiz/specific-area-count")
+def get_specific_area_count(
+    subjects: list[str] = Query(...),
+    keywords: list[str] = Query(...),
+    history_scope: SpecificAreaHistoryScope = Query("all"),
+):
+    """指定された科目セットに対して、特定キーワードに一致する問題数を返す"""
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+    if not subjects:
+        return {"specific_area_count": 0}
+
+    all_questions = []
+    try:
+        for subject_name in subjects:
+            blob_client = container_client.get_blob_client(subject_name)
+            if not blob_client.exists():
+                continue
+
+            raw_content = blob_client.download_blob().readall()
+            data = json.loads(raw_content)
+            questions_in_file = data.get("questions", []) if isinstance(data, dict) else data if isinstance(data, list) else []
+
+            for q in questions_in_file:
+                normalized_q = normalize_question(q)
+                if normalized_q:
+                    all_questions.append(normalized_q)
+    except Exception as e:
+        print(f"Error reading quiz data for specific-area count: {e}")
+        raise HTTPException(status_code=500, detail="Failed to read questions from blob storage for count.")
+
+    custom_explanations_map = _load_custom_explanations_map()
+    matched_questions = _filter_questions_by_keywords(all_questions, keywords, custom_explanations_map)
+    history_items: list[HistoryItem] = []
+    for subject_name in subjects:
+        history_items.extend(_get_history_items_for_subject(subject_name))
+    matched_questions = _filter_questions_by_history_scope(matched_questions, history_items, history_scope)
+    return {"specific_area_count": len(matched_questions)}
+
 @api_router.post("/quiz/start")
 def start_quiz(request: QuizStartRequest):
     """指定された複数の科目からクイズを開始する"""
@@ -2159,7 +2393,25 @@ def start_quiz(request: QuizStartRequest):
     if not all_questions:
         raise HTTPException(status_code=404, detail="有効な質問がありません。")
 
-    num_to_select = min(request.count, len(all_questions))
+    working_questions = all_questions
+    if request.mode == "specific_area":
+        if not request.keywords:
+            raise HTTPException(status_code=400, detail="特定領域モードではキーワードを1つ以上指定してください。")
+        custom_explanations_map = _load_custom_explanations_map()
+        working_questions = _filter_questions_by_keywords(all_questions, request.keywords, custom_explanations_map)
+        history_items: list[HistoryItem] = []
+        for subject_name in request.subjects:
+            history_items.extend(_get_history_items_for_subject(subject_name))
+        working_questions = _filter_questions_by_history_scope(
+            working_questions,
+            history_items,
+            request.specific_area_history_scope,
+        )
+
+    if not working_questions:
+        return {"quiz_set": []}
+
+    num_to_select = min(request.count, len(working_questions))
     selected_questions = []
 
     if request.mode == "weak_area":
@@ -2171,7 +2423,7 @@ def start_quiz(request: QuizStartRequest):
         
         problems_with_priority = []
         current_time = datetime.datetime.now(datetime.timezone.utc)
-        for q in all_questions:
+        for q in working_questions:
             problem_id = q.get("id")
             status = problem_statuses.get(problem_id, ProblemStudyStatus(problem_id=problem_id))
             priority = calculate_review_priority(status, current_time)
@@ -2187,7 +2439,7 @@ def start_quiz(request: QuizStartRequest):
             history_items.extend(_get_history_items_for_subject(subject_name))
         
         answered_problem_ids = {item.problem_id for item in history_items}
-        unanswered_questions = [q for q in all_questions if q.get("id") not in answered_problem_ids]
+        unanswered_questions = [q for q in working_questions if q.get("id") not in answered_problem_ids]
         random.shuffle(unanswered_questions)
         selected_questions = unanswered_questions[:num_to_select]
     
@@ -2198,17 +2450,17 @@ def start_quiz(request: QuizStartRequest):
             'heavy': 9
         }
         
-        question_weights = [weight_map.get(request.weights.get(q['subject'], 'normal'), 3) for q in all_questions]
+        question_weights = [weight_map.get(request.weights.get(q['subject'], 'normal'), 3) for q in working_questions]
         
         # 重複を許さずに重み付きランダムサンプリングを行う
         # まずインデックスと重みのペアを作成
-        indexed_weights = list(zip(range(len(all_questions)), question_weights))
+        indexed_weights = list(zip(range(len(working_questions)), question_weights))
         
         selected_indices = []
-        if len(all_questions) > 0 and sum(question_weights) > 0:
-            # selected_indices = random.choices(range(len(all_questions)), weights=question_weights, k=num_to_select)
+        if len(working_questions) > 0 and sum(question_weights) > 0:
+            # selected_indices = random.choices(range(len(working_questions)), weights=question_weights, k=num_to_select)
              # 重み付きサンプリング（重複なし）
-            population = list(range(len(all_questions)))
+            population = list(range(len(working_questions)))
             weights = question_weights
             
             # サンプリングする個数が母集団より大きい場合は、母集団全体を返す
@@ -2227,12 +2479,12 @@ def start_quiz(request: QuizStartRequest):
                     population.pop(chosen_index_in_pop)
                     weights.pop(chosen_index_in_pop)
 
-        selected_questions = [all_questions[i] for i in selected_indices]
+        selected_questions = [working_questions[i] for i in selected_indices]
         random.shuffle(selected_questions) # 最終的な出題順はシャッフルする
     
     else:  # Default to random mode
-        random.shuffle(all_questions)
-        selected_questions = all_questions[:num_to_select]
+        random.shuffle(working_questions)
+        selected_questions = working_questions[:num_to_select]
     
     for i, q in enumerate(selected_questions):
         selected_questions[i] = _prepare_question_for_client(q)

@@ -310,6 +310,13 @@ export default function QuizPage({ subjects: allSubjects }) {
     const [isCountLoading, setIsCountLoading] = useState(false);
     const [weakAreaCount, setWeakAreaCount] = useState(null);
     const [isWeakCountLoading, setIsWeakCountLoading] = useState(false);
+    const [specificAreaKeywords, setSpecificAreaKeywords] = useState(['']);
+    const [specificAreaCount, setSpecificAreaCount] = useState(null);
+    const [isSpecificAreaCountLoading, setIsSpecificAreaCountLoading] = useState(false);
+    const [specificAreaHistoryScope, setSpecificAreaHistoryScope] = useState('all');
+    const [specificAreaSuggestions, setSpecificAreaSuggestions] = useState([]);
+    const [isSpecificAreaSuggestionsLoading, setIsSpecificAreaSuggestionsLoading] = useState(false);
+    const normalizedSpecificAreaKeywords = useMemo(() => specificAreaKeywords.map((keyword) => keyword.trim()).filter((keyword) => keyword.length > 0), [specificAreaKeywords]);
     useEffect(() => {
         localStorage.setItem('subjectWeights', JSON.stringify(subjectWeights));
     }, [subjectWeights]);
@@ -481,6 +488,36 @@ export default function QuizPage({ subjects: allSubjects }) {
         };
         fetchWeakAreaCount();
     }, [quizMode, selectedSubjectNames]);
+    useEffect(() => {
+        const fetchSpecificAreaCount = async () => {
+            if (quizMode === 'specific_area' && selectedSubjectNames.length > 0 && normalizedSpecificAreaKeywords.length > 0) {
+                setIsSpecificAreaCountLoading(true);
+                setSpecificAreaCount(null);
+                try {
+                    const params = new URLSearchParams();
+                    selectedSubjectNames.forEach((name) => params.append('subjects', name));
+                    normalizedSpecificAreaKeywords.forEach((keyword) => params.append('keywords', keyword));
+                    params.append('history_scope', specificAreaHistoryScope);
+                    const response = await fetch(`${API_BASE_URL}/quiz/specific-area-count?${params.toString()}`);
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch specific-area count.');
+                    }
+                    const data = await response.json();
+                    setSpecificAreaCount(data.specific_area_count);
+                }
+                catch (error) {
+                    console.error(error);
+                }
+                finally {
+                    setIsSpecificAreaCountLoading(false);
+                }
+            }
+            else {
+                setSpecificAreaCount(null);
+            }
+        };
+        fetchSpecificAreaCount();
+    }, [quizMode, selectedSubjectNames, normalizedSpecificAreaKeywords, specificAreaHistoryScope]);
     const fetchHistoryStats = useCallback(async () => {
         if (questions.length === 0) {
             setHistoryStats({});
@@ -513,6 +550,66 @@ export default function QuizPage({ subjects: allSubjects }) {
             ? prev.filter((s) => s !== subjectName)
             : [...prev, subjectName]);
     };
+    const updateSpecificAreaKeyword = (index, value) => {
+        setSpecificAreaKeywords((prev) => prev.map((keyword, idx) => (idx === index ? value : keyword)));
+    };
+    const addSpecificAreaKeywordField = () => {
+        setSpecificAreaKeywords((prev) => [...prev, '']);
+    };
+    const removeSpecificAreaKeywordField = (index) => {
+        setSpecificAreaKeywords((prev) => {
+            if (prev.length === 1) {
+                return [''];
+            }
+            return prev.filter((_, idx) => idx !== index);
+        });
+    };
+    const applySpecificAreaSuggestion = (suggestion) => {
+        setSpecificAreaKeywords((prev) => {
+            const normalizedSuggestion = suggestion.trim();
+            if (!normalizedSuggestion)
+                return prev;
+            const alreadyExists = prev.some((keyword) => keyword.trim() === normalizedSuggestion);
+            if (alreadyExists) {
+                return prev;
+            }
+            const firstEmptyIndex = prev.findIndex((keyword) => keyword.trim().length === 0);
+            if (firstEmptyIndex >= 0) {
+                return prev.map((keyword, index) => (index === firstEmptyIndex ? normalizedSuggestion : keyword));
+            }
+            return [...prev, normalizedSuggestion];
+        });
+    };
+    const fetchSpecificAreaSuggestions = async () => {
+        if (normalizedSpecificAreaKeywords.length === 0) {
+            setError('関連語を提案するには、先にキーワードを1つ以上入力してください。');
+            return;
+        }
+        try {
+            setIsSpecificAreaSuggestionsLoading(true);
+            setError('');
+            const response = await fetch(`${API_BASE_URL}/quiz/specific-area-suggestions`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ keywords: normalizedSpecificAreaKeywords }),
+            });
+            if (!response.ok) {
+                const payload = await response.json().catch(() => null);
+                throw new Error(payload?.detail || '関連語の提案に失敗しました。');
+            }
+            const data = await response.json();
+            setSpecificAreaSuggestions(Array.isArray(data.suggestions) ? data.suggestions : []);
+        }
+        catch (suggestionError) {
+            console.error(suggestionError);
+            const message = suggestionError instanceof Error ? suggestionError.message : '関連語の提案に失敗しました。';
+            setError(message);
+            setSpecificAreaSuggestions([]);
+        }
+        finally {
+            setIsSpecificAreaSuggestionsLoading(false);
+        }
+    };
     const startQuiz = async (forcedSession = false) => {
         if (selectedSubjectNames.length === 0) {
             setError('科目を1つ以上選択してください。');
@@ -533,6 +630,17 @@ export default function QuizPage({ subjects: allSubjects }) {
             }
             questionsToFetch = Math.min(numQuestions, unansweredCount);
         }
+        else if (quizMode === 'specific_area') {
+            if (normalizedSpecificAreaKeywords.length === 0) {
+                setError('特定領域モードではキーワードを1つ以上入力してください。');
+                return;
+            }
+            if (specificAreaCount === null || specificAreaCount === 0) {
+                setError('該当する問題はありません。');
+                return;
+            }
+            questionsToFetch = Math.min(numQuestions, specificAreaCount);
+        }
         if (questionsToFetch <= 0) {
             setError('出題する問題数が0以下です。');
             return;
@@ -551,6 +659,8 @@ export default function QuizPage({ subjects: allSubjects }) {
                     mode: apiMode,
                     count: questionsToFetch,
                     weights: quizMode === 'random' ? subjectWeights : undefined,
+                    keywords: quizMode === 'specific_area' ? normalizedSpecificAreaKeywords : undefined,
+                    specific_area_history_scope: quizMode === 'specific_area' ? specificAreaHistoryScope : undefined,
                 }),
             });
             const data = await response.json();
@@ -614,6 +724,10 @@ export default function QuizPage({ subjects: allSubjects }) {
                 return;
             }
             questionsToFetch = Math.min(numQuestions, weakAreaCount);
+        }
+        else if (quizMode === 'specific_area') {
+            setError('特定領域モードはiPadモード未対応です。Web画面から開始してください。');
+            return;
         }
         const subjectQuery = selectedSubjectNames
             .map((s) => `subject=${encodeURIComponent(s)}`)
@@ -1272,7 +1386,7 @@ export default function QuizPage({ subjects: allSubjects }) {
                                                                 }
                                                             }
                                                             return (_jsx("button", { type: "button", onClick: () => handleSubjectSelection(s.name), disabled: isTodayMode, className: buttonClass, children: s.name }, s.name));
-                                                        }) })] }), _jsxs("div", { children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u30E2\u30FC\u30C9" }), _jsxs("div", { className: "mt-2 grid grid-cols-2 sm:grid-cols-4 gap-3", children: [_jsx("button", { type: "button", onClick: () => setQuizMode('today_remaining'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'today_remaining' ? 'bg-[#e8383d] text-white' : 'bg-red-100 text-gray-700 hover:bg-red-200'}`, children: "\u4ECA\u65E5\u306E\u6B8B\u308A" }), _jsx("button", { type: "button", onClick: () => setQuizMode('random'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'random' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u30E9\u30F3\u30C0\u30E0" }), _jsx("button", { type: "button", onClick: () => setQuizMode('weak_area'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'weak_area' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u82E6\u624B\u514B\u670D" }), _jsx("button", { type: "button", onClick: () => setQuizMode('unanswered'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'unanswered' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u672A\u89E3\u7B54\u554F\u984C" })] })] }), _jsxs("div", { children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u554F\u984C\u6570" }), _jsxs("div", { className: "mt-2 text-sm text-gray-500 mb-2", children: [quizMode === 'today_remaining' && `(今日の残り: ${todayRemaining.count} 問 (予定:${todayRemaining.plan} / 実績:${todayRemaining.actual}) / 2分/問で約${estimatedCompletionText})`, quizMode === 'today_remaining' && todayRemainingPaceHint && (_jsx("div", { className: "mt-1 text-xs font-medium text-[#e8383d]", children: todayRemainingPaceHint })), quizMode === 'unanswered' && unansweredCount !== null && `(未解答: ${unansweredCount} 問)`, quizMode === 'weak_area' && weakAreaCount !== null && `(苦手問題: ${weakAreaCount} 問)`] }), _jsx("div", { className: "mt-2 grid grid-cols-5 gap-3", children: [
+                                                        }) })] }), _jsxs("div", { children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u30E2\u30FC\u30C9" }), _jsxs("div", { className: "mt-2 grid grid-cols-2 sm:grid-cols-5 gap-3", children: [_jsx("button", { type: "button", onClick: () => setQuizMode('today_remaining'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'today_remaining' ? 'bg-[#e8383d] text-white' : 'bg-red-100 text-gray-700 hover:bg-red-200'}`, children: "\u4ECA\u65E5\u306E\u6B8B\u308A" }), _jsx("button", { type: "button", onClick: () => setQuizMode('random'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'random' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u30E9\u30F3\u30C0\u30E0" }), _jsx("button", { type: "button", onClick: () => setQuizMode('weak_area'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'weak_area' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u82E6\u624B\u514B\u670D" }), _jsx("button", { type: "button", onClick: () => setQuizMode('unanswered'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'unanswered' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u672A\u89E3\u7B54\u554F\u984C" }), _jsx("button", { type: "button", onClick: () => setQuizMode('specific_area'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'specific_area' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u7279\u5B9A\u9818\u57DF" })] })] }), quizMode === 'specific_area' && (_jsxs("div", { children: [_jsxs("div", { className: "flex items-center justify-between gap-3", children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u691C\u7D22\u30AD\u30FC\u30EF\u30FC\u30C9" }), _jsxs("div", { className: "flex items-center gap-2", children: [_jsx("button", { type: "button", onClick: () => void fetchSpecificAreaSuggestions(), disabled: isSpecificAreaSuggestionsLoading || normalizedSpecificAreaKeywords.length === 0, className: "px-3 py-1.5 rounded-md text-sm font-medium bg-emerald-100 text-emerald-800 hover:bg-emerald-200 disabled:opacity-50 disabled:cursor-not-allowed", children: isSpecificAreaSuggestionsLoading ? '関連語を提案中...' : '関連語を提案' }), _jsx("button", { type: "button", onClick: addSpecificAreaKeywordField, className: "px-3 py-1.5 rounded-md text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200", children: "\u5165\u529B\u6B04\u3092\u8FFD\u52A0" })] })] }), _jsx("p", { className: "mt-2 text-xs text-gray-500", children: "1\u3064\u306E\u5165\u529B\u6B04\u30921\u30EF\u30FC\u30C9\u3068\u3057\u3066\u6271\u3044\u307E\u3059\u3002\u3044\u305A\u308C\u304B1\u3064\u3067\u3082\u4E00\u81F4\u3059\u308C\u3070\u5BFE\u8C61\u306B\u306A\u308A\u307E\u3059\u3002" }), _jsx("div", { className: "mt-3 space-y-3", children: specificAreaKeywords.map((keyword, index) => (_jsxs("div", { className: "flex items-center gap-2", children: [_jsx("input", { type: "text", value: keyword, onChange: (event) => updateSpecificAreaKeyword(index, event.target.value), placeholder: index === 0 ? '例: NPV' : `キーワード ${index + 1}`, className: "flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary-new focus:outline-none focus:ring-2 focus:ring-primary-new/20" }), _jsx("button", { type: "button", onClick: () => removeSpecificAreaKeywordField(index), disabled: specificAreaKeywords.length === 1, className: "px-3 py-2 rounded-md text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed", children: "\u524A\u9664" })] }, `specific-area-keyword-${index}`))) }), _jsxs("div", { className: "mt-4", children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u5BFE\u8C61\u6761\u4EF6" }), _jsxs("div", { className: "mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3", children: [_jsx("button", { type: "button", onClick: () => setSpecificAreaHistoryScope('all'), className: `px-4 py-2 rounded-md text-sm font-medium ${specificAreaHistoryScope === 'all' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u5168\u554F\u984C" }), _jsx("button", { type: "button", onClick: () => setSpecificAreaHistoryScope('unanswered'), className: `px-4 py-2 rounded-md text-sm font-medium ${specificAreaHistoryScope === 'unanswered' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u672A\u56DE\u7B54\u306E\u307F" }), _jsx("button", { type: "button", onClick: () => setSpecificAreaHistoryScope('answered'), className: `px-4 py-2 rounded-md text-sm font-medium ${specificAreaHistoryScope === 'answered' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u65E2\u56DE\u7B54\u306E\u307F" })] })] }), _jsxs("div", { className: "mt-4", children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u95A2\u9023\u8A9E\u5019\u88DC" }), _jsxs("div", { className: "mt-2 flex flex-wrap gap-2", children: [specificAreaSuggestions.map((suggestion) => (_jsx("button", { type: "button", onClick: () => applySpecificAreaSuggestion(suggestion), className: "px-3 py-1.5 rounded-full text-sm font-medium bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100", children: suggestion }, suggestion))), !isSpecificAreaSuggestionsLoading && specificAreaSuggestions.length === 0 && (_jsx("p", { className: "text-xs text-gray-500", children: "\u5FC5\u8981\u306A\u3089\u95A2\u9023\u8A9E\u3092\u63D0\u6848\u3067\u5019\u88DC\u3092\u51FA\u3057\u3001\u4F7F\u3044\u305F\u3044\u3082\u306E\u3060\u3051\u8FFD\u52A0\u3067\u304D\u307E\u3059\u3002" }))] })] })] })), _jsxs("div", { children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u554F\u984C\u6570" }), _jsxs("div", { className: "mt-2 text-sm text-gray-500 mb-2", children: [quizMode === 'today_remaining' && `(今日の残り: ${todayRemaining.count} 問 (予定:${todayRemaining.plan} / 実績:${todayRemaining.actual}) / 2分/問で約${estimatedCompletionText})`, quizMode === 'today_remaining' && todayRemainingPaceHint && (_jsx("div", { className: "mt-1 text-xs font-medium text-[#e8383d]", children: todayRemainingPaceHint })), quizMode === 'unanswered' && unansweredCount !== null && `(未解答: ${unansweredCount} 問)`, quizMode === 'weak_area' && weakAreaCount !== null && `(苦手問題: ${weakAreaCount} 問)`, quizMode === 'specific_area' && normalizedSpecificAreaKeywords.length === 0 && '(キーワードを1つ以上入力してください)', quizMode === 'specific_area' && normalizedSpecificAreaKeywords.length > 0 && !isSpecificAreaCountLoading && specificAreaCount !== null && `(対象問題数: ${specificAreaCount} 問)`, quizMode === 'specific_area' && isSpecificAreaCountLoading && '(対象選定中...)'] }), _jsx("div", { className: "mt-2 grid grid-cols-5 gap-3", children: [
                                                             { label: '1', value: 1 },
                                                             { label: '10', value: 10 },
                                                             { label: '20', value: 20 },
@@ -1293,15 +1407,20 @@ export default function QuizPage({ subjects: allSubjects }) {
                                                                     actualButtonValue = weakAreaCount;
                                                                     displayButtonLabel = `MAX (${weakAreaCount})`;
                                                                 }
+                                                                else if (quizMode === 'specific_area' && specificAreaCount !== null) {
+                                                                    actualButtonValue = specificAreaCount;
+                                                                    displayButtonLabel = `MAX (${specificAreaCount})`;
+                                                                }
                                                             }
                                                             const isDisabled = (quizMode === 'today_remaining' && actualButtonValue > todayRemaining.count) ||
                                                                 (quizMode === 'unanswered' && unansweredCount !== null && actualButtonValue > unansweredCount) ||
                                                                 (quizMode === 'weak_area' && weakAreaCount !== null && actualButtonValue > weakAreaCount) ||
+                                                                (quizMode === 'specific_area' && specificAreaCount !== null && actualButtonValue > specificAreaCount) ||
                                                                 actualButtonValue <= 0; // Disable if value is 0 or less
                                                             return (_jsx("button", { type: "button", onClick: () => setNumQuestions(actualButtonValue), disabled: isDisabled, className: `px-2 py-2 rounded-md text-sm font-medium transition-colors ${numQuestions === actualButtonValue && !isDisabled
                                                                     ? 'bg-primary-new text-white'
                                                                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed'}`, children: displayButtonLabel }, option.label));
-                                                        }) })] })] }), _jsxs("div", { className: "mt-6", children: [_jsxs("button", { type: "button", onClick: () => void startQuiz(), disabled: isLoading || selectedSubjectNames.length === 0, className: "w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-primary-new", children: [isLoading ? _jsx(LoaderIcon, { className: "w-5 h-5" }) : null, isLoading ? 'クイズ準備中...' : 'Start'] }), _jsxs("div", { className: "mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2", children: [_jsx("button", { type: "button", onClick: () => openIpadMode('air'), disabled: isLoading || selectedSubjectNames.length === 0, className: "w-full py-3 px-4 border border-cyan-600 rounded-md shadow-sm text-base font-medium text-cyan-700 bg-cyan-50 hover:bg-cyan-100 disabled:opacity-50 disabled:cursor-not-allowed", children: "iPad Air\u30E2\u30FC\u30C9" }), _jsx("button", { type: "button", onClick: () => openIpadMode('mini'), disabled: isLoading || selectedSubjectNames.length === 0, className: "w-full py-3 px-4 border border-sky-600 rounded-md shadow-sm text-base font-medium text-sky-700 bg-sky-50 hover:bg-sky-100 disabled:opacity-50 disabled:cursor-not-allowed", children: "iPad mini\u30E2\u30FC\u30C9" })] }), _jsx("button", { type: "button", onClick: () => void startQuiz(true), disabled: isLoading || selectedSubjectNames.length === 0, className: "mt-3 w-full py-3 px-4 border border-[#e8383d] rounded-md shadow-sm text-base font-medium text-[#e8383d] bg-red-50 hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed", children: "\u5F37\u5236\u30E2\u30FC\u30C9" })] }), (error || plansError) && _jsx("p", { className: "text-danger text-sm mt-2 text-center", children: error || plansError })] }), _jsx(SubjectProgress, { selectedSubjectNames: selectedSubjectNames, quizMode: quizMode })] }))), quizState === 'finished' && (_jsxs("div", { className: "text-center max-w-lg mx-auto", children: [_jsx("h2", { className: "text-3xl font-bold text-dark mb-4", children: "\u5B8C\u4E86\uFF01" }), _jsx("div", { className: "bg-white rounded-xl shadow p-8", children: _jsx("div", { className: "flex justify-center mt-2", children: _jsx("button", { type: "button", onClick: () => {
+                                                        }) })] })] }), _jsxs("div", { className: "mt-6", children: [_jsxs("button", { type: "button", onClick: () => void startQuiz(), disabled: isLoading || selectedSubjectNames.length === 0, className: "w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-primary-new", children: [isLoading ? _jsx(LoaderIcon, { className: "w-5 h-5" }) : null, isLoading ? 'クイズ準備中...' : 'Start'] }), _jsxs("div", { className: "mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2", children: [_jsx("button", { type: "button", onClick: () => openIpadMode('air'), disabled: isLoading || selectedSubjectNames.length === 0 || quizMode === 'specific_area', className: "w-full py-3 px-4 border border-cyan-600 rounded-md shadow-sm text-base font-medium text-cyan-700 bg-cyan-50 hover:bg-cyan-100 disabled:opacity-50 disabled:cursor-not-allowed", children: "iPad Air\u30E2\u30FC\u30C9" }), _jsx("button", { type: "button", onClick: () => openIpadMode('mini'), disabled: isLoading || selectedSubjectNames.length === 0 || quizMode === 'specific_area', className: "w-full py-3 px-4 border border-sky-600 rounded-md shadow-sm text-base font-medium text-sky-700 bg-sky-50 hover:bg-sky-100 disabled:opacity-50 disabled:cursor-not-allowed", children: "iPad mini\u30E2\u30FC\u30C9" })] }), _jsx("button", { type: "button", onClick: () => void startQuiz(true), disabled: isLoading || selectedSubjectNames.length === 0, className: "mt-3 w-full py-3 px-4 border border-[#e8383d] rounded-md shadow-sm text-base font-medium text-[#e8383d] bg-red-50 hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed", children: "\u5F37\u5236\u30E2\u30FC\u30C9" })] }), (error || plansError) && _jsx("p", { className: "text-danger text-sm mt-2 text-center", children: error || plansError })] }), _jsx(SubjectProgress, { selectedSubjectNames: selectedSubjectNames, quizMode: quizMode })] }))), quizState === 'finished' && (_jsxs("div", { className: "text-center max-w-lg mx-auto", children: [_jsx("h2", { className: "text-3xl font-bold text-dark mb-4", children: "\u5B8C\u4E86\uFF01" }), _jsx("div", { className: "bg-white rounded-xl shadow p-8", children: _jsx("div", { className: "flex justify-center mt-2", children: _jsx("button", { type: "button", onClick: () => {
                                             setIsForcedSession(false);
                                             setQuizState('setup');
                                         }, className: "px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700", children: "\u79D1\u76EE\u9078\u629E\u306B\u9077\u79FB" }) }) })] })), quizState === 'active' && renderActiveQuiz()] }), editingMemo && (_jsx("div", { className: "fixed inset-0 bg-black bg-opacity-75 z-50 flex justify-center items-center p-4", children: _jsxs("div", { className: "bg-white rounded-lg shadow-xl w-full max-w-2xl h-3/4 flex flex-col", children: [_jsx("h3", { className: "text-lg font-bold p-4 border-b", children: editingMemo.type === 'scratchpad' ? 'メモ帳' : 'My Memo' }), _jsx("textarea", { value: editingMemo.content, onChange: (e) => setEditingMemo({ ...editingMemo, content: e.target.value }), className: "flex-grow w-full p-4 border-0 focus:ring-0 text-base" }), _jsx("div", { className: "p-4 border-t flex justify-end", children: _jsx("button", { onClick: handleSaveAndCloseModal, className: "px-6 py-2 bg-primary-new text-white rounded-lg hover:bg-blue-700", children: "\u4FDD\u5B58\u3057\u3066\u9589\u3058\u308B" }) })] }) })), previewImageUrl && (_jsxs("div", { className: "fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4", onClick: () => setPreviewImageUrl(null), children: [_jsx("button", { type: "button", className: "absolute top-4 right-4 rounded-md bg-white/10 px-3 py-2 text-sm font-medium text-white", onClick: () => setPreviewImageUrl(null), children: "\u9589\u3058\u308B" }), _jsx("img", { src: previewImageUrl, alt: "My Memo preview", className: "max-h-full max-w-full rounded-lg bg-white object-contain", onClick: (e) => e.stopPropagation() })] })), editingProblem && (_jsx("div", { className: "fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4", children: _jsxs("div", { className: "bg-white rounded-lg shadow-xl w-full max-w-4xl h-[90vh] flex flex-col", children: [_jsx("h3", { className: "text-xl font-bold p-4 border-b", children: "\u554F\u984C\u306E\u7DE8\u96C6" }), _jsxs("div", { className: "flex-grow overflow-y-auto p-6 space-y-4", children: [_jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u554F\u984C\u6587" }), _jsx("textarea", { name: "question_text", value: editingProblem.question_text, onChange: handleProblemFormChange, rows: 4, className: "mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u9078\u629E\u80A2" }), _jsx("div", { className: "space-y-2 mt-1", children: editingProblem.choices.map((choice, index) => (_jsxs("div", { className: "flex items-center gap-2", children: [_jsx("input", { type: "text", value: choice.label, onChange: (e) => handleProblemChoiceChange(index, 'label', e.target.value), className: "w-16 shadow-sm sm:text-sm border-gray-300 rounded-md" }), _jsx("input", { type: "text", value: choice.text, onChange: (e) => handleProblemChoiceChange(index, 'text', e.target.value), className: "flex-grow shadow-sm sm:text-sm border-gray-300 rounded-md" })] }, index))) })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u6B63\u89E3\u306E\u9078\u629E\u80A2\u30E9\u30D9\u30EB" }), _jsx("input", { type: "text", name: "answer", value: editingProblem.answer, onChange: handleProblemFormChange, className: "mt-1 w-32 block shadow-sm sm:text-sm border-gray-300 rounded-md" })] }), _jsxs("div", { children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u30AB\u30C6\u30B4\u30EA" }), _jsx("input", { type: "text", name: "category", value: editingProblem.category || '', onChange: handleProblemFormChange, className: "mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" })] }), _jsxs("div", { children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u89E3\u8AAC" }), _jsx("textarea", { name: "explanation.text", value: editingProblem.explanation.text, onChange: handleProblemFormChange, rows: 6, className: "mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" })] })] }), _jsxs("div", { className: "p-4 border-t flex justify-end gap-4", children: [_jsx("button", { onClick: () => setEditingProblem(null), className: "px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300", children: "\u30AD\u30E3\u30F3\u30BB\u30EB" }), _jsx("button", { onClick: handleSaveChanges, className: "px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700", children: "\u5909\u66F4\u3092\u4FDD\u5B58" })] })] }) }))] }));
