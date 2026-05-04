@@ -13,6 +13,11 @@ import { buildPlanSchedule } from './utils/planSchedule';
 const API_BASE_URL = "/api";
 const QUESTION_TIMER_MS = 2 * 60 * 1000;
 const FORCED_ANSWER_TIMER_MS = 80 * 1000;
+const SPECIFIC_AREA_PROGRESS_STEPS = [
+  '条件を確認中',
+  '問題文・解説を照合中',
+  '対象件数を集計中',
+] as const;
 
 type SpeechRecognitionLike = {
   lang: string;
@@ -483,13 +488,41 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   const [specificAreaKeywords, setSpecificAreaKeywords] = useState<string[]>(['']);
   const [specificAreaCount, setSpecificAreaCount] = useState<number | null>(null);
   const [isSpecificAreaCountLoading, setIsSpecificAreaCountLoading] = useState(false);
+  const [specificAreaCountError, setSpecificAreaCountError] = useState('');
+  const [specificAreaProgressStep, setSpecificAreaProgressStep] = useState(0);
+  const [lastSpecificAreaInvestigationSignature, setLastSpecificAreaInvestigationSignature] = useState<string | null>(null);
   const [specificAreaHistoryScope, setSpecificAreaHistoryScope] = useState<SpecificAreaHistoryScope>('all');
   const [specificAreaSuggestions, setSpecificAreaSuggestions] = useState<string[]>([]);
   const [isSpecificAreaSuggestionsLoading, setIsSpecificAreaSuggestionsLoading] = useState(false);
+  const specificAreaProgressTimerRef = useRef<number | null>(null);
   const normalizedSpecificAreaKeywords = useMemo(
     () => specificAreaKeywords.map((keyword) => keyword.trim()).filter((keyword) => keyword.length > 0),
     [specificAreaKeywords],
   );
+  const specificAreaInvestigationSignature = useMemo(
+    () =>
+      JSON.stringify({
+        subjects: [...selectedSubjectNames].sort(),
+        keywords: [...normalizedSpecificAreaKeywords].sort(),
+        historyScope: specificAreaHistoryScope,
+      }),
+    [selectedSubjectNames, normalizedSpecificAreaKeywords, specificAreaHistoryScope],
+  );
+  const isSpecificAreaInvestigationReady = selectedSubjectNames.length > 0 && normalizedSpecificAreaKeywords.length > 0;
+  const isSpecificAreaInvestigationStale =
+    isSpecificAreaInvestigationReady && lastSpecificAreaInvestigationSignature !== specificAreaInvestigationSignature;
+  const hasSpecificAreaInvestigationResult =
+    isSpecificAreaInvestigationReady &&
+    !isSpecificAreaInvestigationStale &&
+    specificAreaCount !== null &&
+    !specificAreaCountError;
+
+  const clearSpecificAreaProgressTimer = useCallback(() => {
+    if (specificAreaProgressTimerRef.current !== null) {
+      window.clearInterval(specificAreaProgressTimerRef.current);
+      specificAreaProgressTimerRef.current = null;
+    }
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('subjectWeights', JSON.stringify(subjectWeights));
@@ -668,33 +701,28 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   }, [quizMode, selectedSubjectNames]);
 
   useEffect(() => {
-    const fetchSpecificAreaCount = async () => {
-      if (quizMode === 'specific_area' && selectedSubjectNames.length > 0 && normalizedSpecificAreaKeywords.length > 0) {
-        setIsSpecificAreaCountLoading(true);
-        setSpecificAreaCount(null);
-        try {
-          const params = new URLSearchParams();
-          selectedSubjectNames.forEach((name) => params.append('subjects', name));
-          normalizedSpecificAreaKeywords.forEach((keyword) => params.append('keywords', keyword));
-          params.append('history_scope', specificAreaHistoryScope);
-          const response = await fetch(`${API_BASE_URL}/quiz/specific-area-count?${params.toString()}`);
-          if (!response.ok) {
-            throw new Error('Failed to fetch specific-area count.');
-          }
-          const data = await response.json();
-          setSpecificAreaCount(data.specific_area_count);
-        } catch (error) {
-          console.error(error);
-        } finally {
-          setIsSpecificAreaCountLoading(false);
-        }
-      } else {
-        setSpecificAreaCount(null);
-      }
-    };
+    if (!isSpecificAreaInvestigationReady) {
+      setSpecificAreaCount(null);
+      setSpecificAreaCountError('');
+      setSpecificAreaProgressStep(0);
+      clearSpecificAreaProgressTimer();
+      return;
+    }
 
-    fetchSpecificAreaCount();
-  }, [quizMode, selectedSubjectNames, normalizedSpecificAreaKeywords, specificAreaHistoryScope]);
+    if (isSpecificAreaInvestigationStale) {
+      setSpecificAreaCount(null);
+      setSpecificAreaCountError('');
+      setSpecificAreaProgressStep(0);
+    }
+  }, [
+    clearSpecificAreaProgressTimer,
+    isSpecificAreaInvestigationReady,
+    isSpecificAreaInvestigationStale,
+  ]);
+
+  useEffect(() => () => {
+    clearSpecificAreaProgressTimer();
+  }, [clearSpecificAreaProgressTimer]);
 
   const fetchHistoryStats = useCallback(async () => {
     if (questions.length === 0) {
@@ -795,6 +823,55 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     }
   };
 
+  const fetchSpecificAreaCount = async () => {
+    if (selectedSubjectNames.length === 0) {
+      setError('科目を1つ以上選択してください。');
+      return;
+    }
+    if (normalizedSpecificAreaKeywords.length === 0) {
+      setError('特定領域モードではキーワードを1つ以上入力してください。');
+      return;
+    }
+
+    try {
+      clearSpecificAreaProgressTimer();
+      setIsSpecificAreaCountLoading(true);
+      setSpecificAreaCount(null);
+      setSpecificAreaCountError('');
+      setSpecificAreaProgressStep(0);
+      setError('');
+
+      specificAreaProgressTimerRef.current = window.setInterval(() => {
+        setSpecificAreaProgressStep((prev) => Math.min(prev + 1, SPECIFIC_AREA_PROGRESS_STEPS.length - 1));
+      }, 700);
+
+      const params = new URLSearchParams();
+      selectedSubjectNames.forEach((name) => params.append('subjects', name));
+      normalizedSpecificAreaKeywords.forEach((keyword) => params.append('keywords', keyword));
+      params.append('history_scope', specificAreaHistoryScope);
+      const response = await fetch(`${API_BASE_URL}/quiz/specific-area-count?${params.toString()}`);
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.detail || '対象問題の調査に失敗しました。');
+      }
+      const data = await response.json();
+      clearSpecificAreaProgressTimer();
+      setSpecificAreaProgressStep(SPECIFIC_AREA_PROGRESS_STEPS.length - 1);
+      setSpecificAreaCount(data.specific_area_count);
+      setLastSpecificAreaInvestigationSignature(specificAreaInvestigationSignature);
+    } catch (countError) {
+      console.error(countError);
+      clearSpecificAreaProgressTimer();
+      const message = countError instanceof Error ? countError.message : '対象問題の調査に失敗しました。';
+      setSpecificAreaCountError(message);
+      setSpecificAreaCount(null);
+      setLastSpecificAreaInvestigationSignature(null);
+      setError(message);
+    } finally {
+      setIsSpecificAreaCountLoading(false);
+    }
+  };
+
   const startQuiz = async (forcedSession = false) => {
     if (selectedSubjectNames.length === 0) {
       setError('科目を1つ以上選択してください。');
@@ -817,6 +894,14 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     } else if (quizMode === 'specific_area') {
       if (normalizedSpecificAreaKeywords.length === 0) {
         setError('特定領域モードではキーワードを1つ以上入力してください。');
+        return;
+      }
+      if (isSpecificAreaCountLoading) {
+        setError('対象問題を調査中です。完了してから開始してください。');
+        return;
+      }
+      if (!hasSpecificAreaInvestigationResult) {
+        setError('対象問題を調査してから開始してください。条件を変えた場合は再調査が必要です。');
         return;
       }
       if (specificAreaCount === null || specificAreaCount === 0) {
@@ -2236,6 +2321,14 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                                 <div className="flex items-center gap-2">
                                   <button
                                     type="button"
+                                    onClick={() => void fetchSpecificAreaCount()}
+                                    disabled={isSpecificAreaCountLoading || !isSpecificAreaInvestigationReady}
+                                    className="px-3 py-1.5 rounded-md text-sm font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  >
+                                    {isSpecificAreaCountLoading ? '対象問題を調査中...' : hasSpecificAreaInvestigationResult ? '対象問題を再調査' : '対象問題を調査'}
+                                  </button>
+                                  <button
+                                    type="button"
                                     onClick={() => void fetchSpecificAreaSuggestions()}
                                     disabled={isSpecificAreaSuggestionsLoading || normalizedSpecificAreaKeywords.length === 0}
                                     className="px-3 py-1.5 rounded-md text-sm font-medium bg-emerald-100 text-emerald-800 hover:bg-emerald-200 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -2272,6 +2365,62 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                                     </button>
                                   </div>
                                 ))}
+                              </div>
+                              <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                                <div className="flex items-center justify-between gap-3 text-sm">
+                                  <span className="font-medium text-slate-700">調査ステータス</span>
+                                  {!isSpecificAreaInvestigationReady && (
+                                    <span className="text-slate-500">科目とキーワードを入力すると調査できます</span>
+                                  )}
+                                  {isSpecificAreaInvestigationReady && isSpecificAreaCountLoading && (
+                                    <span className="text-blue-700">{SPECIFIC_AREA_PROGRESS_STEPS[specificAreaProgressStep]}</span>
+                                  )}
+                                  {isSpecificAreaInvestigationReady && !isSpecificAreaCountLoading && hasSpecificAreaInvestigationResult && (
+                                    <span className="text-emerald-700">調査完了</span>
+                                  )}
+                                  {isSpecificAreaInvestigationReady && !isSpecificAreaCountLoading && !hasSpecificAreaInvestigationResult && !specificAreaCountError && (
+                                    <span className="text-amber-700">未調査</span>
+                                  )}
+                                  {specificAreaCountError && !isSpecificAreaCountLoading && (
+                                    <span className="text-red-700">調査失敗</span>
+                                  )}
+                                </div>
+                                <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200">
+                                  <div
+                                    className={`h-full rounded-full transition-all duration-300 ${specificAreaCountError ? 'bg-red-400' : hasSpecificAreaInvestigationResult ? 'bg-emerald-500' : 'bg-blue-500'}`}
+                                    style={{
+                                      width: !isSpecificAreaInvestigationReady
+                                        ? '0%'
+                                        : `${((specificAreaCountError ? 1 : specificAreaProgressStep + (hasSpecificAreaInvestigationResult ? 1 : 0)) / SPECIFIC_AREA_PROGRESS_STEPS.length) * 100}%`,
+                                    }}
+                                  />
+                                </div>
+                                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                                  {SPECIFIC_AREA_PROGRESS_STEPS.map((stepLabel, index) => {
+                                    const isCompleted = hasSpecificAreaInvestigationResult && index <= specificAreaProgressStep;
+                                    const isCurrent = isSpecificAreaCountLoading && index === specificAreaProgressStep;
+                                    return (
+                                      <div
+                                        key={stepLabel}
+                                        className={`rounded-md border px-3 py-2 text-xs ${
+                                          isCompleted
+                                            ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                                            : isCurrent
+                                              ? 'border-blue-200 bg-blue-50 text-blue-700'
+                                              : 'border-slate-200 bg-white text-slate-500'
+                                        }`}
+                                      >
+                                        {index + 1}. {stepLabel}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                                {isSpecificAreaInvestigationReady && !isSpecificAreaCountLoading && !hasSpecificAreaInvestigationResult && !specificAreaCountError && (
+                                  <p className="mt-3 text-xs text-amber-700">キーワード・科目・対象条件を変更した場合は、もう一度「対象問題を調査」を押してください。</p>
+                                )}
+                                {specificAreaCountError && !isSpecificAreaCountLoading && (
+                                  <p className="mt-3 text-xs text-red-700">{specificAreaCountError}</p>
+                                )}
                               </div>
                               <div className="mt-4">
                                 <label className="heading-2 block text-sm font-medium text-gray-700">対象条件</label>
@@ -2337,9 +2486,11 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
                               {quizMode === 'specific_area' && normalizedSpecificAreaKeywords.length === 0 && '(キーワードを1つ以上入力してください)'}
 
-                              {quizMode === 'specific_area' && normalizedSpecificAreaKeywords.length > 0 && !isSpecificAreaCountLoading && specificAreaCount !== null && `(対象問題数: ${specificAreaCount} 問)`}
+                              {quizMode === 'specific_area' && normalizedSpecificAreaKeywords.length > 0 && !isSpecificAreaCountLoading && hasSpecificAreaInvestigationResult && specificAreaCount !== null && `(対象問題数: ${specificAreaCount} 問)`}
 
                               {quizMode === 'specific_area' && isSpecificAreaCountLoading && '(対象選定中...)'}
+
+                              {quizMode === 'specific_area' && normalizedSpecificAreaKeywords.length > 0 && !isSpecificAreaCountLoading && !hasSpecificAreaInvestigationResult && !specificAreaCountError && '(対象問題を調査してください)'}
 
                             </div>
 

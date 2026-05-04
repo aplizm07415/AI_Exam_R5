@@ -12,6 +12,11 @@ import { buildPlanSchedule } from './utils/planSchedule';
 const API_BASE_URL = "/api";
 const QUESTION_TIMER_MS = 2 * 60 * 1000;
 const FORCED_ANSWER_TIMER_MS = 80 * 1000;
+const SPECIFIC_AREA_PROGRESS_STEPS = [
+    '条件を確認中',
+    '問題文・解説を照合中',
+    '対象件数を集計中',
+];
 const getCustomImageUrls = (urls, legacyUrl) => {
     const normalized = (urls ?? []).filter((url) => typeof url === 'string' && url.trim().length > 0);
     if (normalized.length > 0) {
@@ -313,10 +318,31 @@ export default function QuizPage({ subjects: allSubjects }) {
     const [specificAreaKeywords, setSpecificAreaKeywords] = useState(['']);
     const [specificAreaCount, setSpecificAreaCount] = useState(null);
     const [isSpecificAreaCountLoading, setIsSpecificAreaCountLoading] = useState(false);
+    const [specificAreaCountError, setSpecificAreaCountError] = useState('');
+    const [specificAreaProgressStep, setSpecificAreaProgressStep] = useState(0);
+    const [lastSpecificAreaInvestigationSignature, setLastSpecificAreaInvestigationSignature] = useState(null);
     const [specificAreaHistoryScope, setSpecificAreaHistoryScope] = useState('all');
     const [specificAreaSuggestions, setSpecificAreaSuggestions] = useState([]);
     const [isSpecificAreaSuggestionsLoading, setIsSpecificAreaSuggestionsLoading] = useState(false);
+    const specificAreaProgressTimerRef = useRef(null);
     const normalizedSpecificAreaKeywords = useMemo(() => specificAreaKeywords.map((keyword) => keyword.trim()).filter((keyword) => keyword.length > 0), [specificAreaKeywords]);
+    const specificAreaInvestigationSignature = useMemo(() => JSON.stringify({
+        subjects: [...selectedSubjectNames].sort(),
+        keywords: [...normalizedSpecificAreaKeywords].sort(),
+        historyScope: specificAreaHistoryScope,
+    }), [selectedSubjectNames, normalizedSpecificAreaKeywords, specificAreaHistoryScope]);
+    const isSpecificAreaInvestigationReady = selectedSubjectNames.length > 0 && normalizedSpecificAreaKeywords.length > 0;
+    const isSpecificAreaInvestigationStale = isSpecificAreaInvestigationReady && lastSpecificAreaInvestigationSignature !== specificAreaInvestigationSignature;
+    const hasSpecificAreaInvestigationResult = isSpecificAreaInvestigationReady &&
+        !isSpecificAreaInvestigationStale &&
+        specificAreaCount !== null &&
+        !specificAreaCountError;
+    const clearSpecificAreaProgressTimer = useCallback(() => {
+        if (specificAreaProgressTimerRef.current !== null) {
+            window.clearInterval(specificAreaProgressTimerRef.current);
+            specificAreaProgressTimerRef.current = null;
+        }
+    }, []);
     useEffect(() => {
         localStorage.setItem('subjectWeights', JSON.stringify(subjectWeights));
     }, [subjectWeights]);
@@ -489,35 +515,26 @@ export default function QuizPage({ subjects: allSubjects }) {
         fetchWeakAreaCount();
     }, [quizMode, selectedSubjectNames]);
     useEffect(() => {
-        const fetchSpecificAreaCount = async () => {
-            if (quizMode === 'specific_area' && selectedSubjectNames.length > 0 && normalizedSpecificAreaKeywords.length > 0) {
-                setIsSpecificAreaCountLoading(true);
-                setSpecificAreaCount(null);
-                try {
-                    const params = new URLSearchParams();
-                    selectedSubjectNames.forEach((name) => params.append('subjects', name));
-                    normalizedSpecificAreaKeywords.forEach((keyword) => params.append('keywords', keyword));
-                    params.append('history_scope', specificAreaHistoryScope);
-                    const response = await fetch(`${API_BASE_URL}/quiz/specific-area-count?${params.toString()}`);
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch specific-area count.');
-                    }
-                    const data = await response.json();
-                    setSpecificAreaCount(data.specific_area_count);
-                }
-                catch (error) {
-                    console.error(error);
-                }
-                finally {
-                    setIsSpecificAreaCountLoading(false);
-                }
-            }
-            else {
-                setSpecificAreaCount(null);
-            }
-        };
-        fetchSpecificAreaCount();
-    }, [quizMode, selectedSubjectNames, normalizedSpecificAreaKeywords, specificAreaHistoryScope]);
+        if (!isSpecificAreaInvestigationReady) {
+            setSpecificAreaCount(null);
+            setSpecificAreaCountError('');
+            setSpecificAreaProgressStep(0);
+            clearSpecificAreaProgressTimer();
+            return;
+        }
+        if (isSpecificAreaInvestigationStale) {
+            setSpecificAreaCount(null);
+            setSpecificAreaCountError('');
+            setSpecificAreaProgressStep(0);
+        }
+    }, [
+        clearSpecificAreaProgressTimer,
+        isSpecificAreaInvestigationReady,
+        isSpecificAreaInvestigationStale,
+    ]);
+    useEffect(() => () => {
+        clearSpecificAreaProgressTimer();
+    }, [clearSpecificAreaProgressTimer]);
     const fetchHistoryStats = useCallback(async () => {
         if (questions.length === 0) {
             setHistoryStats({});
@@ -610,6 +627,53 @@ export default function QuizPage({ subjects: allSubjects }) {
             setIsSpecificAreaSuggestionsLoading(false);
         }
     };
+    const fetchSpecificAreaCount = async () => {
+        if (selectedSubjectNames.length === 0) {
+            setError('科目を1つ以上選択してください。');
+            return;
+        }
+        if (normalizedSpecificAreaKeywords.length === 0) {
+            setError('特定領域モードではキーワードを1つ以上入力してください。');
+            return;
+        }
+        try {
+            clearSpecificAreaProgressTimer();
+            setIsSpecificAreaCountLoading(true);
+            setSpecificAreaCount(null);
+            setSpecificAreaCountError('');
+            setSpecificAreaProgressStep(0);
+            setError('');
+            specificAreaProgressTimerRef.current = window.setInterval(() => {
+                setSpecificAreaProgressStep((prev) => Math.min(prev + 1, SPECIFIC_AREA_PROGRESS_STEPS.length - 1));
+            }, 700);
+            const params = new URLSearchParams();
+            selectedSubjectNames.forEach((name) => params.append('subjects', name));
+            normalizedSpecificAreaKeywords.forEach((keyword) => params.append('keywords', keyword));
+            params.append('history_scope', specificAreaHistoryScope);
+            const response = await fetch(`${API_BASE_URL}/quiz/specific-area-count?${params.toString()}`);
+            if (!response.ok) {
+                const payload = await response.json().catch(() => null);
+                throw new Error(payload?.detail || '対象問題の調査に失敗しました。');
+            }
+            const data = await response.json();
+            clearSpecificAreaProgressTimer();
+            setSpecificAreaProgressStep(SPECIFIC_AREA_PROGRESS_STEPS.length - 1);
+            setSpecificAreaCount(data.specific_area_count);
+            setLastSpecificAreaInvestigationSignature(specificAreaInvestigationSignature);
+        }
+        catch (countError) {
+            console.error(countError);
+            clearSpecificAreaProgressTimer();
+            const message = countError instanceof Error ? countError.message : '対象問題の調査に失敗しました。';
+            setSpecificAreaCountError(message);
+            setSpecificAreaCount(null);
+            setLastSpecificAreaInvestigationSignature(null);
+            setError(message);
+        }
+        finally {
+            setIsSpecificAreaCountLoading(false);
+        }
+    };
     const startQuiz = async (forcedSession = false) => {
         if (selectedSubjectNames.length === 0) {
             setError('科目を1つ以上選択してください。');
@@ -633,6 +697,14 @@ export default function QuizPage({ subjects: allSubjects }) {
         else if (quizMode === 'specific_area') {
             if (normalizedSpecificAreaKeywords.length === 0) {
                 setError('特定領域モードではキーワードを1つ以上入力してください。');
+                return;
+            }
+            if (isSpecificAreaCountLoading) {
+                setError('対象問題を調査中です。完了してから開始してください。');
+                return;
+            }
+            if (!hasSpecificAreaInvestigationResult) {
+                setError('対象問題を調査してから開始してください。条件を変えた場合は再調査が必要です。');
                 return;
             }
             if (specificAreaCount === null || specificAreaCount === 0) {
@@ -1386,7 +1458,19 @@ export default function QuizPage({ subjects: allSubjects }) {
                                                                 }
                                                             }
                                                             return (_jsx("button", { type: "button", onClick: () => handleSubjectSelection(s.name), disabled: isTodayMode, className: buttonClass, children: s.name }, s.name));
-                                                        }) })] }), _jsxs("div", { children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u30E2\u30FC\u30C9" }), _jsxs("div", { className: "mt-2 grid grid-cols-2 sm:grid-cols-5 gap-3", children: [_jsx("button", { type: "button", onClick: () => setQuizMode('today_remaining'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'today_remaining' ? 'bg-[#e8383d] text-white' : 'bg-red-100 text-gray-700 hover:bg-red-200'}`, children: "\u4ECA\u65E5\u306E\u6B8B\u308A" }), _jsx("button", { type: "button", onClick: () => setQuizMode('random'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'random' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u30E9\u30F3\u30C0\u30E0" }), _jsx("button", { type: "button", onClick: () => setQuizMode('weak_area'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'weak_area' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u82E6\u624B\u514B\u670D" }), _jsx("button", { type: "button", onClick: () => setQuizMode('unanswered'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'unanswered' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u672A\u89E3\u7B54\u554F\u984C" }), _jsx("button", { type: "button", onClick: () => setQuizMode('specific_area'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'specific_area' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u7279\u5B9A\u9818\u57DF" })] })] }), quizMode === 'specific_area' && (_jsxs("div", { children: [_jsxs("div", { className: "flex items-center justify-between gap-3", children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u691C\u7D22\u30AD\u30FC\u30EF\u30FC\u30C9" }), _jsxs("div", { className: "flex items-center gap-2", children: [_jsx("button", { type: "button", onClick: () => void fetchSpecificAreaSuggestions(), disabled: isSpecificAreaSuggestionsLoading || normalizedSpecificAreaKeywords.length === 0, className: "px-3 py-1.5 rounded-md text-sm font-medium bg-emerald-100 text-emerald-800 hover:bg-emerald-200 disabled:opacity-50 disabled:cursor-not-allowed", children: isSpecificAreaSuggestionsLoading ? '関連語を提案中...' : '関連語を提案' }), _jsx("button", { type: "button", onClick: addSpecificAreaKeywordField, className: "px-3 py-1.5 rounded-md text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200", children: "\u5165\u529B\u6B04\u3092\u8FFD\u52A0" })] })] }), _jsx("p", { className: "mt-2 text-xs text-gray-500", children: "1\u3064\u306E\u5165\u529B\u6B04\u30921\u30EF\u30FC\u30C9\u3068\u3057\u3066\u6271\u3044\u307E\u3059\u3002\u3044\u305A\u308C\u304B1\u3064\u3067\u3082\u4E00\u81F4\u3059\u308C\u3070\u5BFE\u8C61\u306B\u306A\u308A\u307E\u3059\u3002" }), _jsx("div", { className: "mt-3 space-y-3", children: specificAreaKeywords.map((keyword, index) => (_jsxs("div", { className: "flex items-center gap-2", children: [_jsx("input", { type: "text", value: keyword, onChange: (event) => updateSpecificAreaKeyword(index, event.target.value), placeholder: index === 0 ? '例: NPV' : `キーワード ${index + 1}`, className: "flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary-new focus:outline-none focus:ring-2 focus:ring-primary-new/20" }), _jsx("button", { type: "button", onClick: () => removeSpecificAreaKeywordField(index), disabled: specificAreaKeywords.length === 1, className: "px-3 py-2 rounded-md text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed", children: "\u524A\u9664" })] }, `specific-area-keyword-${index}`))) }), _jsxs("div", { className: "mt-4", children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u5BFE\u8C61\u6761\u4EF6" }), _jsxs("div", { className: "mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3", children: [_jsx("button", { type: "button", onClick: () => setSpecificAreaHistoryScope('all'), className: `px-4 py-2 rounded-md text-sm font-medium ${specificAreaHistoryScope === 'all' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u5168\u554F\u984C" }), _jsx("button", { type: "button", onClick: () => setSpecificAreaHistoryScope('unanswered'), className: `px-4 py-2 rounded-md text-sm font-medium ${specificAreaHistoryScope === 'unanswered' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u672A\u56DE\u7B54\u306E\u307F" }), _jsx("button", { type: "button", onClick: () => setSpecificAreaHistoryScope('answered'), className: `px-4 py-2 rounded-md text-sm font-medium ${specificAreaHistoryScope === 'answered' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u65E2\u56DE\u7B54\u306E\u307F" })] })] }), _jsxs("div", { className: "mt-4", children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u95A2\u9023\u8A9E\u5019\u88DC" }), _jsxs("div", { className: "mt-2 flex flex-wrap gap-2", children: [specificAreaSuggestions.map((suggestion) => (_jsx("button", { type: "button", onClick: () => applySpecificAreaSuggestion(suggestion), className: "px-3 py-1.5 rounded-full text-sm font-medium bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100", children: suggestion }, suggestion))), !isSpecificAreaSuggestionsLoading && specificAreaSuggestions.length === 0 && (_jsx("p", { className: "text-xs text-gray-500", children: "\u5FC5\u8981\u306A\u3089\u95A2\u9023\u8A9E\u3092\u63D0\u6848\u3067\u5019\u88DC\u3092\u51FA\u3057\u3001\u4F7F\u3044\u305F\u3044\u3082\u306E\u3060\u3051\u8FFD\u52A0\u3067\u304D\u307E\u3059\u3002" }))] })] })] })), _jsxs("div", { children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u554F\u984C\u6570" }), _jsxs("div", { className: "mt-2 text-sm text-gray-500 mb-2", children: [quizMode === 'today_remaining' && `(今日の残り: ${todayRemaining.count} 問 (予定:${todayRemaining.plan} / 実績:${todayRemaining.actual}) / 2分/問で約${estimatedCompletionText})`, quizMode === 'today_remaining' && todayRemainingPaceHint && (_jsx("div", { className: "mt-1 text-xs font-medium text-[#e8383d]", children: todayRemainingPaceHint })), quizMode === 'unanswered' && unansweredCount !== null && `(未解答: ${unansweredCount} 問)`, quizMode === 'weak_area' && weakAreaCount !== null && `(苦手問題: ${weakAreaCount} 問)`, quizMode === 'specific_area' && normalizedSpecificAreaKeywords.length === 0 && '(キーワードを1つ以上入力してください)', quizMode === 'specific_area' && normalizedSpecificAreaKeywords.length > 0 && !isSpecificAreaCountLoading && specificAreaCount !== null && `(対象問題数: ${specificAreaCount} 問)`, quizMode === 'specific_area' && isSpecificAreaCountLoading && '(対象選定中...)'] }), _jsx("div", { className: "mt-2 grid grid-cols-5 gap-3", children: [
+                                                        }) })] }), _jsxs("div", { children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u30E2\u30FC\u30C9" }), _jsxs("div", { className: "mt-2 grid grid-cols-2 sm:grid-cols-5 gap-3", children: [_jsx("button", { type: "button", onClick: () => setQuizMode('today_remaining'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'today_remaining' ? 'bg-[#e8383d] text-white' : 'bg-red-100 text-gray-700 hover:bg-red-200'}`, children: "\u4ECA\u65E5\u306E\u6B8B\u308A" }), _jsx("button", { type: "button", onClick: () => setQuizMode('random'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'random' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u30E9\u30F3\u30C0\u30E0" }), _jsx("button", { type: "button", onClick: () => setQuizMode('weak_area'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'weak_area' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u82E6\u624B\u514B\u670D" }), _jsx("button", { type: "button", onClick: () => setQuizMode('unanswered'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'unanswered' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u672A\u89E3\u7B54\u554F\u984C" }), _jsx("button", { type: "button", onClick: () => setQuizMode('specific_area'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'specific_area' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u7279\u5B9A\u9818\u57DF" })] })] }), quizMode === 'specific_area' && (_jsxs("div", { children: [_jsxs("div", { className: "flex items-center justify-between gap-3", children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u691C\u7D22\u30AD\u30FC\u30EF\u30FC\u30C9" }), _jsxs("div", { className: "flex items-center gap-2", children: [_jsx("button", { type: "button", onClick: () => void fetchSpecificAreaCount(), disabled: isSpecificAreaCountLoading || !isSpecificAreaInvestigationReady, className: "px-3 py-1.5 rounded-md text-sm font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed", children: isSpecificAreaCountLoading ? '対象問題を調査中...' : hasSpecificAreaInvestigationResult ? '対象問題を再調査' : '対象問題を調査' }), _jsx("button", { type: "button", onClick: () => void fetchSpecificAreaSuggestions(), disabled: isSpecificAreaSuggestionsLoading || normalizedSpecificAreaKeywords.length === 0, className: "px-3 py-1.5 rounded-md text-sm font-medium bg-emerald-100 text-emerald-800 hover:bg-emerald-200 disabled:opacity-50 disabled:cursor-not-allowed", children: isSpecificAreaSuggestionsLoading ? '関連語を提案中...' : '関連語を提案' }), _jsx("button", { type: "button", onClick: addSpecificAreaKeywordField, className: "px-3 py-1.5 rounded-md text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200", children: "\u5165\u529B\u6B04\u3092\u8FFD\u52A0" })] })] }), _jsx("p", { className: "mt-2 text-xs text-gray-500", children: "1\u3064\u306E\u5165\u529B\u6B04\u30921\u30EF\u30FC\u30C9\u3068\u3057\u3066\u6271\u3044\u307E\u3059\u3002\u3044\u305A\u308C\u304B1\u3064\u3067\u3082\u4E00\u81F4\u3059\u308C\u3070\u5BFE\u8C61\u306B\u306A\u308A\u307E\u3059\u3002" }), _jsx("div", { className: "mt-3 space-y-3", children: specificAreaKeywords.map((keyword, index) => (_jsxs("div", { className: "flex items-center gap-2", children: [_jsx("input", { type: "text", value: keyword, onChange: (event) => updateSpecificAreaKeyword(index, event.target.value), placeholder: index === 0 ? '例: NPV' : `キーワード ${index + 1}`, className: "flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary-new focus:outline-none focus:ring-2 focus:ring-primary-new/20" }), _jsx("button", { type: "button", onClick: () => removeSpecificAreaKeywordField(index), disabled: specificAreaKeywords.length === 1, className: "px-3 py-2 rounded-md text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed", children: "\u524A\u9664" })] }, `specific-area-keyword-${index}`))) }), _jsxs("div", { className: "mt-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3", children: [_jsxs("div", { className: "flex items-center justify-between gap-3 text-sm", children: [_jsx("span", { className: "font-medium text-slate-700", children: "\u8ABF\u67FB\u30B9\u30C6\u30FC\u30BF\u30B9" }), !isSpecificAreaInvestigationReady && (_jsx("span", { className: "text-slate-500", children: "\u79D1\u76EE\u3068\u30AD\u30FC\u30EF\u30FC\u30C9\u3092\u5165\u529B\u3059\u308B\u3068\u8ABF\u67FB\u3067\u304D\u307E\u3059" })), isSpecificAreaInvestigationReady && isSpecificAreaCountLoading && (_jsx("span", { className: "text-blue-700", children: SPECIFIC_AREA_PROGRESS_STEPS[specificAreaProgressStep] })), isSpecificAreaInvestigationReady && !isSpecificAreaCountLoading && hasSpecificAreaInvestigationResult && (_jsx("span", { className: "text-emerald-700", children: "\u8ABF\u67FB\u5B8C\u4E86" })), isSpecificAreaInvestigationReady && !isSpecificAreaCountLoading && !hasSpecificAreaInvestigationResult && !specificAreaCountError && (_jsx("span", { className: "text-amber-700", children: "\u672A\u8ABF\u67FB" })), specificAreaCountError && !isSpecificAreaCountLoading && (_jsx("span", { className: "text-red-700", children: "\u8ABF\u67FB\u5931\u6557" }))] }), _jsx("div", { className: "mt-3 h-2 overflow-hidden rounded-full bg-slate-200", children: _jsx("div", { className: `h-full rounded-full transition-all duration-300 ${specificAreaCountError ? 'bg-red-400' : hasSpecificAreaInvestigationResult ? 'bg-emerald-500' : 'bg-blue-500'}`, style: {
+                                                                        width: !isSpecificAreaInvestigationReady
+                                                                            ? '0%'
+                                                                            : `${((specificAreaCountError ? 1 : specificAreaProgressStep + (hasSpecificAreaInvestigationResult ? 1 : 0)) / SPECIFIC_AREA_PROGRESS_STEPS.length) * 100}%`,
+                                                                    } }) }), _jsx("div", { className: "mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3", children: SPECIFIC_AREA_PROGRESS_STEPS.map((stepLabel, index) => {
+                                                                    const isCompleted = hasSpecificAreaInvestigationResult && index <= specificAreaProgressStep;
+                                                                    const isCurrent = isSpecificAreaCountLoading && index === specificAreaProgressStep;
+                                                                    return (_jsxs("div", { className: `rounded-md border px-3 py-2 text-xs ${isCompleted
+                                                                            ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                                                                            : isCurrent
+                                                                                ? 'border-blue-200 bg-blue-50 text-blue-700'
+                                                                                : 'border-slate-200 bg-white text-slate-500'}`, children: [index + 1, ". ", stepLabel] }, stepLabel));
+                                                                }) }), isSpecificAreaInvestigationReady && !isSpecificAreaCountLoading && !hasSpecificAreaInvestigationResult && !specificAreaCountError && (_jsx("p", { className: "mt-3 text-xs text-amber-700", children: "\u30AD\u30FC\u30EF\u30FC\u30C9\u30FB\u79D1\u76EE\u30FB\u5BFE\u8C61\u6761\u4EF6\u3092\u5909\u66F4\u3057\u305F\u5834\u5408\u306F\u3001\u3082\u3046\u4E00\u5EA6\u300C\u5BFE\u8C61\u554F\u984C\u3092\u8ABF\u67FB\u300D\u3092\u62BC\u3057\u3066\u304F\u3060\u3055\u3044\u3002" })), specificAreaCountError && !isSpecificAreaCountLoading && (_jsx("p", { className: "mt-3 text-xs text-red-700", children: specificAreaCountError }))] }), _jsxs("div", { className: "mt-4", children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u5BFE\u8C61\u6761\u4EF6" }), _jsxs("div", { className: "mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3", children: [_jsx("button", { type: "button", onClick: () => setSpecificAreaHistoryScope('all'), className: `px-4 py-2 rounded-md text-sm font-medium ${specificAreaHistoryScope === 'all' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u5168\u554F\u984C" }), _jsx("button", { type: "button", onClick: () => setSpecificAreaHistoryScope('unanswered'), className: `px-4 py-2 rounded-md text-sm font-medium ${specificAreaHistoryScope === 'unanswered' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u672A\u56DE\u7B54\u306E\u307F" }), _jsx("button", { type: "button", onClick: () => setSpecificAreaHistoryScope('answered'), className: `px-4 py-2 rounded-md text-sm font-medium ${specificAreaHistoryScope === 'answered' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u65E2\u56DE\u7B54\u306E\u307F" })] })] }), _jsxs("div", { className: "mt-4", children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u95A2\u9023\u8A9E\u5019\u88DC" }), _jsxs("div", { className: "mt-2 flex flex-wrap gap-2", children: [specificAreaSuggestions.map((suggestion) => (_jsx("button", { type: "button", onClick: () => applySpecificAreaSuggestion(suggestion), className: "px-3 py-1.5 rounded-full text-sm font-medium bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100", children: suggestion }, suggestion))), !isSpecificAreaSuggestionsLoading && specificAreaSuggestions.length === 0 && (_jsx("p", { className: "text-xs text-gray-500", children: "\u5FC5\u8981\u306A\u3089\u95A2\u9023\u8A9E\u3092\u63D0\u6848\u3067\u5019\u88DC\u3092\u51FA\u3057\u3001\u4F7F\u3044\u305F\u3044\u3082\u306E\u3060\u3051\u8FFD\u52A0\u3067\u304D\u307E\u3059\u3002" }))] })] })] })), _jsxs("div", { children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u554F\u984C\u6570" }), _jsxs("div", { className: "mt-2 text-sm text-gray-500 mb-2", children: [quizMode === 'today_remaining' && `(今日の残り: ${todayRemaining.count} 問 (予定:${todayRemaining.plan} / 実績:${todayRemaining.actual}) / 2分/問で約${estimatedCompletionText})`, quizMode === 'today_remaining' && todayRemainingPaceHint && (_jsx("div", { className: "mt-1 text-xs font-medium text-[#e8383d]", children: todayRemainingPaceHint })), quizMode === 'unanswered' && unansweredCount !== null && `(未解答: ${unansweredCount} 問)`, quizMode === 'weak_area' && weakAreaCount !== null && `(苦手問題: ${weakAreaCount} 問)`, quizMode === 'specific_area' && normalizedSpecificAreaKeywords.length === 0 && '(キーワードを1つ以上入力してください)', quizMode === 'specific_area' && normalizedSpecificAreaKeywords.length > 0 && !isSpecificAreaCountLoading && hasSpecificAreaInvestigationResult && specificAreaCount !== null && `(対象問題数: ${specificAreaCount} 問)`, quizMode === 'specific_area' && isSpecificAreaCountLoading && '(対象選定中...)', quizMode === 'specific_area' && normalizedSpecificAreaKeywords.length > 0 && !isSpecificAreaCountLoading && !hasSpecificAreaInvestigationResult && !specificAreaCountError && '(対象問題を調査してください)'] }), _jsx("div", { className: "mt-2 grid grid-cols-5 gap-3", children: [
                                                             { label: '1', value: 1 },
                                                             { label: '10', value: 10 },
                                                             { label: '20', value: 20 },
