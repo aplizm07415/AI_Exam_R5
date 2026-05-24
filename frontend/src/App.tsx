@@ -171,6 +171,11 @@ export default function App() {
   ], []);
 
   const activePath = location.pathname;
+  const isNavPathActive = (path: string) => (
+    path === '/'
+      ? activePath === '/'
+      : activePath === path || activePath.startsWith(`${path}/`)
+  );
   const breadcrumbItems = useMemo<BreadcrumbItem[]>(() => {
     if (activePath === '/') {
       return [];
@@ -392,40 +397,25 @@ export default function App() {
     <div className="min-h-screen bg-gray-100 text-gray-800 flex flex-col">
       <header className="bg-white/90 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex min-h-11 items-center justify-between gap-3 py-1.5 sm:min-h-12 sm:py-2">
-            <Link to="/" className="flex items-center space-x-2 sm:space-x-3">
+          <div className="flex min-h-11 items-center justify-between gap-2 py-1.5 sm:min-h-12 sm:gap-3 sm:py-2">
+            <Link to="/" className="flex min-w-0 shrink-0 items-center space-x-2 sm:space-x-3">
               <div className="rounded-lg bg-primary-new p-1.5 sm:p-2">
                 <FileTextIcon className="h-5 w-5 text-white sm:h-6 sm:w-6" />
               </div>
               <h1 className="text-lg font-bold text-dark sm:text-xl">R3</h1>
             </Link>
-            <nav className="tab-3 hidden lg:flex">
-              {navItems.map((item) => (
-                <Link
-                  key={item.id}
-                  to={item.path}
-                  onClick={(event) => triggerNavBurst(event, item.id)}
-                  className={`tab-3__tab ${activePath === item.path ? 'is-active' : ''}`}
-                  aria-current={activePath === item.path ? 'page' : undefined}
-                  aria-label={item.label}
-                  title={item.label}
-                >
-                  {item.icon}
-                  <span className="tab-3__label">{item.label}</span>
-                </Link>
-              ))}
-            </nav>
-            <div className="flex items-center gap-2 lg:hidden">
+            <nav className="priority-nav flex min-w-0 flex-1 items-center justify-end" aria-label="主要ナビゲーション">
               <button
                 onClick={openMobileMenu}
-                className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white p-1.5 text-gray-700 shadow-sm hover:bg-gray-100 sm:p-2"
+                className="priority-nav__more"
                 aria-label="メインメニューを開く"
+                aria-expanded={isMobileMenuOpen}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
-            </div>
+            </nav>
           </div>
         </div>
       </header>
@@ -491,7 +481,7 @@ export default function App() {
       {/* Mobile Menu Modal */}
       {isMobileMenuMounted && (
         <div
-          className={`mobile-nav-overlay fixed inset-0 z-40 lg:hidden ${isMobileMenuOpen ? 'is-open' : ''}`}
+          className={`mobile-nav-overlay fixed inset-0 z-40 ${isMobileMenuOpen ? 'is-open' : ''}`}
           onClick={closeMobileMenu}
           aria-hidden="true"
         >
@@ -521,7 +511,7 @@ export default function App() {
                     triggerNavBurst(event, item.id);
                     closeMobileMenu();
                   }}
-                  className={`mobile-nav-link flex items-center space-x-3 rounded-2xl px-4 py-3 text-base font-medium ${activePath === item.path
+                  className={`mobile-nav-link flex items-center space-x-3 rounded-2xl px-4 py-3 text-base font-medium ${isNavPathActive(item.path)
                     ? 'bg-primary-new text-white shadow-sm'
                     : 'text-dark hover:bg-gray-100'
                     }`}

@@ -72,6 +72,8 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
   const chartWrapperRef = useRef<HTMLDivElement | null>(null);
   const [isPrintPreview, setIsPrintPreview] = useState(false);
   const [printChartWidth, setPrintChartWidth] = useState(900);
+  const [chartStartDate, setChartStartDate] = useState('');
+  const [chartEndDate, setChartEndDate] = useState('');
 
   useEffect(() => {
     // plansが読み込まれたら、デフォルトで全ての有効なプランを選択状態にする
@@ -83,6 +85,8 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
     const fetchFilteredSummary = async () => {
       const targetPlans = plans.filter(p => selectedPlanIds.includes(p.id));
       const planSubjects = Array.from(new Set(targetPlans.flatMap(p => p.subjectNames)));
+      const planStartDate = targetPlans.map((p) => p.period.from).filter(Boolean).sort()[0] ?? '';
+      const planEndDate = targetPlans.map((p) => p.period.to).filter(Boolean).sort().at(-1) ?? '';
 
       if (planSubjects.length === 0) {
         setDailySummaryAll([]);
@@ -90,8 +94,11 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
       }
 
       try {
-        const subjectParams = planSubjects.map(s => `subjects=${encodeURIComponent(s)}`).join('&');
-        const response = await fetch(`/api/history/daily-summary/all?${subjectParams}`);
+        const params = new URLSearchParams();
+        planSubjects.forEach((s) => params.append('subjects', s));
+        if (planStartDate) params.append('start_date', planStartDate);
+        if (planEndDate) params.append('end_date', planEndDate);
+        const response = await fetch(`/api/history/daily-summary/all?${params.toString()}`);
         if (response.ok) {
           const data = await response.json();
           setDailySummaryAll(data);
@@ -108,6 +115,20 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
     if (plans.length > 0) {
       fetchFilteredSummary();
     }
+  }, [plans, selectedPlanIds]);
+
+  useEffect(() => {
+    const activePlans = plans.filter(p => p.enabled && selectedPlanIds.includes(p.id));
+    if (activePlans.length === 0) {
+      setChartStartDate('');
+      setChartEndDate('');
+      return;
+    }
+
+    const defaultStart = activePlans.map((p) => p.period.from).filter(Boolean).sort()[0] ?? '';
+    const defaultEnd = activePlans.map((p) => p.period.to).filter(Boolean).sort().at(-1) ?? '';
+    setChartStartDate(defaultStart);
+    setChartEndDate(defaultEnd);
   }, [plans, selectedPlanIds]);
 
   useEffect(() => {
@@ -291,19 +312,10 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
   }, [progressData]);
 
   const displayProgressData = useMemo(() => {
-    const today = new Date(getTodayYmdJst());
-    today.setHours(0, 0, 0, 0);
-    const from = new Date(today);
-    from.setDate(from.getDate() - 2);
-    const to = new Date(today);
-    to.setDate(to.getDate() + 2);
-    const fromYmd = formatDateYmd(from);
-    const toYmd = formatDateYmd(to);
-
     return progressData
-      .filter(d => d.date >= fromYmd && d.date <= toYmd)
+      .filter((d) => (!chartStartDate || d.date >= chartStartDate) && (!chartEndDate || d.date <= chartEndDate))
       .sort((a, b) => a.date.localeCompare(b.date));
-  }, [progressData]);
+  }, [chartEndDate, chartStartDate, progressData]);
 
   const chartData = useMemo(() => {
     return displayProgressData
@@ -534,9 +546,46 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
           <p className="text-2xl font-bold text-amber-700">{learningDebt} 問</p>
           <p className="text-xs text-amber-800">未消化復習（累計予定 - 累計実績）</p>
         </div>
+        <div className="mb-4 grid gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 md:grid-cols-[1fr_1fr_auto]">
+          <div>
+            <label htmlFor="chartStartDate" className="block text-sm font-medium text-gray-700">表示開始日</label>
+            <input
+              type="date"
+              id="chartStartDate"
+              value={chartStartDate}
+              onChange={(e) => setChartStartDate(e.target.value)}
+              className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm"
+            />
+          </div>
+          <div>
+            <label htmlFor="chartEndDate" className="block text-sm font-medium text-gray-700">表示終了日</label>
+            <input
+              type="date"
+              id="chartEndDate"
+              value={chartEndDate}
+              onChange={(e) => setChartEndDate(e.target.value)}
+              className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm"
+            />
+          </div>
+          <div className="flex items-end">
+            <button
+              type="button"
+              onClick={() => {
+                const activePlans = plans.filter(p => p.enabled && selectedPlanIds.includes(p.id));
+                const defaultStart = activePlans.map((p) => p.period.from).filter(Boolean).sort()[0] ?? '';
+                const defaultEnd = activePlans.map((p) => p.period.to).filter(Boolean).sort().at(-1) ?? '';
+                setChartStartDate(defaultStart);
+                setChartEndDate(defaultEnd);
+              }}
+              className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 md:w-auto"
+            >
+              期間をリセット
+            </button>
+          </div>
+        </div>
         <h3 className="text-lg font-semibold text-gray-700 mb-4">予実グラフ</h3>
         {chartData.length === 0 ? (
-          <div className="text-sm text-gray-500 py-8">当日±4日に表示対象データがありません。</div>
+          <div className="text-sm text-gray-500 py-8">選択した期間に表示対象データがありません。</div>
         ) : (
           <div ref={chartWrapperRef}>
             {isPrintPreview ? (

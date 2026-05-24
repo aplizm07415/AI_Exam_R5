@@ -38,6 +38,8 @@ export default function PlanManagementDashboard({ subjects }) {
     const chartWrapperRef = useRef(null);
     const [isPrintPreview, setIsPrintPreview] = useState(false);
     const [printChartWidth, setPrintChartWidth] = useState(900);
+    const [chartStartDate, setChartStartDate] = useState('');
+    const [chartEndDate, setChartEndDate] = useState('');
     useEffect(() => {
         // plansが読み込まれたら、デフォルトで全ての有効なプランを選択状態にする
         const defaultSelectedIds = plans.filter(p => p.enabled).map(p => p.id);
@@ -47,13 +49,20 @@ export default function PlanManagementDashboard({ subjects }) {
         const fetchFilteredSummary = async () => {
             const targetPlans = plans.filter(p => selectedPlanIds.includes(p.id));
             const planSubjects = Array.from(new Set(targetPlans.flatMap(p => p.subjectNames)));
+            const planStartDate = targetPlans.map((p) => p.period.from).filter(Boolean).sort()[0] ?? '';
+            const planEndDate = targetPlans.map((p) => p.period.to).filter(Boolean).sort().at(-1) ?? '';
             if (planSubjects.length === 0) {
                 setDailySummaryAll([]);
                 return;
             }
             try {
-                const subjectParams = planSubjects.map(s => `subjects=${encodeURIComponent(s)}`).join('&');
-                const response = await fetch(`/api/history/daily-summary/all?${subjectParams}`);
+                const params = new URLSearchParams();
+                planSubjects.forEach((s) => params.append('subjects', s));
+                if (planStartDate)
+                    params.append('start_date', planStartDate);
+                if (planEndDate)
+                    params.append('end_date', planEndDate);
+                const response = await fetch(`/api/history/daily-summary/all?${params.toString()}`);
                 if (response.ok) {
                     const data = await response.json();
                     setDailySummaryAll(data);
@@ -71,6 +80,18 @@ export default function PlanManagementDashboard({ subjects }) {
         if (plans.length > 0) {
             fetchFilteredSummary();
         }
+    }, [plans, selectedPlanIds]);
+    useEffect(() => {
+        const activePlans = plans.filter(p => p.enabled && selectedPlanIds.includes(p.id));
+        if (activePlans.length === 0) {
+            setChartStartDate('');
+            setChartEndDate('');
+            return;
+        }
+        const defaultStart = activePlans.map((p) => p.period.from).filter(Boolean).sort()[0] ?? '';
+        const defaultEnd = activePlans.map((p) => p.period.to).filter(Boolean).sort().at(-1) ?? '';
+        setChartStartDate(defaultStart);
+        setChartEndDate(defaultEnd);
     }, [plans, selectedPlanIds]);
     useEffect(() => {
         const triggerChartResize = () => {
@@ -230,18 +251,10 @@ export default function PlanManagementDashboard({ subjects }) {
         return Math.max(0, latest.plan.cumulative - latest.actual.cumulative);
     }, [progressData]);
     const displayProgressData = useMemo(() => {
-        const today = new Date(getTodayYmdJst());
-        today.setHours(0, 0, 0, 0);
-        const from = new Date(today);
-        from.setDate(from.getDate() - 2);
-        const to = new Date(today);
-        to.setDate(to.getDate() + 2);
-        const fromYmd = formatDateYmd(from);
-        const toYmd = formatDateYmd(to);
         return progressData
-            .filter(d => d.date >= fromYmd && d.date <= toYmd)
+            .filter((d) => (!chartStartDate || d.date >= chartStartDate) && (!chartEndDate || d.date <= chartEndDate))
             .sort((a, b) => a.date.localeCompare(b.date));
-    }, [progressData]);
+    }, [chartEndDate, chartStartDate, progressData]);
     const chartData = useMemo(() => {
         return displayProgressData
             .map(d => ({
@@ -261,7 +274,13 @@ export default function PlanManagementDashboard({ subjects }) {
                                         setSelectedPlanIds(prev => prev.includes(plan.id)
                                             ? prev.filter(id => id !== plan.id)
                                             : [...prev, plan.id]);
-                                    }, className: "h-4 w-4 accent-primary-new text-primary-new border-gray-300 rounded focus:ring-primary-new", disabled: !plan.enabled }), _jsx("label", { htmlFor: `plan-toggle-${plan.id}`, className: `ml-2 text-sm text-gray-700 truncate ${!plan.enabled ? 'text-gray-400 cursor-not-allowed' : 'cursor-pointer'}`, title: plan.title, children: plan.title })] }, plan.id))) })] }), _jsx("div", { className: "space-y-4", children: plans.map(plan => (_jsxs("div", { className: "p-4 border rounded-lg flex items-center justify-between hover:bg-gray-50 transition-colors", children: [_jsxs("div", { className: "flex-1 cursor-pointer", onClick: () => handleEdit(plan), children: [_jsx("p", { className: "font-bold text-gray-800", children: plan.title }), _jsx("p", { className: "text-sm text-gray-500", children: plan.subjectNames.join(', ') }), _jsxs("p", { className: "text-sm text-gray-500", children: [plan.period.from, " ~ ", plan.period.to] }), _jsxs("p", { className: "text-xs text-gray-500 mt-1", children: ["\u6700\u4F4E\u5B9F\u65BD\u30E9\u30A4\u30F3: ", plan.minimumDaily ?? 0, "\u554F / \u81EA\u52D5\u518D\u914D\u5206: ", plan.autoRedistribute === false ? 'OFF' : 'ON'] })] }), _jsxs("div", { className: "flex items-center gap-4 ml-4", children: [_jsx("label", { htmlFor: `toggle-${plan.id}`, className: "flex items-center cursor-pointer", children: _jsxs("div", { className: "relative", children: [_jsx("input", { type: "checkbox", id: `toggle-${plan.id}`, className: "sr-only", checked: plan.enabled, onChange: () => toggleEnabled(plan) }), _jsx("div", { className: `block w-14 h-8 rounded-full border-2 border-primary-new transition-colors ${plan.enabled ? 'bg-primary-new' : 'bg-white'}` })] }) }), _jsx("button", { onClick: () => confirmDeletePlan(plan), className: "text-gray-400 hover:text-danger", children: _jsx(TrashIcon, { className: "w-6 h-6" }) })] })] }, plan.id))) }), _jsxs("div", { className: "mt-8 print-chart-fix", children: [_jsxs("div", { className: "mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3", children: [_jsx("p", { className: "text-sm font-medium text-amber-900", children: "\u5B66\u7FD2\u8CA0\u50B5\u30E1\u30FC\u30BF\u30FC" }), _jsxs("p", { className: "text-2xl font-bold text-amber-700", children: [learningDebt, " \u554F"] }), _jsx("p", { className: "text-xs text-amber-800", children: "\u672A\u6D88\u5316\u5FA9\u7FD2\uFF08\u7D2F\u8A08\u4E88\u5B9A - \u7D2F\u8A08\u5B9F\u7E3E\uFF09" })] }), _jsx("h3", { className: "text-lg font-semibold text-gray-700 mb-4", children: "\u4E88\u5B9F\u30B0\u30E9\u30D5" }), chartData.length === 0 ? (_jsx("div", { className: "text-sm text-gray-500 py-8", children: "\u5F53\u65E5\u00B14\u65E5\u306B\u8868\u793A\u5BFE\u8C61\u30C7\u30FC\u30BF\u304C\u3042\u308A\u307E\u305B\u3093\u3002" })) : (_jsx("div", { ref: chartWrapperRef, children: isPrintPreview ? (_jsxs(LineChart, { width: printChartWidth, height: 350, data: chartData, margin: {
+                                    }, className: "h-4 w-4 accent-primary-new text-primary-new border-gray-300 rounded focus:ring-primary-new", disabled: !plan.enabled }), _jsx("label", { htmlFor: `plan-toggle-${plan.id}`, className: `ml-2 text-sm text-gray-700 truncate ${!plan.enabled ? 'text-gray-400 cursor-not-allowed' : 'cursor-pointer'}`, title: plan.title, children: plan.title })] }, plan.id))) })] }), _jsx("div", { className: "space-y-4", children: plans.map(plan => (_jsxs("div", { className: "p-4 border rounded-lg flex items-center justify-between hover:bg-gray-50 transition-colors", children: [_jsxs("div", { className: "flex-1 cursor-pointer", onClick: () => handleEdit(plan), children: [_jsx("p", { className: "font-bold text-gray-800", children: plan.title }), _jsx("p", { className: "text-sm text-gray-500", children: plan.subjectNames.join(', ') }), _jsxs("p", { className: "text-sm text-gray-500", children: [plan.period.from, " ~ ", plan.period.to] }), _jsxs("p", { className: "text-xs text-gray-500 mt-1", children: ["\u6700\u4F4E\u5B9F\u65BD\u30E9\u30A4\u30F3: ", plan.minimumDaily ?? 0, "\u554F / \u81EA\u52D5\u518D\u914D\u5206: ", plan.autoRedistribute === false ? 'OFF' : 'ON'] })] }), _jsxs("div", { className: "flex items-center gap-4 ml-4", children: [_jsx("label", { htmlFor: `toggle-${plan.id}`, className: "flex items-center cursor-pointer", children: _jsxs("div", { className: "relative", children: [_jsx("input", { type: "checkbox", id: `toggle-${plan.id}`, className: "sr-only", checked: plan.enabled, onChange: () => toggleEnabled(plan) }), _jsx("div", { className: `block w-14 h-8 rounded-full border-2 border-primary-new transition-colors ${plan.enabled ? 'bg-primary-new' : 'bg-white'}` })] }) }), _jsx("button", { onClick: () => confirmDeletePlan(plan), className: "text-gray-400 hover:text-danger", children: _jsx(TrashIcon, { className: "w-6 h-6" }) })] })] }, plan.id))) }), _jsxs("div", { className: "mt-8 print-chart-fix", children: [_jsxs("div", { className: "mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3", children: [_jsx("p", { className: "text-sm font-medium text-amber-900", children: "\u5B66\u7FD2\u8CA0\u50B5\u30E1\u30FC\u30BF\u30FC" }), _jsxs("p", { className: "text-2xl font-bold text-amber-700", children: [learningDebt, " \u554F"] }), _jsx("p", { className: "text-xs text-amber-800", children: "\u672A\u6D88\u5316\u5FA9\u7FD2\uFF08\u7D2F\u8A08\u4E88\u5B9A - \u7D2F\u8A08\u5B9F\u7E3E\uFF09" })] }), _jsxs("div", { className: "mb-4 grid gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 md:grid-cols-[1fr_1fr_auto]", children: [_jsxs("div", { children: [_jsx("label", { htmlFor: "chartStartDate", className: "block text-sm font-medium text-gray-700", children: "\u8868\u793A\u958B\u59CB\u65E5" }), _jsx("input", { type: "date", id: "chartStartDate", value: chartStartDate, onChange: (e) => setChartStartDate(e.target.value), className: "mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm" })] }), _jsxs("div", { children: [_jsx("label", { htmlFor: "chartEndDate", className: "block text-sm font-medium text-gray-700", children: "\u8868\u793A\u7D42\u4E86\u65E5" }), _jsx("input", { type: "date", id: "chartEndDate", value: chartEndDate, onChange: (e) => setChartEndDate(e.target.value), className: "mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm" })] }), _jsx("div", { className: "flex items-end", children: _jsx("button", { type: "button", onClick: () => {
+                                        const activePlans = plans.filter(p => p.enabled && selectedPlanIds.includes(p.id));
+                                        const defaultStart = activePlans.map((p) => p.period.from).filter(Boolean).sort()[0] ?? '';
+                                        const defaultEnd = activePlans.map((p) => p.period.to).filter(Boolean).sort().at(-1) ?? '';
+                                        setChartStartDate(defaultStart);
+                                        setChartEndDate(defaultEnd);
+                                    }, className: "w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 md:w-auto", children: "\u671F\u9593\u3092\u30EA\u30BB\u30C3\u30C8" }) })] }), _jsx("h3", { className: "text-lg font-semibold text-gray-700 mb-4", children: "\u4E88\u5B9F\u30B0\u30E9\u30D5" }), chartData.length === 0 ? (_jsx("div", { className: "text-sm text-gray-500 py-8", children: "\u9078\u629E\u3057\u305F\u671F\u9593\u306B\u8868\u793A\u5BFE\u8C61\u30C7\u30FC\u30BF\u304C\u3042\u308A\u307E\u305B\u3093\u3002" })) : (_jsx("div", { ref: chartWrapperRef, children: isPrintPreview ? (_jsxs(LineChart, { width: printChartWidth, height: 350, data: chartData, margin: {
                                 top: 5, right: 30, left: 20, bottom: 50,
                             }, children: [_jsx(CartesianGrid, { strokeDasharray: "3 3" }), _jsx(XAxis, { dataKey: "date" }), _jsx(YAxis, {}), _jsx(Tooltip, {}), _jsx(Legend, {}), _jsx(Line, { type: "monotone", dataKey: "\u4E88\u5B9A", stroke: "#3d7cce", dot: false, isAnimationActive: false }), _jsx(Line, { type: "monotone", dataKey: "\u5B9F\u7E3E", stroke: "#cf483e", dot: false, isAnimationActive: false })] })) : (_jsx(ResponsiveContainer, { width: "100%", height: 350, children: _jsxs(LineChart, { data: chartData, margin: {
                                     top: 5, right: 30, left: 20, bottom: 50,

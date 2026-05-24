@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import LoadingSpinner from './components/LoadingSpinner';
 
@@ -11,10 +11,19 @@ interface Subject {
 interface AnalyticsData {
   overall_correct_rate: number;
   total_runs: number;
+  answered_problems_count: number;
   daily_correct_rate_trend: Record<string, number>;
   frequently_missed_categories: Record<string, number>;
   total_problems_in_subject: number;
   unanswered_problems_count: number;
+  today_total_runs: number;
+  today_correct_answers: number;
+  today_mode_breakdown: {
+    mode: string;
+    total_runs: number;
+    correct_answers: number;
+    accuracy: number;
+  }[];
 }
 
 interface DailySummaryItem {
@@ -22,6 +31,12 @@ interface DailySummaryItem {
   total_questions: number;
   correct_count: number;
   accuracy: number;
+  mode_breakdown?: {
+    mode: string;
+    total_questions: number;
+    correct_count: number;
+    accuracy: number;
+  }[];
 }
 
 interface AnalysisDashboardProps {
@@ -34,6 +49,12 @@ interface AnalysisDashboardProps {
   dailySummary: DailySummaryItem[];
   isDailySummaryLoading: boolean;
   dailySummaryError: string;
+  hasMoreDailySummary: boolean;
+  totalDailySummaryDays: number;
+  isLoadingMoreDailySummary: boolean;
+  isLoadingAllDailySummary: boolean;
+  onLoadMoreDailySummary: () => void;
+  onLoadAllDailySummary: () => void;
   // Filters
   startDate: string;
   setStartDate: (date: string) => void;
@@ -43,6 +64,93 @@ interface AnalysisDashboardProps {
   selectedCategory: string;
   setSelectedCategory: (category: string) => void;
   onApplyFilters: () => void;
+}
+
+interface BarTrendPoint {
+  date: string;
+  value: number;
+  label: string;
+  title: string;
+  barClassName: string;
+}
+
+interface BarTrendAxisLabel {
+  label: string;
+  topPercent: number;
+}
+
+function BarTrendChart({
+  points,
+  maxValue,
+  yAxisLabels,
+  emptyMessage,
+}: {
+  points: BarTrendPoint[];
+  maxValue: number;
+  yAxisLabels: BarTrendAxisLabel[];
+  emptyMessage: string;
+}) {
+  const safeMaxValue = Math.max(1, maxValue);
+  const minWidth = points.length > 21 ? `${points.length * 28}px` : '100%';
+
+  return (
+    <div className="grid grid-cols-[2.75rem_minmax(0,1fr)] gap-2">
+      <div className="flex h-56 flex-col justify-between pr-1 text-right text-xs text-gray-500">
+        {yAxisLabels.map((axisLabel, index) => (
+          <span key={`${axisLabel.label}-${index}`}>{axisLabel.label}</span>
+        ))}
+      </div>
+
+      <div className="overflow-x-auto pb-1">
+        <div style={{ minWidth }}>
+          <div className="relative h-56">
+            <div className="absolute inset-0">
+              {yAxisLabels.map((axisLabel, index) => (
+                <div
+                  key={`${axisLabel.label}-${index}`}
+                  className="absolute w-full border-t border-gray-200 border-dashed"
+                  style={{ top: `${axisLabel.topPercent}%` }}
+                />
+              ))}
+            </div>
+
+            {points.length > 0 ? (
+              <div className="relative z-10 flex h-full items-end justify-around gap-2 px-1">
+                {points.map((point, index) => {
+                  const barHeight = Math.max(0, Math.min(100, (point.value / safeMaxValue) * 100));
+                  return (
+                    <div key={`${point.date}-${index}`} className="group relative flex h-full flex-1 items-end justify-center">
+                      <div
+                        className={`relative w-full rounded-t min-h-[2px] transition-colors duration-200 print-keep-color ${point.barClassName}`}
+                        style={{ height: `${barHeight}%` }}
+                        title={point.title}
+                      >
+                        <div className="absolute bottom-full left-1/2 mb-1 -translate-x-1/2 whitespace-nowrap text-xs font-bold text-secondary opacity-0 transition-opacity duration-200 pointer-events-none group-hover:opacity-100">
+                          {point.label}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="absolute inset-0 flex items-center justify-center text-sm text-gray-500">{emptyMessage}</p>
+            )}
+          </div>
+
+          {points.length > 0 && (
+            <div className="mt-1 flex justify-around gap-2 px-1">
+              {points.map((point, index) => (
+                <div key={`${point.date}-label-${index}`} className="flex-1 text-center text-xs text-gray-500">
+                  {point.date.substring(5)}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function AnalysisDashboard({
@@ -55,6 +163,12 @@ export default function AnalysisDashboard({
   dailySummary,
   isDailySummaryLoading,
   dailySummaryError,
+  hasMoreDailySummary,
+  totalDailySummaryDays,
+  isLoadingMoreDailySummary,
+  isLoadingAllDailySummary,
+  onLoadMoreDailySummary,
+  onLoadAllDailySummary,
   // Filters
   startDate,
   setStartDate,
@@ -65,13 +179,22 @@ export default function AnalysisDashboard({
   setSelectedCategory,
   onApplyFilters,
 }: AnalysisDashboardProps) {
-  
   const [isExporting, setIsExporting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [consolidatedData, setConsolidatedData] = useState<DailySummaryItem[]>([]);
   const [isConsolidatedLoading, setIsConsolidatedLoading] = useState(false);
   const [consolidatedError, setConsolidatedError] = useState('');
   const [threshold, setThreshold] = useState<number>(0);
+  const dailyHistoryContainerRef = useRef<HTMLDivElement | null>(null);
+
+  const modeLabelMap: Record<string, string> = {
+    random: 'ランダム',
+    weak_area: '苦手',
+    unanswered: '未解答',
+    today_remaining: '今日の残り',
+    specific_area: '特定領域',
+    legacy: '旧履歴',
+  };
 
   const fetchConsolidatedData = async () => {
     setIsConsolidatedLoading(true);
@@ -111,6 +234,75 @@ export default function AnalysisDashboard({
       .map(([date, rate]) => ({ date, rate: rate * 100 }))
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [analytics]);
+
+  const countTrendData = useMemo(() => {
+    return [...dailySummary]
+      .map((item) => ({ date: item.date, count: item.total_questions }))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }, [dailySummary]);
+
+  const countScale = useMemo(() => {
+    const maxCount = countTrendData.reduce((max, item) => Math.max(max, item.count), 0);
+    const top = Math.max(5, Math.ceil(maxCount / 5) * 5);
+    const step = Math.max(1, top / 5);
+    return {
+      top,
+      labels: Array.from({ length: 6 }, (_, index) => ({
+        label: String(Math.max(0, top - step * index)),
+        topPercent: index * 20,
+      })),
+    };
+  }, [countTrendData]);
+
+  const correctRateAxisLabels = useMemo(() => {
+    return Array.from({ length: 11 }, (_, index) => ({
+      label: `${100 - index * 10}%`,
+      topPercent: index * 10,
+    }));
+  }, []);
+
+  const rateTrendPoints = useMemo(() => {
+    return trendData.map((item) => {
+      const isAboveThreshold = threshold > 0 && item.rate >= threshold;
+      return {
+        date: item.date,
+        value: item.rate,
+        label: `${item.rate.toFixed(0)}%`,
+        title: `${item.rate.toFixed(1)}%`,
+        barClassName: isAboveThreshold ? 'bg-danger/50 hover:bg-danger' : 'bg-blue-200 hover:bg-blue-300',
+      };
+    });
+  }, [threshold, trendData]);
+
+  const countTrendPoints = useMemo(() => {
+    return countTrendData.map((item) => ({
+      date: item.date,
+      value: item.count,
+      label: `${item.count}問`,
+      title: `${item.count}問`,
+      barClassName: 'bg-emerald-200 hover:bg-emerald-300',
+    }));
+  }, [countTrendData]);
+
+  const todayAccuracy = useMemo(() => {
+    if (!analytics || analytics.today_total_runs === 0) return 0;
+    return (analytics.today_correct_answers / analytics.today_total_runs) * 100;
+  }, [analytics]);
+
+  useEffect(() => {
+    const node = dailyHistoryContainerRef.current;
+    if (!node) return;
+
+    const handleScroll = () => {
+      const remaining = node.scrollHeight - node.scrollTop - node.clientHeight;
+      if (remaining < 120 && hasMoreDailySummary && !isLoadingMoreDailySummary && !isLoadingAllDailySummary) {
+        onLoadMoreDailySummary();
+      }
+    };
+
+    node.addEventListener('scroll', handleScroll);
+    return () => node.removeEventListener('scroll', handleScroll);
+  }, [hasMoreDailySummary, isLoadingAllDailySummary, isLoadingMoreDailySummary, onLoadMoreDailySummary]);
 
   const handleExportMissedProblems = async () => {
     if (selectedSubjectNames.length === 0) {
@@ -310,7 +502,7 @@ export default function AnalysisDashboard({
             <div className="space-y-8">
               <div className="bg-white rounded-xl shadow p-6 print-color-graph">
                 <h3 className="text-lg font-semibold text-gray-700 mb-4">総合パフォーマンス</h3>
-                <div className="grid grid-cols-4 gap-4 text-center">
+                <div className="grid grid-cols-2 gap-4 text-center xl:grid-cols-5">
                   <div>
                     <p className="text-3xl font-bold text-primary-new">{analytics.overall_correct_rate.toFixed(1)}%</p>
                     <p className="text-sm text-gray-500">全体正答率</p>
@@ -320,13 +512,46 @@ export default function AnalysisDashboard({
                     <p className="text-sm text-gray-500">問題総数</p>
                   </div>
                   <div>
-                    <p className="text-3xl font-bold text-primary-new">{analytics.total_runs}</p>
-                    <p className="text-sm text-gray-500">総解答数</p>
+                    <p className="text-3xl font-bold text-primary-new">{analytics.answered_problems_count}</p>
+                    <p className="text-sm text-gray-500">実施済み問題</p>
                   </div>
                   <div>
                     <p className="text-3xl font-bold text-green-600">{analytics.unanswered_problems_count}</p>
                     <p className="text-sm text-gray-500">未解答問題</p>
                   </div>
+                  <div>
+                    <p className="text-3xl font-bold text-slate-700">{analytics.total_runs}</p>
+                    <p className="text-sm text-gray-500">総回答回数</p>
+                  </div>
+                </div>
+                <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-700">本日のモード別実績</p>
+                      <p className="text-xs text-slate-500">選択中の科目を対象に、今日の実施数と正答数を分けて表示します。</p>
+                    </div>
+                    <div className="flex gap-4 text-sm text-slate-600">
+                      <span>合計 {analytics.today_total_runs}問</span>
+                      <span>正答 {analytics.today_correct_answers}問</span>
+                      <span>正答率 {todayAccuracy.toFixed(1)}%</span>
+                    </div>
+                  </div>
+                  {analytics.today_mode_breakdown.length === 0 ? (
+                    <p className="mt-4 text-sm text-slate-500">本日の履歴はまだありません。</p>
+                  ) : (
+                    <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                      {analytics.today_mode_breakdown.map((item) => (
+                        <div key={item.mode} className="rounded-lg border border-slate-200 bg-white px-4 py-3">
+                          <p className="text-sm font-semibold text-slate-800">{modeLabelMap[item.mode] ?? item.mode}</p>
+                          <div className="mt-2 flex items-center justify-between text-sm text-slate-600">
+                            <span>実施 {item.total_runs}</span>
+                            <span>正答 {item.correct_answers}</span>
+                            <span>{(item.accuracy * 100).toFixed(1)}%</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -359,71 +584,41 @@ export default function AnalysisDashboard({
                 )}
               </div>
 
-              <div className="bg-white rounded-xl shadow p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold text-gray-700">正答率の推移</h3>
-                  <select 
-                    onChange={(e) => setThreshold(Number(e.target.value))}
-                    value={threshold}
-                    className="text-xs border border-gray-300 rounded-md py-1 px-2"
-                  >
-                    <option value={0}>閾値なし</option>
-                    <option value={60}>60%</option>
-                    <option value={70}>70%</option>
-                    <option value={80}>80%</option>
-                    <option value={90}>90%</option>
-                  </select>
+              <div className="grid gap-8 xl:grid-cols-2">
+                <div className="bg-white rounded-xl shadow p-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold text-gray-700">正答率の推移</h3>
+                    <select 
+                      onChange={(e) => setThreshold(Number(e.target.value))}
+                      value={threshold}
+                      className="text-xs border border-gray-300 rounded-md py-1 px-2"
+                    >
+                      <option value={0}>閾値なし</option>
+                      <option value={60}>60%</option>
+                      <option value={70}>70%</option>
+                      <option value={80}>80%</option>
+                      <option value={90}>90%</option>
+                    </select>
+                  </div>
+                  <BarTrendChart
+                    points={rateTrendPoints}
+                    maxValue={100}
+                    yAxisLabels={correctRateAxisLabels}
+                    emptyMessage="履歴データがありません。"
+                  />
                 </div>
-                <div className="h-64 flex items-stretch">
-                  <div className="flex-shrink-0 flex flex-col justify-between text-xs text-gray-500 pr-2">
-                    <span>100%</span>
-                    <span>90%</span>
-                    <span>80%</span>
-                    <span>70%</span>
-                    <span>60%</span>
-                    <span>50%</span>
-                    <span>40%</span>
-                    <span>30%</span>
-                    <span>20%</span>
-                    <span>10%</span>
-                    <span>0%</span>
-                  </div>
 
-                  <div className="relative flex-grow overflow-x-auto">
-                    <div className="relative h-full" style={{ minWidth: trendData.length > 21 ? `${trendData.length * 25}px` : '100%'}}>
-                      
-                      {/* Background Grid lines */}
-                      <div className="absolute inset-0">
-                        {[100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 0].map(p => {
-                          const topPosition = 100 - p;
-                          return <div key={p} className="absolute w-full border-t border-gray-200 border-dashed" style={{ top: `${topPosition}%` }} />;
-                        })}
-                      </div>
-
-                      {/* Bars */}
-                      {trendData.length > 0 ? (
-                        <div className="relative w-full h-full flex justify-around gap-2 items-end px-1">
-                          {trendData.map((d, i) => {
-                              const isAboveThreshold = threshold > 0 && d.rate >= threshold;
-                              const barColor = isAboveThreshold ? 'bg-danger/50 hover:bg-danger' : 'bg-blue-200 hover:bg-blue-300';
-                              return (
-                                <div key={i} className="flex-1 h-full flex flex-col justify-end items-center group relative">
-                                    <div className="absolute -top-5 text-xs font-bold text-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-                                      {d.rate.toFixed(0)}%
-                                    </div>
-                                    <div
-                                      className={`w-full ${barColor} transition-colors duration-200 rounded-t min-h-[2px] print-keep-color`}
-                                      style={{ height: `${Math.max(0, Math.min(100, d.rate))}%` }}
-                                      title={`${d.rate.toFixed(1)}%`}
-                                    ></div>
-                                    <div className="text-xs text-gray-500 mt-1">{d.date.substring(5)}</div>
-                                </div>
-                              )
-                          })}
-                        </div>
-                      ) : <p className="absolute inset-0 flex items-center justify-center text-sm text-gray-500">履歴データがありません。</p>}
-                    </div>
+                <div className="bg-white rounded-xl shadow p-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold text-gray-700">実施数の推移</h3>
+                    <p className="text-xs text-gray-500">日別の実施件数</p>
                   </div>
+                  <BarTrendChart
+                    points={countTrendPoints}
+                    maxValue={countScale.top}
+                    yAxisLabels={countScale.labels}
+                    emptyMessage="履歴データがありません。"
+                  />
                 </div>
               </div>
             </div>
@@ -432,7 +627,20 @@ export default function AnalysisDashboard({
 
         <div className="lg:col-span-1">
           <div className="bg-white rounded-xl shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4">日別実施履歴</h3>
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-700">日別実施履歴</h3>
+                <p className="text-xs text-gray-500">{dailySummary.length} / {totalDailySummaryDays}日分を表示</p>
+              </div>
+              <button
+                type="button"
+                onClick={onLoadAllDailySummary}
+                disabled={!hasMoreDailySummary || isLoadingAllDailySummary}
+                className="rounded-md border border-gray-300 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isLoadingAllDailySummary ? '取得中...' : '全部表示'}
+              </button>
+            </div>
             {isDailySummaryLoading ? (
               <LoadingSpinner />
             ) : dailySummaryError ? (
@@ -440,7 +648,7 @@ export default function AnalysisDashboard({
             ) : dailySummary.length === 0 ? (
               <p className="text-sm text-gray-500">日別実施履歴がありません。</p>
             ) : (
-              <div className="overflow-x-auto">
+              <div ref={dailyHistoryContainerRef} className="max-h-[32rem] overflow-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-100">
                     <tr>
@@ -452,15 +660,33 @@ export default function AnalysisDashboard({
                   </thead>
                   <tbody className="divide-y divide-gray-200">
                     {dailySummary.map((item) => (
-                      <tr key={item.date} className="hover:bg-gray-100">
-                        <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-700">{item.date}</td>
-                        <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">{item.total_questions}</td>
-                        <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">{item.correct_count}</td>
-                        <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">{(item.accuracy * 100).toFixed(1)}%</td>
-                      </tr>
+                      <React.Fragment key={item.date}>
+                        <tr className="hover:bg-gray-100">
+                          <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-700">{item.date}</td>
+                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">{item.total_questions}</td>
+                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">{item.correct_count}</td>
+                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">{(item.accuracy * 100).toFixed(1)}%</td>
+                        </tr>
+                        {(item.mode_breakdown ?? []).length > 0 && (
+                          <tr className="bg-slate-50">
+                            <td colSpan={4} className="px-3 py-2 text-xs text-slate-600">
+                              <div className="flex flex-wrap gap-2">
+                                {(item.mode_breakdown ?? []).map((modeItem) => (
+                                  <span key={`${item.date}-${modeItem.mode}`} className="rounded-full border border-slate-200 bg-white px-2 py-1">
+                                    {modeLabelMap[modeItem.mode] ?? modeItem.mode}: 実施{modeItem.total_questions} / 正答{modeItem.correct_count}
+                                  </span>
+                                ))}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
                     ))}
                   </tbody>
                 </table>
+                {isLoadingMoreDailySummary && (
+                  <div className="py-3 text-center text-xs text-gray-500">過去履歴を読み込み中...</div>
+                )}
               </div>
             )}
           </div>

@@ -179,7 +179,8 @@ final class QuizPencilModeViewModel: ObservableObject {
                 subject: question.subject,
                 selectedAnswer: answer,
                 isCorrect: answerIsCorrect,
-                category: question.category
+                category: question.category,
+                mode: session.mode
             )
             isCorrect = answerIsCorrect
             isAnswered = true

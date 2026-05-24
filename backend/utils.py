@@ -17,6 +17,7 @@ class HistoryItem(BaseModel):
     is_correct: bool
     answered_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     category: str | None = None
+    mode: str | None = None
 
 class ProblemStudyStatus(BaseModel):
     problem_id: str

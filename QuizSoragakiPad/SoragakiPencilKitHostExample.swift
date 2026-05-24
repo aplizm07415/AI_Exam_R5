@@ -61,7 +61,7 @@ protocol QuizSessionBackend {
     var isNetworkAvailable: Bool { get }
 
     func loadQuestions(for session: QuizSessionDescriptor) async throws -> [QuizQuestion]
-    func submitHistory(problemID: String, subject: String, selectedAnswer: String, isCorrect: Bool, category: String?) async throws
+    func submitHistory(problemID: String, subject: String, selectedAnswer: String, isCorrect: Bool, category: String?, mode: String?) async throws
     func loadHistoryStats(problemIDs: [String], subjects: [String]) async throws -> [String: QuizHistoryStat]
     func isReviewLater(subject: String, problemID: String) async throws -> Bool
     func saveReviewLater(subject: String, problemID: String) async throws
@@ -92,8 +92,8 @@ struct RemoteQuizSessionBackend: QuizSessionBackend {
         )
     }
 
-    func submitHistory(problemID: String, subject: String, selectedAnswer: String, isCorrect: Bool, category: String?) async throws {
-        try await apiClient.submitHistory(problemID: problemID, subject: subject, selectedAnswer: selectedAnswer, isCorrect: isCorrect, category: category)
+    func submitHistory(problemID: String, subject: String, selectedAnswer: String, isCorrect: Bool, category: String?, mode: String?) async throws {
+        try await apiClient.submitHistory(problemID: problemID, subject: subject, selectedAnswer: selectedAnswer, isCorrect: isCorrect, category: category, mode: mode)
     }
 
     func loadHistoryStats(problemIDs: [String], subjects: [String]) async throws -> [String: QuizHistoryStat] {
@@ -661,7 +661,7 @@ final class QuizPencilModeViewModel: ObservableObject {
                         let selected = action.selectedAnswer,
                         let isCorrect = action.isCorrect
                     else { continue }
-                    try await backend.submitHistory(problemID: problemID, subject: subject, selectedAnswer: selected, isCorrect: isCorrect, category: action.category)
+                    try await backend.submitHistory(problemID: problemID, subject: subject, selectedAnswer: selected, isCorrect: isCorrect, category: action.category, mode: session?.mode)
                 case "customMemo":
                     guard let problemID = action.problemID else { continue }
                     try await backend.saveCustomExplanation(
@@ -740,7 +740,8 @@ final class QuizPencilModeViewModel: ObservableObject {
                 subject: question.subject,
                 selectedAnswer: answer,
                 isCorrect: answerIsCorrect,
-                category: question.category
+                category: question.category,
+                mode: session?.mode
             )
             isCorrect = answerIsCorrect
             isAnswered = true
@@ -781,7 +782,8 @@ final class QuizPencilModeViewModel: ObservableObject {
                 subject: question.subject,
                 selectedAnswer: submittedAnswer,
                 isCorrect: false,
-                category: question.category
+                category: question.category,
+                mode: session?.mode
             )
             isCorrect = false
             isAnswered = true

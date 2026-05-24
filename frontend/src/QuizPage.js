@@ -878,6 +878,7 @@ export default function QuizPage({ subjects: allSubjects }) {
                     selected_answer: submittedAnswer,
                     is_correct: isCorrect,
                     category: currentQuestion.category,
+                    mode: quizMode,
                 }),
             });
             if (!response.ok) {

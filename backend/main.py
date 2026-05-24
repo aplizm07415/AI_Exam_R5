@@ -35,6 +35,27 @@ class DailySummaryItem(BaseModel):
     correct_count: int
     accuracy: float
 
+class ModeSummaryItem(BaseModel):
+    mode: str
+    total_questions: int
+    correct_count: int
+    accuracy: float
+
+class DailySummaryDetailItem(DailySummaryItem):
+    mode_breakdown: list[ModeSummaryItem] = Field(default_factory=list)
+
+class PagedDailySummaryResponse(BaseModel):
+    items: list[DailySummaryDetailItem]
+    total_days: int
+    has_more: bool
+    next_offset: Optional[int] = None
+
+class TodayModeSummary(BaseModel):
+    mode: str
+    total_runs: int
+    correct_answers: int
+    accuracy: float
+
 class GenerateKeywordsRequest(BaseModel):
     memo_text: str
 
@@ -2552,11 +2573,98 @@ def _empty_analytics_response():
     return {
         "overall_correct_rate": 0,
         "total_runs": 0,
+        "answered_problems_count": 0,
         "daily_correct_rate_trend": {},
         "frequently_missed_categories": {},
         "total_problems_in_subject": 0,
         "unanswered_problems_count": 0,
+        "today_total_runs": 0,
+        "today_correct_answers": 0,
+        "today_mode_breakdown": [],
     }
+
+
+def _normalize_history_mode(mode: Optional[str]) -> str:
+    if not mode:
+        return "legacy"
+    normalized = mode.strip().lower()
+    if normalized == "today_remaining":
+        return "today_remaining"
+    if normalized in {"random", "weak_area", "unanswered", "specific_area"}:
+        return normalized
+    return normalized or "legacy"
+
+
+def _build_mode_breakdown(
+    history_items: list[HistoryItem],
+    sort_by_runs_desc: bool = True,
+) -> list[dict]:
+    grouped: dict[str, dict[str, int]] = {}
+    for item in history_items:
+        mode_key = _normalize_history_mode(item.mode)
+        stats = grouped.setdefault(mode_key, {"total_questions": 0, "correct_count": 0})
+        stats["total_questions"] += 1
+        if item.is_correct:
+            stats["correct_count"] += 1
+
+    rows = [
+        {
+            "mode": mode,
+            "total_questions": stats["total_questions"],
+            "correct_count": stats["correct_count"],
+            "accuracy": (stats["correct_count"] / stats["total_questions"]) if stats["total_questions"] > 0 else 0,
+        }
+        for mode, stats in grouped.items()
+    ]
+    if sort_by_runs_desc:
+        rows.sort(key=lambda row: (-row["total_questions"], row["mode"]))
+    else:
+        rows.sort(key=lambda row: row["mode"])
+    return rows
+
+
+def _build_daily_summary_items(
+    history_items: list[HistoryItem],
+    include_mode_breakdown: bool = False,
+) -> list[DailySummaryDetailItem]:
+    daily_summary_map: dict[str, dict] = {}
+
+    for item in history_items:
+        date_str = item.answered_at.astimezone(TOKYO_TZ).strftime("%Y-%m-%d")
+        if date_str not in daily_summary_map:
+            daily_summary_map[date_str] = {
+                "total_questions": 0,
+                "correct_count": 0,
+                "items": [],
+            }
+
+        daily_summary_map[date_str]["total_questions"] += 1
+        if item.is_correct:
+            daily_summary_map[date_str]["correct_count"] += 1
+        if include_mode_breakdown:
+            daily_summary_map[date_str]["items"].append(item)
+
+    daily_summary_list: list[DailySummaryDetailItem] = []
+    for date_str, stats in daily_summary_map.items():
+        total_questions = stats["total_questions"]
+        if total_questions <= 0:
+            continue
+        mode_breakdown = []
+        if include_mode_breakdown:
+            mode_breakdown = [
+                ModeSummaryItem.model_validate(row)
+                for row in _build_mode_breakdown(stats["items"])
+            ]
+        daily_summary_list.append(DailySummaryDetailItem(
+            date=date_str,
+            total_questions=total_questions,
+            correct_count=stats["correct_count"],
+            accuracy=stats["correct_count"] / total_questions,
+            mode_breakdown=mode_breakdown,
+        ))
+
+    daily_summary_list.sort(key=lambda x: x.date, reverse=True)
+    return daily_summary_list
 
 
 def _filter_history_items(
@@ -2611,14 +2719,16 @@ def _build_analytics_response(
     total_problems_in_subject = 0
 
     for subject_name in unique_subjects:
-        history_items = _get_history_items_for_subject(subject_name)
-        all_history_items.extend(history_items)
-        for item in history_items:
-            answered_problem_keys.add((subject_name, item.problem_id))
-
         try:
             all_questions_for_subject_map = _get_all_questions_for_subject(subject_name)
             total_problems_in_subject += len(all_questions_for_subject_map)
+            valid_problem_ids = set(all_questions_for_subject_map.keys())
+            history_items = _get_history_items_for_subject(subject_name)
+            for item in history_items:
+                if item.problem_id not in valid_problem_ids:
+                    continue
+                all_history_items.append(item)
+                answered_problem_keys.add((subject_name, item.problem_id))
         except Exception as e:
             print(f"Warning: failed to read questions for analytics subject {subject_name}: {e}")
 
@@ -2629,12 +2739,33 @@ def _build_analytics_response(
         category=category,
     )
 
+    answered_problems_count = len(answered_problem_keys)
     unanswered_problems_count = max(0, total_problems_in_subject - len(answered_problem_keys))
+    today_jst = datetime.datetime.now(TOKYO_TZ).date()
+    today_history = [
+        item for item in all_history_items
+        if item.answered_at.astimezone(TOKYO_TZ).date() == today_jst and (not category or item.category == category)
+    ]
+    today_total_runs = len(today_history)
+    today_correct_answers = sum(1 for item in today_history if item.is_correct)
+    today_mode_breakdown = [
+        {
+            "mode": row["mode"],
+            "total_runs": row["total_questions"],
+            "correct_answers": row["correct_count"],
+            "accuracy": row["accuracy"],
+        }
+        for row in _build_mode_breakdown(today_history)
+    ]
 
     if not target_history:
         response = _empty_analytics_response()
         response["total_problems_in_subject"] = total_problems_in_subject
+        response["answered_problems_count"] = answered_problems_count
         response["unanswered_problems_count"] = unanswered_problems_count
+        response["today_total_runs"] = today_total_runs
+        response["today_correct_answers"] = today_correct_answers
+        response["today_mode_breakdown"] = today_mode_breakdown
         return response
 
     total_runs = len(target_history)
@@ -2664,10 +2795,14 @@ def _build_analytics_response(
     return {
         "overall_correct_rate": overall_correct_rate,
         "total_runs": total_runs,
+        "answered_problems_count": answered_problems_count,
         "daily_correct_rate_trend": daily_correct_rate_trend,
         "frequently_missed_categories": frequently_missed_categories,
         "total_problems_in_subject": total_problems_in_subject,
         "unanswered_problems_count": unanswered_problems_count,
+        "today_total_runs": today_total_runs,
+        "today_correct_answers": today_correct_answers,
+        "today_mode_breakdown": today_mode_breakdown,
     }
 
 
@@ -3368,8 +3503,13 @@ def get_subjects_progress(subject_names: list[str] = Query(...)):
 
 # --- 新規追加: 日別集計API ---
 @api_router.get("/history/daily-summary/all", response_model=list[DailySummaryItem])
-def get_all_daily_summaries(subjects: Optional[List[str]] = Query(None)):
-    """すべての科目の履歴、または指定された科目の履歴を読み込み、直近14日間の日付ごとに集計した統合サマリーを返す"""
+def get_all_daily_summaries(
+    subjects: Optional[List[str]] = Query(None),
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    category: Optional[str] = None,
+):
+    """すべての科目の履歴、または指定された科目の履歴を読み込み、日付ごとに集計した統合サマリーを返す"""
     if container_client is None:
         return []
 
@@ -3403,36 +3543,104 @@ def get_all_daily_summaries(subjects: Optional[List[str]] = Query(None)):
     if not all_history_items:
         return []
 
-    # 直近14日間のフィルタリング
-    today = datetime.datetime.now(TOKYO_TZ).date()
-    start_date = today - datetime.timedelta(days=13)
+    target_history = _filter_history_items(
+        all_history_items,
+        start_date=start_date,
+        end_date=end_date,
+        category=category,
+    )
+    if not start_date and not end_date:
+        today = datetime.datetime.now(TOKYO_TZ).date()
+        default_start_date = today - datetime.timedelta(days=13)
+        target_history = [
+            item for item in target_history
+            if item.answered_at.astimezone(TOKYO_TZ).date() >= default_start_date
+        ]
 
-    daily_summary_map = {}
-    for item in all_history_items:
-        item_date = item.answered_at.astimezone(TOKYO_TZ).date()
-        
-        if item_date >= start_date:
-            date_str = item.answered_at.astimezone(TOKYO_TZ).strftime("%Y-%m-%d")
-            if date_str not in daily_summary_map:
-                daily_summary_map[date_str] = {"total_questions": 0, "correct_count": 0}
-            
-            daily_summary_map[date_str]["total_questions"] += 1
-            if item.is_correct:
-                daily_summary_map[date_str]["correct_count"] += 1
-            
-    daily_summary_list = []
-    for date_str, stats in daily_summary_map.items():
-        if stats["total_questions"] > 0:
-            accuracy = stats["correct_count"] / stats["total_questions"]
-            daily_summary_list.append(DailySummaryItem(
-                date=date_str,
-                total_questions=stats["total_questions"],
-                correct_count=stats["correct_count"],
-                accuracy=accuracy
-            ))
-            
-    daily_summary_list.sort(key=lambda x: x.date, reverse=True)
-    return daily_summary_list
+    daily_summary_list = _build_daily_summary_items(target_history)
+    return [
+        DailySummaryItem(
+            date=item.date,
+            total_questions=item.total_questions,
+            correct_count=item.correct_count,
+            accuracy=item.accuracy,
+        )
+        for item in daily_summary_list
+    ]
+
+
+@api_router.get("/history/daily-summary/all/paged", response_model=PagedDailySummaryResponse)
+def get_all_daily_summaries_paged(
+    subjects: Optional[List[str]] = Query(None),
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    category: Optional[str] = None,
+    offset: int = Query(0, ge=0),
+    limit: int = Query(30, ge=1, le=366),
+    include_mode_breakdown: bool = False,
+):
+    if container_client is None:
+        return PagedDailySummaryResponse(items=[], total_days=0, has_more=False, next_offset=None)
+
+    all_history_items: list[HistoryItem] = []
+    blob_names_to_scan: list[str] = []
+    if subjects:
+        blob_names_to_scan = [f"history/{Path(s).stem}.jsonl" for s in subjects]
+    else:
+        history_blobs = container_client.list_blobs(name_starts_with="history/")
+        blob_names_to_scan = [blob.name for blob in history_blobs if blob.name.endswith(".jsonl")]
+
+    try:
+        for blob_name in blob_names_to_scan:
+            blob_client = container_client.get_blob_client(blob_name)
+            if not blob_client.exists():
+                continue
+            history_content = blob_client.download_blob().readall().decode('utf-8')
+            history_lines = history_content.strip().split('\n')
+            for line in history_lines:
+                if not line.strip():
+                    continue
+                try:
+                    all_history_items.append(HistoryItem.model_validate_json(line))
+                except Exception as e:
+                    print(f"Skipping malformed line in {blob_name}: {line}. Error: {e}")
+    except Exception as e:
+        print(f"Error reading history blobs for paged summaries: {e}")
+        return PagedDailySummaryResponse(items=[], total_days=0, has_more=False, next_offset=None)
+
+    target_history = _filter_history_items(
+        all_history_items,
+        start_date=start_date,
+        end_date=end_date,
+        category=category,
+    )
+
+    detailed_items = _build_daily_summary_items(
+        target_history,
+        include_mode_breakdown=include_mode_breakdown,
+    )
+    total_days = len(detailed_items)
+    paged_items = detailed_items[offset: offset + limit]
+    next_offset = offset + len(paged_items)
+    has_more = next_offset < total_days
+    if not include_mode_breakdown:
+        paged_items = [
+            DailySummaryDetailItem(
+                date=item.date,
+                total_questions=item.total_questions,
+                correct_count=item.correct_count,
+                accuracy=item.accuracy,
+                mode_breakdown=[],
+            )
+            for item in paged_items
+        ]
+
+    return PagedDailySummaryResponse(
+        items=paged_items,
+        total_days=total_days,
+        has_more=has_more,
+        next_offset=next_offset if has_more else None,
+    )
 
 @api_router.get("/history/daily-summary/{subject_name}", response_model=list[DailySummaryItem])
 def get_daily_summary(

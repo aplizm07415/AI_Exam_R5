@@ -19,10 +19,19 @@ interface DashboardPageProps {
 interface AnalyticsData {
   overall_correct_rate: number;
   total_runs: number;
+  answered_problems_count: number;
   daily_correct_rate_trend: Record<string, number>;
   frequently_missed_categories: Record<string, number>;
   total_problems_in_subject: number;
   unanswered_problems_count: number;
+  today_total_runs: number;
+  today_correct_answers: number;
+  today_mode_breakdown: {
+    mode: string;
+    total_runs: number;
+    correct_answers: number;
+    accuracy: number;
+  }[];
 }
 
 interface DailySummaryItem {
@@ -30,6 +39,19 @@ interface DailySummaryItem {
   total_questions: number;
   correct_count: number;
   accuracy: number;
+  mode_breakdown?: {
+    mode: string;
+    total_questions: number;
+    correct_count: number;
+    accuracy: number;
+  }[];
+}
+
+interface PagedDailySummaryResponse {
+  items: DailySummaryItem[];
+  total_days: number;
+  has_more: boolean;
+  next_offset: number | null;
 }
 
 interface FetchParams {
@@ -57,6 +79,11 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
   const [dailySummary, setDailySummary] = useState<DailySummaryItem[]>([]);
   const [isDailySummaryLoading, setIsDailySummaryLoading] = useState(false);
   const [dailySummaryError, setDailySummaryError] = useState('');
+  const [hasMoreDailySummary, setHasMoreDailySummary] = useState(false);
+  const [nextDailySummaryOffset, setNextDailySummaryOffset] = useState<number | null>(0);
+  const [totalDailySummaryDays, setTotalDailySummaryDays] = useState(0);
+  const [isLoadingMoreDailySummary, setIsLoadingMoreDailySummary] = useState(false);
+  const [isLoadingAllDailySummary, setIsLoadingAllDailySummary] = useState(false);
   
   // Filter states
   const [startDate, setStartDate] = useState('');
@@ -176,37 +203,61 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
     fetchAnalytics();
   }, [fetchParams, selectedSubjectNames]);
 
-  // Fetch daily summary data when fetchParams change
-  useEffect(() => {
+  const fetchDailySummaryPage = useCallback(async (options?: { reset?: boolean; loadAll?: boolean }) => {
     if (!fetchParams) return;
 
-    const fetchDailySummary = async () => {
-      setIsDailySummaryLoading(true);
-      setDailySummaryError('');
-      try {
-        const query = new URLSearchParams();
-        if (fetchParams.startDate) query.append('start_date', fetchParams.startDate);
-        if (fetchParams.endDate) query.append('end_date', fetchParams.endDate);
-        if (fetchParams.category) query.append('category', fetchParams.category);
+    const { reset = false, loadAll = false } = options ?? {};
+    const offset = reset ? 0 : (nextDailySummaryOffset ?? dailySummary.length);
+    const limit = loadAll ? 366 : 30;
 
-        const subjectParams = selectedSubjectNames.map((s) => `subjects=${encodeURIComponent(s)}`).join('&');
-        const suffix = query.toString();
-        const response = await fetch(`${API_BASE_URL}/history/daily-summary/all?${subjectParams}${suffix ? `&${suffix}` : ''}`);
-        if (!response.ok) {
-          const err = await response.json();
-          throw new Error(err.detail || '日別集計データの取得に失敗しました。');
-        }
-        const data: DailySummaryItem[] = await response.json();
-        setDailySummary(data);
-      } catch (e: any) {
-        setDailySummaryError(e.message);
-        setDailySummary([]);
-      } finally {
-        setIsDailySummaryLoading(false);
+    if (reset) {
+      setIsDailySummaryLoading(true);
+    } else if (loadAll) {
+      setIsLoadingAllDailySummary(true);
+    } else {
+      setIsLoadingMoreDailySummary(true);
+    }
+    setDailySummaryError('');
+
+    try {
+      const query = new URLSearchParams();
+      selectedSubjectNames.forEach((s) => query.append('subjects', s));
+      if (fetchParams.startDate) query.append('start_date', fetchParams.startDate);
+      if (fetchParams.endDate) query.append('end_date', fetchParams.endDate);
+      if (fetchParams.category) query.append('category', fetchParams.category);
+      query.append('offset', String(offset));
+      query.append('limit', String(limit));
+      query.append('include_mode_breakdown', 'true');
+
+      const response = await fetch(`${API_BASE_URL}/history/daily-summary/all/paged?${query.toString()}`);
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.detail || '日別集計データの取得に失敗しました。');
       }
-    };
-    fetchDailySummary();
-  }, [fetchParams, selectedSubjectNames]);
+      const data: PagedDailySummaryResponse = await response.json();
+      setDailySummary((prev) => (reset ? data.items : [...prev, ...data.items]));
+      setHasMoreDailySummary(data.has_more);
+      setNextDailySummaryOffset(data.next_offset);
+      setTotalDailySummaryDays(data.total_days);
+    } catch (e: any) {
+      setDailySummaryError(e.message);
+      if (reset) {
+        setDailySummary([]);
+        setHasMoreDailySummary(false);
+        setNextDailySummaryOffset(null);
+        setTotalDailySummaryDays(0);
+      }
+    } finally {
+      setIsDailySummaryLoading(false);
+      setIsLoadingMoreDailySummary(false);
+      setIsLoadingAllDailySummary(false);
+    }
+  }, [dailySummary.length, fetchParams, nextDailySummaryOffset, selectedSubjectNames]);
+
+  useEffect(() => {
+    if (!fetchParams) return;
+    fetchDailySummaryPage({ reset: true });
+  }, [fetchDailySummaryPage, fetchParams]);
 
   if (subjects.length === 0) {
     return (
@@ -309,6 +360,12 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
           dailySummary={dailySummary}
           isDailySummaryLoading={isDailySummaryLoading}
           dailySummaryError={dailySummaryError}
+          hasMoreDailySummary={hasMoreDailySummary}
+          totalDailySummaryDays={totalDailySummaryDays}
+          isLoadingMoreDailySummary={isLoadingMoreDailySummary}
+          isLoadingAllDailySummary={isLoadingAllDailySummary}
+          onLoadMoreDailySummary={() => void fetchDailySummaryPage()}
+          onLoadAllDailySummary={() => void fetchDailySummaryPage({ loadAll: true })}
           // Filters
           startDate={startDate}
           setStartDate={setStartDate}

@@ -95,6 +95,7 @@ private struct QuizHistoryPayload: Encodable {
     let selected_answer: String
     let is_correct: Bool
     let category: String?
+    let mode: String?
 }
 
 private struct QuizBulkHistoryStatsPayload: Encodable {
@@ -360,7 +361,7 @@ final class SoragakiAPIClient {
         return (try? JSONDecoder().decode([String].self, from: data)) ?? []
     }
 
-    func submitHistory(problemID: String, subject: String, selectedAnswer: String, isCorrect: Bool, category: String?) async throws {
+    func submitHistory(problemID: String, subject: String, selectedAnswer: String, isCorrect: Bool, category: String?, mode: String? = nil) async throws {
         let url = URL(string: "/api/history", relativeTo: baseURL)!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -371,7 +372,8 @@ final class SoragakiAPIClient {
                 subject: subject,
                 selected_answer: selectedAnswer,
                 is_correct: isCorrect,
-                category: category
+                category: category,
+                mode: mode
             )
         )
         _ = try await send(request, expectedStatuses: [200])

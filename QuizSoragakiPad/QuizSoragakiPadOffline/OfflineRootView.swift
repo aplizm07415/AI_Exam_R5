@@ -439,7 +439,7 @@ struct OfflineQuizSessionBackend: QuizSessionBackend {
     }
 
     @MainActor
-    func submitHistory(problemID: String, subject: String, selectedAnswer: String, isCorrect: Bool, category: String?) async throws {
+    func submitHistory(problemID: String, subject: String, selectedAnswer: String, isCorrect: Bool, category: String?, mode: String?) async throws {
         store.submitAnswer(questionID: problemID, subject: subject, selectedAnswer: selectedAnswer, isCorrect: isCorrect, category: category)
     }
 
