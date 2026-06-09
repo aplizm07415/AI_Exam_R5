@@ -244,6 +244,46 @@ def test_start_quiz_random_mode(client: TestClient):
     assert len(data["quiz_set"]) == 2
     assert all(q["subject"] == "subject1.json" for q in data["quiz_set"])
 
+def test_start_quiz_filters_calculation_tag(client: TestClient):
+    from backend import main
+
+    main._test_subject_payloads["subject1.json"].append(
+        {
+            "id": "q_calc",
+            "question_text": "Calculation question",
+            "choices": [{"label": "A", "text": "Choice A"}],
+            "answer": "A",
+            "subject": "subject1.json",
+            "tags": ["calculation"],
+        }
+    )
+
+    response = client.post(
+        "/api/quiz/start",
+        json={
+            "subjects": ["subject1.json"],
+            "count": 10,
+            "mode": "random",
+            "tag_filter": "calculation_only",
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert [q["id"] for q in data["quiz_set"]] == ["q_calc"]
+
+    response = client.post(
+        "/api/quiz/start",
+        json={
+            "subjects": ["subject1.json"],
+            "count": 10,
+            "mode": "random",
+            "tag_filter": "exclude_calculation",
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert "q_calc" not in {q["id"] for q in data["quiz_set"]}
+
 def test_start_quiz_includes_custom_explanation_image(client: TestClient):
     response = client.post("/api/quiz/start", json={"subjects": ["subject1.json"], "count": 10, "mode": "random"})
     assert response.status_code == 200
@@ -370,6 +410,43 @@ def test_specific_area_count_uses_exact_ascii_match(client: TestClient):
     )
     assert response.status_code == 200
     assert response.json()["specific_area_count"] == 1
+
+
+def test_specific_area_count_filters_calculation_tag(client: TestClient):
+    from backend import main
+
+    main._test_subject_payloads["subject1.json"].append(
+        {
+            "id": "q_calc_npv",
+            "question_text": "CALCONLY calculation question",
+            "choices": [{"label": "A", "text": "Choice A"}],
+            "answer": "A",
+            "subject": "subject1.json",
+            "tags": ["calculation"],
+        }
+    )
+
+    response = client.get(
+        "/api/quiz/specific-area-count",
+        params=[
+            ("subjects", "subject1.json"),
+            ("keywords", "CALCONLY"),
+            ("tag_filter", "calculation_only"),
+        ],
+    )
+    assert response.status_code == 200
+    assert response.json()["specific_area_count"] == 1
+
+    response = client.get(
+        "/api/quiz/specific-area-count",
+        params=[
+            ("subjects", "subject1.json"),
+            ("keywords", "CALCONLY"),
+            ("tag_filter", "exclude_calculation"),
+        ],
+    )
+    assert response.status_code == 200
+    assert response.json()["specific_area_count"] == 0
 
 
 def test_specific_area_count_handles_japanese_exact_match(client: TestClient):
@@ -854,6 +931,74 @@ def test_get_unanswered_count(client: TestClient):
     # all_questions の id は {"q1", "q2", "q4", "q5", "q6"}
     # 未回答: {"q4"} のみ
     assert data["unanswered_count"] == 1 
+
+
+def test_get_unanswered_count_filters_calculation_tag(client: TestClient):
+    from backend import main
+
+    main._test_subject_payloads["subject1.json"].append(
+        {
+            "id": "q_calc_unanswered",
+            "question_text": "Unanswered calculation question",
+            "choices": [{"label": "A", "text": "Choice A"}],
+            "answer": "A",
+            "subject": "subject1.json",
+            "tags": ["calculation"],
+        }
+    )
+
+    response = client.get(
+        "/api/quiz/unanswered-count",
+        params=[("subjects", "subject1.json"), ("tag_filter", "calculation_only")],
+    )
+    assert response.status_code == 200
+    assert response.json()["unanswered_count"] == 1
+
+    response = client.get(
+        "/api/quiz/unanswered-count",
+        params=[("subjects", "subject1.json"), ("tag_filter", "exclude_calculation")],
+    )
+    assert response.status_code == 200
+    assert response.json()["unanswered_count"] == 1
+
+
+def test_get_missed_problems_count_filters_calculation_tag(client: TestClient):
+    from backend import main
+
+    main._test_subject_payloads["subject1.json"].append(
+        {
+            "id": "q_calc_missed",
+            "question_text": "Missed calculation question",
+            "choices": [{"label": "A", "text": "Choice A"}],
+            "answer": "A",
+            "subject": "subject1.json",
+            "tags": ["calculation"],
+        }
+    )
+    main._test_history_payloads["subject1"].append(
+        HistoryItem(
+            problem_id="q_calc_missed",
+            subject="subject1.json",
+            selected_answer="B",
+            is_correct=False,
+            answered_at=datetime.now(timezone.utc),
+        ).model_dump_json()
+    )
+
+    response = client.get(
+        "/api/quiz/missed-problems-count",
+        params=[("subjects", "subject1.json"), ("tag_filter", "calculation_only")],
+    )
+    assert response.status_code == 200
+    assert response.json()["missed_problems_count"] == 1
+
+    response = client.get(
+        "/api/quiz/missed-problems-count",
+        params=[("subjects", "subject1.json"), ("tag_filter", "exclude_calculation")],
+    )
+    assert response.status_code == 200
+    assert response.json()["missed_problems_count"] == 2
+
 
 def test_get_analytics_for_subject(client: TestClient):
     """特定の科目の統計情報を取得できることをテスト"""

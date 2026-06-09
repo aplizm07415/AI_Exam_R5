@@ -61,6 +61,8 @@ class GenerateKeywordsRequest(BaseModel):
 
 
 SpecificAreaHistoryScope = Literal["all", "unanswered", "answered"]
+QuestionTagFilter = Literal["all", "calculation_only", "exclude_calculation"]
+CALCULATION_TAG = "calculation"
 
 
 class SpecificAreaSuggestionRequest(BaseModel):
@@ -307,6 +309,7 @@ class QuizStartRequest(BaseModel):
     weights: dict[str, str] | None = None
     keywords: list[str] = Field(default_factory=list)
     specific_area_history_scope: SpecificAreaHistoryScope = "all"
+    tag_filter: QuestionTagFilter = "all"
 
 OralVivaStep = Literal["root", "refute", "apply", "summary"]
 
@@ -846,6 +849,22 @@ def _filter_questions_by_history_scope(
     if history_scope == "unanswered":
         return [q for q in questions if q.get("id") not in answered_problem_ids]
     return [q for q in questions if q.get("id") in answered_problem_ids]
+
+
+def _question_has_tag(question: dict, tag: str) -> bool:
+    tags = question.get("tags")
+    if not isinstance(tags, list):
+        return False
+    normalized_tag = tag.strip().casefold()
+    return any(str(item).strip().casefold() == normalized_tag for item in tags)
+
+
+def _filter_questions_by_tag_filter(questions: list[dict], tag_filter: QuestionTagFilter) -> list[dict]:
+    if tag_filter == "calculation_only":
+        return [q for q in questions if _question_has_tag(q, CALCULATION_TAG)]
+    if tag_filter == "exclude_calculation":
+        return [q for q in questions if not _question_has_tag(q, CALCULATION_TAG)]
+    return questions
 
 
 def _dedupe_preserve_order(values: list[str]) -> list[str]:
@@ -2288,7 +2307,10 @@ def get_memos_for_date(date_str: str):
             
     return "\n\n---\n\n".join(aggregated_memos)
 @api_router.get("/quiz/unanswered-count")
-def get_unanswered_count(subjects: list[str] = Query(...)):
+def get_unanswered_count(
+    subjects: list[str] = Query(...),
+    tag_filter: QuestionTagFilter = Query("all"),
+):
     """指定された科目セットに対する未解答の問題数を計算して返す"""
     if container_client is None:
         raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
@@ -2318,13 +2340,17 @@ def get_unanswered_count(subjects: list[str] = Query(...)):
     for subject_name in subjects:
         history_items.extend(_get_history_items_for_subject(subject_name))
     
+    all_questions = _filter_questions_by_tag_filter(all_questions, tag_filter)
     answered_problem_ids = {item.problem_id for item in history_items}
     count = sum(1 for q in all_questions if q.get("id") not in answered_problem_ids)
     
     return {"unanswered_count": count}
 
 @api_router.get("/quiz/missed-problems-count")
-def get_missed_problems_count(subjects: list[str] = Query(...)):
+def get_missed_problems_count(
+    subjects: list[str] = Query(...),
+    tag_filter: QuestionTagFilter = Query("all"),
+):
     """指定された科目セットに対して、一度でも間違えたことがある問題のユニークな数を返す"""
     if container_client is None:
         raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
@@ -2337,7 +2363,31 @@ def get_missed_problems_count(subjects: list[str] = Query(...)):
     
     # is_correct: false の problem_id を set に追加してユニークにする
     missed_problem_ids = {item.problem_id for item in history_items if not item.is_correct}
-    
+
+    if tag_filter != "all":
+        eligible_questions = []
+        try:
+            for subject_name in subjects:
+                blob_client = container_client.get_blob_client(subject_name)
+                if not blob_client.exists():
+                    continue
+
+                raw_content = blob_client.download_blob().readall()
+                data = json.loads(raw_content)
+                questions_in_file = data.get("questions", []) if isinstance(data, dict) else data if isinstance(data, list) else []
+
+                for q in questions_in_file:
+                    normalized_q = normalize_question(q)
+                    if normalized_q:
+                        eligible_questions.append(normalized_q)
+        except Exception as e:
+            print(f"Error reading quiz data for missed problems count: {e}")
+            raise HTTPException(status_code=500, detail="Failed to read questions from blob storage for count.")
+
+        eligible_questions = _filter_questions_by_tag_filter(eligible_questions, tag_filter)
+        eligible_problem_ids = {q.get("id") for q in eligible_questions}
+        missed_problem_ids = missed_problem_ids & eligible_problem_ids
+
     count = len(missed_problem_ids)
     
     return {"missed_problems_count": count}
@@ -2348,6 +2398,7 @@ def get_specific_area_count(
     subjects: list[str] = Query(...),
     keywords: list[str] = Query(...),
     history_scope: SpecificAreaHistoryScope = Query("all"),
+    tag_filter: QuestionTagFilter = Query("all"),
 ):
     """指定された科目セットに対して、特定キーワードに一致する問題数を返す"""
     if container_client is None:
@@ -2380,6 +2431,7 @@ def get_specific_area_count(
     for subject_name in subjects:
         history_items.extend(_get_history_items_for_subject(subject_name))
     matched_questions = _filter_questions_by_history_scope(matched_questions, history_items, history_scope)
+    matched_questions = _filter_questions_by_tag_filter(matched_questions, tag_filter)
     return {"specific_area_count": len(matched_questions)}
 
 @api_router.post("/quiz/start")
@@ -2414,12 +2466,12 @@ def start_quiz(request: QuizStartRequest):
     if not all_questions:
         raise HTTPException(status_code=404, detail="有効な質問がありません。")
 
-    working_questions = all_questions
+    working_questions = _filter_questions_by_tag_filter(all_questions, request.tag_filter)
     if request.mode == "specific_area":
         if not request.keywords:
             raise HTTPException(status_code=400, detail="特定領域モードではキーワードを1つ以上指定してください。")
         custom_explanations_map = _load_custom_explanations_map()
-        working_questions = _filter_questions_by_keywords(all_questions, request.keywords, custom_explanations_map)
+        working_questions = _filter_questions_by_keywords(working_questions, request.keywords, custom_explanations_map)
         history_items: list[HistoryItem] = []
         for subject_name in request.subjects:
             history_items.extend(_get_history_items_for_subject(subject_name))

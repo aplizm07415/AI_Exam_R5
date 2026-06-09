@@ -421,7 +421,7 @@ export default function App() {
       </header>
 
       <main
-        className={`flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-opacity duration-300 ${
+        className={`flex-grow container mx-auto px-[0.2rem] py-[0.2rem] transition-opacity duration-300 ${
           shouldDelayQuizFirstView ? 'opacity-0' : 'opacity-100'
         }`}
         aria-hidden={shouldDelayQuizFirstView ? 'true' : undefined}

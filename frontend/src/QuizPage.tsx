@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { LoaderIcon, CheckCircleIcon, XCircleIcon } from './components/icons';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkBreaks from 'remark-breaks';
 import LoadingSpinner from './components/LoadingSpinner';
 import SubjectVisibilityModal from './components/SubjectVisibilityModal';
 import SubjectProgress from './components/SubjectProgress';
@@ -13,6 +14,7 @@ import { buildPlanSchedule } from './utils/planSchedule';
 const API_BASE_URL = "/api";
 const QUESTION_TIMER_MS = 2 * 60 * 1000;
 const FORCED_ANSWER_TIMER_MS = 80 * 1000;
+const SUBJECT_SELECTION_PATTERNS_STORAGE_KEY = 'subjectSelectionPatterns';
 const SPECIFIC_AREA_PROGRESS_STEPS = [
   '条件を確認中',
   '問題文・解説を照合中',
@@ -42,6 +44,8 @@ interface Explanation {
 interface QuizQuestion {
   id: string;
   question_text: string;
+  question_text_md?: string;
+  question_text_mermaid?: string;
   choices: Choice[];
   answer: string;
   subject: string;
@@ -58,6 +62,83 @@ interface QuizQuestion {
 
 interface Subject {
   name: string;
+}
+
+interface SubjectSelectionPattern {
+  id: string;
+  name: string;
+  subjectNames: string[];
+  createdAt: string;
+}
+
+interface MermaidDiagramProps {
+  chart: string;
+}
+
+function MermaidDiagram({ chart }: MermaidDiagramProps) {
+  const idBaseRef = useRef(`question-mermaid-${Math.random().toString(36).slice(2)}`);
+  const renderCountRef = useRef(0);
+  const [svg, setSvg] = useState('');
+  const [renderError, setRenderError] = useState('');
+
+  useEffect(() => {
+    const source = chart.trim();
+    if (!source) {
+      setSvg('');
+      setRenderError('');
+      return;
+    }
+
+    let isCancelled = false;
+
+    const renderDiagram = async () => {
+      try {
+        const { default: mermaid } = await import('mermaid');
+        mermaid.initialize({
+          startOnLoad: false,
+          securityLevel: 'strict',
+          theme: 'default',
+        });
+        renderCountRef.current += 1;
+        const renderId = `${idBaseRef.current}-${renderCountRef.current}`;
+        const result = await mermaid.render(renderId, source);
+        if (!isCancelled) {
+          setSvg(result.svg);
+          setRenderError('');
+        }
+      } catch (error) {
+        if (!isCancelled) {
+          setSvg('');
+          setRenderError(error instanceof Error ? error.message : 'Mermaid図の描画に失敗しました。');
+        }
+      }
+    };
+
+    void renderDiagram();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [chart]);
+
+  if (renderError) {
+    return (
+      <div className="question-mermaid question-mermaid--error">
+        <p className="text-xs font-semibold text-red-700">Mermaid図を描画できませんでした。</p>
+        <pre>{chart}</pre>
+      </div>
+    );
+  }
+
+  return (
+    <div className="question-mermaid" aria-label="問題文の図">
+      {svg ? (
+        <div className="question-mermaid__svg" dangerouslySetInnerHTML={{ __html: svg }} />
+      ) : (
+        <div className="text-sm text-gray-500">図を描画中...</div>
+      )}
+    </div>
+  );
 }
 
 interface QuizPageProps {
@@ -78,6 +159,7 @@ interface HistoryStat {
 
 type QuizMode = 'random' | 'weak_area' | 'unanswered' | 'today_remaining' | 'specific_area';
 type OralVivaStep = 'root' | 'refute' | 'apply' | 'summary';
+type QuestionTagFilter = 'all' | 'calculation_only' | 'exclude_calculation';
 
 interface OralVivaMessage {
   role: 'assistant' | 'user';
@@ -242,6 +324,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   const [dailySummaryAll, setDailySummaryAll] = useState<DailySummaryItem[]>([]);
   const [selectedSubjectNames, setSelectedSubjectNames] = useState<string[]>([]);
   const [quizMode, setQuizMode] = useState<QuizMode>('today_remaining');
+  const [questionTagFilter, setQuestionTagFilter] = useState<QuestionTagFilter>('all');
   const [numQuestions, setNumQuestions] = useState<number>(10);
   const [quizState, setQuizState] = useState<'setup' | 'active' | 'finished'>('setup');
   const [isForcedSession, setIsForcedSession] = useState(false);
@@ -494,6 +577,31 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   const [specificAreaHistoryScope, setSpecificAreaHistoryScope] = useState<SpecificAreaHistoryScope>('all');
   const [specificAreaSuggestions, setSpecificAreaSuggestions] = useState<string[]>([]);
   const [isSpecificAreaSuggestionsLoading, setIsSpecificAreaSuggestionsLoading] = useState(false);
+  const [subjectSelectionPatterns, setSubjectSelectionPatterns] = useState<SubjectSelectionPattern[]>(() => {
+    try {
+      const saved = localStorage.getItem(SUBJECT_SELECTION_PATTERNS_STORAGE_KEY);
+      const parsed = saved ? JSON.parse(saved) : [];
+      if (!Array.isArray(parsed)) return [];
+      return parsed
+        .filter((item): item is SubjectSelectionPattern => (
+          item &&
+          typeof item.id === 'string' &&
+          typeof item.name === 'string' &&
+          Array.isArray(item.subjectNames) &&
+          item.subjectNames.every((subject: unknown) => typeof subject === 'string') &&
+          typeof item.createdAt === 'string'
+        ))
+        .map((item) => ({
+          ...item,
+          subjectNames: Array.from(new Set(item.subjectNames)),
+        }));
+    } catch (error) {
+      console.error('Failed to parse subject selection patterns from localStorage', error);
+      return [];
+    }
+  });
+  const [subjectPatternName, setSubjectPatternName] = useState('');
+  const [selectedSubjectPatternId, setSelectedSubjectPatternId] = useState('');
   const specificAreaProgressTimerRef = useRef<number | null>(null);
   const normalizedSpecificAreaKeywords = useMemo(
     () => specificAreaKeywords.map((keyword) => keyword.trim()).filter((keyword) => keyword.length > 0),
@@ -505,8 +613,9 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
         subjects: [...selectedSubjectNames].sort(),
         keywords: [...normalizedSpecificAreaKeywords].sort(),
         historyScope: specificAreaHistoryScope,
+        tagFilter: questionTagFilter,
       }),
-    [selectedSubjectNames, normalizedSpecificAreaKeywords, specificAreaHistoryScope],
+    [selectedSubjectNames, normalizedSpecificAreaKeywords, specificAreaHistoryScope, questionTagFilter],
   );
   const isSpecificAreaInvestigationReady = selectedSubjectNames.length > 0 && normalizedSpecificAreaKeywords.length > 0;
   const isSpecificAreaInvestigationStale =
@@ -527,6 +636,10 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   useEffect(() => {
     localStorage.setItem('subjectWeights', JSON.stringify(subjectWeights));
   }, [subjectWeights]);
+
+  useEffect(() => {
+    localStorage.setItem(SUBJECT_SELECTION_PATTERNS_STORAGE_KEY, JSON.stringify(subjectSelectionPatterns));
+  }, [subjectSelectionPatterns]);
 
   useEffect(() => {
     const fetchDailySummaryAll = async () => {
@@ -589,6 +702,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   useEffect(() => {
     if (quizMode === 'today_remaining') {
       setSelectedSubjectNames(todayRemaining.subjects);
+      setSelectedSubjectPatternId('');
     }
   }, [quizMode, todayRemaining]);
 
@@ -642,10 +756,22 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     return allSubjects.filter((s: Subject) => !hiddenSubjects.includes(s.name));
   }, [allSubjects, hiddenSubjects]);
 
+  const visibleSubjectNameSet = useMemo(() => {
+    return new Set(visibleSubjects.map((subject) => subject.name));
+  }, [visibleSubjects]);
+
+  const subjectSelectionPatternOptions = useMemo(() => {
+    return subjectSelectionPatterns.map((pattern) => ({
+      ...pattern,
+      availableSubjectNames: pattern.subjectNames.filter((subjectName) => visibleSubjectNameSet.has(subjectName)),
+    }));
+  }, [subjectSelectionPatterns, visibleSubjectNameSet]);
+
   const handleHiddenSubjectsChange = (newHiddenSubjects: string[]) => {
     setHiddenSubjects(newHiddenSubjects);
     localStorage.setItem('hiddenSubjects', JSON.stringify(newHiddenSubjects));
     setSelectedSubjectNames((prev: string[]) => prev.filter((name: string) => !newHiddenSubjects.includes(name)));
+    setSelectedSubjectPatternId('');
   };
 
   useEffect(() => {
@@ -655,7 +781,10 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
         setUnansweredCount(null);
         try {
           const subjectParams = selectedSubjectNames.map((s: string) => `subjects=${encodeURIComponent(s)}`).join('&');
-          const response = await fetch(`${API_BASE_URL}/quiz/unanswered-count?${subjectParams}`);
+          const params = subjectParams
+            ? `${subjectParams}&tag_filter=${encodeURIComponent(questionTagFilter)}`
+            : `tag_filter=${encodeURIComponent(questionTagFilter)}`;
+          const response = await fetch(`${API_BASE_URL}/quiz/unanswered-count?${params}`);
           if (!response.ok) {
             throw new Error('Failed to fetch unanswered count.');
           }
@@ -672,7 +801,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     };
 
     fetchUnansweredCount();
-  }, [quizMode, selectedSubjectNames]);
+  }, [quizMode, selectedSubjectNames, questionTagFilter]);
 
   useEffect(() => {
     const fetchWeakAreaCount = async () => {
@@ -681,7 +810,10 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
         setWeakAreaCount(null);
         try {
           const subjectParams = selectedSubjectNames.map((s: string) => `subjects=${encodeURIComponent(s)}`).join('&');
-          const response = await fetch(`${API_BASE_URL}/quiz/missed-problems-count?${subjectParams}`);
+          const queryParams = subjectParams
+            ? `${subjectParams}&tag_filter=${encodeURIComponent(questionTagFilter)}`
+            : `tag_filter=${encodeURIComponent(questionTagFilter)}`;
+          const response = await fetch(`${API_BASE_URL}/quiz/missed-problems-count?${queryParams}`);
           if (!response.ok) {
             throw new Error('Failed to fetch weak area count.');
           }
@@ -698,7 +830,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     };
 
     fetchWeakAreaCount();
-  }, [quizMode, selectedSubjectNames]);
+  }, [quizMode, selectedSubjectNames, questionTagFilter]);
 
   useEffect(() => {
     if (!isSpecificAreaInvestigationReady) {
@@ -753,11 +885,86 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   }, [fetchHistoryStats]);
 
   const handleSubjectSelection = (subjectName: string) => {
+    setSelectedSubjectPatternId('');
     setSelectedSubjectNames((prev: string[]) =>
       prev.includes(subjectName)
         ? prev.filter((s: string) => s !== subjectName)
         : [...prev, subjectName]
     );
+  };
+
+  const saveSubjectSelectionPattern = () => {
+    if (quizMode === 'today_remaining') {
+      alert('今日の残りモードでは、科目は学習計画から自動選択されます。');
+      return;
+    }
+
+    const patternName = subjectPatternName.trim();
+    if (!patternName) {
+      alert('パターン名を入力してください。');
+      return;
+    }
+
+    const subjectNames = selectedSubjectNames.filter((subjectName) => visibleSubjectNameSet.has(subjectName));
+    if (subjectNames.length === 0) {
+      alert('登録する科目を1つ以上選択してください。');
+      return;
+    }
+
+    const existingPattern = subjectSelectionPatterns.find((pattern) => pattern.name === patternName);
+    const patternId = existingPattern?.id ?? `subject-pattern-${Date.now()}`;
+    const nextPattern: SubjectSelectionPattern = {
+      id: patternId,
+      name: patternName,
+      subjectNames,
+      createdAt: existingPattern?.createdAt ?? new Date().toISOString(),
+    };
+
+    setSubjectSelectionPatterns((prev) => {
+      const withoutSameName = prev.filter((pattern) => pattern.name !== patternName);
+      return [...withoutSameName, nextPattern].sort((a, b) => a.name.localeCompare(b.name));
+    });
+    setSelectedSubjectPatternId(patternId);
+    setSubjectPatternName('');
+  };
+
+  const applySubjectSelectionPattern = (patternId: string) => {
+    if (!patternId) {
+      setSelectedSubjectPatternId('');
+      return;
+    }
+
+    if (quizMode === 'today_remaining') {
+      alert('今日の残りモードでは、科目は学習計画から自動選択されます。');
+      setSelectedSubjectPatternId('');
+      return;
+    }
+
+    const pattern = subjectSelectionPatterns.find((item) => item.id === patternId);
+    if (!pattern) {
+      setSelectedSubjectPatternId('');
+      return;
+    }
+
+    const subjectNames = pattern.subjectNames.filter((subjectName) => visibleSubjectNameSet.has(subjectName));
+    if (subjectNames.length === 0) {
+      alert('このパターンで選択できる表示中の科目がありません。');
+      setSelectedSubjectPatternId('');
+      return;
+    }
+
+    setSelectedSubjectNames(subjectNames);
+    setSelectedSubjectPatternId(pattern.id);
+  };
+
+  const deleteSelectedSubjectSelectionPattern = () => {
+    if (!selectedSubjectPatternId) return;
+    const pattern = subjectSelectionPatterns.find((item) => item.id === selectedSubjectPatternId);
+    if (!pattern) return;
+    if (!window.confirm(`科目パターン「${pattern.name}」を削除しますか？`)) return;
+
+    setSubjectSelectionPatterns((prev) => prev.filter((item) => item.id !== selectedSubjectPatternId));
+    setSelectedSubjectPatternId('');
   };
 
   const updateSpecificAreaKeyword = (index: number, value: string) => {
@@ -849,6 +1056,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       selectedSubjectNames.forEach((name) => params.append('subjects', name));
       normalizedSpecificAreaKeywords.forEach((keyword) => params.append('keywords', keyword));
       params.append('history_scope', specificAreaHistoryScope);
+      params.append('tag_filter', questionTagFilter);
       const response = await fetch(`${API_BASE_URL}/quiz/specific-area-count?${params.toString()}`);
       if (!response.ok) {
         const payload = await response.json().catch(() => null);
@@ -933,6 +1141,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
           weights: quizMode === 'random' ? subjectWeights : undefined,
           keywords: quizMode === 'specific_area' ? normalizedSpecificAreaKeywords : undefined,
           specific_area_history_scope: quizMode === 'specific_area' ? specificAreaHistoryScope : undefined,
+          tag_filter: questionTagFilter,
         }),
       });
       
@@ -1635,6 +1844,9 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       } else if (isAnswered) {
         layoutType = 'answered';
       }
+
+      const questionTextMd = currentQuestion.question_text_md?.trim();
+      const questionTextMermaid = currentQuestion.question_text_mermaid?.trim();
   
       const imagesComponent = hasQuestionImages ? (
         <div className="space-y-4">
@@ -1673,7 +1885,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
             </div>
           )}
           <div className="prose prose-sm md:prose-base max-w-none text-gray-700">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{feedback?.explanation?.text || ''}</ReactMarkdown>
+            <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>{feedback?.explanation?.text || ''}</ReactMarkdown>
           </div>
           {currentExplanationImageDataUrls.length > 0 && (
             <div className="mt-6">
@@ -1940,19 +2152,28 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       ) : null;
   
       const questionColumn = (
-        <div className="bg-white rounded-xl shadow p-6 md:p-8 h-full flex flex-col">
-          <p className="text-base md:text-lg font-semibold text-gray-700 mb-6">{currentQuestion.question_text}</p>
+        <div className="bg-white rounded-xl shadow p-6 md:p-8 min-h-full flex flex-col">
+          <div className="mb-6 space-y-4">
+            <p className="text-base md:text-lg font-semibold text-gray-700 whitespace-pre-wrap">{currentQuestion.question_text}</p>
+            {questionTextMd && (
+              <div className="question-markdown text-sm md:text-base text-gray-700">
+                <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>{questionTextMd}</ReactMarkdown>
+              </div>
+            )}
+            {questionTextMermaid && (
+              <MermaidDiagram chart={questionTextMermaid} />
+            )}
+            {/* 画像がある場合、スマホでは問題文・Markdown・Mermaidの下に表示 */}
+            <div className="md:hidden">
+              {layoutType === 'image' && imagesComponent}
+            </div>
+          </div>
           <TimerProgressBar
             durationMs={isForcedSession ? FORCED_ANSWER_TIMER_MS : QUESTION_TIMER_MS}
             isActive={quizState === 'active' && !isAnswered && !isSubmittingAnswer}
             resetToken={`${currentQuestion.id}-${questionStartedAt}-${isForcedSession ? 'forced' : 'normal'}`}
             onExpire={isForcedSession ? () => void handleAnswerSubmit(true) : undefined}
           />
-          
-          {/* 画像がある場合、スマホでは問題文の下に表示 */}
-          <div className="md:hidden my-4">
-            {layoutType === 'image' && imagesComponent}
-          </div>
 
           <div className="space-y-3">
             {displayedChoices.map((option: Choice, index: number) => {
@@ -1975,7 +2196,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                   className={`w-full text-left p-4 rounded-lg border border-transparent transition-all duration-200 text-sm md:text-base ${buttonClass}`}
                 >
                   <span className="font-bold mr-2">{option.label}.</span>
-                  <span>{option.text}</span>
+                  <span className="whitespace-pre-wrap">{option.text}</span>
                 </button>
               );
             })}
@@ -2045,7 +2266,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   
       // 右カラム（画像・解説）
       const rightColumn = (
-        <div className="space-y-8">
+        <div className="space-y-8 pb-4">
           {layoutType === 'image' && (
              <div className="bg-white rounded-xl shadow p-6 md:p-8">
                 {imagesComponent}
@@ -2058,12 +2279,12 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       const timelineItems = buildQuizTimelineItems(questions.length, currentQuestionIndex);
 
       return (
-        <div className="md:h-screen md:overflow-hidden text-sm md:text-base">
-            <div ref={questionTopRef} className="p-4 md:p-6">
-                <div className="flex flex-col gap-4 mb-4">
-                    <div className="flex flex-wrap justify-end items-center gap-4">
+        <div className="md:flex md:h-screen md:flex-col md:overflow-hidden text-sm md:text-base">
+            <div ref={questionTopRef} className="px-4 pb-2 pt-3 md:shrink-0 md:px-6 md:pb-2 md:pt-3">
+                <div className="flex flex-col gap-2">
+                    <div className="flex flex-wrap justify-end items-center gap-x-3 gap-y-1">
                         {isForcedSession && (
-                            <div className="text-sm font-semibold text-[#e8383d] whitespace-nowrap">
+                            <div className="text-xs font-semibold text-[#e8383d] whitespace-nowrap">
                                 強制モード: 80秒
                             </div>
                         )}
@@ -2071,13 +2292,13 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                         const stats = historyStats[currentQuestion.id];
                         if (stats && stats.total > 0) {
                             return (
-                            <div className="text-sm text-gray-500 whitespace-nowrap">
+                            <div className="text-xs text-gray-500 whitespace-nowrap">
                                 直近{stats.total}回 正答率: {Math.round((stats.correct / stats.total) * 100)}% ({stats.correct}/{stats.total})
                             </div>
                             );
                         }
                         if (Object.keys(historyStats).length > 0) {
-                            return <div className="text-sm text-gray-500 whitespace-nowrap">初挑戦</div>;
+                            return <div className="text-xs text-gray-500 whitespace-nowrap">初挑戦</div>;
                         }
                         return null;
                         })()}
@@ -2086,9 +2307,9 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                             {adhocQuizLabel}
                           </span>
                         )}
-                        <p className="text-sm font-semibold text-slate-600">問題 {currentQuestionIndex + 1} / {questions.length}</p>
+                        <p className="text-xs font-semibold text-slate-600">問題 {currentQuestionIndex + 1} / {questions.length}</p>
                     </div>
-                    <div className="rounded-[1.5rem] border border-slate-200 bg-white px-4 py-4 shadow-sm">
+                    <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm md:px-4">
                       <ol className="quiz-progress-timeline" aria-label={`問題進捗 ${currentQuestionIndex + 1} / ${questions.length}`}>
                         {timelineItems.map((item) => (
                           <li
@@ -2105,17 +2326,16 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
             </div>
             
             <div className={`
-                md:grid md:gap-8 md:h-[calc(100vh-120px)] // Adjusted height for progress bar
+                pb-6 md:grid md:min-h-0 md:flex-1 md:gap-6 md:pb-0
                 ${layoutType === 'image' ? 'md:grid-cols-3' : ''}
                 ${layoutType === 'answered' ? 'md:grid-cols-3' : ''}
                 ${layoutType === 'default' ? 'md:grid-cols-1' : ''}
             `}>
               {/* --- Left Column --- */}
               <div className={`
-                px-4 md:px-0 md:pl-6
+                px-4 md:h-full md:min-h-0 md:overflow-y-auto md:px-0 md:pb-4 md:pl-6 md:pr-1
                 ${layoutType === 'image' ? 'md:col-span-1' : ''}
                 ${layoutType === 'answered' ? 'md:col-span-1' : ''}
-                ${layoutType !== 'default' ? 'md:h-full md:overflow-y-auto' : ''}
               `}>
                 {questionColumn}
               </div>
@@ -2126,7 +2346,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                   hidden md:block md:pr-6
                   ${layoutType === 'image' ? 'md:col-span-2' : ''}
                   ${layoutType === 'answered' ? 'md:col-span-2' : ''}
-                  md:h-full md:overflow-y-auto
+                  md:h-full md:min-h-0 md:overflow-y-auto
                 `}>
                   {rightColumn}
                 </div>
@@ -2293,6 +2513,58 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
                             </div>
 
+                            <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3">
+                              <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+                                <div>
+                                  <label className="heading-2 block text-xs font-medium text-gray-600">登録パターン</label>
+                                  <select
+                                    value={selectedSubjectPatternId}
+                                    onChange={(event) => applySubjectSelectionPattern(event.target.value)}
+                                    disabled={quizMode === 'today_remaining' || subjectSelectionPatterns.length === 0}
+                                    className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-new focus:outline-none focus:ring-2 focus:ring-primary-new/20 disabled:bg-gray-100 disabled:text-gray-400"
+                                  >
+                                    <option value="">パターンを選択</option>
+                                    {subjectSelectionPatternOptions.map((pattern) => (
+                                      <option key={pattern.id} value={pattern.id}>
+                                        {pattern.name} ({pattern.availableSubjectNames.length})
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={deleteSelectedSubjectSelectionPattern}
+                                  disabled={!selectedSubjectPatternId}
+                                  className="rounded-md border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400"
+                                >
+                                  削除
+                                </button>
+                              </div>
+
+                              <div className="mt-3 grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
+                                <input
+                                  type="text"
+                                  value={subjectPatternName}
+                                  onChange={(event) => setSubjectPatternName(event.target.value)}
+                                  disabled={quizMode === 'today_remaining'}
+                                  placeholder="例: 朝の重点セット"
+                                  className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-new focus:outline-none focus:ring-2 focus:ring-primary-new/20 disabled:bg-gray-100 disabled:text-gray-400"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={saveSubjectSelectionPattern}
+                                  disabled={quizMode === 'today_remaining' || selectedSubjectNames.length === 0}
+                                  className="rounded-md bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:bg-gray-300"
+                                >
+                                  現在の選択を登録
+                                </button>
+                              </div>
+
+                              {quizMode === 'today_remaining' && (
+                                <p className="mt-2 text-xs text-gray-500">今日の残りモードでは学習計画の科目が使われます。</p>
+                              )}
+                            </div>
+
                           </div>
 
                           <div>
@@ -2313,6 +2585,19 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
                             </div>
 
+                          </div>
+
+                          <div>
+                            <label className="heading-2 block text-sm font-medium text-gray-700">計算問題</label>
+                            <select
+                              value={questionTagFilter}
+                              onChange={(event) => setQuestionTagFilter(event.target.value as QuestionTagFilter)}
+                              className="mt-2 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-new focus:outline-none focus:ring-2 focus:ring-primary-new/20"
+                            >
+                              <option value="all">すべて出題</option>
+                              <option value="calculation_only">計算問題のみ</option>
+                              <option value="exclude_calculation">計算問題を除外</option>
+                            </select>
                           </div>
 
                           {quizMode === 'specific_area' && (

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import LoadingSpinner from './components/LoadingSpinner';
 
 const API_BASE_URL = "/api";
+const SUBJECT_SELECTION_PATTERNS_STORAGE_KEY = 'subjectSelectionPatterns';
 
 interface Subject {
   name: string;
@@ -37,6 +38,13 @@ interface DailySummaryItem {
     correct_count: number;
     accuracy: number;
   }[];
+}
+
+interface SubjectSelectionPattern {
+  id: string;
+  name: string;
+  subjectNames: string[];
+  createdAt: string;
 }
 
 interface AnalysisDashboardProps {
@@ -77,6 +85,30 @@ interface BarTrendPoint {
 interface BarTrendAxisLabel {
   label: string;
   topPercent: number;
+}
+
+function loadSubjectSelectionPatterns(): SubjectSelectionPattern[] {
+  try {
+    const saved = localStorage.getItem(SUBJECT_SELECTION_PATTERNS_STORAGE_KEY);
+    const parsed = saved ? JSON.parse(saved) : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((item): item is SubjectSelectionPattern => (
+        item &&
+        typeof item.id === 'string' &&
+        typeof item.name === 'string' &&
+        Array.isArray(item.subjectNames) &&
+        item.subjectNames.every((subject: unknown) => typeof subject === 'string') &&
+        typeof item.createdAt === 'string'
+      ))
+      .map((item) => ({
+        ...item,
+        subjectNames: Array.from(new Set(item.subjectNames)),
+      }));
+  } catch (error) {
+    console.error('Failed to parse subject selection patterns from localStorage', error);
+    return [];
+  }
 }
 
 function BarTrendChart({
@@ -185,6 +217,8 @@ export default function AnalysisDashboard({
   const [isConsolidatedLoading, setIsConsolidatedLoading] = useState(false);
   const [consolidatedError, setConsolidatedError] = useState('');
   const [threshold, setThreshold] = useState<number>(0);
+  const [subjectSelectionPatterns, setSubjectSelectionPatterns] = useState<SubjectSelectionPattern[]>(loadSubjectSelectionPatterns);
+  const [selectedSubjectPatternId, setSelectedSubjectPatternId] = useState('');
   const dailyHistoryContainerRef = useRef<HTMLDivElement | null>(null);
 
   const modeLabelMap: Record<string, string> = {
@@ -289,6 +323,28 @@ export default function AnalysisDashboard({
     return (analytics.today_correct_answers / analytics.today_total_runs) * 100;
   }, [analytics]);
 
+  const subjectNameSet = useMemo(() => new Set(subjects.map((subject) => subject.name)), [subjects]);
+
+  const subjectSelectionPatternOptions = useMemo(() => {
+    return subjectSelectionPatterns.map((pattern) => ({
+      ...pattern,
+      availableSubjectNames: pattern.subjectNames.filter((subjectName) => subjectNameSet.has(subjectName)),
+    }));
+  }, [subjectNameSet, subjectSelectionPatterns]);
+
+  useEffect(() => {
+    const refreshPatterns = () => {
+      setSubjectSelectionPatterns(loadSubjectSelectionPatterns());
+    };
+
+    window.addEventListener('focus', refreshPatterns);
+    window.addEventListener('storage', refreshPatterns);
+    return () => {
+      window.removeEventListener('focus', refreshPatterns);
+      window.removeEventListener('storage', refreshPatterns);
+    };
+  }, []);
+
   useEffect(() => {
     const node = dailyHistoryContainerRef.current;
     if (!node) return;
@@ -339,11 +395,34 @@ export default function AnalysisDashboard({
   };
 
   const toggleSubject = (name: string) => {
+    setSelectedSubjectPatternId('');
     setSelectedSubjectNames(
       selectedSubjectNames.includes(name)
         ? selectedSubjectNames.filter((s) => s !== name)
         : [...selectedSubjectNames, name]
     );
+  };
+
+  const applySubjectSelectionPattern = (patternId: string) => {
+    if (!patternId) {
+      setSelectedSubjectPatternId('');
+      return;
+    }
+
+    const pattern = subjectSelectionPatternOptions.find((item) => item.id === patternId);
+    if (!pattern) {
+      setSelectedSubjectPatternId('');
+      return;
+    }
+
+    if (pattern.availableSubjectNames.length === 0) {
+      alert('このパターンで選択できる科目がありません。');
+      setSelectedSubjectPatternId('');
+      return;
+    }
+
+    setSelectedSubjectNames(pattern.availableSubjectNames);
+    setSelectedSubjectPatternId(pattern.id);
   };
 
   return (
@@ -416,19 +495,50 @@ export default function AnalysisDashboard({
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => setSelectedSubjectNames(subjects.map((s) => s.name))}
+                onClick={() => {
+                  setSelectedSubjectPatternId('');
+                  setSelectedSubjectNames(subjects.map((s) => s.name));
+                }}
                 className="px-2 py-1 text-xs rounded border border-gray-300 bg-white hover:bg-gray-50"
               >
                 すべて選択
               </button>
               <button
                 type="button"
-                onClick={() => setSelectedSubjectNames([])}
+                onClick={() => {
+                  setSelectedSubjectPatternId('');
+                  setSelectedSubjectNames([]);
+                }}
                 className="px-2 py-1 text-xs rounded border border-gray-300 bg-white hover:bg-gray-50"
               >
                 解除
               </button>
             </div>
+          </div>
+          <div className="mb-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+            <div>
+              <label className="heading-2 block text-xs font-medium text-gray-600">登録パターン</label>
+              <select
+                value={selectedSubjectPatternId}
+                onChange={(event) => applySubjectSelectionPattern(event.target.value)}
+                disabled={subjectSelectionPatternOptions.length === 0}
+                className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-new focus:outline-none focus:ring-2 focus:ring-primary-new/20 disabled:bg-gray-100 disabled:text-gray-400"
+              >
+                <option value="">パターンを選択</option>
+                {subjectSelectionPatternOptions.map((pattern) => (
+                  <option key={pattern.id} value={pattern.id}>
+                    {pattern.name} ({pattern.availableSubjectNames.length})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSubjectSelectionPatterns(loadSubjectSelectionPatterns())}
+              className="rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
+            >
+              更新
+            </button>
           </div>
           <div className="max-h-32 overflow-y-auto border border-gray-200 rounded-md p-2 bg-white">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">

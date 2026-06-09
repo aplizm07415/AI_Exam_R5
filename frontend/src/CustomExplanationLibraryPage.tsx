@@ -591,7 +591,7 @@ export default function CustomExplanationLibraryPage({
                       {item.category ? <span className="rounded-full bg-slate-100 px-2 py-1 text-[11px] text-slate-600 normal-case tracking-normal">{item.category}</span> : null}
                     </div>
                     {showQuestionText ? (
-                      <h4 className="mt-3 text-lg font-semibold leading-8 text-slate-900">{item.question_text}</h4>
+                      <h4 className="mt-3 whitespace-pre-wrap text-lg font-semibold leading-8 text-slate-900">{item.question_text}</h4>
                     ) : null}
                     <div className="mt-4 whitespace-pre-wrap rounded-2xl bg-slate-50 px-4 py-4 text-sm leading-7 text-slate-700">
                       {item.custom_explanation}
@@ -635,7 +635,7 @@ export default function CustomExplanationLibraryPage({
                   <article key={item.key} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
                     <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{item.problemId}</div>
                     {showQuestionText ? (
-                      <div className="mt-2 text-sm font-semibold leading-7 text-slate-900">{item.questionText}</div>
+                      <div className="mt-2 whitespace-pre-wrap text-sm font-semibold leading-7 text-slate-900">{item.questionText}</div>
                     ) : null}
                     <img
                       src={item.imageUrl}

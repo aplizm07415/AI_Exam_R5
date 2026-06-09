@@ -1023,7 +1023,7 @@ export default function ReviewLaterPage() {
                     className="w-full text-left"
                   >
                     <div className="text-xs text-gray-500 truncate">{item.subject}</div>
-                    <div className="mt-1 text-sm font-semibold text-gray-800 line-clamp-2">
+                    <div className="mt-1 whitespace-pre-wrap text-sm font-semibold text-gray-800 line-clamp-2">
                       {item.question?.question_text || item.error || '問題を読み込めませんでした。'}
                     </div>
                     <div className="mt-2 text-[11px] text-gray-400">更新: {new Date(item.updated_at).toLocaleString()}</div>
@@ -1497,7 +1497,7 @@ export default function ReviewLaterPage() {
                         <button
                           type="button"
                           onClick={() => setSelectedKey(key)}
-                          className="text-left hover:text-primary-new"
+                          className="whitespace-pre-wrap text-left hover:text-primary-new"
                         >
                           {problem.question_text}
                         </button>
