@@ -9,6 +9,7 @@ import CountdownPage from './CountdownPage';
 import PhotoPage from './PhotoPage';
 import MusclePage from './MusclePage';
 import SoragakiPage from './SoragakiPage'; // Import SoragakiPage
+import PaperPracticePage from './PaperPracticePage';
 import SecondaryExamPage from './SecondaryExamPage';
 import SecondaryExamResultPage from './SecondaryExamResultPage';
 import SecondaryExamExplanationPage from './SecondaryExamExplanationPage';
@@ -199,6 +200,10 @@ export default function App() {
 
     if (activePath === '/soragaki') {
       return [{ label: 'ホーム', path: '/' }, { label: '空描き' }];
+    }
+
+    if (activePath === '/paper-practice') {
+      return [{ label: 'ホーム', path: '/' }, { label: '紙演習' }];
     }
 
     if (activePath === '/secondary-exam') {
@@ -464,6 +469,7 @@ export default function App() {
               <Route path="/countdown" element={<CountdownPage />} />
               <Route path="/muscle" element={<MusclePage />} />
               <Route path="/soragaki" element={<SoragakiPage />} />
+              <Route path="/paper-practice" element={<PaperPracticePage />} />
               <Route path="/secondary-exam" element={<SecondaryExamPage />} />
               <Route path="/secondary-exam/results/:attemptId" element={<SecondaryExamResultPage />} />
               <Route path="/secondary-exam/results/:attemptId/explanations" element={<SecondaryExamExplanationPage />} />

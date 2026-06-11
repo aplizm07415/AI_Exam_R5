@@ -190,6 +190,7 @@ class Plan(BaseModel):
     minimumDaily: int = 0
     autoRedistribute: bool = True
     enabled: bool
+    archived: bool = False
 
 class ProblemHistoryStatsRequest(BaseModel):
     problem_ids: list[str]
@@ -311,6 +312,21 @@ class QuizStartRequest(BaseModel):
     specific_area_history_scope: SpecificAreaHistoryScope = "all"
     tag_filter: QuestionTagFilter = "all"
 
+class PaperPracticeLotCreateRequest(QuizStartRequest):
+    source_mode: Optional[str] = None
+    title: Optional[str] = None
+
+class PaperPracticeLot(BaseModel):
+    id: str
+    title: str
+    created_at: str
+    subjects: list[str]
+    mode: str
+    source_mode: Optional[str] = None
+    count: int
+    tag_filter: QuestionTagFilter = "all"
+    questions: list[dict]
+
 OralVivaStep = Literal["root", "refute", "apply", "summary"]
 
 class OralVivaQuestionContext(BaseModel):
@@ -368,6 +384,7 @@ MUSCLE_EXERCISES_BLOB = f"{MUSCLE_DIR}/exercises.json"
 MUSCLE_RECORDS_BLOB = f"{MUSCLE_DIR}/records.json"
 MUSCLE_AUDIOS_META_BLOB = f"{MUSCLE_DIR}/audios/meta.json"
 REVIEW_LATER_BLOB = "review-later/items.json"
+PAPER_PRACTICE_LOTS_DIR = "paper-practice/lots"
 MUSCLE_AUDIO_FILES_DIR = f"{MUSCLE_DIR}/audios/files"
 MUSCLE_BODY_PARTS = [
     "neck",
@@ -540,6 +557,30 @@ def _append_history_items(items: list[HistoryItem]) -> None:
     for subject_name, next_items in grouped_items.items():
         existing_items = _get_history_items_for_subject(subject_name)
         _write_history_items_for_subject(subject_name, existing_items + next_items)
+
+
+def _paper_practice_lot_blob_name(lot_id: str) -> str:
+    return f"{PAPER_PRACTICE_LOTS_DIR}/{lot_id}.json"
+
+
+def _load_paper_practice_lot(blob_name: str) -> PaperPracticeLot | None:
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+
+    blob_client = container_client.get_blob_client(blob_name)
+    if not blob_client.exists():
+        return None
+    try:
+        payload = json.loads(blob_client.download_blob().readall())
+        return PaperPracticeLot.model_validate(payload)
+    except Exception as e:
+        print(f"Error reading paper practice lot {blob_name}: {e}")
+        return None
+
+
+def _save_paper_practice_lot(lot: PaperPracticeLot) -> None:
+    payload = json.dumps(lot.model_dump(), ensure_ascii=False, indent=2).encode("utf-8")
+    _overwrite_blob_bytes(_paper_practice_lot_blob_name(lot.id), payload)
 
 # Helper to get all questions for a subject, mapped by problem_id
 def _get_all_questions_for_subject(subject_name: str) -> dict[str, dict]:
@@ -992,6 +1033,16 @@ def _photo_file_blob_name(photo_id: str, filename: str) -> str:
 
 def _now_utc_iso() -> str:
     return datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+
+def _format_jst_lot_timestamp(value: str) -> str:
+    try:
+        parsed = datetime.datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return value[:16].replace("T", " ")
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=datetime.timezone.utc)
+    return parsed.astimezone(TOKYO_TZ).strftime("%Y-%m-%d %H:%M")
 
 
 def _normalize_photo_tags(tags: list[str]) -> list[str]:
@@ -2564,6 +2615,73 @@ def start_quiz(request: QuizStartRequest):
 
     return {"quiz_set": selected_questions}
 
+
+@api_router.get("/paper-practice/lots", response_model=list[PaperPracticeLot])
+def list_paper_practice_lots():
+    """紙演習用のPDF出力単位（ロット）を新しい順に返す。"""
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+
+    lots: list[PaperPracticeLot] = []
+    try:
+        for blob in container_client.list_blobs(name_starts_with=f"{PAPER_PRACTICE_LOTS_DIR}/"):
+            blob_name = getattr(blob, "name", "")
+            if not blob_name.endswith(".json"):
+                continue
+            lot = _load_paper_practice_lot(blob_name)
+            if lot is not None:
+                lots.append(lot)
+    except Exception as e:
+        print(f"Error listing paper practice lots: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to list paper practice lots: {e}")
+
+    lots.sort(key=lambda item: item.created_at, reverse=True)
+    return lots
+
+
+@api_router.post("/paper-practice/lots", response_model=PaperPracticeLot)
+def create_paper_practice_lot(request: PaperPracticeLotCreateRequest):
+    """現在の演習設定から紙演習ロットを作成して保存する。"""
+    quiz_request = QuizStartRequest.model_validate(request.model_dump())
+    quiz_payload = start_quiz(quiz_request)
+    quiz_set = quiz_payload.get("quiz_set", [])
+    if not quiz_set:
+        raise HTTPException(status_code=400, detail="紙演習ロットにできる問題がありません。")
+
+    lot_id = uuid.uuid4().hex
+    created_at = _now_utc_iso()
+    title = (request.title or "").strip() or f"紙演習ロット {_format_jst_lot_timestamp(created_at)}"
+    lot = PaperPracticeLot(
+        id=lot_id,
+        title=title,
+        created_at=created_at,
+        subjects=request.subjects,
+        mode=request.mode,
+        source_mode=request.source_mode,
+        count=len(quiz_set),
+        tag_filter=request.tag_filter,
+        questions=quiz_set,
+    )
+    _save_paper_practice_lot(lot)
+    return lot
+
+
+@api_router.delete("/paper-practice/lots/{lot_id}", status_code=204)
+def delete_paper_practice_lot(lot_id: str):
+    """紙演習ロットを削除する。"""
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+
+    blob_client = container_client.get_blob_client(_paper_practice_lot_blob_name(lot_id))
+    if not blob_client.exists():
+        raise HTTPException(status_code=404, detail="Paper practice lot not found.")
+
+    try:
+        blob_client.delete_blob()
+    except Exception as e:
+        print(f"Error deleting paper practice lot {lot_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete paper practice lot: {e}")
+
 @api_router.post("/quiz/bulk-history-stats", response_model=dict[str, AnswerStat])
 def get_bulk_history_stats(request: ProblemHistoryStatsRequest):
     """
@@ -3796,6 +3914,10 @@ async def serve_portal_route():
 
 @app.get("/dashboard", response_class=FileResponse)
 async def serve_dashboard_route():
+    return FileResponse(DIST_DIR / "index.html")
+
+@app.get("/paper-practice", response_class=FileResponse)
+async def serve_paper_practice_route():
     return FileResponse(DIST_DIR / "index.html")
 
 app.mount("/", StaticFiles(directory=DIST_DIR, html=True), name="static")

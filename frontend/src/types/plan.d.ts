@@ -15,4 +15,5 @@ export interface Plan {
   minimumDaily?: number;
   autoRedistribute?: boolean;
   enabled: boolean;
+  archived?: boolean;
 }

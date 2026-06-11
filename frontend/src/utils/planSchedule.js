@@ -15,7 +15,7 @@ const toDayStart = (date) => {
     return next;
 };
 export const buildPlanSchedule = (plans, actualsByDate, todayYmd) => {
-    const activePlans = plans.filter((p) => p.enabled);
+    const activePlans = plans.filter((p) => p.enabled && !p.archived);
     if (activePlans.length === 0) {
         return { rows: [], debtToRedistribute: 0, extraPerDay: 0 };
     }

@@ -34,6 +34,17 @@ interface ProgressDataRow {
   progress: { daily: number; cumulative: number };
 }
 
+interface PlanDebtItem {
+  planId: string;
+  title: string;
+  subjectNames: string[];
+  planned: number;
+  actual: number;
+  debt: number;
+  isSelected: boolean;
+  isEnabled: boolean;
+}
+
 const formatDateYmd = (date: Date): string => {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -45,8 +56,10 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
   const { plans, addPlan, updatePlan, deletePlan, isLoading, error } = usePlans();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
+  const [showArchivedPlans, setShowArchivedPlans] = useState(false);
   const [selectedPlanIds, setSelectedPlanIds] = useState<string[]>([]);
   const [dailySummaryAll, setDailySummaryAll] = useState<DailySummaryItem[]>([]);
+  const [dailySummaryByPlanId, setDailySummaryByPlanId] = useState<Record<string, DailySummaryItem[]>>({});
 
   // Form state
   const [title, setTitle] = useState('');
@@ -74,22 +87,25 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
   const [printChartWidth, setPrintChartWidth] = useState(900);
   const [chartStartDate, setChartStartDate] = useState('');
   const [chartEndDate, setChartEndDate] = useState('');
+  const visiblePlans = useMemo(() => plans.filter((plan) => !plan.archived), [plans]);
+  const archivedPlans = useMemo(() => plans.filter((plan) => plan.archived), [plans]);
 
   useEffect(() => {
     // plansが読み込まれたら、デフォルトで全ての有効なプランを選択状態にする
-    const defaultSelectedIds = plans.filter(p => p.enabled).map(p => p.id);
+    const defaultSelectedIds = visiblePlans.filter(p => p.enabled).map(p => p.id);
     setSelectedPlanIds(defaultSelectedIds);
-  }, [plans]); // plansが変わった時だけ実行
+  }, [visiblePlans]); // plansが変わった時だけ実行
 
   useEffect(() => {
     const fetchFilteredSummary = async () => {
-      const targetPlans = plans.filter(p => selectedPlanIds.includes(p.id));
+      const targetPlans = visiblePlans.filter(p => p.enabled && selectedPlanIds.includes(p.id));
       const planSubjects = Array.from(new Set(targetPlans.flatMap(p => p.subjectNames)));
       const planStartDate = targetPlans.map((p) => p.period.from).filter(Boolean).sort()[0] ?? '';
       const planEndDate = targetPlans.map((p) => p.period.to).filter(Boolean).sort().at(-1) ?? '';
 
       if (planSubjects.length === 0) {
         setDailySummaryAll([]);
+        setDailySummaryByPlanId({});
         return;
       }
 
@@ -98,27 +114,49 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
         planSubjects.forEach((s) => params.append('subjects', s));
         if (planStartDate) params.append('start_date', planStartDate);
         if (planEndDate) params.append('end_date', planEndDate);
-        const response = await fetch(`/api/history/daily-summary/all?${params.toString()}`);
-        if (response.ok) {
-          const data = await response.json();
+        const [combinedResponse, planEntries] = await Promise.all([
+          fetch(`/api/history/daily-summary/all?${params.toString()}`),
+          Promise.all(targetPlans.map(async (plan) => {
+            if (plan.subjectNames.length === 0) return [plan.id, []] as const;
+            const planParams = new URLSearchParams();
+            plan.subjectNames.forEach((subjectName) => planParams.append('subjects', subjectName));
+            if (plan.period.from) planParams.append('start_date', plan.period.from);
+            if (plan.period.to) planParams.append('end_date', plan.period.to);
+            const response = await fetch(`/api/history/daily-summary/all?${planParams.toString()}`);
+            if (!response.ok) {
+              console.error("Failed to fetch per-plan daily summary for Plan Mngmt", plan.id);
+              return [plan.id, []] as const;
+            }
+            const data: DailySummaryItem[] = await response.json();
+            return [plan.id, data] as const;
+          })),
+        ]);
+
+        if (combinedResponse.ok) {
+          const data = await combinedResponse.json();
           setDailySummaryAll(data);
         } else {
           console.error("Failed to fetch filtered daily summary for Plan Mngmt");
           setDailySummaryAll([]);
         }
+        setDailySummaryByPlanId(Object.fromEntries(planEntries));
       } catch (e) {
         console.error("Error fetching filtered daily summary for Plan Mngmt:", e);
         setDailySummaryAll([]);
+        setDailySummaryByPlanId({});
       }
     };
 
-    if (plans.length > 0) {
+    if (visiblePlans.length > 0) {
       fetchFilteredSummary();
+    } else {
+      setDailySummaryAll([]);
+      setDailySummaryByPlanId({});
     }
-  }, [plans, selectedPlanIds]);
+  }, [visiblePlans, selectedPlanIds]);
 
   useEffect(() => {
-    const activePlans = plans.filter(p => p.enabled && selectedPlanIds.includes(p.id));
+    const activePlans = visiblePlans.filter(p => p.enabled && selectedPlanIds.includes(p.id));
     if (activePlans.length === 0) {
       setChartStartDate('');
       setChartEndDate('');
@@ -129,7 +167,7 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
     const defaultEnd = activePlans.map((p) => p.period.to).filter(Boolean).sort().at(-1) ?? '';
     setChartStartDate(defaultStart);
     setChartEndDate(defaultEnd);
-  }, [plans, selectedPlanIds]);
+  }, [visiblePlans, selectedPlanIds]);
 
   useEffect(() => {
     const triggerChartResize = () => {
@@ -248,6 +286,7 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
       minimumDaily: Math.max(0, minimumDaily),
       autoRedistribute,
       enabled: true,
+      archived: false,
     };
 
     if (editingPlan) {
@@ -277,6 +316,15 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
     updatePlan({ ...plan, enabled: !plan.enabled });
   };
 
+  const archivePlan = (plan: Plan) => {
+    updatePlan({ ...plan, enabled: false, archived: true });
+    setSelectedPlanIds((current) => current.filter((id) => id !== plan.id));
+  };
+
+  const restorePlan = (plan: Plan) => {
+    updatePlan({ ...plan, enabled: false, archived: false });
+  };
+
   const confirmDeletePlan = (plan: Plan) => {
     const ok = window.confirm(`予定「${plan.title}」を削除しますか？`);
     if (!ok) return;
@@ -284,7 +332,7 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
   };
   
   const progressData = useMemo((): ProgressDataRow[] => {
-    const activePlans = plans.filter(p => p.enabled && selectedPlanIds.includes(p.id));
+    const activePlans = visiblePlans.filter(p => p.enabled && selectedPlanIds.includes(p.id));
     if (activePlans.length === 0) return [];
 
     const actualsMap = new Map(dailySummaryAll.filter(item => item.date).map(item => [item.date, item.total_questions]));
@@ -301,15 +349,40 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
       }))
       .filter(d => d.plan.cumulative > 0 || d.actual.cumulative > 0)
       .sort((a, b) => a.date.localeCompare(b.date));
-  }, [plans, dailySummaryAll, selectedPlanIds]);
+  }, [visiblePlans, dailySummaryAll, selectedPlanIds]);
 
-  const learningDebt = useMemo(() => {
+  const learningDebtItems = useMemo((): PlanDebtItem[] => {
     const today = getTodayYmdJst();
-    const upToToday = progressData.filter((row) => row.date <= today);
-    const latest = upToToday.length > 0 ? upToToday[upToToday.length - 1] : null;
-    if (!latest) return 0;
-    return Math.max(0, latest.plan.cumulative - latest.actual.cumulative);
-  }, [progressData]);
+    return visiblePlans
+      .filter((plan) => plan.enabled && selectedPlanIds.includes(plan.id))
+      .map((plan) => {
+        const actualsMap = new Map(
+          (dailySummaryByPlanId[plan.id] ?? [])
+            .filter((item) => item.date)
+            .map((item) => [item.date, item.total_questions])
+        );
+        const schedule = buildPlanSchedule([plan], actualsMap, today);
+        const upToToday = schedule.rows.filter((row) => row.date <= today);
+        const latest = upToToday.length > 0 ? upToToday[upToToday.length - 1] : null;
+        const planned = latest?.planCumulative ?? 0;
+        const actual = latest?.actualCumulative ?? 0;
+        return {
+          planId: plan.id,
+          title: plan.title,
+          subjectNames: plan.subjectNames,
+          planned,
+          actual,
+          debt: Math.max(0, planned - actual),
+          isSelected: selectedPlanIds.includes(plan.id),
+          isEnabled: plan.enabled,
+        };
+      });
+  }, [dailySummaryByPlanId, visiblePlans, selectedPlanIds]);
+
+  const learningDebt = useMemo(
+    () => learningDebtItems.reduce((sum, item) => sum + item.debt, 0),
+    [learningDebtItems],
+  );
 
   const displayProgressData = useMemo(() => {
     return progressData
@@ -472,7 +545,7 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
         <div className="flex items-center gap-4 mb-3">
           <button
             type="button"
-            onClick={() => setSelectedPlanIds(plans.filter(p => p.enabled).map(p => p.id))}
+            onClick={() => setSelectedPlanIds(visiblePlans.filter(p => p.enabled).map(p => p.id))}
             className="px-3 py-1 text-xs font-medium text-white bg-primary-new rounded-md hover:bg-primary"
           >
             すべて選択
@@ -486,7 +559,7 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
           </button>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-          {plans.map(plan => (
+          {visiblePlans.map(plan => (
             <div key={plan.id} className="flex items-center">
               <input
                 type="checkbox"
@@ -515,7 +588,11 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
       </div>
 
       <div className="space-y-4">
-        {plans.map(plan => (
+        {visiblePlans.length === 0 ? (
+          <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">
+            表示中の予定はありません。アーカイブ済みの予定は下の欄から戻せます。
+          </div>
+        ) : visiblePlans.map(plan => (
           <div key={plan.id} className="p-4 border rounded-lg flex items-center justify-between hover:bg-gray-50 transition-colors">
             <div className="flex-1 cursor-pointer" onClick={() => handleEdit(plan)}>
               <p className="font-bold text-gray-800">{plan.title}</p>
@@ -532,6 +609,13 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
                   <div className={`block w-14 h-8 rounded-full border-2 border-primary-new transition-colors ${plan.enabled ? 'bg-primary-new' : 'bg-white'}`}></div>
                 </div>
               </label>
+              <button
+                type="button"
+                onClick={() => archivePlan(plan)}
+                className="rounded-md border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50"
+              >
+                アーカイブ
+              </button>
               <button onClick={() => confirmDeletePlan(plan)} className="text-gray-400 hover:text-danger">
                 <TrashIcon className="w-6 h-6" />
               </button>
@@ -539,12 +623,107 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
           </div>
         ))}
       </div>
+
+      <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 className="text-sm font-semibold text-slate-800">アーカイブ済み予定</h3>
+            <p className="mt-1 text-xs text-slate-500">削除せずに退避した予定です。復元すると通常一覧に戻ります。</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowArchivedPlans((current) => !current)}
+            className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+          >
+            {showArchivedPlans ? '閉じる' : `表示 (${archivedPlans.length})`}
+          </button>
+        </div>
+        {showArchivedPlans && (
+          <div className="mt-4 space-y-3">
+            {archivedPlans.length === 0 ? (
+              <div className="rounded-md border border-slate-200 bg-white px-3 py-4 text-center text-sm text-slate-500">
+                アーカイブ済みの予定はありません。
+              </div>
+            ) : archivedPlans.map((plan) => (
+              <div key={plan.id} className="flex flex-col gap-3 rounded-md border border-slate-200 bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-semibold text-slate-800">{plan.title}</div>
+                  <div className="mt-1 truncate text-xs text-slate-500">{plan.subjectNames.join(', ')}</div>
+                  <div className="mt-1 text-xs text-slate-500">{plan.period.from} ~ {plan.period.to}</div>
+                </div>
+                <div className="flex shrink-0 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => restorePlan(plan)}
+                    className="rounded-md bg-primary-new px-3 py-2 text-xs font-medium text-white hover:bg-blue-700"
+                  >
+                    一覧に戻す
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => confirmDeletePlan(plan)}
+                    className="rounded-md border border-red-200 bg-white px-3 py-2 text-xs font-medium text-red-700 hover:bg-red-50"
+                  >
+                    削除
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
       
       <div className="mt-8 print-chart-fix">
         <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
-          <p className="text-sm font-medium text-amber-900">学習負債メーター</p>
-          <p className="text-2xl font-bold text-amber-700">{learningDebt} 問</p>
-          <p className="text-xs text-amber-800">未消化復習（累計予定 - 累計実績）</p>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium text-amber-900">学習負債メーター</p>
+              <p className="text-xs text-amber-800">有効な予定ごとに未消化復習（累計予定 - 累計実績）を判定します。</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs font-semibold text-amber-800">選択中の合計</p>
+              <p className="text-2xl font-bold text-amber-700">{learningDebt} 問</p>
+            </div>
+          </div>
+          <div className="mt-3 grid gap-2 md:grid-cols-2">
+            {learningDebtItems.length === 0 ? (
+              <div className="rounded-md border border-amber-200 bg-white px-3 py-2 text-sm text-amber-800">
+                表示対象の有効な予定がありません。
+              </div>
+            ) : (
+              learningDebtItems.map((item) => {
+                const subjectPreview = item.subjectNames.slice(0, 3).join('、');
+                const overflowCount = Math.max(0, item.subjectNames.length - 3);
+                const progressPercent = item.planned > 0
+                  ? Math.min(100, Math.round((item.actual / item.planned) * 100))
+                  : 0;
+
+                return (
+                  <div key={item.planId} className="rounded-md border border-amber-200 bg-white px-3 py-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-semibold text-slate-800" title={item.title}>{item.title}</div>
+                        <div className="mt-0.5 truncate text-[11px] text-slate-500" title={item.subjectNames.join('、')}>
+                          {subjectPreview || '科目未設定'}{overflowCount > 0 ? ` ほか${overflowCount}` : ''}
+                        </div>
+                      </div>
+                      <div className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${item.debt > 0 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-700'}`}>
+                        {item.debt > 0 ? `${item.debt}問` : '負債なし'}
+                      </div>
+                    </div>
+                    <div className="mt-2 flex items-center gap-2">
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100">
+                        <div className={`h-full rounded-full ${item.debt > 0 ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${progressPercent}%` }} />
+                      </div>
+                      <div className="w-20 text-right text-[11px] font-medium text-slate-600">
+                        {Math.min(item.actual, item.planned)} / {item.planned}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
         </div>
         <div className="mb-4 grid gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 md:grid-cols-[1fr_1fr_auto]">
           <div>
@@ -571,7 +750,7 @@ export default function PlanManagementDashboard({ subjects }: PlanManagementDash
             <button
               type="button"
               onClick={() => {
-                const activePlans = plans.filter(p => p.enabled && selectedPlanIds.includes(p.id));
+                const activePlans = visiblePlans.filter(p => p.enabled && selectedPlanIds.includes(p.id));
                 const defaultStart = activePlans.map((p) => p.period.from).filter(Boolean).sort()[0] ?? '';
                 const defaultEnd = activePlans.map((p) => p.period.to).filter(Boolean).sort().at(-1) ?? '';
                 setChartStartDate(defaultStart);

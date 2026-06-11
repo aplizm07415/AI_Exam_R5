@@ -129,6 +129,7 @@ def mock_fastapi_app():
         }
         custom_explanations = json.loads(json.dumps(TEST_CUSTOM_EXPLANATIONS))
         review_later_items = json.loads(json.dumps(TEST_REVIEW_LATER_ITEMS))
+        paper_practice_lots = {}
         blob_clients = {}
 
         # BlobClientのget_blob_clientメソッドのモック
@@ -152,6 +153,11 @@ def mock_fastapi_app():
                 elif blob_name == "review-later/items.json":
                     review_later_items.clear()
                     review_later_items.extend(json.loads(payload_text))
+                elif blob_name.startswith("paper-practice/lots/") and blob_name.endswith(".json"):
+                    payload = json.loads(payload_text)
+                    paper_practice_lots[Path(blob_name).stem] = payload
+                    mock_blob_client_instance.exists.return_value = True
+                    mock_blob_client_instance.download_blob.return_value = MockBlobDownload(json.dumps(payload))
                 elif blob_name.endswith(".json") and "/" not in blob_name:
                     subject_payloads[blob_name] = json.loads(payload_text)
 
@@ -165,6 +171,10 @@ def mock_fastapi_app():
                     custom_explanations.pop(problem_id, None)
                 elif blob_name == "review-later/items.json":
                     review_later_items.clear()
+                elif blob_name.startswith("paper-practice/lots/") and blob_name.endswith(".json"):
+                    paper_practice_lots.pop(Path(blob_name).stem, None)
+                    mock_blob_client_instance.exists.return_value = False
+                    mock_blob_client_instance.download_blob.return_value = MockBlobDownload("{}")
                 elif blob_name.endswith(".json") and "/" not in blob_name:
                     subject_payloads.pop(blob_name, None)
 
@@ -198,6 +208,11 @@ def mock_fastapi_app():
             elif blob_name == "plans.json":
                 mock_blob_client_instance.exists.return_value = False
                 mock_blob_client_instance.download_blob.return_value = MockBlobDownload("[]")
+            elif blob_name.startswith("paper-practice/lots/") and blob_name.endswith(".json"):
+                lot_id = Path(blob_name).stem
+                lot = paper_practice_lots.get(lot_id)
+                mock_blob_client_instance.exists.return_value = lot is not None
+                mock_blob_client_instance.download_blob.return_value = MockBlobDownload(json.dumps(lot or {}))
             # images (存在しない想定)
             elif blob_name.startswith("images/"):
                  mock_blob_client_instance.exists.return_value = False
@@ -213,6 +228,7 @@ def mock_fastapi_app():
             blob_names.extend(f"history/{subject}.jsonl" for subject in history_payloads.keys())
             blob_names.extend(f"custom-explanations/{problem_id}.json" for problem_id in custom_explanations.keys())
             blob_names.append("review-later/items.json")
+            blob_names.extend(f"paper-practice/lots/{lot_id}.json" for lot_id in paper_practice_lots.keys())
             for blob_name in blob_names:
                 if name_starts_with and not blob_name.startswith(name_starts_with):
                     continue
@@ -229,6 +245,7 @@ def mock_fastapi_app():
         main._test_history_payloads = history_payloads
         main._test_custom_explanations = custom_explanations
         main._test_review_later_items = review_later_items
+        main._test_paper_practice_lots = paper_practice_lots
         main._test_blob_clients = blob_clients
         
         # FastAPIアプリのインスタンスをTestClientに渡す
@@ -243,6 +260,64 @@ def test_start_quiz_random_mode(client: TestClient):
     assert "quiz_set" in data
     assert len(data["quiz_set"]) == 2
     assert all(q["subject"] == "subject1.json" for q in data["quiz_set"])
+
+def test_create_and_list_paper_practice_lots(client: TestClient):
+    first = client.post(
+        "/api/paper-practice/lots",
+        json={
+            "subjects": ["subject1.json"],
+            "count": 2,
+            "mode": "random",
+            "source_mode": "random",
+            "title": "紙演習テスト1",
+        },
+    )
+    assert first.status_code == 200
+    first_lot = first.json()
+    assert first_lot["title"] == "紙演習テスト1"
+    assert first_lot["count"] == 2
+    assert len(first_lot["questions"]) == 2
+    assert all(question["subject"] == "subject1.json" for question in first_lot["questions"])
+
+    with patch("backend.main._now_utc_iso", return_value="2026-06-11T13:00:00+00:00"):
+        default_title_response = client.post(
+            "/api/paper-practice/lots",
+            json={
+                "subjects": ["subject1.json"],
+                "count": 1,
+                "mode": "random",
+                "source_mode": "random",
+            },
+        )
+    assert default_title_response.status_code == 200
+    assert default_title_response.json()["title"] == "紙演習ロット 2026-06-11 22:00"
+
+    second = client.post(
+        "/api/paper-practice/lots",
+        json={
+            "subjects": ["subject1.json"],
+            "count": 1,
+            "mode": "random",
+            "source_mode": "random",
+            "title": "紙演習テスト2",
+        },
+    )
+    assert second.status_code == 200
+    second_lot = second.json()
+
+    listed = client.get("/api/paper-practice/lots")
+    assert listed.status_code == 200
+    lots = listed.json()
+    assert [lot["id"] for lot in lots[:2]] == [second_lot["id"], first_lot["id"]]
+
+    deleted = client.delete(f"/api/paper-practice/lots/{first_lot['id']}")
+    assert deleted.status_code == 204
+
+    listed_after_delete = client.get("/api/paper-practice/lots")
+    assert listed_after_delete.status_code == 200
+    remaining_ids = [lot["id"] for lot in listed_after_delete.json()]
+    assert first_lot["id"] not in remaining_ids
+    assert second_lot["id"] in remaining_ids
 
 def test_start_quiz_filters_calculation_tag(client: TestClient):
     from backend import main

@@ -4,6 +4,11 @@ import { v4 as uuidv4 } from 'uuid';
 
 const API_URL = '/api/plans';
 
+const normalizePlan = (plan: Plan): Plan => ({
+  ...plan,
+  archived: plan.archived ?? false,
+});
+
 export function usePlans() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -17,8 +22,8 @@ export function usePlans() {
         if (!response.ok) {
           throw new Error('学習計画の取得に失敗しました。');
         }
-        const data = await response.json();
-        setPlans(data);
+        const data: Plan[] = await response.json();
+        setPlans(data.map(normalizePlan));
       } catch (err: any) {
         setError(err.message);
         console.error("Failed to load plans from API", err);
@@ -52,14 +57,14 @@ export function usePlans() {
   };
 
   const addPlan = (newPlanData: Omit<Plan, 'id'>) => {
-    const newPlan: Plan = { ...newPlanData, id: uuidv4() };
+    const newPlan: Plan = normalizePlan({ ...newPlanData, id: uuidv4() });
     const updatedPlans = [...plans, newPlan];
     setPlans(updatedPlans);
     savePlansToBackend(updatedPlans);
   };
 
   const updatePlan = (updatedPlan: Plan) => {
-    const updatedPlans = plans.map(p => p.id === updatedPlan.id ? updatedPlan : p);
+    const updatedPlans = plans.map(p => p.id === updatedPlan.id ? normalizePlan(updatedPlan) : p);
     setPlans(updatedPlans);
     savePlansToBackend(updatedPlans);
   };

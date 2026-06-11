@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 const API_URL = '/api/plans';
+const normalizePlan = (plan) => ({
+    ...plan,
+    archived: plan.archived ?? false,
+});
 export function usePlans() {
     const [plans, setPlans] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -14,7 +18,7 @@ export function usePlans() {
                     throw new Error('学習計画の取得に失敗しました。');
                 }
                 const data = await response.json();
-                setPlans(data);
+                setPlans(data.map(normalizePlan));
             }
             catch (err) {
                 setError(err.message);
@@ -47,13 +51,13 @@ export function usePlans() {
         }
     };
     const addPlan = (newPlanData) => {
-        const newPlan = { ...newPlanData, id: uuidv4() };
+        const newPlan = normalizePlan({ ...newPlanData, id: uuidv4() });
         const updatedPlans = [...plans, newPlan];
         setPlans(updatedPlans);
         savePlansToBackend(updatedPlans);
     };
     const updatePlan = (updatedPlan) => {
-        const updatedPlans = plans.map(p => p.id === updatedPlan.id ? updatedPlan : p);
+        const updatedPlans = plans.map(p => p.id === updatedPlan.id ? normalizePlan(updatedPlan) : p);
         setPlans(updatedPlans);
         savePlansToBackend(updatedPlans);
     };

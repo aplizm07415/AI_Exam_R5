@@ -1,10 +1,12 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { LoaderIcon, CheckCircleIcon, XCircleIcon } from './components/icons';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
 import LoadingSpinner from './components/LoadingSpinner';
+import { markdownComponents } from './components/markdownComponents';
 import SubjectVisibilityModal from './components/SubjectVisibilityModal';
 import SubjectProgress from './components/SubjectProgress';
 import { usePlans } from './hooks/usePlans';
@@ -14,6 +16,7 @@ const API_BASE_URL = "/api";
 const QUESTION_TIMER_MS = 2 * 60 * 1000;
 const FORCED_ANSWER_TIMER_MS = 80 * 1000;
 const SUBJECT_SELECTION_PATTERNS_STORAGE_KEY = 'subjectSelectionPatterns';
+const PAPER_PRACTICE_PENDING_REQUEST_STORAGE_KEY = 'paperPracticePendingRequest';
 const SPECIFIC_AREA_PROGRESS_STEPS = [
     '条件を確認中',
     '問題文・解説を照合中',
@@ -149,8 +152,10 @@ function buildQuizTimelineItems(total, currentIndex) {
     return items;
 }
 export default function QuizPage({ subjects: allSubjects }) {
+    const navigate = useNavigate();
     const { plans, isLoading: isPlansLoading, error: plansError } = usePlans();
-    const [dailySummaryAll, setDailySummaryAll] = useState([]);
+    const [dailySummaryByPlanId, setDailySummaryByPlanId] = useState({});
+    const [isTodayProgressLoading, setIsTodayProgressLoading] = useState(false);
     const [selectedSubjectNames, setSelectedSubjectNames] = useState([]);
     const [quizMode, setQuizMode] = useState('today_remaining');
     const [questionTagFilter, setQuestionTagFilter] = useState('all');
@@ -161,6 +166,7 @@ export default function QuizPage({ subjects: allSubjects }) {
     const [historyStats, setHistoryStats] = useState({});
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [selectedAnswer, setSelectedAnswer] = useState(null);
+    const [excludedChoiceLabels, setExcludedChoiceLabels] = useState([]);
     const [isAnswered, setIsAnswered] = useState(false);
     const [feedback, setFeedback] = useState(null);
     const [score, setScore] = useState(0);
@@ -425,63 +431,110 @@ export default function QuizPage({ subjects: allSubjects }) {
         localStorage.setItem(SUBJECT_SELECTION_PATTERNS_STORAGE_KEY, JSON.stringify(subjectSelectionPatterns));
     }, [subjectSelectionPatterns]);
     useEffect(() => {
-        const fetchDailySummaryAll = async () => {
-            const planSubjects = Array.from(new Set(plans.filter(p => p.enabled).flatMap(p => p.subjectNames)));
-            if (planSubjects.length === 0) {
-                setDailySummaryAll([]);
+        let isCancelled = false;
+        const fetchDailySummaryByPlan = async () => {
+            const activePlans = plans.filter((p) => p.enabled && !p.archived);
+            if (activePlans.length === 0) {
+                setDailySummaryByPlanId({});
+                setIsTodayProgressLoading(false);
                 return;
             }
+            setIsTodayProgressLoading(true);
             try {
-                const subjectParams = planSubjects.map(s => `subjects=${encodeURIComponent(s)}`).join('&');
-                const response = await fetch(`${API_BASE_URL}/history/daily-summary/all?${subjectParams}`);
-                if (response.ok) {
+                const todayYmd = getTodayYmdJst();
+                const entries = await Promise.all(activePlans.map(async (plan) => {
+                    if (!plan.period?.from || plan.subjectNames.length === 0) {
+                        return [plan.id, []];
+                    }
+                    const params = new URLSearchParams();
+                    plan.subjectNames.forEach((subjectName) => params.append('subjects', subjectName));
+                    params.append('start_date', plan.period.from);
+                    params.append('end_date', todayYmd);
+                    const response = await fetch(`${API_BASE_URL}/history/daily-summary/all?${params.toString()}`);
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error("Failed to fetch plan daily summary:", plan.id, response.status, errorText);
+                        return [plan.id, []];
+                    }
                     const data = await response.json();
-                    setDailySummaryAll(data);
-                }
-                else {
-                    // エラーレスポンスのテキストをログに出力
-                    const errorText = await response.text();
-                    console.error("Failed to fetch filtered daily summary:", response.status, errorText);
-                    setDailySummaryAll([]); // エラーの場合は空にする
+                    return [plan.id, data];
+                }));
+                if (!isCancelled) {
+                    setDailySummaryByPlanId(Object.fromEntries(entries));
                 }
             }
             catch (error) {
-                console.error("Failed to fetch all daily summary:", error);
-                setDailySummaryAll([]); // エラーの場合は空にする
+                console.error("Failed to fetch plan daily summaries:", error);
+                if (!isCancelled) {
+                    setDailySummaryByPlanId({});
+                }
+            }
+            finally {
+                if (!isCancelled) {
+                    setIsTodayProgressLoading(false);
+                }
             }
         };
         if (!isPlansLoading) {
-            fetchDailySummaryAll();
+            void fetchDailySummaryByPlan();
         }
+        return () => {
+            isCancelled = true;
+        };
     }, [plans, isPlansLoading]);
     const todayRemaining = useMemo(() => {
-        if (isPlansLoading)
-            return { count: 0, subjects: [], plan: 0, actual: 0 };
+        if (isPlansLoading || isTodayProgressLoading) {
+            return { count: 0, subjects: [], plan: 0, actual: 0, planDaily: 0, actualDaily: 0, planProgress: [] };
+        }
         const todayYmd = getTodayYmdJst();
-        const activePlans = plans.filter((p) => p.enabled);
+        const activePlans = plans.filter((p) => p.enabled && !p.archived);
         const targetSubjects = new Set();
-        activePlans.forEach((plan) => {
-            plan.subjectNames.forEach((name) => targetSubjects.add(name));
+        const planProgress = activePlans.map((plan) => {
+            const actualsMap = new Map((dailySummaryByPlanId[plan.id] ?? [])
+                .filter((item) => item.date)
+                .map((item) => [item.date, item.total_questions]));
+            const schedule = buildPlanSchedule([plan], actualsMap, todayYmd);
+            const todayRow = schedule.rows.find((row) => row.date === todayYmd);
+            const planDaily = todayRow?.planDaily ?? 0;
+            const actualDaily = todayRow?.actualDaily ?? 0;
+            const remaining = Math.max(0, planDaily - actualDaily);
+            if (remaining > 0) {
+                plan.subjectNames.forEach((name) => targetSubjects.add(name));
+            }
+            return {
+                planId: plan.id,
+                title: plan.title,
+                subjectNames: plan.subjectNames,
+                planDaily,
+                actualDaily,
+                remaining,
+                planCumulative: todayRow?.planCumulative ?? 0,
+                actualCumulative: todayRow?.actualCumulative ?? 0,
+                isScheduledToday: planDaily > 0,
+            };
         });
-        const actualsMap = new Map(dailySummaryAll.filter(item => item.date).map(item => [item.date, item.total_questions]));
-        const schedule = buildPlanSchedule(activePlans, actualsMap, todayYmd);
-        const todayRow = schedule.rows.find((row) => row.date === todayYmd);
-        const cumulativePlannedTotal = todayRow?.planCumulative ?? 0;
-        const cumulativeActualTotal = todayRow?.actualCumulative ?? 0;
-        const remaining = todayRow ? Math.max(0, todayRow.planDaily - todayRow.actualDaily) : 0;
+        const remaining = planProgress.reduce((sum, item) => sum + item.remaining, 0);
+        const planDaily = planProgress.reduce((sum, item) => sum + item.planDaily, 0);
+        const actualDaily = planProgress.reduce((sum, item) => sum + item.actualDaily, 0);
+        const cumulativePlannedTotal = planProgress.reduce((sum, item) => sum + item.planCumulative, 0);
+        const cumulativeActualTotal = planProgress.reduce((sum, item) => sum + item.actualCumulative, 0);
         return {
             count: remaining,
             subjects: Array.from(targetSubjects),
+            planDaily,
+            actualDaily,
             plan: cumulativePlannedTotal,
-            actual: cumulativeActualTotal
+            actual: cumulativeActualTotal,
+            planProgress,
         };
-    }, [plans, dailySummaryAll, isPlansLoading]);
+    }, [plans, dailySummaryByPlanId, isPlansLoading, isTodayProgressLoading]);
     useEffect(() => {
         if (quizMode === 'today_remaining') {
             setSelectedSubjectNames(todayRemaining.subjects);
             setSelectedSubjectPatternId('');
         }
     }, [quizMode, todayRemaining]);
+    const effectiveSelectedSubjectNames = quizMode === 'today_remaining' ? todayRemaining.subjects : selectedSubjectNames;
     useEffect(() => {
         if (quizState !== 'setup')
             return;
@@ -642,7 +695,7 @@ export default function QuizPage({ subjects: allSubjects }) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     problem_ids: problemIds,
-                    subjects: selectedSubjectNames,
+                    subjects: effectiveSelectedSubjectNames,
                 }),
             });
             if (response.ok) {
@@ -653,7 +706,7 @@ export default function QuizPage({ subjects: allSubjects }) {
         catch (fetchError) {
             console.error("Failed to fetch history stats:", fetchError);
         }
-    }, [questions, selectedSubjectNames]);
+    }, [questions, effectiveSelectedSubjectNames]);
     useEffect(() => {
         fetchHistoryStats();
     }, [fetchHistoryStats]);
@@ -837,19 +890,23 @@ export default function QuizPage({ subjects: allSubjects }) {
         }
     };
     const startQuiz = async (forcedSession = false) => {
-        if (selectedSubjectNames.length === 0) {
-            setError('科目を1つ以上選択してください。');
-            return;
-        }
         let questionsToFetch = numQuestions;
         if (quizMode === 'today_remaining') {
+            if (isTodayProgressLoading) {
+                setError('学習予定の実績を読み込み中です。少し待ってから開始してください。');
+                return;
+            }
             if (todayRemaining.count === 0) {
                 setError('今日の予定は完了しています！');
                 return;
             }
             questionsToFetch = Math.min(numQuestions, todayRemaining.count);
         }
-        else if (quizMode === 'unanswered') {
+        if (effectiveSelectedSubjectNames.length === 0) {
+            setError(quizMode === 'today_remaining' ? '今日の予定に未完了の対象科目がありません。' : '科目を1つ以上選択してください。');
+            return;
+        }
+        if (quizMode === 'unanswered') {
             if (unansweredCount === null || unansweredCount === 0) {
                 setError('未解答の問題はありません。');
                 return;
@@ -889,7 +946,7 @@ export default function QuizPage({ subjects: allSubjects }) {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    subjects: selectedSubjectNames,
+                    subjects: effectiveSelectedSubjectNames,
                     mode: apiMode,
                     count: questionsToFetch,
                     weights: quizMode === 'random' ? subjectWeights : undefined,
@@ -934,19 +991,23 @@ export default function QuizPage({ subjects: allSubjects }) {
         }
     };
     const openIpadMode = (profile) => {
-        if (selectedSubjectNames.length === 0) {
-            setError('科目を1つ以上選択してください。');
-            return;
-        }
         let questionsToFetch = numQuestions;
         if (quizMode === 'today_remaining') {
+            if (isTodayProgressLoading) {
+                setError('学習予定の実績を読み込み中です。少し待ってから開始してください。');
+                return;
+            }
             if (todayRemaining.count === 0) {
                 setError('今日の予定は完了しています！');
                 return;
             }
             questionsToFetch = Math.min(numQuestions, todayRemaining.count);
         }
-        else if (quizMode === 'unanswered') {
+        if (effectiveSelectedSubjectNames.length === 0) {
+            setError(quizMode === 'today_remaining' ? '今日の予定に未完了の対象科目がありません。' : '科目を1つ以上選択してください。');
+            return;
+        }
+        if (quizMode === 'unanswered') {
             if (unansweredCount === null || unansweredCount === 0) {
                 setError('未解答の問題はありません。');
                 return;
@@ -964,7 +1025,7 @@ export default function QuizPage({ subjects: allSubjects }) {
             setError('特定領域モードはiPadモード未対応です。Web画面から開始してください。');
             return;
         }
-        const subjectQuery = selectedSubjectNames
+        const subjectQuery = effectiveSelectedSubjectNames
             .map((s) => `subject=${encodeURIComponent(s)}`)
             .join('&');
         const deepLink = `quizapp://quiz?base=${encodeURIComponent(window.location.origin)}` +
@@ -974,8 +1035,82 @@ export default function QuizPage({ subjects: allSubjects }) {
             `&profile=${encodeURIComponent(profile)}`;
         window.location.href = deepLink;
     };
+    const openPaperPracticeMode = () => {
+        let questionsToFetch = numQuestions;
+        if (quizMode === 'today_remaining') {
+            if (isTodayProgressLoading) {
+                setError('学習予定の実績を読み込み中です。少し待ってから開始してください。');
+                return;
+            }
+            if (todayRemaining.count === 0) {
+                setError('今日の予定は完了しています！');
+                return;
+            }
+            questionsToFetch = Math.min(numQuestions, todayRemaining.count);
+        }
+        if (effectiveSelectedSubjectNames.length === 0) {
+            setError(quizMode === 'today_remaining' ? '今日の予定に未完了の対象科目がありません。' : '科目を1つ以上選択してください。');
+            return;
+        }
+        if (quizMode === 'unanswered') {
+            if (unansweredCount === null || unansweredCount === 0) {
+                setError('未解答の問題はありません。');
+                return;
+            }
+            questionsToFetch = Math.min(numQuestions, unansweredCount);
+        }
+        else if (quizMode === 'weak_area') {
+            if (weakAreaCount === null || weakAreaCount === 0) {
+                setError('苦手問題はありません。');
+                return;
+            }
+            questionsToFetch = Math.min(numQuestions, weakAreaCount);
+        }
+        else if (quizMode === 'specific_area') {
+            if (normalizedSpecificAreaKeywords.length === 0) {
+                setError('特定領域モードではキーワードを1つ以上入力してください。');
+                return;
+            }
+            if (isSpecificAreaCountLoading) {
+                setError('対象問題を調査中です。完了してから開始してください。');
+                return;
+            }
+            if (!hasSpecificAreaInvestigationResult) {
+                setError('対象問題を調査してから開始してください。条件を変えた場合は再調査が必要です。');
+                return;
+            }
+            if (specificAreaCount === null || specificAreaCount === 0) {
+                setError('該当する問題はありません。');
+                return;
+            }
+            questionsToFetch = Math.min(numQuestions, specificAreaCount);
+        }
+        if (questionsToFetch <= 0) {
+            setError('紙演習ロットにする問題数が0以下です。');
+            return;
+        }
+        const shouldCreateLot = window.confirm('現在の演習設定で新しい紙演習ロットを作成しますか？\n\nOK: ロットを作成して一覧へ移動\nキャンセル: ロットを作成せず一覧だけ表示');
+        if (!shouldCreateLot) {
+            sessionStorage.removeItem(PAPER_PRACTICE_PENDING_REQUEST_STORAGE_KEY);
+            navigate('/paper-practice');
+            return;
+        }
+        const apiMode = quizMode === 'today_remaining' ? 'unanswered' : quizMode;
+        sessionStorage.setItem(PAPER_PRACTICE_PENDING_REQUEST_STORAGE_KEY, JSON.stringify({
+            subjects: effectiveSelectedSubjectNames,
+            mode: apiMode,
+            source_mode: quizMode,
+            count: Math.max(1, questionsToFetch),
+            weights: quizMode === 'random' ? subjectWeights : undefined,
+            keywords: quizMode === 'specific_area' ? normalizedSpecificAreaKeywords : undefined,
+            specific_area_history_scope: quizMode === 'specific_area' ? specificAreaHistoryScope : undefined,
+            tag_filter: questionTagFilter,
+        }));
+        navigate('/paper-practice');
+    };
     const resetQuestionState = () => {
         setSelectedAnswer(null);
+        setExcludedChoiceLabels([]);
         setIsAnswered(false);
         setFeedback(null);
         setScratchpadText('');
@@ -1029,6 +1164,7 @@ export default function QuizPage({ subjects: allSubjects }) {
             return;
         const submittedAnswer = selectedAnswer ?? '';
         const isCorrect = forceIncorrect ? false : submittedAnswer === currentQuestion.answer;
+        setExcludedChoiceLabels([]);
         try {
             setIsSubmittingAnswer(true);
             setError('');
@@ -1527,6 +1663,19 @@ export default function QuizPage({ subjects: allSubjects }) {
             }
         }
     }, [quizState, questions, currentQuestionIndex]);
+    const toggleChoiceExclusion = (label) => {
+        if (isAnswered)
+            return;
+        setExcludedChoiceLabels((prev) => {
+            if (prev.includes(label)) {
+                return prev.filter((item) => item !== label);
+            }
+            return [...prev, label];
+        });
+        if (selectedAnswer === label) {
+            setSelectedAnswer(null);
+        }
+    };
     // --- Render logic for active quiz ---
     const renderActiveQuiz = () => {
         if (!currentQuestion)
@@ -1544,14 +1693,15 @@ export default function QuizPage({ subjects: allSubjects }) {
         const questionTextMd = currentQuestion.question_text_md?.trim();
         const questionTextMermaid = currentQuestion.question_text_mermaid?.trim();
         const imagesComponent = hasQuestionImages ? (_jsxs("div", { className: "space-y-4", children: [(currentQuestion.image_urls || []).map((url, index) => (_jsx("img", { src: url, alt: `Question image ${index + 1}`, className: "max-w-full w-full h-auto mx-auto rounded-lg shadow-md" }, index))), currentQuestionImageDataUrls.map((url, index) => (_jsx("button", { type: "button", onClick: () => setPreviewImageUrl(url), className: "block w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50", children: _jsx("img", { src: url, alt: `My Memo question supplement ${index + 1}`, className: "max-h-64 w-full object-contain" }) }, `custom-question-${index}`)))] })) : null;
-        const explanationComponent = isAnswered ? (_jsxs("div", { className: "bg-white rounded-xl shadow p-6 md:p-8 fade-in", children: [_jsxs("div", { className: "flex items-center gap-3 mb-4", children: [feedback?.correct ? _jsx(CheckCircleIcon, { className: "w-8 h-8 text-green-600" }) : _jsx(XCircleIcon, { className: "w-8 h-8 text-red-600" }), _jsx("h3", { className: "text-xl md:text-2xl font-bold", children: feedback?.correct ? '正解！' : '不正解' })] }), _jsx("h4", { className: "text-base md:text-lg font-semibold text-primary-new mb-2", children: "\u89E3\u8AAC" }), (currentQuestion.explanation_image_urls && currentQuestion.explanation_image_urls.length > 0) && (_jsx("div", { className: "my-4 grid grid-cols-1 gap-4", children: currentQuestion.explanation_image_urls.map((url, index) => (_jsx("img", { src: url, alt: `Explanation image ${index + 1}`, className: "max-w-full h-auto mx-auto rounded-lg shadow-md" }, index))) })), _jsx("div", { className: "prose prose-sm md:prose-base max-w-none text-gray-700", children: _jsx(ReactMarkdown, { remarkPlugins: [remarkGfm, remarkBreaks], children: feedback?.explanation?.text || '' }) }), currentExplanationImageDataUrls.length > 0 && (_jsxs("div", { className: "mt-6", children: [_jsx("h4", { className: "text-base md:text-lg font-semibold text-primary-new mb-2", children: "My Memo \u89E3\u8AAC\u88DC\u8DB3\u753B\u50CF" }), _jsx("div", { className: "space-y-3", children: currentExplanationImageDataUrls.map((url, index) => (_jsx("button", { type: "button", onClick: () => setPreviewImageUrl(url), className: "block w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50", children: _jsx("img", { src: url, alt: `My Memo handwrite ${index + 1}`, className: "max-h-48 w-full object-contain" }) }, `custom-explanation-${index}`))) })] })), _jsxs("div", { className: "mt-6", children: [_jsxs("div", { className: "flex justify-between items-center mb-2", children: [_jsx("h4", { className: "text-base md:text-lg font-semibold text-primary-new", children: "My Memo" }), _jsx("button", { onClick: () => openMemoModal('customExplanation'), className: "p-1 rounded-md hover:bg-gray-200 text-gray-500 hover:text-gray-700", title: "\u62E1\u5927\u8868\u793A", children: _jsx("svg", { xmlns: "http://www.w3.org/2000/svg", width: "1em", height: "1em", viewBox: "0 0 24 24", children: _jsx("path", { fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "2", d: "M3 8V4h4m10 0h4v4M3 16v4h4m14-4h-4v4" }) }) })] }), _jsx("textarea", { value: customExplanationText, onChange: (e) => setCustomExplanationText(e.target.value), className: "w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-new focus:border-primary-new", rows: 4 })] }), _jsxs("div", { className: "mt-6 rounded-xl border border-sky-200 bg-sky-50 p-4", children: [_jsxs("div", { className: "flex flex-wrap items-center justify-between gap-2", children: [_jsx("h4", { className: "text-base md:text-lg font-semibold text-sky-900", children: "\u53E3\u982D\u8A66\u554F\u30E2\u30FC\u30C9" }), !isOralVivaActive ? (_jsx("button", { type: "button", onClick: () => void startOralViva(), disabled: isOralVivaLoading, className: "px-4 py-2 rounded-md bg-sky-700 text-white text-sm font-medium hover:bg-sky-800 disabled:bg-gray-300", children: isOralVivaLoading ? '開始中...' : '口頭試問を開始' })) : (_jsxs("div", { className: "text-right", children: [_jsxs("div", { className: "text-xs font-semibold text-sky-800", children: ["\u30B9\u30C6\u30C3\u30D7: ", oralVivaStepLabels[oralVivaSteps[Math.min(oralVivaStepIndex, oralVivaSteps.length - 1)]], " (", Math.min(oralVivaStepIndex + 1, oralVivaSteps.length), "/", oralVivaSteps.length, ")"] }), _jsx("div", { className: "text-[11px] text-sky-700", children: "\u7D42\u4E86\u6761\u4EF6: 4\u30B9\u30C6\u30C3\u30D7\u5B8C\u4E86 or \u8981\u7D04\u3078\u30B9\u30AD\u30C3\u30D7" })] }))] }), isOralVivaActive && (_jsxs("div", { className: "mt-4 space-y-3", children: [_jsx("div", { className: "grid grid-cols-1 sm:grid-cols-3 gap-2", children: [
+        const explanationComponent = isAnswered ? (_jsxs("div", { className: "bg-white rounded-xl shadow p-6 md:p-8 fade-in", children: [_jsxs("div", { className: "flex items-center gap-3 mb-4", children: [feedback?.correct ? _jsx(CheckCircleIcon, { className: "w-8 h-8 text-green-600" }) : _jsx(XCircleIcon, { className: "w-8 h-8 text-red-600" }), _jsx("h3", { className: "text-xl md:text-2xl font-bold", children: feedback?.correct ? '正解！' : '不正解' })] }), _jsx("h4", { className: "text-base md:text-lg font-semibold text-primary-new mb-2", children: "\u89E3\u8AAC" }), (currentQuestion.explanation_image_urls && currentQuestion.explanation_image_urls.length > 0) && (_jsx("div", { className: "my-4 grid grid-cols-1 gap-4", children: currentQuestion.explanation_image_urls.map((url, index) => (_jsx("img", { src: url, alt: `Explanation image ${index + 1}`, className: "max-w-full h-auto mx-auto rounded-lg shadow-md" }, index))) })), _jsx("div", { className: "prose prose-sm md:prose-base max-w-none text-gray-700", children: _jsx(ReactMarkdown, { remarkPlugins: [remarkGfm, remarkBreaks], components: markdownComponents, children: feedback?.explanation?.text || '' }) }), currentExplanationImageDataUrls.length > 0 && (_jsxs("div", { className: "mt-6", children: [_jsx("h4", { className: "text-base md:text-lg font-semibold text-primary-new mb-2", children: "My Memo \u89E3\u8AAC\u88DC\u8DB3\u753B\u50CF" }), _jsx("div", { className: "space-y-3", children: currentExplanationImageDataUrls.map((url, index) => (_jsx("button", { type: "button", onClick: () => setPreviewImageUrl(url), className: "block w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50", children: _jsx("img", { src: url, alt: `My Memo handwrite ${index + 1}`, className: "max-h-48 w-full object-contain" }) }, `custom-explanation-${index}`))) })] })), _jsxs("div", { className: "mt-6", children: [_jsxs("div", { className: "flex justify-between items-center mb-2", children: [_jsx("h4", { className: "text-base md:text-lg font-semibold text-primary-new", children: "My Memo" }), _jsx("button", { onClick: () => openMemoModal('customExplanation'), className: "p-1 rounded-md hover:bg-gray-200 text-gray-500 hover:text-gray-700", title: "\u62E1\u5927\u8868\u793A", children: _jsx("svg", { xmlns: "http://www.w3.org/2000/svg", width: "1em", height: "1em", viewBox: "0 0 24 24", children: _jsx("path", { fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "2", d: "M3 8V4h4m10 0h4v4M3 16v4h4m14-4h-4v4" }) }) })] }), _jsx("textarea", { value: customExplanationText, onChange: (e) => setCustomExplanationText(e.target.value), className: "w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-new focus:border-primary-new", rows: 4 })] }), _jsxs("div", { className: "mt-6 rounded-xl border border-sky-200 bg-sky-50 p-4", children: [_jsxs("div", { className: "flex flex-wrap items-center justify-between gap-2", children: [_jsx("h4", { className: "text-base md:text-lg font-semibold text-sky-900", children: "\u53E3\u982D\u8A66\u554F\u30E2\u30FC\u30C9" }), !isOralVivaActive ? (_jsx("button", { type: "button", onClick: () => void startOralViva(), disabled: isOralVivaLoading, className: "px-4 py-2 rounded-md bg-sky-700 text-white text-sm font-medium hover:bg-sky-800 disabled:bg-gray-300", children: isOralVivaLoading ? '開始中...' : '口頭試問を開始' })) : (_jsxs("div", { className: "text-right", children: [_jsxs("div", { className: "text-xs font-semibold text-sky-800", children: ["\u30B9\u30C6\u30C3\u30D7: ", oralVivaStepLabels[oralVivaSteps[Math.min(oralVivaStepIndex, oralVivaSteps.length - 1)]], " (", Math.min(oralVivaStepIndex + 1, oralVivaSteps.length), "/", oralVivaSteps.length, ")"] }), _jsx("div", { className: "text-[11px] text-sky-700", children: "\u7D42\u4E86\u6761\u4EF6: 4\u30B9\u30C6\u30C3\u30D7\u5B8C\u4E86 or \u8981\u7D04\u3078\u30B9\u30AD\u30C3\u30D7" })] }))] }), isOralVivaActive && (_jsxs("div", { className: "mt-4 space-y-3", children: [_jsx("div", { className: "grid grid-cols-1 sm:grid-cols-3 gap-2", children: [
                                         ['論理性', oralVivaScores.logicality],
                                         ['具体性', oralVivaScores.specificity],
                                         ['再現性', oralVivaScores.reproducibility],
                                     ].map(([label, value]) => (_jsxs("div", { className: "rounded-md bg-white border border-sky-200 px-3 py-2", children: [_jsxs("div", { className: "flex items-center justify-between text-xs text-sky-900 mb-1", children: [_jsx("span", { children: label }), _jsx("span", { children: value })] }), _jsx("div", { className: "h-2 rounded bg-sky-100 overflow-hidden", children: _jsx("div", { className: "h-full bg-sky-500", style: { width: `${Math.max(0, Math.min(100, value))}%` } }) })] }, label))) }), _jsxs("div", { className: "max-h-72 overflow-y-auto rounded-md border border-sky-200 bg-white p-3 space-y-2", children: [oralVivaMessages.length === 0 && (_jsx("p", { className: "text-sm text-gray-500", children: "\u958B\u59CB\u3059\u308B\u3068\u3001AI\u9762\u63A5\u5B98\u304C\u8CEA\u554F\u3057\u307E\u3059\u3002" })), oralVivaMessages.map((msg, idx) => (_jsxs("div", { className: `rounded-lg px-3 py-2 text-sm ${msg.role === 'assistant' ? 'bg-sky-100 text-sky-900' : 'bg-gray-100 text-gray-800'}`, children: [_jsx("p", { className: "text-[11px] font-semibold mb-1", children: msg.role === 'assistant' ? 'AI面接官' : 'あなた' }), _jsx("p", { className: "whitespace-pre-wrap", children: msg.content })] }, `${msg.role}-${idx}`))), _jsx("div", { ref: oralVivaMessagesEndRef })] }), !oralVivaResult && (_jsxs("div", { className: "space-y-2", children: [_jsx("textarea", { value: oralVivaInput, onChange: (e) => setOralVivaInput(e.target.value), className: "w-full p-2 border border-sky-300 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 bg-white", rows: 3, placeholder: "\u56DE\u7B54\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044\uFF08\u4EFB\u610F\u3067\u97F3\u58F0\u5165\u529B\u3082\u53EF\uFF09" }), _jsxs("div", { className: "flex flex-wrap items-center gap-2", children: [_jsx("button", { type: "button", onClick: () => void submitOralVivaAnswer(), disabled: isOralVivaLoading || !oralVivaInput.trim(), className: "px-4 py-2 rounded-md bg-sky-700 text-white text-sm font-medium hover:bg-sky-800 disabled:bg-gray-300", children: isOralVivaLoading ? '送信中...' : '送信' }), isSpeechSupported && (_jsx("button", { type: "button", onClick: toggleSpeechInput, className: `px-4 py-2 rounded-md text-sm font-medium border ${isListeningSpeech ? 'border-rose-300 bg-rose-50 text-rose-700' : 'border-sky-300 bg-white text-sky-800'}`, children: isListeningSpeech ? '音声入力停止' : '音声入力開始' })), _jsx("button", { type: "button", onClick: () => void skipOralVivaToSummary(), disabled: isOralVivaLoading, className: "px-4 py-2 rounded-md text-sm font-medium border border-sky-300 bg-white text-sky-800 hover:bg-sky-100 disabled:bg-gray-100 disabled:text-gray-400", children: "\u8981\u7D04\u3078\u30B9\u30AD\u30C3\u30D7" }), _jsx("button", { type: "button", onClick: () => setIsOralVivaActive(false), disabled: isOralVivaLoading, className: "px-4 py-2 rounded-md text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400", children: "\u53E3\u982D\u8A66\u554F\u3092\u9589\u3058\u308B" })] })] })), oralVivaResult && (_jsxs("div", { className: "rounded-md border border-sky-200 bg-white p-3 space-y-2", children: [_jsx("h5", { className: "text-sm font-semibold text-sky-900", children: "\u6700\u7D42\u30D5\u30A3\u30FC\u30C9\u30D0\u30C3\u30AF" }), _jsx("ul", { className: "list-disc pl-5 text-sm text-gray-700 space-y-1", children: oralVivaResult.improvementPoints.map((point, idx) => (_jsx("li", { children: point }, `${point}-${idx}`))) }), oralVivaResult.miniQuizQuestion && (_jsxs("div", { className: "text-sm text-gray-800", children: [_jsx("p", { className: "font-semibold", children: "\u6B21\u56DE\u78BA\u8A8D\u30DF\u30CB\u554F\u984C" }), _jsx("p", { className: "whitespace-pre-wrap", children: oralVivaResult.miniQuizQuestion })] })), oralVivaResult.miniQuizAnswer && (_jsxs("div", { className: "text-sm text-gray-700", children: [_jsx("p", { className: "font-semibold", children: "\u60F3\u5B9A\u89E3\u7B54" }), _jsx("p", { className: "whitespace-pre-wrap", children: oralVivaResult.miniQuizAnswer })] })), _jsx("p", { className: "text-xs text-gray-500", children: "\u6700\u7D42\u8981\u7D04\u306F My Memo \u306B\u81EA\u52D5\u8FFD\u8A18\u30FB\u4FDD\u5B58\u3055\u308C\u307E\u3059\u3002" })] }))] }))] }), _jsxs("div", { className: "mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4", children: [_jsxs("div", { className: "flex flex-wrap items-center justify-between gap-2", children: [_jsxs("div", { children: [_jsx("h4", { className: "text-base md:text-lg font-semibold text-emerald-900", children: "\u8CEA\u554F\u76F8\u8AC7\u30E2\u30FC\u30C9" }), _jsx("p", { className: "mt-1 text-xs text-emerald-800", children: "\u3053\u306E\u554F\u984C\u3067\u5F15\u3063\u304B\u304B\u3063\u305F\u70B9\u3092\u81EA\u7531\u306B\u805E\u3051\u307E\u3059\u3002\u7406\u89E3\u3067\u304D\u305F\u3068\u3053\u308D\u3067\u305D\u306E\u307E\u307E\u9589\u3058\u3066OK\u3067\u3059\u3002" })] }), !isQuestionHelpActive ? (_jsx("button", { type: "button", onClick: () => setIsQuestionHelpActive(true), className: "px-4 py-2 rounded-md bg-emerald-700 text-white text-sm font-medium hover:bg-emerald-800", children: "\u8CEA\u554F\u76F8\u8AC7\u3092\u958B\u304F" })) : (_jsx("button", { type: "button", onClick: () => setIsQuestionHelpActive(false), disabled: isQuestionHelpLoading, className: "px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400", children: "\u8CEA\u554F\u76F8\u8AC7\u3092\u9589\u3058\u308B" }))] }), isQuestionHelpActive && (_jsxs("div", { className: "mt-4 space-y-3", children: [_jsxs("div", { className: "max-h-72 overflow-y-auto rounded-md border border-emerald-200 bg-white p-3 space-y-2", children: [questionHelpMessages.length === 0 && (_jsx("p", { className: "text-sm text-gray-500", children: "\u4F8B: \u300C\u306A\u305C\u3053\u308C\u304C\u6B63\u89E3\uFF1F\u300D\u300C\u4ED6\u306E\u9078\u629E\u80A2\u306F\u3069\u3053\u304C\u9055\u3046\uFF1F\u300D" })), questionHelpMessages.map((msg, idx) => (_jsxs("div", { className: `rounded-lg px-3 py-2 text-sm ${msg.role === 'assistant' ? 'bg-emerald-100 text-emerald-950' : 'bg-gray-100 text-gray-800'}`, children: [_jsx("p", { className: "text-[11px] font-semibold mb-1", children: msg.role === 'assistant' ? 'AI講師' : 'あなた' }), _jsx("p", { className: "whitespace-pre-wrap", children: msg.content })] }, `${msg.role}-${idx}`))), _jsx("div", { ref: questionHelpMessagesEndRef })] }), questionHelpSuggestedFollowups.length > 0 && (_jsx("div", { className: "flex flex-wrap gap-2", children: questionHelpSuggestedFollowups.map((item) => (_jsx("button", { type: "button", onClick: () => void submitQuestionHelp(item), disabled: isQuestionHelpLoading, className: "px-3 py-1.5 rounded-full border border-emerald-200 bg-white text-xs font-medium text-emerald-800 hover:bg-emerald-100 disabled:opacity-60", children: item }, item))) })), _jsxs("div", { className: "space-y-2", children: [_jsx("textarea", { value: questionHelpInput, onChange: (e) => setQuestionHelpInput(e.target.value), className: "w-full p-2 border border-emerald-300 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500 bg-white", rows: 3, placeholder: "\u3053\u306E\u554F\u984C\u3067\u6C17\u306B\u306A\u308B\u70B9\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044" }), _jsxs("div", { className: "flex flex-wrap items-center gap-2", children: [_jsx("button", { type: "button", onClick: () => void submitQuestionHelp(), disabled: isQuestionHelpLoading || !questionHelpInput.trim(), className: "px-4 py-2 rounded-md bg-emerald-700 text-white text-sm font-medium hover:bg-emerald-800 disabled:bg-gray-300", children: isQuestionHelpLoading ? '回答中...' : '質問する' }), _jsx("button", { type: "button", onClick: () => setIsQuestionHelpActive(false), disabled: isQuestionHelpLoading, className: "px-4 py-2 rounded-md text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400", children: "\u9589\u3058\u308B" })] })] })] }))] }), _jsxs("div", { className: "mt-6 pt-4 border-t border-gray-200 flex justify-between items-center", children: [_jsx("button", { onClick: openProblemEditor, className: "px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200", children: "\u3053\u306E\u554F\u984C\u3092\u7DE8\u96C6\u3059\u308B" }), _jsx("button", { id: "next-question-button-bottom", type: "button", onClick: handleNextQuestion, disabled: isSavingCustomExplanation, className: "px-8 py-3 border border-transparent rounded-md shadow-sm text-sm md:text-base font-medium text-dark bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 disabled:cursor-not-allowed", children: currentQuestionIndex < questions.length - 1 ? '次の問題へ' : '終了' })] })] })) : null;
-        const questionColumn = (_jsxs("div", { className: "bg-white rounded-xl shadow p-6 md:p-8 min-h-full flex flex-col", children: [_jsxs("div", { className: "mb-6 space-y-4", children: [_jsx("p", { className: "text-base md:text-lg font-semibold text-gray-700 whitespace-pre-wrap", children: currentQuestion.question_text }), questionTextMd && (_jsx("div", { className: "question-markdown text-sm md:text-base text-gray-700", children: _jsx(ReactMarkdown, { remarkPlugins: [remarkGfm, remarkBreaks], children: questionTextMd }) })), questionTextMermaid && (_jsx(MermaidDiagram, { chart: questionTextMermaid })), _jsx("div", { className: "md:hidden", children: layoutType === 'image' && imagesComponent })] }), _jsx(TimerProgressBar, { durationMs: isForcedSession ? FORCED_ANSWER_TIMER_MS : QUESTION_TIMER_MS, isActive: quizState === 'active' && !isAnswered && !isSubmittingAnswer, resetToken: `${currentQuestion.id}-${questionStartedAt}-${isForcedSession ? 'forced' : 'normal'}`, onExpire: isForcedSession ? () => void handleAnswerSubmit(true) : undefined }), _jsx("div", { className: "space-y-3", children: displayedChoices.map((option, index) => {
+        const questionColumn = (_jsxs("div", { className: "bg-white rounded-xl shadow p-6 md:p-8 min-h-full flex flex-col", children: [_jsxs("div", { className: "mb-6 space-y-4", children: [_jsx("p", { className: "text-base md:text-lg font-semibold text-gray-700 whitespace-pre-wrap", children: currentQuestion.question_text }), questionTextMd && (_jsx("div", { className: "question-markdown text-sm md:text-base text-gray-700", children: _jsx(ReactMarkdown, { remarkPlugins: [remarkGfm, remarkBreaks], components: markdownComponents, children: questionTextMd }) })), questionTextMermaid && (_jsx(MermaidDiagram, { chart: questionTextMermaid })), _jsx("div", { className: "md:hidden", children: layoutType === 'image' && imagesComponent })] }), _jsx(TimerProgressBar, { durationMs: isForcedSession ? FORCED_ANSWER_TIMER_MS : QUESTION_TIMER_MS, isActive: quizState === 'active' && !isAnswered && !isSubmittingAnswer, resetToken: `${currentQuestion.id}-${questionStartedAt}-${isForcedSession ? 'forced' : 'normal'}`, onExpire: isForcedSession ? () => void handleAnswerSubmit(true) : undefined }), _jsx("div", { className: "space-y-3", children: displayedChoices.map((option, index) => {
                         const isCorrectAnswer = option.label === currentQuestion.answer;
                         const isSelectedAnswer = option.label === selectedAnswer;
+                        const isExcluded = excludedChoiceLabels.includes(option.label);
                         let buttonClass = 'bg-gray-100 hover:bg-gray-200';
                         if (isAnswered) {
                             if (isCorrectAnswer)
@@ -1561,10 +1711,15 @@ export default function QuizPage({ subjects: allSubjects }) {
                             else
                                 buttonClass = 'bg-gray-100 opacity-60';
                         }
+                        else if (isExcluded) {
+                            buttonClass = 'bg-gray-200 text-gray-400 opacity-60';
+                        }
                         else if (isSelectedAnswer) {
                             buttonClass = 'bg-primary-new';
                         }
-                        return (_jsxs("button", { type: "button", onClick: () => !isAnswered && setSelectedAnswer(option.label), disabled: isAnswered, className: `w-full text-left p-4 rounded-lg border border-transparent transition-all duration-200 text-sm md:text-base ${buttonClass}`, children: [_jsxs("span", { className: "font-bold mr-2", children: [option.label, "."] }), _jsx("span", { className: "whitespace-pre-wrap", children: option.text })] }, index));
+                        return (_jsxs("div", { className: "flex items-stretch gap-2", children: [_jsx("button", { type: "button", onClick: () => toggleChoiceExclusion(option.label), disabled: isAnswered, "aria-label": `${option.label}を除外`, title: `${option.label}を除外`, className: `w-6 shrink-0 rounded-md border transition-colors ${isExcluded
+                                        ? 'border-gray-400 bg-gray-400'
+                                        : 'border-gray-300 bg-white hover:bg-gray-100'} disabled:cursor-not-allowed disabled:opacity-60` }), _jsxs("button", { type: "button", onClick: () => !isAnswered && !isExcluded && setSelectedAnswer(option.label), disabled: isAnswered || isExcluded, className: `min-w-0 flex-1 text-left p-4 rounded-lg border border-transparent transition-all duration-200 text-sm md:text-base ${buttonClass}`, children: [_jsxs("span", { className: "font-bold mr-2", children: [option.label, "."] }), _jsx("span", { className: "whitespace-pre-wrap", children: option.text })] })] }, option.label));
                     }) }), _jsxs("div", { className: "mt-6", children: [_jsxs("div", { className: "flex flex-wrap items-center justify-between gap-2 mb-2", children: [_jsx("button", { type: "button", onClick: () => setIsScratchpadOpen((prev) => !prev), className: "px-3 py-1.5 text-sm font-medium rounded-md border border-gray-300 bg-gray-50 hover:bg-gray-100", children: isScratchpadOpen ? 'メモ帳を閉じる' : 'メモ帳を開く' }), isScratchpadOpen && (_jsx("button", { onClick: () => openMemoModal('scratchpad'), className: "p-1 rounded-md hover:bg-gray-200 text-gray-500 hover:text-gray-700", title: "\u62E1\u5927\u8868\u793A", children: _jsx("svg", { xmlns: "http://www.w3.org/2000/svg", width: "1em", height: "1em", viewBox: "0 0 24 24", children: _jsx("path", { fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "2", d: "M3 8V4h4m10 0h4v4M3 16v4h4m14-4h-4v4" }) }) }))] }), isScratchpadOpen && (_jsx("textarea", { id: "scratchpad", value: scratchpadText, onChange: (e) => setScratchpadText(e.target.value), className: "w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-new focus:border-primary-new", rows: 3 })), _jsx("div", { className: "mt-3 flex justify-end", children: _jsx("button", { type: "button", onClick: () => void toggleReviewLater(), disabled: isUpdatingReviewLater, className: `px-4 py-2 rounded-md text-sm font-medium border shadow-sm transition-colors ${isCurrentQuestionReviewLater
                                     ? 'border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
                                     : 'border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100'} disabled:bg-gray-200 disabled:text-gray-500 disabled:border-gray-300 disabled:cursor-not-allowed`, children: isUpdatingReviewLater ? '更新中...' : isCurrentQuestionReviewLater ? '登録済み' : '後で確認' }) }), !isAnswered && ( // Moved "解答する" button here
@@ -1623,7 +1778,19 @@ export default function QuizPage({ subjects: allSubjects }) {
                                                                 }
                                                             }
                                                             return (_jsx("button", { type: "button", onClick: () => handleSubjectSelection(s.name), disabled: isTodayMode, className: buttonClass, children: s.name }, s.name));
-                                                        }) }), _jsxs("div", { className: "mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3", children: [_jsxs("div", { className: "grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end", children: [_jsxs("div", { children: [_jsx("label", { className: "heading-2 block text-xs font-medium text-gray-600", children: "\u767B\u9332\u30D1\u30BF\u30FC\u30F3" }), _jsxs("select", { value: selectedSubjectPatternId, onChange: (event) => applySubjectSelectionPattern(event.target.value), disabled: quizMode === 'today_remaining' || subjectSelectionPatterns.length === 0, className: "mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-new focus:outline-none focus:ring-2 focus:ring-primary-new/20 disabled:bg-gray-100 disabled:text-gray-400", children: [_jsx("option", { value: "", children: "\u30D1\u30BF\u30FC\u30F3\u3092\u9078\u629E" }), subjectSelectionPatternOptions.map((pattern) => (_jsxs("option", { value: pattern.id, children: [pattern.name, " (", pattern.availableSubjectNames.length, ")"] }, pattern.id)))] })] }), _jsx("button", { type: "button", onClick: deleteSelectedSubjectSelectionPattern, disabled: !selectedSubjectPatternId, className: "rounded-md border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400", children: "\u524A\u9664" })] }), _jsxs("div", { className: "mt-3 grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]", children: [_jsx("input", { type: "text", value: subjectPatternName, onChange: (event) => setSubjectPatternName(event.target.value), disabled: quizMode === 'today_remaining', placeholder: "\u4F8B: \u671D\u306E\u91CD\u70B9\u30BB\u30C3\u30C8", className: "block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-new focus:outline-none focus:ring-2 focus:ring-primary-new/20 disabled:bg-gray-100 disabled:text-gray-400" }), _jsx("button", { type: "button", onClick: saveSubjectSelectionPattern, disabled: quizMode === 'today_remaining' || selectedSubjectNames.length === 0, className: "rounded-md bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:bg-gray-300", children: "\u73FE\u5728\u306E\u9078\u629E\u3092\u767B\u9332" })] }), quizMode === 'today_remaining' && (_jsx("p", { className: "mt-2 text-xs text-gray-500", children: "\u4ECA\u65E5\u306E\u6B8B\u308A\u30E2\u30FC\u30C9\u3067\u306F\u5B66\u7FD2\u8A08\u753B\u306E\u79D1\u76EE\u304C\u4F7F\u308F\u308C\u307E\u3059\u3002" }))] })] }), _jsxs("div", { children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u30E2\u30FC\u30C9" }), _jsxs("div", { className: "mt-2 grid grid-cols-2 sm:grid-cols-5 gap-3", children: [_jsx("button", { type: "button", onClick: () => setQuizMode('today_remaining'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'today_remaining' ? 'bg-[#e8383d] text-white' : 'bg-red-100 text-gray-700 hover:bg-red-200'}`, children: "\u4ECA\u65E5\u306E\u6B8B\u308A" }), _jsx("button", { type: "button", onClick: () => setQuizMode('random'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'random' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u30E9\u30F3\u30C0\u30E0" }), _jsx("button", { type: "button", onClick: () => setQuizMode('weak_area'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'weak_area' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u82E6\u624B\u514B\u670D" }), _jsx("button", { type: "button", onClick: () => setQuizMode('unanswered'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'unanswered' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u672A\u89E3\u7B54\u554F\u984C" }), _jsx("button", { type: "button", onClick: () => setQuizMode('specific_area'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'specific_area' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u7279\u5B9A\u9818\u57DF" })] })] }), _jsxs("div", { children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u8A08\u7B97\u554F\u984C" }), _jsxs("select", { value: questionTagFilter, onChange: (event) => setQuestionTagFilter(event.target.value), className: "mt-2 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-new focus:outline-none focus:ring-2 focus:ring-primary-new/20", children: [_jsx("option", { value: "all", children: "\u3059\u3079\u3066\u51FA\u984C" }), _jsx("option", { value: "calculation_only", children: "\u8A08\u7B97\u554F\u984C\u306E\u307F" }), _jsx("option", { value: "exclude_calculation", children: "\u8A08\u7B97\u554F\u984C\u3092\u9664\u5916" })] })] }), quizMode === 'specific_area' && (_jsxs("div", { children: [_jsxs("div", { className: "flex items-center justify-between gap-3", children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u691C\u7D22\u30AD\u30FC\u30EF\u30FC\u30C9" }), _jsxs("div", { className: "flex items-center gap-2", children: [_jsx("button", { type: "button", onClick: () => void fetchSpecificAreaCount(), disabled: isSpecificAreaCountLoading || !isSpecificAreaInvestigationReady, className: "px-3 py-1.5 rounded-md text-sm font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed", children: isSpecificAreaCountLoading ? '対象問題を調査中...' : hasSpecificAreaInvestigationResult ? '対象問題を再調査' : '対象問題を調査' }), _jsx("button", { type: "button", onClick: () => void fetchSpecificAreaSuggestions(), disabled: isSpecificAreaSuggestionsLoading || normalizedSpecificAreaKeywords.length === 0, className: "px-3 py-1.5 rounded-md text-sm font-medium bg-emerald-100 text-emerald-800 hover:bg-emerald-200 disabled:opacity-50 disabled:cursor-not-allowed", children: isSpecificAreaSuggestionsLoading ? '関連語を提案中...' : '関連語を提案' }), _jsx("button", { type: "button", onClick: addSpecificAreaKeywordField, className: "px-3 py-1.5 rounded-md text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200", children: "\u5165\u529B\u6B04\u3092\u8FFD\u52A0" })] })] }), _jsx("p", { className: "mt-2 text-xs text-gray-500", children: "1\u3064\u306E\u5165\u529B\u6B04\u30921\u30EF\u30FC\u30C9\u3068\u3057\u3066\u6271\u3044\u307E\u3059\u3002\u3044\u305A\u308C\u304B1\u3064\u3067\u3082\u4E00\u81F4\u3059\u308C\u3070\u5BFE\u8C61\u306B\u306A\u308A\u307E\u3059\u3002" }), _jsx("div", { className: "mt-3 space-y-3", children: specificAreaKeywords.map((keyword, index) => (_jsxs("div", { className: "flex items-center gap-2", children: [_jsx("input", { type: "text", value: keyword, onChange: (event) => updateSpecificAreaKeyword(index, event.target.value), placeholder: index === 0 ? '例: NPV' : `キーワード ${index + 1}`, className: "flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary-new focus:outline-none focus:ring-2 focus:ring-primary-new/20" }), _jsx("button", { type: "button", onClick: () => removeSpecificAreaKeywordField(index), disabled: specificAreaKeywords.length === 1, className: "px-3 py-2 rounded-md text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed", children: "\u524A\u9664" })] }, `specific-area-keyword-${index}`))) }), _jsxs("div", { className: "mt-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3", children: [_jsxs("div", { className: "flex items-center justify-between gap-3 text-sm", children: [_jsx("span", { className: "font-medium text-slate-700", children: "\u8ABF\u67FB\u30B9\u30C6\u30FC\u30BF\u30B9" }), !isSpecificAreaInvestigationReady && (_jsx("span", { className: "text-slate-500", children: "\u79D1\u76EE\u3068\u30AD\u30FC\u30EF\u30FC\u30C9\u3092\u5165\u529B\u3059\u308B\u3068\u8ABF\u67FB\u3067\u304D\u307E\u3059" })), isSpecificAreaInvestigationReady && isSpecificAreaCountLoading && (_jsx("span", { className: "text-blue-700", children: SPECIFIC_AREA_PROGRESS_STEPS[specificAreaProgressStep] })), isSpecificAreaInvestigationReady && !isSpecificAreaCountLoading && hasSpecificAreaInvestigationResult && (_jsx("span", { className: "text-emerald-700", children: "\u8ABF\u67FB\u5B8C\u4E86" })), isSpecificAreaInvestigationReady && !isSpecificAreaCountLoading && !hasSpecificAreaInvestigationResult && !specificAreaCountError && (_jsx("span", { className: "text-amber-700", children: "\u672A\u8ABF\u67FB" })), specificAreaCountError && !isSpecificAreaCountLoading && (_jsx("span", { className: "text-red-700", children: "\u8ABF\u67FB\u5931\u6557" }))] }), _jsx("div", { className: "mt-3 h-2 overflow-hidden rounded-full bg-slate-200", children: _jsx("div", { className: `h-full rounded-full transition-all duration-300 ${specificAreaCountError ? 'bg-red-400' : hasSpecificAreaInvestigationResult ? 'bg-emerald-500' : 'bg-blue-500'}`, style: {
+                                                        }) }), _jsxs("div", { className: "mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3", children: [_jsxs("div", { className: "grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end", children: [_jsxs("div", { children: [_jsx("label", { className: "heading-2 block text-xs font-medium text-gray-600", children: "\u767B\u9332\u30D1\u30BF\u30FC\u30F3" }), _jsxs("select", { value: selectedSubjectPatternId, onChange: (event) => applySubjectSelectionPattern(event.target.value), disabled: quizMode === 'today_remaining' || subjectSelectionPatterns.length === 0, className: "mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-new focus:outline-none focus:ring-2 focus:ring-primary-new/20 disabled:bg-gray-100 disabled:text-gray-400", children: [_jsx("option", { value: "", children: "\u30D1\u30BF\u30FC\u30F3\u3092\u9078\u629E" }), subjectSelectionPatternOptions.map((pattern) => (_jsxs("option", { value: pattern.id, children: [pattern.name, " (", pattern.availableSubjectNames.length, ")"] }, pattern.id)))] })] }), _jsx("button", { type: "button", onClick: deleteSelectedSubjectSelectionPattern, disabled: !selectedSubjectPatternId, className: "rounded-md border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400", children: "\u524A\u9664" })] }), _jsxs("div", { className: "mt-3 grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]", children: [_jsx("input", { type: "text", value: subjectPatternName, onChange: (event) => setSubjectPatternName(event.target.value), disabled: quizMode === 'today_remaining', placeholder: "\u4F8B: \u671D\u306E\u91CD\u70B9\u30BB\u30C3\u30C8", className: "block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-new focus:outline-none focus:ring-2 focus:ring-primary-new/20 disabled:bg-gray-100 disabled:text-gray-400" }), _jsx("button", { type: "button", onClick: saveSubjectSelectionPattern, disabled: quizMode === 'today_remaining' || selectedSubjectNames.length === 0, className: "rounded-md bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:bg-gray-300", children: "\u73FE\u5728\u306E\u9078\u629E\u3092\u767B\u9332" })] }), quizMode === 'today_remaining' && (_jsx("p", { className: "mt-2 text-xs text-gray-500", children: "\u4ECA\u65E5\u306E\u6B8B\u308A\u30E2\u30FC\u30C9\u3067\u306F\u5B66\u7FD2\u8A08\u753B\u306E\u79D1\u76EE\u304C\u4F7F\u308F\u308C\u307E\u3059\u3002" }))] })] }), _jsxs("div", { children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u30E2\u30FC\u30C9" }), _jsxs("div", { className: "mt-2 grid grid-cols-2 sm:grid-cols-5 gap-3", children: [_jsx("button", { type: "button", onClick: () => setQuizMode('today_remaining'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'today_remaining' ? 'bg-[#e8383d] text-white' : 'bg-red-100 text-gray-700 hover:bg-red-200'}`, children: "\u4ECA\u65E5\u306E\u6B8B\u308A" }), _jsx("button", { type: "button", onClick: () => setQuizMode('random'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'random' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u30E9\u30F3\u30C0\u30E0" }), _jsx("button", { type: "button", onClick: () => setQuizMode('weak_area'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'weak_area' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u82E6\u624B\u514B\u670D" }), _jsx("button", { type: "button", onClick: () => setQuizMode('unanswered'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'unanswered' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u672A\u89E3\u7B54\u554F\u984C" }), _jsx("button", { type: "button", onClick: () => setQuizMode('specific_area'), className: `px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'specific_area' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u7279\u5B9A\u9818\u57DF" })] }), quizMode === 'today_remaining' && (_jsxs("div", { className: "mt-3 rounded-lg border border-red-100 bg-red-50/70 p-3", children: [_jsxs("div", { className: "flex flex-wrap items-center justify-between gap-2", children: [_jsxs("div", { children: [_jsx("p", { className: "text-xs font-semibold text-red-800", children: "\u5B66\u7FD2\u4E88\u5B9A\u5225\u306E\u4ECA\u65E5\u306E\u9032\u6357" }), _jsx("p", { className: "mt-0.5 text-[11px] text-red-700", children: "\u5B8C\u4E86\u6E08\u307F\u306E\u4E88\u5B9A\u306F\u4ECA\u65E5\u306E\u51FA\u984C\u5BFE\u8C61\u304B\u3089\u5916\u308C\u307E\u3059\u3002" })] }), _jsx("div", { className: "rounded-full bg-white px-3 py-1 text-xs font-semibold text-red-800", children: isTodayProgressLoading ? '読込中' : `${Math.min(todayRemaining.actualDaily, todayRemaining.planDaily)} / ${todayRemaining.planDaily} 完了` })] }), _jsx("div", { className: "mt-3 max-h-44 space-y-2 overflow-y-auto pr-1", children: isTodayProgressLoading ? (_jsx("div", { className: "rounded-md border border-red-100 bg-white px-3 py-2 text-xs text-red-700", children: "\u5B66\u7FD2\u4E88\u5B9A\u306E\u5B9F\u7E3E\u3092\u8AAD\u307F\u8FBC\u3093\u3067\u3044\u307E\u3059\u3002" })) : todayRemaining.planProgress.length === 0 ? (_jsx("div", { className: "rounded-md border border-red-100 bg-white px-3 py-2 text-xs text-red-700", children: "\u6709\u52B9\u306A\u5B66\u7FD2\u4E88\u5B9A\u304C\u3042\u308A\u307E\u305B\u3093\u3002" })) : (todayRemaining.planProgress.map((plan) => {
+                                                                    const completedToday = plan.isScheduledToday && plan.remaining === 0;
+                                                                    const progressPercent = plan.planDaily > 0
+                                                                        ? Math.min(100, Math.round((plan.actualDaily / plan.planDaily) * 100))
+                                                                        : 0;
+                                                                    const subjectPreview = plan.subjectNames.slice(0, 3).join('、');
+                                                                    const overflowCount = Math.max(0, plan.subjectNames.length - 3);
+                                                                    return (_jsxs("div", { className: "rounded-md border border-red-100 bg-white px-3 py-2", children: [_jsxs("div", { className: "flex items-start justify-between gap-3", children: [_jsxs("div", { className: "min-w-0", children: [_jsx("div", { className: "truncate text-sm font-semibold text-slate-800", title: plan.title, children: plan.title }), _jsxs("div", { className: "mt-0.5 truncate text-[11px] text-slate-500", title: plan.subjectNames.join('、'), children: [subjectPreview || '科目未設定', overflowCount > 0 ? ` ほか${overflowCount}` : ''] })] }), _jsx("div", { className: `shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${!plan.isScheduledToday
+                                                                                            ? 'bg-slate-100 text-slate-500'
+                                                                                            : completedToday
+                                                                                                ? 'bg-emerald-100 text-emerald-700'
+                                                                                                : 'bg-red-100 text-red-700'}`, children: !plan.isScheduledToday ? '今日は対象外' : completedToday ? '完了' : `残り${plan.remaining}問` })] }), _jsxs("div", { className: "mt-2 flex items-center gap-2", children: [_jsx("div", { className: "h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100", children: _jsx("div", { className: `h-full rounded-full ${completedToday ? 'bg-emerald-500' : 'bg-red-500'}`, style: { width: `${progressPercent}%` } }) }), _jsx("div", { className: "w-16 text-right text-[11px] font-medium text-slate-600", children: plan.isScheduledToday ? `${Math.min(plan.actualDaily, plan.planDaily)} / ${plan.planDaily}` : '-' })] })] }, plan.planId));
+                                                                })) })] }))] }), _jsxs("div", { children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u8A08\u7B97\u554F\u984C" }), _jsxs("select", { value: questionTagFilter, onChange: (event) => setQuestionTagFilter(event.target.value), className: "mt-2 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-new focus:outline-none focus:ring-2 focus:ring-primary-new/20", children: [_jsx("option", { value: "all", children: "\u3059\u3079\u3066\u51FA\u984C" }), _jsx("option", { value: "calculation_only", children: "\u8A08\u7B97\u554F\u984C\u306E\u307F" }), _jsx("option", { value: "exclude_calculation", children: "\u8A08\u7B97\u554F\u984C\u3092\u9664\u5916" })] })] }), quizMode === 'specific_area' && (_jsxs("div", { children: [_jsxs("div", { className: "flex items-center justify-between gap-3", children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u691C\u7D22\u30AD\u30FC\u30EF\u30FC\u30C9" }), _jsxs("div", { className: "flex items-center gap-2", children: [_jsx("button", { type: "button", onClick: () => void fetchSpecificAreaCount(), disabled: isSpecificAreaCountLoading || !isSpecificAreaInvestigationReady, className: "px-3 py-1.5 rounded-md text-sm font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed", children: isSpecificAreaCountLoading ? '対象問題を調査中...' : hasSpecificAreaInvestigationResult ? '対象問題を再調査' : '対象問題を調査' }), _jsx("button", { type: "button", onClick: () => void fetchSpecificAreaSuggestions(), disabled: isSpecificAreaSuggestionsLoading || normalizedSpecificAreaKeywords.length === 0, className: "px-3 py-1.5 rounded-md text-sm font-medium bg-emerald-100 text-emerald-800 hover:bg-emerald-200 disabled:opacity-50 disabled:cursor-not-allowed", children: isSpecificAreaSuggestionsLoading ? '関連語を提案中...' : '関連語を提案' }), _jsx("button", { type: "button", onClick: addSpecificAreaKeywordField, className: "px-3 py-1.5 rounded-md text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200", children: "\u5165\u529B\u6B04\u3092\u8FFD\u52A0" })] })] }), _jsx("p", { className: "mt-2 text-xs text-gray-500", children: "1\u3064\u306E\u5165\u529B\u6B04\u30921\u30EF\u30FC\u30C9\u3068\u3057\u3066\u6271\u3044\u307E\u3059\u3002\u3044\u305A\u308C\u304B1\u3064\u3067\u3082\u4E00\u81F4\u3059\u308C\u3070\u5BFE\u8C61\u306B\u306A\u308A\u307E\u3059\u3002" }), _jsx("div", { className: "mt-3 space-y-3", children: specificAreaKeywords.map((keyword, index) => (_jsxs("div", { className: "flex items-center gap-2", children: [_jsx("input", { type: "text", value: keyword, onChange: (event) => updateSpecificAreaKeyword(index, event.target.value), placeholder: index === 0 ? '例: NPV' : `キーワード ${index + 1}`, className: "flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary-new focus:outline-none focus:ring-2 focus:ring-primary-new/20" }), _jsx("button", { type: "button", onClick: () => removeSpecificAreaKeywordField(index), disabled: specificAreaKeywords.length === 1, className: "px-3 py-2 rounded-md text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed", children: "\u524A\u9664" })] }, `specific-area-keyword-${index}`))) }), _jsxs("div", { className: "mt-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3", children: [_jsxs("div", { className: "flex items-center justify-between gap-3 text-sm", children: [_jsx("span", { className: "font-medium text-slate-700", children: "\u8ABF\u67FB\u30B9\u30C6\u30FC\u30BF\u30B9" }), !isSpecificAreaInvestigationReady && (_jsx("span", { className: "text-slate-500", children: "\u79D1\u76EE\u3068\u30AD\u30FC\u30EF\u30FC\u30C9\u3092\u5165\u529B\u3059\u308B\u3068\u8ABF\u67FB\u3067\u304D\u307E\u3059" })), isSpecificAreaInvestigationReady && isSpecificAreaCountLoading && (_jsx("span", { className: "text-blue-700", children: SPECIFIC_AREA_PROGRESS_STEPS[specificAreaProgressStep] })), isSpecificAreaInvestigationReady && !isSpecificAreaCountLoading && hasSpecificAreaInvestigationResult && (_jsx("span", { className: "text-emerald-700", children: "\u8ABF\u67FB\u5B8C\u4E86" })), isSpecificAreaInvestigationReady && !isSpecificAreaCountLoading && !hasSpecificAreaInvestigationResult && !specificAreaCountError && (_jsx("span", { className: "text-amber-700", children: "\u672A\u8ABF\u67FB" })), specificAreaCountError && !isSpecificAreaCountLoading && (_jsx("span", { className: "text-red-700", children: "\u8ABF\u67FB\u5931\u6557" }))] }), _jsx("div", { className: "mt-3 h-2 overflow-hidden rounded-full bg-slate-200", children: _jsx("div", { className: `h-full rounded-full transition-all duration-300 ${specificAreaCountError ? 'bg-red-400' : hasSpecificAreaInvestigationResult ? 'bg-emerald-500' : 'bg-blue-500'}`, style: {
                                                                         width: !isSpecificAreaInvestigationReady
                                                                             ? '0%'
                                                                             : `${((specificAreaCountError ? 1 : specificAreaProgressStep + (hasSpecificAreaInvestigationResult ? 1 : 0)) / SPECIFIC_AREA_PROGRESS_STEPS.length) * 100}%`,
@@ -1635,7 +1802,9 @@ export default function QuizPage({ subjects: allSubjects }) {
                                                                             : isCurrent
                                                                                 ? 'border-blue-200 bg-blue-50 text-blue-700'
                                                                                 : 'border-slate-200 bg-white text-slate-500'}`, children: [index + 1, ". ", stepLabel] }, stepLabel));
-                                                                }) }), isSpecificAreaInvestigationReady && !isSpecificAreaCountLoading && !hasSpecificAreaInvestigationResult && !specificAreaCountError && (_jsx("p", { className: "mt-3 text-xs text-amber-700", children: "\u30AD\u30FC\u30EF\u30FC\u30C9\u30FB\u79D1\u76EE\u30FB\u5BFE\u8C61\u6761\u4EF6\u3092\u5909\u66F4\u3057\u305F\u5834\u5408\u306F\u3001\u3082\u3046\u4E00\u5EA6\u300C\u5BFE\u8C61\u554F\u984C\u3092\u8ABF\u67FB\u300D\u3092\u62BC\u3057\u3066\u304F\u3060\u3055\u3044\u3002" })), specificAreaCountError && !isSpecificAreaCountLoading && (_jsx("p", { className: "mt-3 text-xs text-red-700", children: specificAreaCountError }))] }), _jsxs("div", { className: "mt-4", children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u5BFE\u8C61\u6761\u4EF6" }), _jsxs("div", { className: "mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3", children: [_jsx("button", { type: "button", onClick: () => setSpecificAreaHistoryScope('all'), className: `px-4 py-2 rounded-md text-sm font-medium ${specificAreaHistoryScope === 'all' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u5168\u554F\u984C" }), _jsx("button", { type: "button", onClick: () => setSpecificAreaHistoryScope('unanswered'), className: `px-4 py-2 rounded-md text-sm font-medium ${specificAreaHistoryScope === 'unanswered' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u672A\u56DE\u7B54\u306E\u307F" }), _jsx("button", { type: "button", onClick: () => setSpecificAreaHistoryScope('answered'), className: `px-4 py-2 rounded-md text-sm font-medium ${specificAreaHistoryScope === 'answered' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u65E2\u56DE\u7B54\u306E\u307F" })] })] }), _jsxs("div", { className: "mt-4", children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u95A2\u9023\u8A9E\u5019\u88DC" }), _jsxs("div", { className: "mt-2 flex flex-wrap gap-2", children: [specificAreaSuggestions.map((suggestion) => (_jsx("button", { type: "button", onClick: () => applySpecificAreaSuggestion(suggestion), className: "px-3 py-1.5 rounded-full text-sm font-medium bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100", children: suggestion }, suggestion))), !isSpecificAreaSuggestionsLoading && specificAreaSuggestions.length === 0 && (_jsx("p", { className: "text-xs text-gray-500", children: "\u5FC5\u8981\u306A\u3089\u95A2\u9023\u8A9E\u3092\u63D0\u6848\u3067\u5019\u88DC\u3092\u51FA\u3057\u3001\u4F7F\u3044\u305F\u3044\u3082\u306E\u3060\u3051\u8FFD\u52A0\u3067\u304D\u307E\u3059\u3002" }))] })] })] })), _jsxs("div", { children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u554F\u984C\u6570" }), _jsxs("div", { className: "mt-2 text-sm text-gray-500 mb-2", children: [quizMode === 'today_remaining' && `(今日の残り: ${todayRemaining.count} 問 (予定:${todayRemaining.plan} / 実績:${todayRemaining.actual}) / 2分/問で約${estimatedCompletionText})`, quizMode === 'today_remaining' && todayRemainingPaceHint && (_jsx("div", { className: "mt-1 text-xs font-medium text-[#e8383d]", children: todayRemainingPaceHint })), quizMode === 'unanswered' && unansweredCount !== null && `(未解答: ${unansweredCount} 問)`, quizMode === 'weak_area' && weakAreaCount !== null && `(苦手問題: ${weakAreaCount} 問)`, quizMode === 'specific_area' && normalizedSpecificAreaKeywords.length === 0 && '(キーワードを1つ以上入力してください)', quizMode === 'specific_area' && normalizedSpecificAreaKeywords.length > 0 && !isSpecificAreaCountLoading && hasSpecificAreaInvestigationResult && specificAreaCount !== null && `(対象問題数: ${specificAreaCount} 問)`, quizMode === 'specific_area' && isSpecificAreaCountLoading && '(対象選定中...)', quizMode === 'specific_area' && normalizedSpecificAreaKeywords.length > 0 && !isSpecificAreaCountLoading && !hasSpecificAreaInvestigationResult && !specificAreaCountError && '(対象問題を調査してください)'] }), _jsx("div", { className: "mt-2 grid grid-cols-5 gap-3", children: [
+                                                                }) }), isSpecificAreaInvestigationReady && !isSpecificAreaCountLoading && !hasSpecificAreaInvestigationResult && !specificAreaCountError && (_jsx("p", { className: "mt-3 text-xs text-amber-700", children: "\u30AD\u30FC\u30EF\u30FC\u30C9\u30FB\u79D1\u76EE\u30FB\u5BFE\u8C61\u6761\u4EF6\u3092\u5909\u66F4\u3057\u305F\u5834\u5408\u306F\u3001\u3082\u3046\u4E00\u5EA6\u300C\u5BFE\u8C61\u554F\u984C\u3092\u8ABF\u67FB\u300D\u3092\u62BC\u3057\u3066\u304F\u3060\u3055\u3044\u3002" })), specificAreaCountError && !isSpecificAreaCountLoading && (_jsx("p", { className: "mt-3 text-xs text-red-700", children: specificAreaCountError }))] }), _jsxs("div", { className: "mt-4", children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u5BFE\u8C61\u6761\u4EF6" }), _jsxs("div", { className: "mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3", children: [_jsx("button", { type: "button", onClick: () => setSpecificAreaHistoryScope('all'), className: `px-4 py-2 rounded-md text-sm font-medium ${specificAreaHistoryScope === 'all' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u5168\u554F\u984C" }), _jsx("button", { type: "button", onClick: () => setSpecificAreaHistoryScope('unanswered'), className: `px-4 py-2 rounded-md text-sm font-medium ${specificAreaHistoryScope === 'unanswered' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u672A\u56DE\u7B54\u306E\u307F" }), _jsx("button", { type: "button", onClick: () => setSpecificAreaHistoryScope('answered'), className: `px-4 py-2 rounded-md text-sm font-medium ${specificAreaHistoryScope === 'answered' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`, children: "\u65E2\u56DE\u7B54\u306E\u307F" })] })] }), _jsxs("div", { className: "mt-4", children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u95A2\u9023\u8A9E\u5019\u88DC" }), _jsxs("div", { className: "mt-2 flex flex-wrap gap-2", children: [specificAreaSuggestions.map((suggestion) => (_jsx("button", { type: "button", onClick: () => applySpecificAreaSuggestion(suggestion), className: "px-3 py-1.5 rounded-full text-sm font-medium bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100", children: suggestion }, suggestion))), !isSpecificAreaSuggestionsLoading && specificAreaSuggestions.length === 0 && (_jsx("p", { className: "text-xs text-gray-500", children: "\u5FC5\u8981\u306A\u3089\u95A2\u9023\u8A9E\u3092\u63D0\u6848\u3067\u5019\u88DC\u3092\u51FA\u3057\u3001\u4F7F\u3044\u305F\u3044\u3082\u306E\u3060\u3051\u8FFD\u52A0\u3067\u304D\u307E\u3059\u3002" }))] })] })] })), _jsxs("div", { children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u554F\u984C\u6570" }), _jsxs("div", { className: "mt-2 text-sm text-gray-500 mb-2", children: [quizMode === 'today_remaining' && (isTodayProgressLoading
+                                                                ? '(学習予定の実績を読み込み中...)'
+                                                                : `(今日の残り: ${todayRemaining.count} 問 / 今日 ${Math.min(todayRemaining.actualDaily, todayRemaining.planDaily)} / ${todayRemaining.planDaily} 完了 / 2分/問で約${estimatedCompletionText})`), quizMode === 'today_remaining' && todayRemainingPaceHint && (_jsx("div", { className: "mt-1 text-xs font-medium text-[#e8383d]", children: todayRemainingPaceHint })), quizMode === 'unanswered' && unansweredCount !== null && `(未解答: ${unansweredCount} 問)`, quizMode === 'weak_area' && weakAreaCount !== null && `(苦手問題: ${weakAreaCount} 問)`, quizMode === 'specific_area' && normalizedSpecificAreaKeywords.length === 0 && '(キーワードを1つ以上入力してください)', quizMode === 'specific_area' && normalizedSpecificAreaKeywords.length > 0 && !isSpecificAreaCountLoading && hasSpecificAreaInvestigationResult && specificAreaCount !== null && `(対象問題数: ${specificAreaCount} 問)`, quizMode === 'specific_area' && isSpecificAreaCountLoading && '(対象選定中...)', quizMode === 'specific_area' && normalizedSpecificAreaKeywords.length > 0 && !isSpecificAreaCountLoading && !hasSpecificAreaInvestigationResult && !specificAreaCountError && '(対象問題を調査してください)'] }), _jsx("div", { className: "mt-2 grid grid-cols-5 gap-3", children: [
                                                             { label: '1', value: 1 },
                                                             { label: '10', value: 10 },
                                                             { label: '20', value: 20 },
@@ -1669,7 +1838,7 @@ export default function QuizPage({ subjects: allSubjects }) {
                                                             return (_jsx("button", { type: "button", onClick: () => setNumQuestions(actualButtonValue), disabled: isDisabled, className: `px-2 py-2 rounded-md text-sm font-medium transition-colors ${numQuestions === actualButtonValue && !isDisabled
                                                                     ? 'bg-primary-new text-white'
                                                                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed'}`, children: displayButtonLabel }, option.label));
-                                                        }) })] })] }), _jsxs("div", { className: "mt-6", children: [_jsxs("button", { type: "button", onClick: () => void startQuiz(), disabled: isLoading || selectedSubjectNames.length === 0, className: "w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-primary-new", children: [isLoading ? _jsx(LoaderIcon, { className: "w-5 h-5" }) : null, isLoading ? 'クイズ準備中...' : 'Start'] }), _jsxs("div", { className: "mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2", children: [_jsx("button", { type: "button", onClick: () => openIpadMode('air'), disabled: isLoading || selectedSubjectNames.length === 0 || quizMode === 'specific_area', className: "w-full py-3 px-4 border border-cyan-600 rounded-md shadow-sm text-base font-medium text-cyan-700 bg-cyan-50 hover:bg-cyan-100 disabled:opacity-50 disabled:cursor-not-allowed", children: "iPad Air\u30E2\u30FC\u30C9" }), _jsx("button", { type: "button", onClick: () => openIpadMode('mini'), disabled: isLoading || selectedSubjectNames.length === 0 || quizMode === 'specific_area', className: "w-full py-3 px-4 border border-sky-600 rounded-md shadow-sm text-base font-medium text-sky-700 bg-sky-50 hover:bg-sky-100 disabled:opacity-50 disabled:cursor-not-allowed", children: "iPad mini\u30E2\u30FC\u30C9" })] }), _jsx("button", { type: "button", onClick: () => void startQuiz(true), disabled: isLoading || selectedSubjectNames.length === 0, className: "mt-3 w-full py-3 px-4 border border-[#e8383d] rounded-md shadow-sm text-base font-medium text-[#e8383d] bg-red-50 hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed", children: "\u5F37\u5236\u30E2\u30FC\u30C9" })] }), (error || plansError) && _jsx("p", { className: "text-danger text-sm mt-2 text-center", children: error || plansError })] }), _jsx(SubjectProgress, { selectedSubjectNames: selectedSubjectNames, quizMode: quizMode })] }))), quizState === 'finished' && (_jsxs("div", { className: "text-center max-w-lg mx-auto", children: [_jsx("h2", { className: "text-3xl font-bold text-dark mb-4", children: "\u5B8C\u4E86\uFF01" }), _jsx("div", { className: "bg-white rounded-xl shadow p-8", children: _jsx("div", { className: "flex justify-center mt-2", children: _jsx("button", { type: "button", onClick: () => {
+                                                        }) })] })] }), _jsxs("div", { className: "mt-6", children: [_jsxs("button", { type: "button", onClick: () => void startQuiz(), disabled: isLoading || effectiveSelectedSubjectNames.length === 0 || (quizMode === 'today_remaining' && isTodayProgressLoading), className: "w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700 disabled:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-primary-new", children: [isLoading ? _jsx(LoaderIcon, { className: "w-5 h-5" }) : null, isLoading ? 'クイズ準備中...' : 'Start'] }), _jsxs("div", { className: "mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3", children: [_jsx("button", { type: "button", onClick: () => openIpadMode('air'), disabled: isLoading || effectiveSelectedSubjectNames.length === 0 || quizMode === 'specific_area' || (quizMode === 'today_remaining' && isTodayProgressLoading), className: "w-full py-3 px-4 border border-cyan-600 rounded-md shadow-sm text-base font-medium text-cyan-700 bg-cyan-50 hover:bg-cyan-100 disabled:opacity-50 disabled:cursor-not-allowed", children: "iPad Air\u30E2\u30FC\u30C9" }), _jsx("button", { type: "button", onClick: () => openIpadMode('mini'), disabled: isLoading || effectiveSelectedSubjectNames.length === 0 || quizMode === 'specific_area' || (quizMode === 'today_remaining' && isTodayProgressLoading), className: "w-full py-3 px-4 border border-sky-600 rounded-md shadow-sm text-base font-medium text-sky-700 bg-sky-50 hover:bg-sky-100 disabled:opacity-50 disabled:cursor-not-allowed", children: "iPad mini\u30E2\u30FC\u30C9" }), _jsx("button", { type: "button", onClick: openPaperPracticeMode, disabled: isLoading || effectiveSelectedSubjectNames.length === 0 || (quizMode === 'today_remaining' && isTodayProgressLoading), className: "w-full py-3 px-4 border border-slate-700 rounded-md shadow-sm text-base font-medium text-slate-800 bg-slate-50 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed", children: "\u7D19\u6F14\u7FD2\u30E2\u30FC\u30C9" })] }), _jsx("button", { type: "button", onClick: () => void startQuiz(true), disabled: isLoading || effectiveSelectedSubjectNames.length === 0 || (quizMode === 'today_remaining' && isTodayProgressLoading), className: "mt-3 w-full py-3 px-4 border border-[#e8383d] rounded-md shadow-sm text-base font-medium text-[#e8383d] bg-red-50 hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed", children: "\u5F37\u5236\u30E2\u30FC\u30C9" })] }), (error || plansError) && _jsx("p", { className: "text-danger text-sm mt-2 text-center", children: error || plansError })] }), _jsx(SubjectProgress, { selectedSubjectNames: selectedSubjectNames, quizMode: quizMode })] }))), quizState === 'finished' && (_jsxs("div", { className: "text-center max-w-lg mx-auto", children: [_jsx("h2", { className: "text-3xl font-bold text-dark mb-4", children: "\u5B8C\u4E86\uFF01" }), _jsx("div", { className: "bg-white rounded-xl shadow p-8", children: _jsx("div", { className: "flex justify-center mt-2", children: _jsx("button", { type: "button", onClick: () => {
                                             setIsForcedSession(false);
                                             setQuizState('setup');
                                         }, className: "px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-new hover:bg-blue-700", children: "\u79D1\u76EE\u9078\u629E\u306B\u9077\u79FB" }) }) })] })), quizState === 'active' && renderActiveQuiz()] }), editingMemo && (_jsx("div", { className: "fixed inset-0 bg-black bg-opacity-75 z-50 flex justify-center items-center p-4", children: _jsxs("div", { className: "bg-white rounded-lg shadow-xl w-full max-w-2xl h-3/4 flex flex-col", children: [_jsx("h3", { className: "text-lg font-bold p-4 border-b", children: editingMemo.type === 'scratchpad' ? 'メモ帳' : 'My Memo' }), _jsx("textarea", { value: editingMemo.content, onChange: (e) => setEditingMemo({ ...editingMemo, content: e.target.value }), className: "flex-grow w-full p-4 border-0 focus:ring-0 text-base" }), _jsx("div", { className: "p-4 border-t flex justify-end", children: _jsx("button", { onClick: handleSaveAndCloseModal, className: "px-6 py-2 bg-primary-new text-white rounded-lg hover:bg-blue-700", children: "\u4FDD\u5B58\u3057\u3066\u9589\u3058\u308B" }) })] }) })), previewImageUrl && (_jsxs("div", { className: "fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4", onClick: () => setPreviewImageUrl(null), children: [_jsx("button", { type: "button", className: "absolute top-4 right-4 rounded-md bg-white/10 px-3 py-2 text-sm font-medium text-white", onClick: () => setPreviewImageUrl(null), children: "\u9589\u3058\u308B" }), _jsx("img", { src: previewImageUrl, alt: "My Memo preview", className: "max-h-full max-w-full rounded-lg bg-white object-contain", onClick: (e) => e.stopPropagation() })] })), editingProblem && (_jsx("div", { className: "fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4", children: _jsxs("div", { className: "bg-white rounded-lg shadow-xl w-full max-w-4xl h-[90vh] flex flex-col", children: [_jsx("h3", { className: "text-xl font-bold p-4 border-b", children: "\u554F\u984C\u306E\u7DE8\u96C6" }), _jsxs("div", { className: "flex-grow overflow-y-auto p-6 space-y-4", children: [_jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u554F\u984C\u6587" }), _jsx("textarea", { name: "question_text", value: editingProblem.question_text, onChange: handleProblemFormChange, rows: 4, className: "mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u9078\u629E\u80A2" }), _jsx("div", { className: "space-y-2 mt-1", children: editingProblem.choices.map((choice, index) => (_jsxs("div", { className: "flex items-center gap-2", children: [_jsx("input", { type: "text", value: choice.label, onChange: (e) => handleProblemChoiceChange(index, 'label', e.target.value), className: "w-16 shadow-sm sm:text-sm border-gray-300 rounded-md" }), _jsx("input", { type: "text", value: choice.text, onChange: (e) => handleProblemChoiceChange(index, 'text', e.target.value), className: "flex-grow shadow-sm sm:text-sm border-gray-300 rounded-md" })] }, index))) })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700", children: "\u6B63\u89E3\u306E\u9078\u629E\u80A2\u30E9\u30D9\u30EB" }), _jsx("input", { type: "text", name: "answer", value: editingProblem.answer, onChange: handleProblemFormChange, className: "mt-1 w-32 block shadow-sm sm:text-sm border-gray-300 rounded-md" })] }), _jsxs("div", { children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u30AB\u30C6\u30B4\u30EA" }), _jsx("input", { type: "text", name: "category", value: editingProblem.category || '', onChange: handleProblemFormChange, className: "mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" })] }), _jsxs("div", { children: [_jsx("label", { className: "heading-2 block text-sm font-medium text-gray-700", children: "\u89E3\u8AAC" }), _jsx("textarea", { name: "explanation.text", value: editingProblem.explanation.text, onChange: handleProblemFormChange, rows: 6, className: "mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" })] })] }), _jsxs("div", { className: "p-4 border-t flex justify-end gap-4", children: [_jsx("button", { onClick: () => setEditingProblem(null), className: "px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300", children: "\u30AD\u30E3\u30F3\u30BB\u30EB" }), _jsx("button", { onClick: handleSaveChanges, className: "px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700", children: "\u5909\u66F4\u3092\u4FDD\u5B58" })] })] }) }))] }));
