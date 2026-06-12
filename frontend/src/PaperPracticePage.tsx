@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkBreaks from 'remark-breaks';
 import remarkGfm from 'remark-gfm';
@@ -12,8 +13,11 @@ const PDF_FONT_FILE_NAME = 'MPLUS1p-Regular.ttf';
 const PDF_FONT_NAME = 'MPLUS1p';
 const PAPER_PAGE_WIDTH = 595;
 const PAPER_PAGE_HEIGHT = 842;
-const PDF_MAX_FONT_SIZE = 15;
-const PDF_MIN_FONT_SIZE = 7;
+const PAPER_LANDSCAPE_WIDTH = 842;
+const PAPER_LANDSCAPE_HEIGHT = 595;
+const PDF_MAX_FONT_SIZE = 13;
+const PDF_MIN_FONT_SIZE = 5;
+const PDF_LANDSCAPE_FONT_SIZE_REDUCTION = 2;
 const JAPANESE_CHOICE_LABELS = ['ア', 'イ', 'ウ', 'エ', 'オ', 'カ', 'キ', 'ク'];
 
 interface Choice {
@@ -71,6 +75,26 @@ interface GradedAnswer {
 }
 
 type PaperPracticeModalStep = 'answer' | 'result' | 'review';
+type PaperPracticePdfLayout = 'portrait-one' | 'landscape-two';
+
+interface PaperPracticeAttemptAnswer {
+  lot_number: number;
+  problem_id: string;
+  subject: string;
+  selected_answer: string;
+  correct_answer: string;
+  is_correct: boolean;
+  question: QuizQuestion;
+}
+
+interface PaperPracticeAttempt {
+  id: string;
+  lot_id: string;
+  created_at: string;
+  total_count: number;
+  correct_count: number;
+  answers: PaperPracticeAttemptAnswer[];
+}
 
 let pdfFontBinaryStringPromise: Promise<string> | null = null;
 
@@ -115,9 +139,13 @@ function formatDateTime(value: string) {
 
 function getLotDisplayTitle(lot: Pick<PaperPracticeLot, 'title' | 'created_at'>) {
   if (/^紙演習ロット \d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(lot.title)) {
-    return `紙演習ロット ${formatDateTime(lot.created_at)}`;
+    return formatDateTime(lot.created_at);
   }
-  return lot.title;
+  return lot.title.replace(/^紙演習ロット\s*/, '').trim() || formatDateTime(lot.created_at);
+}
+
+function getLotListTitle(lot: PaperPracticeLot) {
+  return `${getLotDisplayTitle(lot)} ${lot.count}問`;
 }
 
 function modeLabel(mode: string | null | undefined) {
@@ -150,6 +178,15 @@ function getChoiceDisplayForLabel(question: QuizQuestion, label: string) {
   return choiceDisplayLabel(index, label);
 }
 
+function attemptToGradedAnswers(attempt: PaperPracticeAttempt): GradedAnswer[] {
+  return attempt.answers.map((answer) => ({
+    lotNumber: answer.lot_number,
+    question: answer.question,
+    selectedAnswer: answer.selected_answer,
+    isCorrect: answer.is_correct,
+  }));
+}
+
 function PaperReviewCard({
   item,
 }: {
@@ -158,27 +195,27 @@ function PaperReviewCard({
   const selectedChoice = item.question.choices.find((choice) => choice.label === item.selectedAnswer);
   const correctChoice = item.question.choices.find((choice) => choice.label === item.question.answer);
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <div className="min-w-0 rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div className="text-sm font-semibold text-slate-900">ロット内 {item.lotNumber}問目</div>
         <div className={`rounded-full px-3 py-1 text-xs font-semibold ${item.isCorrect ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-700'}`}>
           {item.isCorrect ? '正解' : '不正解'}
         </div>
       </div>
-      <p className="whitespace-pre-wrap text-sm font-semibold text-slate-800">{item.question.question_text}</p>
+      <p className="whitespace-pre-wrap break-words text-sm font-semibold leading-7 text-slate-800">{item.question.question_text}</p>
       <div className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
-        <div className="rounded-lg bg-slate-50 p-3">
+        <div className="min-w-0 rounded-lg bg-slate-50 p-3">
           <div className="text-xs font-semibold text-slate-500">選択</div>
-          <div className="mt-1 text-slate-800">{selectedChoice ? `${item.selectedAnswer}. ${selectedChoice.text}` : item.selectedAnswer}</div>
+          <div className="mt-1 break-words text-slate-800">{selectedChoice ? `${item.selectedAnswer}. ${selectedChoice.text}` : item.selectedAnswer}</div>
         </div>
-        <div className="rounded-lg bg-emerald-50 p-3">
+        <div className="min-w-0 rounded-lg bg-emerald-50 p-3">
           <div className="text-xs font-semibold text-emerald-700">正解</div>
-          <div className="mt-1 text-emerald-950">{correctChoice ? `${item.question.answer}. ${correctChoice.text}` : item.question.answer}</div>
+          <div className="mt-1 break-words text-emerald-950">{correctChoice ? `${item.question.answer}. ${correctChoice.text}` : item.question.answer}</div>
         </div>
       </div>
       <div className="mt-4 border-t border-slate-200 pt-4">
         <h4 className="text-base font-semibold text-primary-new">解説</h4>
-        <div className="prose prose-sm mt-2 max-w-none text-slate-700">
+        <div className="question-markdown prose prose-sm mt-2 max-w-none text-slate-700">
           <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} components={markdownComponents}>
             {item.question.explanation?.text || 'この問題の解説はありません。'}
           </ReactMarkdown>
@@ -195,6 +232,10 @@ export default function PaperPracticePage() {
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [deletingLotId, setDeletingLotId] = useState<string | null>(null);
   const [isSubmittingAnswers, setIsSubmittingAnswers] = useState(false);
+  const [historyLot, setHistoryLot] = useState<PaperPracticeLot | null>(null);
+  const [lotAttempts, setLotAttempts] = useState<PaperPracticeAttempt[]>([]);
+  const [isLoadingAttempts, setIsLoadingAttempts] = useState(false);
+  const [attemptError, setAttemptError] = useState('');
   const [pdfProgress, setPdfProgress] = useState('');
   const [error, setError] = useState('');
   const [answerLot, setAnswerLot] = useState<PaperPracticeLot | null>(null);
@@ -281,9 +322,46 @@ export default function PaperPracticePage() {
     setModalStep('answer');
   };
 
+  const fetchAttempts = async (lot: PaperPracticeLot) => {
+    setHistoryLot(lot);
+    setLotAttempts([]);
+    setAttemptError('');
+    setIsLoadingAttempts(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/paper-practice/lots/${encodeURIComponent(lot.id)}/attempts`);
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.detail || '採点履歴の取得に失敗しました。');
+      }
+      const attempts: PaperPracticeAttempt[] = await response.json();
+      setLotAttempts(attempts);
+    } catch (fetchError) {
+      setAttemptError(fetchError instanceof Error ? fetchError.message : '採点履歴の取得に失敗しました。');
+    } finally {
+      setIsLoadingAttempts(false);
+    }
+  };
+
+  const closeHistoryModal = () => {
+    setHistoryLot(null);
+    setLotAttempts([]);
+    setAttemptError('');
+  };
+
+  const openAttemptReview = (lot: PaperPracticeLot, attempt: PaperPracticeAttempt) => {
+    setAnswerLot(lot);
+    setAnswers(Object.fromEntries(attempt.answers.map((answer) => [answer.problem_id, answer.selected_answer])));
+    setGradedAnswers(attemptToGradedAnswers(attempt));
+    setModalStep('result');
+    setReviewKind(attempt.answers.some((answer) => !answer.is_correct) ? 'incorrect' : 'correct');
+    setReviewIndex(0);
+    setError('');
+    closeHistoryModal();
+  };
+
   const deleteLot = async (lot: PaperPracticeLot) => {
     if (deletingLotId) return;
-    if (!window.confirm(`ロット「${lot.title}」を削除しますか？`)) return;
+    if (!window.confirm(`ロット「${getLotListTitle(lot)}」を削除しますか？`)) return;
 
     setDeletingLotId(lot.id);
     setError('');
@@ -309,7 +387,7 @@ export default function PaperPracticePage() {
     }
   };
 
-  const exportLotPdf = async (lot: PaperPracticeLot) => {
+  const exportLotPdf = async (lot: PaperPracticeLot, layout: PaperPracticePdfLayout) => {
     if (isExportingPdf) return;
     setIsExportingPdf(true);
     setPdfProgress('PDFを準備しています...');
@@ -318,29 +396,24 @@ export default function PaperPracticePage() {
     try {
       const { jsPDF } = await import('jspdf');
       const fontBinary = await loadPdfFontBinaryString();
+      const isLandscapeTwo = layout === 'landscape-two';
       const pdf = new jsPDF({
-        orientation: 'portrait',
+        orientation: isLandscapeTwo ? 'landscape' : 'portrait',
         unit: 'px',
-        format: [PAPER_PAGE_WIDTH, PAPER_PAGE_HEIGHT],
+        format: isLandscapeTwo ? [PAPER_LANDSCAPE_WIDTH, PAPER_LANDSCAPE_HEIGHT] : [PAPER_PAGE_WIDTH, PAPER_PAGE_HEIGHT],
         compress: true,
       });
       pdf.addFileToVFS(PDF_FONT_FILE_NAME, fontBinary);
       pdf.addFont(PDF_FONT_FILE_NAME, PDF_FONT_NAME, 'normal');
       pdf.setFont(PDF_FONT_NAME, 'normal');
 
-      const contentWidth = PAPER_PAGE_WIDTH - 32;
       const drawLines = (lines: string[], x: number, y: number, lineHeight: number) => {
         lines.forEach((line, index) => {
           pdf.text(line, x, y + index * lineHeight);
         });
       };
 
-      lot.questions.forEach((question, questionIndex) => {
-        if (questionIndex > 0) {
-          pdf.addPage([PAPER_PAGE_WIDTH, PAPER_PAGE_HEIGHT], 'portrait');
-        }
-        setPdfProgress(`PDFを生成中... ${questionIndex + 1} / ${lot.questions.length}`);
-
+      const buildBlocks = (question: QuizQuestion, questionIndex: number) => {
         const baseBlocks = [
           `${getLotDisplayTitle(lot)} / ロット内 ${questionIndex + 1}問目`,
           `${question.subject}${question.category ? ` / ${question.category}` : ''}`,
@@ -349,29 +422,75 @@ export default function PaperPracticePage() {
           '',
           ...question.choices.map((choice, choiceIndex) => `${choiceDisplayLabel(choiceIndex, choice.label)}. ${choice.text}`),
         ];
+        return baseBlocks;
+      };
 
-        let fontSize = PDF_MAX_FONT_SIZE;
+      const drawQuestion = (
+        question: QuizQuestion,
+        questionIndex: number,
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        maxFontSize: number,
+        minFontSize: number,
+      ) => {
+        const baseBlocks = buildBlocks(question, questionIndex);
+        let fontSize = maxFontSize;
         let renderedLines: string[] = [];
-        while (fontSize >= PDF_MIN_FONT_SIZE) {
+        while (fontSize >= minFontSize) {
           pdf.setFontSize(fontSize);
-          renderedLines = baseBlocks.flatMap((block) => (
-            block ? pdf.splitTextToSize(block, contentWidth) as string[] : ['']
-          ));
+          renderedLines = baseBlocks.flatMap((block) => (block ? pdf.splitTextToSize(block, width) as string[] : ['']));
           const lineHeight = fontSize * 1.35;
-          if (renderedLines.length * lineHeight <= PAPER_PAGE_HEIGHT - 34) {
+          if (renderedLines.length * lineHeight <= height) {
             break;
           }
           fontSize -= 1;
         }
-
-        pdf.setFillColor(255, 255, 255);
-        pdf.rect(0, 0, PAPER_PAGE_WIDTH, PAPER_PAGE_HEIGHT, 'F');
         pdf.setTextColor(15, 23, 42);
         pdf.setFontSize(fontSize);
-        drawLines(renderedLines, 16, 24, fontSize * 1.35);
-      });
+        drawLines(renderedLines, x, y, fontSize * 1.35);
+      };
 
-      pdf.save(`${sanitizeFilename(getLotDisplayTitle(lot))}.pdf`);
+      if (isLandscapeTwo) {
+        lot.questions.forEach((question, questionIndex) => {
+          if (questionIndex > 0 && questionIndex % 2 === 0) {
+            pdf.addPage([PAPER_LANDSCAPE_WIDTH, PAPER_LANDSCAPE_HEIGHT], 'landscape');
+          }
+          setPdfProgress(`PDFを生成中... ${questionIndex + 1} / ${lot.questions.length}`);
+          if (questionIndex % 2 === 0) {
+            pdf.setFillColor(255, 255, 255);
+            pdf.rect(0, 0, PAPER_LANDSCAPE_WIDTH, PAPER_LANDSCAPE_HEIGHT, 'F');
+            pdf.setDrawColor(226, 232, 240);
+            pdf.line(PAPER_LANDSCAPE_WIDTH / 2, 0, PAPER_LANDSCAPE_WIDTH / 2, PAPER_LANDSCAPE_HEIGHT);
+          }
+          const panelIndex = questionIndex % 2;
+          const panelWidth = PAPER_LANDSCAPE_WIDTH / 2;
+          drawQuestion(
+            question,
+            questionIndex,
+            panelIndex * panelWidth + 12,
+            18,
+            panelWidth - 24,
+            PAPER_LANDSCAPE_HEIGHT - 32,
+            PDF_MAX_FONT_SIZE - PDF_LANDSCAPE_FONT_SIZE_REDUCTION,
+            PDF_MIN_FONT_SIZE - PDF_LANDSCAPE_FONT_SIZE_REDUCTION,
+          );
+        });
+      } else {
+        lot.questions.forEach((question, questionIndex) => {
+          if (questionIndex > 0) {
+            pdf.addPage([PAPER_PAGE_WIDTH, PAPER_PAGE_HEIGHT], 'portrait');
+          }
+          setPdfProgress(`PDFを生成中... ${questionIndex + 1} / ${lot.questions.length}`);
+          pdf.setFillColor(255, 255, 255);
+          pdf.rect(0, 0, PAPER_PAGE_WIDTH, PAPER_PAGE_HEIGHT, 'F');
+          drawQuestion(question, questionIndex, 16, 24, PAPER_PAGE_WIDTH - 32, PAPER_PAGE_HEIGHT - 34, PDF_MAX_FONT_SIZE, PDF_MIN_FONT_SIZE);
+        });
+      }
+
+      const suffix = isLandscapeTwo ? 'A4横2問' : 'A4縦1問';
+      pdf.save(`${sanitizeFilename(getLotListTitle(lot))}_${suffix}.pdf`);
     } catch (exportError) {
       setError(exportError instanceof Error ? exportError.message : 'PDF出力に失敗しました。');
     } finally {
@@ -390,34 +509,22 @@ export default function PaperPracticePage() {
       return;
     }
 
-    const graded = answerLot.questions.map((question, index) => ({
-      lotNumber: index + 1,
-      question,
-      selectedAnswer: answers[question.id] as string,
-      isCorrect: answers[question.id] === question.answer,
-    }));
-
     try {
       setIsSubmittingAnswers(true);
       setError('');
-      const response = await fetch(`${API_BASE_URL}/history/bulk`, {
+      const response = await fetch(`${API_BASE_URL}/paper-practice/lots/${encodeURIComponent(answerLot.id)}/grade`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(graded.map((item) => ({
-          problem_id: item.question.id,
-          subject: item.question.subject,
-          selected_answer: item.selectedAnswer,
-          is_correct: item.isCorrect,
-          category: item.question.category,
-          mode: 'paper_practice',
-        }))),
+        body: JSON.stringify({ answers }),
       });
       if (!response.ok) {
         const payload = await response.json().catch(() => null);
         throw new Error(payload?.detail || '一括採点結果の保存に失敗しました。');
       }
-      setGradedAnswers(graded);
-      setReviewKind(graded.some((item) => !item.isCorrect) ? 'incorrect' : 'correct');
+      const attempt: PaperPracticeAttempt = await response.json();
+      const nextGradedAnswers = attemptToGradedAnswers(attempt);
+      setGradedAnswers(nextGradedAnswers);
+      setReviewKind(nextGradedAnswers.some((item) => !item.isCorrect) ? 'incorrect' : 'correct');
       setReviewIndex(0);
       setModalStep('result');
     } catch (submitError) {
@@ -488,22 +595,29 @@ export default function PaperPracticePage() {
             <div key={lot.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
-                  <h3 className="truncate text-lg font-semibold text-slate-900">{getLotDisplayTitle(lot)}</h3>
+                  <h3 className="truncate text-lg font-semibold text-slate-900">{getLotListTitle(lot)}</h3>
                   <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
                     <span>{formatDateTime(lot.created_at)}</span>
-                    <span>{lot.count}問</span>
                     <span>{modeLabel(lot.source_mode || lot.mode)}</span>
                     <span className="truncate">{lot.subjects.join(', ')}</span>
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-2 sm:w-80">
+                <div className="grid grid-cols-2 gap-2 sm:w-[30rem] sm:grid-cols-5">
                   <button
                     type="button"
-                    onClick={() => void exportLotPdf(lot)}
+                    onClick={() => void exportLotPdf(lot, 'portrait-one')}
                     disabled={isExportingPdf || deletingLotId === lot.id}
                     className="rounded-md border border-slate-700 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-800 hover:bg-slate-100 disabled:opacity-50"
                   >
-                    PDF出力
+                    PDF縦
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void exportLotPdf(lot, 'landscape-two')}
+                    disabled={isExportingPdf || deletingLotId === lot.id}
+                    className="rounded-md border border-slate-700 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-800 hover:bg-slate-100 disabled:opacity-50"
+                  >
+                    PDF横
                   </button>
                   <button
                     type="button"
@@ -512,6 +626,14 @@ export default function PaperPracticePage() {
                     className="rounded-md bg-primary-new px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
                   >
                     演習開始
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void fetchAttempts(lot)}
+                    disabled={deletingLotId === lot.id}
+                    className="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-50"
+                  >
+                    履歴
                   </button>
                   <button
                     type="button"
@@ -528,46 +650,110 @@ export default function PaperPracticePage() {
         </div>
       )}
 
-      {answerLot && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-2 py-3 sm:px-4 sm:py-6">
-          <div className="grid h-[92dvh] max-h-[56rem] w-full max-w-5xl grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden rounded-lg bg-white shadow-2xl">
-            <div className="border-b border-slate-200 px-4 py-3 sm:px-5 sm:py-4">
+      {historyLot && createPortal((
+        <div className="fixed inset-0 z-[1000] flex items-stretch justify-center bg-slate-950/50 px-2 py-3 sm:items-center sm:px-4 sm:py-6">
+          <div className="flex h-full min-h-0 w-full max-w-3xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl sm:h-[80dvh]">
+            <div className="shrink-0 border-b border-slate-200 px-4 py-4">
               <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <h3 className="truncate text-lg font-semibold text-slate-900">{getLotDisplayTitle(answerLot)}</h3>
-                <p className="text-xs text-slate-500">{answerLot.count}問 / {formatDateTime(answerLot.created_at)}</p>
+                <div className="min-w-0">
+                  <h3 className="truncate text-base font-semibold text-slate-900 sm:text-lg">{getLotListTitle(historyLot)}</h3>
+                  <p className="text-xs text-slate-500">採点履歴</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={closeHistoryModal}
+                  className="shrink-0 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
+                >
+                  閉じる
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={closeAnswerModal}
-                className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
-              >
-                閉じる
-              </button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+              {isLoadingAttempts ? (
+                <LoadingSpinner />
+              ) : attemptError ? (
+                <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{attemptError}</div>
+              ) : lotAttempts.length === 0 ? (
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-6 text-center text-sm text-slate-500">
+                  採点履歴はまだありません。
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {lotAttempts.map((attempt, index) => {
+                    const incorrectCountForAttempt = attempt.total_count - attempt.correct_count;
+                    const accuracyForAttempt = attempt.total_count > 0 ? Math.round((attempt.correct_count / attempt.total_count) * 100) : 0;
+                    return (
+                      <div key={attempt.id} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="min-w-0">
+                            <div className="text-sm font-semibold text-slate-900">
+                              {lotAttempts.length - index}回目 / {formatDateTime(attempt.created_at)}
+                            </div>
+                            <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
+                              <span>実施 {attempt.total_count}</span>
+                              <span>正解 {attempt.correct_count}</span>
+                              <span>不正解 {incorrectCountForAttempt}</span>
+                              <span>正答率 {accuracyForAttempt}%</span>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => openAttemptReview(historyLot, attempt)}
+                            className="rounded-md bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700"
+                          >
+                            振り返り
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ), document.body)}
+
+      {answerLot && createPortal((
+        <div className="fixed inset-0 z-[1000] flex items-stretch justify-center bg-slate-950/50 px-2 py-3 sm:items-center sm:px-4 sm:py-6">
+          <div className="flex h-full min-h-0 w-full max-w-5xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl sm:h-[92dvh] sm:max-h-[56rem]">
+            <div className="shrink-0 border-b border-slate-200 px-3 py-3 sm:px-5 sm:py-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <h3 className="truncate text-base font-semibold text-slate-900 sm:text-lg">{getLotListTitle(answerLot)}</h3>
+                  <p className="text-xs text-slate-500">{formatDateTime(answerLot.created_at)}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={closeAnswerModal}
+                  className="shrink-0 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
+                >
+                  閉じる
+                </button>
               </div>
               <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs font-semibold">
-                <div className={`rounded-md px-2 py-2 ${modalStep === 'answer' ? 'bg-primary-new text-white' : 'bg-slate-100 text-slate-500'}`}>解答入力</div>
-                <div className={`rounded-md px-2 py-2 ${modalStep === 'result' ? 'bg-primary-new text-white' : 'bg-slate-100 text-slate-500'}`}>採点結果</div>
-                <div className={`rounded-md px-2 py-2 ${modalStep === 'review' ? 'bg-primary-new text-white' : 'bg-slate-100 text-slate-500'}`}>解説確認</div>
+                <div className={`rounded-md px-1.5 py-2 ${modalStep === 'answer' ? 'bg-primary-new text-white' : 'bg-slate-100 text-slate-500'}`}>解答入力</div>
+                <div className={`rounded-md px-1.5 py-2 ${modalStep === 'result' ? 'bg-primary-new text-white' : 'bg-slate-100 text-slate-500'}`}>採点結果</div>
+                <div className={`rounded-md px-1.5 py-2 ${modalStep === 'review' ? 'bg-primary-new text-white' : 'bg-slate-100 text-slate-500'}`}>解説確認</div>
               </div>
             </div>
 
-            <div className="min-h-0 overflow-y-auto px-3 py-4 sm:px-5">
+            <div className="min-h-0 flex-1 overflow-y-auto px-2 py-3 sm:px-5 sm:py-4">
               {modalStep === 'answer' && (
                 <div className="space-y-2">
                   <div className="mb-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
                     入力済み {answeredCount} / {answerLot.questions.length}
                   </div>
                   {answerLot.questions.map((question, index) => (
-                    <div key={question.id} className="grid grid-cols-[4.75rem_minmax(0,1fr)] items-stretch overflow-hidden rounded-lg border border-slate-200 bg-white">
-                      <div className="flex items-center justify-center bg-slate-50 px-2 text-sm font-semibold text-slate-800">
+                    <div key={question.id} className="grid grid-cols-[3.25rem_minmax(0,1fr)] items-stretch overflow-hidden rounded-lg border border-slate-200 bg-white sm:grid-cols-[4.75rem_minmax(0,1fr)]">
+                      <div className="flex items-center justify-center bg-slate-50 px-1 text-sm font-semibold text-slate-800 sm:px-2">
                         {index + 1}
                       </div>
-                      <div className="grid grid-cols-2 gap-2 p-2 sm:grid-cols-4">
+                      <div className="grid min-w-0 grid-cols-2 gap-1.5 p-1.5 sm:grid-cols-4 sm:gap-2 sm:p-2">
                         {question.choices.map((choice, choiceIndex) => (
                           <label
                             key={choice.label}
-                            className={`flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-md border px-2 py-2 text-sm font-semibold transition-colors ${
+                            className={`flex min-h-10 cursor-pointer items-center justify-center gap-1.5 rounded-md border px-1.5 py-2 text-sm font-semibold transition-colors sm:gap-2 sm:px-2 ${
                               answers[question.id] === choice.label
                                 ? 'border-primary-new bg-blue-50 text-primary-new'
                                 : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
@@ -592,27 +778,27 @@ export default function PaperPracticePage() {
 
               {modalStep === 'result' && (
                 <div className="space-y-4">
-                  <div className="grid gap-3 sm:grid-cols-4">
-                    <div className="rounded-lg bg-slate-100 p-4 text-center">
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    <div className="rounded-lg bg-slate-100 p-3 text-center sm:p-4">
                       <div className="text-xs font-semibold text-slate-500">採点済み</div>
-                      <div className="mt-1 text-2xl font-bold text-slate-800">{gradedAnswers.length}</div>
+                      <div className="mt-1 text-xl font-bold text-slate-800 sm:text-2xl">{gradedAnswers.length}</div>
                     </div>
-                    <div className="rounded-lg bg-emerald-50 p-4 text-center">
+                    <div className="rounded-lg bg-emerald-50 p-3 text-center sm:p-4">
                       <div className="text-xs font-semibold text-emerald-700">正解</div>
-                      <div className="mt-1 text-2xl font-bold text-emerald-800">{correctCount}</div>
+                      <div className="mt-1 text-xl font-bold text-emerald-800 sm:text-2xl">{correctCount}</div>
                     </div>
-                    <div className="rounded-lg bg-rose-50 p-4 text-center">
+                    <div className="rounded-lg bg-rose-50 p-3 text-center sm:p-4">
                       <div className="text-xs font-semibold text-rose-700">不正解</div>
-                      <div className="mt-1 text-2xl font-bold text-rose-700">{incorrectCount}</div>
+                      <div className="mt-1 text-xl font-bold text-rose-700 sm:text-2xl">{incorrectCount}</div>
                     </div>
-                    <div className="rounded-lg bg-blue-50 p-4 text-center">
+                    <div className="rounded-lg bg-blue-50 p-3 text-center sm:p-4">
                       <div className="text-xs font-semibold text-blue-700">正答率</div>
-                      <div className="mt-1 text-2xl font-bold text-blue-800">{accuracy}%</div>
+                      <div className="mt-1 text-xl font-bold text-blue-800 sm:text-2xl">{accuracy}%</div>
                     </div>
                   </div>
 
                   <div className="overflow-hidden rounded-lg border border-slate-200">
-                    <div className="grid grid-cols-[4rem_1fr_1fr_5rem] bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-500">
+                    <div className="grid grid-cols-[3rem_minmax(0,1fr)_minmax(0,1fr)_4rem] bg-slate-100 px-2 py-2 text-xs font-semibold text-slate-500 sm:grid-cols-[4rem_minmax(0,1fr)_minmax(0,1fr)_5rem] sm:px-3">
                       <div>No.</div>
                       <div>選択</div>
                       <div>正解</div>
@@ -620,10 +806,10 @@ export default function PaperPracticePage() {
                     </div>
                     <div className="max-h-[42vh] overflow-y-auto divide-y divide-slate-100">
                       {gradedAnswers.map((item) => (
-                        <div key={`${item.question.id}-${item.lotNumber}`} className="grid grid-cols-[4rem_1fr_1fr_5rem] items-center px-3 py-2 text-sm">
+                        <div key={`${item.question.id}-${item.lotNumber}`} className="grid grid-cols-[3rem_minmax(0,1fr)_minmax(0,1fr)_4rem] items-center px-2 py-2 text-sm sm:grid-cols-[4rem_minmax(0,1fr)_minmax(0,1fr)_5rem] sm:px-3">
                           <div className="font-semibold text-slate-700">{item.lotNumber}</div>
-                          <div className="text-slate-700">{getChoiceDisplayForLabel(item.question, item.selectedAnswer)}</div>
-                          <div className="text-slate-700">{getChoiceDisplayForLabel(item.question, item.question.answer)}</div>
+                          <div className="min-w-0 break-words text-slate-700">{getChoiceDisplayForLabel(item.question, item.selectedAnswer)}</div>
+                          <div className="min-w-0 break-words text-slate-700">{getChoiceDisplayForLabel(item.question, item.question.answer)}</div>
                           <div className={`text-right text-xs font-semibold ${item.isCorrect ? 'text-emerald-700' : 'text-rose-700'}`}>
                             {item.isCorrect ? '正解' : '不正解'}
                           </div>
@@ -636,6 +822,7 @@ export default function PaperPracticePage() {
                     <button
                       type="button"
                       onClick={() => startReview('incorrect')}
+                      onPointerUp={() => startReview('incorrect')}
                       disabled={incorrectCount === 0}
                       className="rounded-md bg-rose-600 px-4 py-3 text-sm font-semibold text-white hover:bg-rose-700 disabled:bg-slate-200 disabled:text-slate-500"
                     >
@@ -644,6 +831,7 @@ export default function PaperPracticePage() {
                     <button
                       type="button"
                       onClick={() => startReview('correct')}
+                      onPointerUp={() => startReview('correct')}
                       disabled={correctCount === 0}
                       className="rounded-md bg-emerald-700 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-800 disabled:bg-slate-200 disabled:text-slate-500"
                     >
@@ -655,7 +843,7 @@ export default function PaperPracticePage() {
 
               {modalStep === 'review' && (
                 <div>
-                  <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                  <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex flex-wrap gap-2">
                       <button
                         type="button"
@@ -677,7 +865,7 @@ export default function PaperPracticePage() {
                     <button
                       type="button"
                       onClick={() => setModalStep('result')}
-                      className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                      className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 sm:w-auto"
                     >
                       結果へ戻る
                     </button>
@@ -714,7 +902,7 @@ export default function PaperPracticePage() {
               )}
             </div>
 
-            <div className="border-t border-slate-200 bg-white px-4 py-3 sm:px-5 sm:py-4">
+            <div className="shrink-0 border-t border-slate-200 bg-white px-3 py-3 sm:px-5 sm:py-4">
               {modalStep === 'answer' ? (
                 <button
                   type="button"
@@ -753,7 +941,7 @@ export default function PaperPracticePage() {
             </div>
           </div>
         </div>
-      )}
+      ), document.body)}
     </div>
   );
 }

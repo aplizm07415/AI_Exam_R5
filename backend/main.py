@@ -327,6 +327,26 @@ class PaperPracticeLot(BaseModel):
     tag_filter: QuestionTagFilter = "all"
     questions: list[dict]
 
+class PaperPracticeGradeRequest(BaseModel):
+    answers: dict[str, str]
+
+class PaperPracticeAttemptAnswer(BaseModel):
+    lot_number: int
+    problem_id: str
+    subject: str
+    selected_answer: str
+    correct_answer: str
+    is_correct: bool
+    question: dict
+
+class PaperPracticeAttempt(BaseModel):
+    id: str
+    lot_id: str
+    created_at: str
+    total_count: int
+    correct_count: int
+    answers: list[PaperPracticeAttemptAnswer]
+
 OralVivaStep = Literal["root", "refute", "apply", "summary"]
 
 class OralVivaQuestionContext(BaseModel):
@@ -385,6 +405,7 @@ MUSCLE_RECORDS_BLOB = f"{MUSCLE_DIR}/records.json"
 MUSCLE_AUDIOS_META_BLOB = f"{MUSCLE_DIR}/audios/meta.json"
 REVIEW_LATER_BLOB = "review-later/items.json"
 PAPER_PRACTICE_LOTS_DIR = "paper-practice/lots"
+PAPER_PRACTICE_ATTEMPTS_DIR = "paper-practice/attempts"
 MUSCLE_AUDIO_FILES_DIR = f"{MUSCLE_DIR}/audios/files"
 MUSCLE_BODY_PARTS = [
     "neck",
@@ -563,6 +584,10 @@ def _paper_practice_lot_blob_name(lot_id: str) -> str:
     return f"{PAPER_PRACTICE_LOTS_DIR}/{lot_id}.json"
 
 
+def _paper_practice_attempt_blob_name(lot_id: str, attempt_id: str) -> str:
+    return f"{PAPER_PRACTICE_ATTEMPTS_DIR}/{lot_id}/{attempt_id}.json"
+
+
 def _load_paper_practice_lot(blob_name: str) -> PaperPracticeLot | None:
     if container_client is None:
         raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
@@ -581,6 +606,26 @@ def _load_paper_practice_lot(blob_name: str) -> PaperPracticeLot | None:
 def _save_paper_practice_lot(lot: PaperPracticeLot) -> None:
     payload = json.dumps(lot.model_dump(), ensure_ascii=False, indent=2).encode("utf-8")
     _overwrite_blob_bytes(_paper_practice_lot_blob_name(lot.id), payload)
+
+
+def _load_paper_practice_attempt(blob_name: str) -> PaperPracticeAttempt | None:
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+
+    blob_client = container_client.get_blob_client(blob_name)
+    if not blob_client.exists():
+        return None
+    try:
+        payload = json.loads(blob_client.download_blob().readall())
+        return PaperPracticeAttempt.model_validate(payload)
+    except Exception as e:
+        print(f"Error reading paper practice attempt {blob_name}: {e}")
+        return None
+
+
+def _save_paper_practice_attempt(attempt: PaperPracticeAttempt) -> None:
+    payload = json.dumps(attempt.model_dump(), ensure_ascii=False, indent=2).encode("utf-8")
+    _overwrite_blob_bytes(_paper_practice_attempt_blob_name(attempt.lot_id, attempt.id), payload)
 
 # Helper to get all questions for a subject, mapped by problem_id
 def _get_all_questions_for_subject(subject_name: str) -> dict[str, dict]:
@@ -2681,6 +2726,97 @@ def delete_paper_practice_lot(lot_id: str):
     except Exception as e:
         print(f"Error deleting paper practice lot {lot_id}: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to delete paper practice lot: {e}")
+
+
+@api_router.get("/paper-practice/lots/{lot_id}/attempts", response_model=list[PaperPracticeAttempt])
+def list_paper_practice_attempts(lot_id: str):
+    """紙演習ロットごとの採点履歴を新しい順に返す。"""
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+
+    attempts: list[PaperPracticeAttempt] = []
+    try:
+        prefix = f"{PAPER_PRACTICE_ATTEMPTS_DIR}/{lot_id}/"
+        for blob in container_client.list_blobs(name_starts_with=prefix):
+            if not blob.name.endswith(".json"):
+                continue
+            attempt = _load_paper_practice_attempt(blob.name)
+            if attempt:
+                attempts.append(attempt)
+    except Exception as e:
+        print(f"Error listing paper practice attempts for {lot_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to list paper practice attempts: {e}")
+
+    attempts.sort(key=lambda item: item.created_at, reverse=True)
+    return attempts
+
+
+@api_router.post("/paper-practice/lots/{lot_id}/grade", response_model=PaperPracticeAttempt)
+def grade_paper_practice_lot(lot_id: str, request: PaperPracticeGradeRequest):
+    """紙演習ロットを一括採点し、通常履歴とロット別採点履歴の両方に保存する。"""
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+
+    lot = _load_paper_practice_lot(_paper_practice_lot_blob_name(lot_id))
+    if not lot:
+        raise HTTPException(status_code=404, detail="Paper practice lot not found.")
+
+    missing_numbers: list[int] = []
+    attempt_answers: list[PaperPracticeAttemptAnswer] = []
+    history_items: list[HistoryItem] = []
+    answered_at = datetime.datetime.now(datetime.timezone.utc)
+
+    for index, question in enumerate(lot.questions, start=1):
+        problem_id = str(question.get("id") or question.get("problem_id") or "")
+        if not problem_id:
+            raise HTTPException(status_code=400, detail=f"ロット内{index}問目の問題IDが不正です。")
+        selected_answer = request.answers.get(problem_id)
+        if not selected_answer:
+            missing_numbers.append(index)
+            continue
+        correct_answer = str(question.get("answer") or "")
+        is_correct = selected_answer == correct_answer
+        subject = str(question.get("subject") or "")
+        category = question.get("category")
+        attempt_answers.append(PaperPracticeAttemptAnswer(
+            lot_number=index,
+            problem_id=problem_id,
+            subject=subject,
+            selected_answer=selected_answer,
+            correct_answer=correct_answer,
+            is_correct=is_correct,
+            question=question,
+        ))
+        history_items.append(HistoryItem(
+            problem_id=problem_id,
+            subject=subject,
+            selected_answer=selected_answer,
+            is_correct=is_correct,
+            category=category if isinstance(category, str) else None,
+            mode="paper_practice",
+            answered_at=answered_at,
+        ))
+
+    if missing_numbers:
+        raise HTTPException(status_code=400, detail=f"未入力の問題があります: {', '.join(map(str, missing_numbers))}")
+
+    attempt = PaperPracticeAttempt(
+        id=uuid.uuid4().hex,
+        lot_id=lot.id,
+        created_at=answered_at.isoformat(),
+        total_count=len(attempt_answers),
+        correct_count=sum(1 for item in attempt_answers if item.is_correct),
+        answers=attempt_answers,
+    )
+
+    try:
+        _append_history_items(history_items)
+        _save_paper_practice_attempt(attempt)
+    except Exception as e:
+        print(f"Error grading paper practice lot {lot_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to save paper practice attempt: {e}")
+
+    return attempt
 
 @api_router.post("/quiz/bulk-history-stats", response_model=dict[str, AnswerStat])
 def get_bulk_history_stats(request: ProblemHistoryStatsRequest):
