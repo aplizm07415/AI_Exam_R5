@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import LoadingSpinner from './components/LoadingSpinner';
 
@@ -87,27 +87,47 @@ interface BarTrendAxisLabel {
   topPercent: number;
 }
 
+function normalizeSubjectSelectionPatterns(value: unknown): SubjectSelectionPattern[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((item): item is SubjectSelectionPattern => (
+      item &&
+      typeof item.id === 'string' &&
+      typeof item.name === 'string' &&
+      Array.isArray(item.subjectNames) &&
+      item.subjectNames.every((subject: unknown) => typeof subject === 'string') &&
+      typeof item.createdAt === 'string'
+    ))
+    .map((item) => ({
+      ...item,
+      subjectNames: Array.from(new Set(item.subjectNames)),
+    }));
+}
+
 function loadSubjectSelectionPatterns(): SubjectSelectionPattern[] {
   try {
     const saved = localStorage.getItem(SUBJECT_SELECTION_PATTERNS_STORAGE_KEY);
     const parsed = saved ? JSON.parse(saved) : [];
-    if (!Array.isArray(parsed)) return [];
-    return parsed
-      .filter((item): item is SubjectSelectionPattern => (
-        item &&
-        typeof item.id === 'string' &&
-        typeof item.name === 'string' &&
-        Array.isArray(item.subjectNames) &&
-        item.subjectNames.every((subject: unknown) => typeof subject === 'string') &&
-        typeof item.createdAt === 'string'
-      ))
-      .map((item) => ({
-        ...item,
-        subjectNames: Array.from(new Set(item.subjectNames)),
-      }));
+    return normalizeSubjectSelectionPatterns(parsed);
   } catch (error) {
     console.error('Failed to parse subject selection patterns from localStorage', error);
     return [];
+  }
+}
+
+async function fetchSubjectSelectionPatterns(): Promise<SubjectSelectionPattern[]> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/study-settings`);
+    const data = await response.json().catch(() => null);
+    if (!response.ok) {
+      throw new Error(data?.detail || 'Study設定の読み込みに失敗しました。');
+    }
+    const patterns = normalizeSubjectSelectionPatterns(data?.subject_selection_patterns);
+    localStorage.setItem(SUBJECT_SELECTION_PATTERNS_STORAGE_KEY, JSON.stringify(patterns));
+    return patterns;
+  } catch (error) {
+    console.error(error);
+    return loadSubjectSelectionPatterns();
   }
 }
 
@@ -218,6 +238,7 @@ export default function AnalysisDashboard({
   const [consolidatedError, setConsolidatedError] = useState('');
   const [threshold, setThreshold] = useState<number>(0);
   const [subjectSelectionPatterns, setSubjectSelectionPatterns] = useState<SubjectSelectionPattern[]>(loadSubjectSelectionPatterns);
+  const [isSubjectPatternRefreshing, setIsSubjectPatternRefreshing] = useState(false);
   const [selectedSubjectPatternId, setSelectedSubjectPatternId] = useState('');
   const dailyHistoryContainerRef = useRef<HTMLDivElement | null>(null);
 
@@ -332,18 +353,29 @@ export default function AnalysisDashboard({
     }));
   }, [subjectNameSet, subjectSelectionPatterns]);
 
+  const refreshSubjectSelectionPatterns = useCallback(async () => {
+    setIsSubjectPatternRefreshing(true);
+    try {
+      const patterns = await fetchSubjectSelectionPatterns();
+      setSubjectSelectionPatterns(patterns);
+    } finally {
+      setIsSubjectPatternRefreshing(false);
+    }
+  }, []);
+
   useEffect(() => {
     const refreshPatterns = () => {
-      setSubjectSelectionPatterns(loadSubjectSelectionPatterns());
+      void refreshSubjectSelectionPatterns();
     };
 
+    void refreshSubjectSelectionPatterns();
     window.addEventListener('focus', refreshPatterns);
     window.addEventListener('storage', refreshPatterns);
     return () => {
       window.removeEventListener('focus', refreshPatterns);
       window.removeEventListener('storage', refreshPatterns);
     };
-  }, []);
+  }, [refreshSubjectSelectionPatterns]);
 
   useEffect(() => {
     const node = dailyHistoryContainerRef.current;
@@ -534,10 +566,11 @@ export default function AnalysisDashboard({
             </div>
             <button
               type="button"
-              onClick={() => setSubjectSelectionPatterns(loadSubjectSelectionPatterns())}
-              className="rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
+              onClick={() => void refreshSubjectSelectionPatterns()}
+              disabled={isSubjectPatternRefreshing}
+              className="rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400"
             >
-              更新
+              {isSubjectPatternRefreshing ? '更新中' : '更新'}
             </button>
           </div>
           <div className="max-h-32 overflow-y-auto border border-gray-200 rounded-md p-2 bg-white">

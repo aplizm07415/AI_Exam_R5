@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkBreaks from 'remark-breaks';
 import remarkGfm from 'remark-gfm';
 import LoadingSpinner from './components/LoadingSpinner';
-import { markdownComponents } from './components/markdownComponents';
+import { markdownComponents, markdownRehypePlugins } from './components/markdownComponents';
 import mplusRegularFontUrl from './assets/fonts/MPLUS1p-Regular.ttf';
 
 const API_BASE_URL = '/api';
@@ -216,7 +216,7 @@ function PaperReviewCard({
       <div className="mt-4 border-t border-slate-200 pt-4">
         <h4 className="text-base font-semibold text-primary-new">解説</h4>
         <div className="question-markdown prose prose-sm mt-2 max-w-none text-slate-700">
-          <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} components={markdownComponents}>
+          <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={markdownRehypePlugins} components={markdownComponents}>
             {item.question.explanation?.text || 'この問題の解説はありません。'}
           </ReactMarkdown>
         </div>

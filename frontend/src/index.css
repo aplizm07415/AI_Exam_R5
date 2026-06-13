@@ -107,12 +107,14 @@
 .markdown-table-scroll {
   max-width: 100%;
   overflow-x: auto;
+  overscroll-behavior-x: contain;
 }
 
 .markdown-table-scroll table {
-  width: max-content;
+  width: 100%;
   min-width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .markdown-table-scroll th,
@@ -120,11 +122,49 @@
   border: 1px solid #cbd5e1;
   padding: 0.45rem 0.65rem;
   vertical-align: top;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+  min-width: 6rem;
+  max-width: 24rem;
 }
 
 .markdown-table-scroll th {
   background: #f8fafc;
   font-weight: 700;
+}
+
+.markdown-table-scroll td p,
+.markdown-table-scroll th p {
+  margin: 0.35rem 0;
+}
+
+.markdown-table-scroll td p:first-child,
+.markdown-table-scroll th p:first-child {
+  margin-top: 0;
+}
+
+.markdown-table-scroll td p:last-child,
+.markdown-table-scroll th p:last-child {
+  margin-bottom: 0;
+}
+
+.markdown-table-scroll .markdown-table-scroll {
+  margin: 0.35rem 0;
+}
+
+.markdown-table-scroll .markdown-table-scroll table {
+  min-width: 0;
+}
+
+.markdown-table-cell--long {
+  line-height: 1.65;
+}
+
+.markdown-table-cell--very-long {
+  font-size: 0.92em;
+  line-height: 1.55;
 }
 
 .question-mermaid {

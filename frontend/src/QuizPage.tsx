@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
 import LoadingSpinner from './components/LoadingSpinner';
-import { markdownComponents } from './components/markdownComponents';
+import { markdownComponents, markdownRehypePlugins } from './components/markdownComponents';
 import SubjectVisibilityModal from './components/SubjectVisibilityModal';
 import SubjectProgress from './components/SubjectProgress';
 import { usePlans } from './hooks/usePlans';
@@ -17,6 +17,7 @@ const API_BASE_URL = "/api";
 const QUESTION_TIMER_MS = 2 * 60 * 1000;
 const FORCED_ANSWER_TIMER_MS = 80 * 1000;
 const SUBJECT_SELECTION_PATTERNS_STORAGE_KEY = 'subjectSelectionPatterns';
+const STUDY_ACTION_MODE_VISIBILITY_STORAGE_KEY = 'hiddenStudyActionModes';
 const PAPER_PRACTICE_PENDING_REQUEST_STORAGE_KEY = 'paperPracticePendingRequest';
 const SPECIFIC_AREA_PROGRESS_STEPS = [
   '条件を確認中',
@@ -39,6 +40,7 @@ interface Choice {
   label: string;
   text: string;
 }
+
 
 interface Explanation {
   text: string;
@@ -72,6 +74,13 @@ interface SubjectSelectionPattern {
   name: string;
   subjectNames: string[];
   createdAt: string;
+}
+
+interface StudySettingsPayload {
+  subject_selection_patterns: SubjectSelectionPattern[];
+  default_subject_pattern_id: string | null;
+  default_quiz_mode: QuizMode;
+  hidden_study_action_modes: StudyActionMode[];
 }
 
 interface MermaidDiagramProps {
@@ -206,6 +215,94 @@ interface QuestionHelpResponse {
 
 type IpadProfile = 'air' | 'mini';
 type SpecificAreaHistoryScope = 'all' | 'unanswered' | 'answered';
+type StudyActionMode = 'ipad_air' | 'ipad_mini' | 'paper_practice' | 'forced';
+
+const STUDY_ACTION_MODE_OPTIONS: Array<{ id: StudyActionMode; label: string }> = [
+  { id: 'ipad_air', label: 'iPad Airモード' },
+  { id: 'ipad_mini', label: 'iPad miniモード' },
+  { id: 'paper_practice', label: '紙演習モード' },
+  { id: 'forced', label: '強制モード' },
+];
+const STUDY_ACTION_MODE_ID_SET = new Set<StudyActionMode>(STUDY_ACTION_MODE_OPTIONS.map((option) => option.id));
+
+function normalizeSubjectSelectionPatterns(value: unknown): SubjectSelectionPattern[] {
+  if (!Array.isArray(value)) return [];
+
+  const seenIds = new Set<string>();
+  return value
+    .filter((item): item is SubjectSelectionPattern => (
+      item &&
+      typeof item.id === 'string' &&
+      typeof item.name === 'string' &&
+      Array.isArray(item.subjectNames) &&
+      item.subjectNames.every((subject: unknown) => typeof subject === 'string') &&
+      typeof item.createdAt === 'string'
+    ))
+    .map((item) => ({
+      ...item,
+      id: item.id.trim(),
+      name: item.name.trim(),
+      subjectNames: Array.from(new Set(item.subjectNames.map((subject) => subject.trim()).filter(Boolean))),
+    }))
+    .filter((item) => {
+      if (!item.id || !item.name || seenIds.has(item.id)) return false;
+      seenIds.add(item.id);
+      return true;
+    })
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function loadCachedSubjectSelectionPatterns(): SubjectSelectionPattern[] {
+  try {
+    const saved = localStorage.getItem(SUBJECT_SELECTION_PATTERNS_STORAGE_KEY);
+    return normalizeSubjectSelectionPatterns(saved ? JSON.parse(saved) : []);
+  } catch (error) {
+    console.error('Failed to parse subject selection patterns from localStorage', error);
+    return [];
+  }
+}
+
+function normalizeHiddenStudyActionModes(value: unknown): StudyActionMode[] {
+  if (!Array.isArray(value)) return [];
+  return Array.from(new Set(value.filter((item): item is StudyActionMode => (
+    typeof item === 'string' && STUDY_ACTION_MODE_ID_SET.has(item as StudyActionMode)
+  ))));
+}
+
+function loadCachedHiddenStudyActionModes(): StudyActionMode[] {
+  try {
+    const saved = localStorage.getItem(STUDY_ACTION_MODE_VISIBILITY_STORAGE_KEY);
+    return normalizeHiddenStudyActionModes(saved ? JSON.parse(saved) : []);
+  } catch (error) {
+    console.error('Failed to parse hiddenStudyActionModes from localStorage', error);
+    return [];
+  }
+}
+
+function normalizeStudySettingsPayload(value: unknown): StudySettingsPayload {
+  const payload = value && typeof value === 'object' ? value as Partial<StudySettingsPayload> : {};
+  const subjectSelectionPatterns = normalizeSubjectSelectionPatterns(payload.subject_selection_patterns);
+  const patternIds = new Set(subjectSelectionPatterns.map((pattern) => pattern.id));
+  const defaultSubjectPatternId =
+    typeof payload.default_subject_pattern_id === 'string' && patternIds.has(payload.default_subject_pattern_id)
+      ? payload.default_subject_pattern_id
+      : null;
+  const defaultQuizMode: QuizMode =
+    payload.default_quiz_mode === 'random' ||
+      payload.default_quiz_mode === 'weak_area' ||
+      payload.default_quiz_mode === 'unanswered' ||
+      payload.default_quiz_mode === 'specific_area' ||
+      payload.default_quiz_mode === 'today_remaining'
+      ? payload.default_quiz_mode
+      : 'today_remaining';
+
+  return {
+    subject_selection_patterns: subjectSelectionPatterns,
+    default_subject_pattern_id: defaultSubjectPatternId,
+    default_quiz_mode: defaultQuizMode,
+    hidden_study_action_modes: normalizeHiddenStudyActionModes(payload.hidden_study_action_modes),
+  };
+}
 
 type QuizTimelineItem = {
   key: string;
@@ -341,7 +438,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   const [isTodayProgressLoading, setIsTodayProgressLoading] = useState(false);
   const [selectedSubjectNames, setSelectedSubjectNames] = useState<string[]>([]);
   const [quizMode, setQuizMode] = useState<QuizMode>('today_remaining');
-  const [questionTagFilter, setQuestionTagFilter] = useState<QuestionTagFilter>('all');
+  const [questionTagFilter, setQuestionTagFilter] = useState<QuestionTagFilter>('exclude_calculation');
   const [numQuestions, setNumQuestions] = useState<number>(10);
   const [quizState, setQuizState] = useState<'setup' | 'active' | 'finished'>('setup');
   const [isForcedSession, setIsForcedSession] = useState(false);
@@ -595,32 +692,17 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   const [specificAreaHistoryScope, setSpecificAreaHistoryScope] = useState<SpecificAreaHistoryScope>('all');
   const [specificAreaSuggestions, setSpecificAreaSuggestions] = useState<string[]>([]);
   const [isSpecificAreaSuggestionsLoading, setIsSpecificAreaSuggestionsLoading] = useState(false);
-  const [subjectSelectionPatterns, setSubjectSelectionPatterns] = useState<SubjectSelectionPattern[]>(() => {
-    try {
-      const saved = localStorage.getItem(SUBJECT_SELECTION_PATTERNS_STORAGE_KEY);
-      const parsed = saved ? JSON.parse(saved) : [];
-      if (!Array.isArray(parsed)) return [];
-      return parsed
-        .filter((item): item is SubjectSelectionPattern => (
-          item &&
-          typeof item.id === 'string' &&
-          typeof item.name === 'string' &&
-          Array.isArray(item.subjectNames) &&
-          item.subjectNames.every((subject: unknown) => typeof subject === 'string') &&
-          typeof item.createdAt === 'string'
-        ))
-        .map((item) => ({
-          ...item,
-          subjectNames: Array.from(new Set(item.subjectNames)),
-        }));
-    } catch (error) {
-      console.error('Failed to parse subject selection patterns from localStorage', error);
-      return [];
-    }
-  });
+  const [hiddenStudyActionModes, setHiddenStudyActionModes] = useState<StudyActionMode[]>(loadCachedHiddenStudyActionModes);
+  const [subjectSelectionPatterns, setSubjectSelectionPatterns] = useState<SubjectSelectionPattern[]>(loadCachedSubjectSelectionPatterns);
+  const [defaultSubjectPatternId, setDefaultSubjectPatternId] = useState<string | null>(null);
+  const [defaultQuizMode, setDefaultQuizMode] = useState<QuizMode>('today_remaining');
+  const [isStudySettingsLoading, setIsStudySettingsLoading] = useState(true);
+  const [isStudySettingsSaving, setIsStudySettingsSaving] = useState(false);
+  const [studySettingsError, setStudySettingsError] = useState('');
   const [subjectPatternName, setSubjectPatternName] = useState('');
   const [selectedSubjectPatternId, setSelectedSubjectPatternId] = useState('');
   const specificAreaProgressTimerRef = useRef<number | null>(null);
+  const didApplyDefaultStudySettingsRef = useRef(false);
   const normalizedSpecificAreaKeywords = useMemo(
     () => specificAreaKeywords.map((keyword) => keyword.trim()).filter((keyword) => keyword.length > 0),
     [specificAreaKeywords],
@@ -658,6 +740,115 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   useEffect(() => {
     localStorage.setItem(SUBJECT_SELECTION_PATTERNS_STORAGE_KEY, JSON.stringify(subjectSelectionPatterns));
   }, [subjectSelectionPatterns]);
+
+  useEffect(() => {
+    localStorage.setItem(STUDY_ACTION_MODE_VISIBILITY_STORAGE_KEY, JSON.stringify(hiddenStudyActionModes));
+  }, [hiddenStudyActionModes]);
+
+  const applyStudySettingsPayload = useCallback((payload: StudySettingsPayload) => {
+    const normalized = normalizeStudySettingsPayload(payload);
+    setSubjectSelectionPatterns(normalized.subject_selection_patterns);
+    setDefaultSubjectPatternId(normalized.default_subject_pattern_id);
+    setDefaultQuizMode(normalized.default_quiz_mode);
+    setHiddenStudyActionModes(normalized.hidden_study_action_modes);
+  }, []);
+
+  const buildStudySettingsPayload = useCallback((overrides: Partial<{
+    subjectSelectionPatterns: SubjectSelectionPattern[];
+    defaultSubjectPatternId: string | null;
+    defaultQuizMode: QuizMode;
+    hiddenStudyActionModes: StudyActionMode[];
+  }> = {}): StudySettingsPayload => ({
+    subject_selection_patterns: normalizeSubjectSelectionPatterns(overrides.subjectSelectionPatterns ?? subjectSelectionPatterns),
+    default_subject_pattern_id: overrides.defaultSubjectPatternId !== undefined ? overrides.defaultSubjectPatternId : defaultSubjectPatternId,
+    default_quiz_mode: overrides.defaultQuizMode ?? defaultQuizMode,
+    hidden_study_action_modes: normalizeHiddenStudyActionModes(overrides.hiddenStudyActionModes ?? hiddenStudyActionModes),
+  }), [defaultQuizMode, defaultSubjectPatternId, hiddenStudyActionModes, subjectSelectionPatterns]);
+
+  const saveStudySettings = useCallback(async (payload: StudySettingsPayload) => {
+    setIsStudySettingsSaving(true);
+    setStudySettingsError('');
+    try {
+      const response = await fetch(`${API_BASE_URL}/study-settings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(data?.detail || 'Study設定の保存に失敗しました。');
+      }
+      const normalized = normalizeStudySettingsPayload(data);
+      applyStudySettingsPayload(normalized);
+      return normalized;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Study設定の保存に失敗しました。';
+      setStudySettingsError(message);
+      return null;
+    } finally {
+      setIsStudySettingsSaving(false);
+    }
+  }, [applyStudySettingsPayload]);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    const fetchStudySettings = async () => {
+      setIsStudySettingsLoading(true);
+      setStudySettingsError('');
+      try {
+        const response = await fetch(`${API_BASE_URL}/study-settings`);
+        const data = await response.json().catch(() => null);
+        if (!response.ok) {
+          throw new Error(data?.detail || 'Study設定の読み込みに失敗しました。');
+        }
+
+        const serverSettings = normalizeStudySettingsPayload(data);
+        const cachedPatterns = loadCachedSubjectSelectionPatterns();
+        const cachedHiddenModes = loadCachedHiddenStudyActionModes();
+        const shouldMigratePatterns = serverSettings.subject_selection_patterns.length === 0 && cachedPatterns.length > 0;
+        const shouldMigrateHiddenModes = serverSettings.hidden_study_action_modes.length === 0 && cachedHiddenModes.length > 0;
+
+        let nextSettings = serverSettings;
+        if (shouldMigratePatterns || shouldMigrateHiddenModes) {
+          const migrationPayload: StudySettingsPayload = {
+            ...serverSettings,
+            subject_selection_patterns: shouldMigratePatterns ? cachedPatterns : serverSettings.subject_selection_patterns,
+            default_subject_pattern_id: shouldMigratePatterns ? null : serverSettings.default_subject_pattern_id,
+            hidden_study_action_modes: shouldMigrateHiddenModes ? cachedHiddenModes : serverSettings.hidden_study_action_modes,
+          };
+          const saveResponse = await fetch(`${API_BASE_URL}/study-settings`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(migrationPayload),
+          });
+          const savedData = await saveResponse.json().catch(() => null);
+          if (saveResponse.ok) {
+            nextSettings = normalizeStudySettingsPayload(savedData);
+          }
+        }
+
+        if (!isCancelled) {
+          applyStudySettingsPayload(nextSettings);
+        }
+      } catch (error) {
+        if (!isCancelled) {
+          const message = error instanceof Error ? error.message : 'Study設定の読み込みに失敗しました。';
+          setStudySettingsError(message);
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsStudySettingsLoading(false);
+        }
+      }
+    };
+
+    void fetchStudySettings();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [applyStudySettingsPayload]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -842,12 +1033,49 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     }));
   }, [subjectSelectionPatterns, visibleSubjectNameSet]);
 
+  useEffect(() => {
+    if (didApplyDefaultStudySettingsRef.current || isStudySettingsLoading || allSubjects.length === 0) {
+      return;
+    }
+
+    didApplyDefaultStudySettingsRef.current = true;
+    setQuizMode(defaultQuizMode);
+
+    if (defaultQuizMode === 'today_remaining' || !defaultSubjectPatternId) {
+      return;
+    }
+
+    const defaultPattern = subjectSelectionPatterns.find((pattern) => pattern.id === defaultSubjectPatternId);
+    const subjectNames = defaultPattern?.subjectNames.filter((subjectName) => visibleSubjectNameSet.has(subjectName)) ?? [];
+    if (subjectNames.length > 0) {
+      setSelectedSubjectNames(subjectNames);
+      setSelectedSubjectPatternId(defaultSubjectPatternId);
+    }
+  }, [
+    allSubjects.length,
+    defaultQuizMode,
+    defaultSubjectPatternId,
+    isStudySettingsLoading,
+    subjectSelectionPatterns,
+    visibleSubjectNameSet,
+  ]);
+
   const handleHiddenSubjectsChange = (newHiddenSubjects: string[]) => {
     setHiddenSubjects(newHiddenSubjects);
     localStorage.setItem('hiddenSubjects', JSON.stringify(newHiddenSubjects));
     setSelectedSubjectNames((prev: string[]) => prev.filter((name: string) => !newHiddenSubjects.includes(name)));
     setSelectedSubjectPatternId('');
   };
+
+  const setStudyActionModeVisible = (mode: StudyActionMode, isVisible: boolean) => {
+    const nextHiddenModes = isVisible
+      ? hiddenStudyActionModes.filter((item) => item !== mode)
+      : Array.from(new Set([...hiddenStudyActionModes, mode]));
+    setHiddenStudyActionModes(nextHiddenModes);
+    void saveStudySettings(buildStudySettingsPayload({ hiddenStudyActionModes: nextHiddenModes }));
+  };
+
+  const isStudyActionModeVisible = (mode: StudyActionMode) => !hiddenStudyActionModes.includes(mode);
 
   useEffect(() => {
     const fetchUnansweredCount = async () => {
@@ -995,12 +1223,14 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       createdAt: existingPattern?.createdAt ?? new Date().toISOString(),
     };
 
-    setSubjectSelectionPatterns((prev) => {
-      const withoutSameName = prev.filter((pattern) => pattern.name !== patternName);
-      return [...withoutSameName, nextPattern].sort((a, b) => a.name.localeCompare(b.name));
-    });
+    const nextPatterns = normalizeSubjectSelectionPatterns([
+      ...subjectSelectionPatterns.filter((pattern) => pattern.name !== patternName),
+      nextPattern,
+    ]);
+    setSubjectSelectionPatterns(nextPatterns);
     setSelectedSubjectPatternId(patternId);
     setSubjectPatternName('');
+    void saveStudySettings(buildStudySettingsPayload({ subjectSelectionPatterns: nextPatterns }));
   };
 
   const applySubjectSelectionPattern = (patternId: string) => {
@@ -1038,8 +1268,26 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     if (!pattern) return;
     if (!window.confirm(`科目パターン「${pattern.name}」を削除しますか？`)) return;
 
-    setSubjectSelectionPatterns((prev) => prev.filter((item) => item.id !== selectedSubjectPatternId));
+    const nextPatterns = subjectSelectionPatterns.filter((item) => item.id !== selectedSubjectPatternId);
+    const nextDefaultSubjectPatternId = defaultSubjectPatternId === selectedSubjectPatternId ? null : defaultSubjectPatternId;
+    setSubjectSelectionPatterns(nextPatterns);
+    setDefaultSubjectPatternId(nextDefaultSubjectPatternId);
     setSelectedSubjectPatternId('');
+    void saveStudySettings(buildStudySettingsPayload({
+      subjectSelectionPatterns: nextPatterns,
+      defaultSubjectPatternId: nextDefaultSubjectPatternId,
+    }));
+  };
+
+  const setDefaultSubjectPattern = (patternId: string) => {
+    const nextDefaultSubjectPatternId = patternId || null;
+    setDefaultSubjectPatternId(nextDefaultSubjectPatternId);
+    void saveStudySettings(buildStudySettingsPayload({ defaultSubjectPatternId: nextDefaultSubjectPatternId }));
+  };
+
+  const setCurrentQuizModeAsDefault = () => {
+    setDefaultQuizMode(quizMode);
+    void saveStudySettings(buildStudySettingsPayload({ defaultQuizMode: quizMode }));
   };
 
   const updateSpecificAreaKeyword = (index: number, value: string) => {
@@ -2066,7 +2314,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
           </div>
         )}
         <div className="prose prose-sm md:prose-base max-w-none text-gray-700">
-          <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} components={markdownComponents}>{feedback?.explanation?.text || ''}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={markdownRehypePlugins} components={markdownComponents}>{feedback?.explanation?.text || ''}</ReactMarkdown>
         </div>
         {currentExplanationImageDataUrls.length > 0 && (
           <div className="mt-6">
@@ -2338,7 +2586,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
           <p className="text-base md:text-lg font-semibold text-gray-700 whitespace-pre-wrap">{currentQuestion.question_text}</p>
           {questionTextMd && (
             <div className="question-markdown text-sm md:text-base text-gray-700">
-              <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} components={markdownComponents}>{questionTextMd}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={markdownRehypePlugins} components={markdownComponents}>{questionTextMd}</ReactMarkdown>
             </div>
           )}
           {questionTextMermaid && (
@@ -2755,6 +3003,28 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                         </button>
                       </div>
 
+                      <div className="mt-3 grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+                        <div>
+                          <label className="heading-2 block text-xs font-medium text-gray-600">デフォルトパターン</label>
+                          <select
+                            value={defaultSubjectPatternId ?? ''}
+                            onChange={(event) => setDefaultSubjectPattern(event.target.value)}
+                            disabled={subjectSelectionPatterns.length === 0 || isStudySettingsSaving}
+                            className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-new focus:outline-none focus:ring-2 focus:ring-primary-new/20 disabled:bg-gray-100 disabled:text-gray-400"
+                          >
+                            <option value="">指定なし</option>
+                            {subjectSelectionPatternOptions.map((pattern) => (
+                              <option key={pattern.id} value={pattern.id}>
+                                {pattern.name} ({pattern.availableSubjectNames.length})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-500">
+                          {isStudySettingsSaving ? '保存中' : isStudySettingsLoading ? '読込中' : 'Azure同期'}
+                        </div>
+                      </div>
+
                       {quizMode === 'today_remaining' && (
                         <p className="mt-2 text-xs text-gray-500"></p>
                       )}
@@ -2778,6 +3048,20 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
                       <button type="button" onClick={() => setQuizMode('specific_area')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'specific_area' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>特定領域</button>
 
+                    </div>
+
+                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                      <div className="text-xs font-medium text-slate-600">
+                        デフォルト: {defaultQuizMode === 'today_remaining' ? '今日の残り' : defaultQuizMode === 'random' ? 'ランダム' : defaultQuizMode === 'weak_area' ? '苦手克服' : defaultQuizMode === 'unanswered' ? '未解答問題' : '特定領域'}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={setCurrentQuizModeAsDefault}
+                        disabled={isStudySettingsSaving}
+                        className="rounded-md bg-white px-3 py-1.5 text-xs font-medium text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100 disabled:bg-gray-100 disabled:text-gray-400"
+                      >
+                        現在のモードをデフォルトにする
+                      </button>
                     </div>
 
                     {quizMode === 'today_remaining' && (
@@ -3046,67 +3330,19 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
                     </div>
 
-                    <div className="mt-2 grid grid-cols-5 gap-3">
+                    <div className="mt-2 grid grid-cols-4 gap-3">
 
-                      {[
+                      {[1, 5, 10, 20].map((optionValue) => {
 
-                        { label: '1', value: 1 },
+                        const isDisabled = (quizMode === 'today_remaining' && optionValue > todayRemaining.count) ||
 
-                        { label: '10', value: 10 },
+                          (quizMode === 'unanswered' && unansweredCount !== null && optionValue > unansweredCount) ||
 
-                        { label: '20', value: 20 },
+                          (quizMode === 'weak_area' && weakAreaCount !== null && optionValue > weakAreaCount) ||
 
-                        { label: 'MAX', value: 1000 }, // Default MAX is 1000
+                          (quizMode === 'specific_area' && specificAreaCount !== null && optionValue > specificAreaCount) ||
 
-                      ].map((option) => {
-
-                        let actualButtonValue = option.value;
-
-                        let displayButtonLabel = option.label;
-
-
-
-                        if (option.label === 'MAX') {
-
-                          if (quizMode === 'today_remaining') {
-
-                            actualButtonValue = todayRemaining.count;
-
-                            displayButtonLabel = `MAX (${todayRemaining.count})`;
-
-                          } else if (quizMode === 'unanswered' && unansweredCount !== null) {
-
-                            actualButtonValue = unansweredCount;
-
-                            displayButtonLabel = `MAX (${unansweredCount})`;
-
-                          } else if (quizMode === 'weak_area' && weakAreaCount !== null) {
-
-                            actualButtonValue = weakAreaCount;
-
-                            displayButtonLabel = `MAX (${weakAreaCount})`;
-
-                          } else if (quizMode === 'specific_area' && specificAreaCount !== null) {
-
-                            actualButtonValue = specificAreaCount;
-
-                            displayButtonLabel = `MAX (${specificAreaCount})`;
-
-                          }
-
-                        }
-
-
-
-                        const isDisabled = (quizMode === 'today_remaining' && actualButtonValue > todayRemaining.count) ||
-
-                          (quizMode === 'unanswered' && unansweredCount !== null && actualButtonValue > unansweredCount) ||
-
-                          (quizMode === 'weak_area' && weakAreaCount !== null && actualButtonValue > weakAreaCount) ||
-
-                          (quizMode === 'specific_area' && specificAreaCount !== null && actualButtonValue > specificAreaCount) ||
-
-                          actualButtonValue <= 0; // Disable if value is 0 or less
+                          optionValue <= 0;
 
 
 
@@ -3114,15 +3350,15 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
                           <button
 
-                            key={option.label}
+                            key={optionValue}
 
                             type="button"
 
-                            onClick={() => setNumQuestions(actualButtonValue)}
+                            onClick={() => setNumQuestions(optionValue)}
 
                             disabled={isDisabled}
 
-                            className={`px-2 py-2 rounded-md text-sm font-medium transition-colors ${numQuestions === actualButtonValue && !isDisabled
+                            className={`px-2 py-2 rounded-md text-sm font-medium transition-colors ${numQuestions === optionValue && !isDisabled
 
                               ? 'bg-primary-new text-white'
 
@@ -3132,7 +3368,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
                           >
 
-                            {displayButtonLabel}
+                            {optionValue}
 
                           </button>
 
@@ -3155,44 +3391,70 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                     {isLoading ? 'クイズ準備中...' : 'Start'}
 
                   </button>
-                  <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                  <details className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                    <summary className="cursor-pointer text-sm font-medium text-slate-700">モード表示設定</summary>
+                    <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      {STUDY_ACTION_MODE_OPTIONS.map((option) => (
+                        <label key={option.id} className="flex items-center justify-between gap-3 rounded-md bg-white px-3 py-2 text-sm text-slate-700">
+                          <span>{option.label}</span>
+                          <input
+                            type="checkbox"
+                            checked={isStudyActionModeVisible(option.id)}
+                            onChange={(event) => setStudyActionModeVisible(option.id, event.target.checked)}
+                            className="h-4 w-4 rounded border-gray-300 text-primary-new focus:ring-primary-new"
+                          />
+                        </label>
+                      ))}
+                    </div>
+                  </details>
+                  {(isStudyActionModeVisible('ipad_air') || isStudyActionModeVisible('ipad_mini') || isStudyActionModeVisible('paper_practice')) && (
+                    <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                      {isStudyActionModeVisible('ipad_air') && (
+                        <button
+                          type="button"
+                          onClick={() => openIpadMode('air')}
+                          disabled={isLoading || effectiveSelectedSubjectNames.length === 0 || quizMode === 'specific_area' || (quizMode === 'today_remaining' && isTodayProgressLoading)}
+                          className="w-full py-3 px-4 border border-cyan-600 rounded-md shadow-sm text-base font-medium text-cyan-700 bg-cyan-50 hover:bg-cyan-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          iPad Airモード
+                        </button>
+                      )}
+                      {isStudyActionModeVisible('ipad_mini') && (
+                        <button
+                          type="button"
+                          onClick={() => openIpadMode('mini')}
+                          disabled={isLoading || effectiveSelectedSubjectNames.length === 0 || quizMode === 'specific_area' || (quizMode === 'today_remaining' && isTodayProgressLoading)}
+                          className="w-full py-3 px-4 border border-sky-600 rounded-md shadow-sm text-base font-medium text-sky-700 bg-sky-50 hover:bg-sky-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          iPad miniモード
+                        </button>
+                      )}
+                      {isStudyActionModeVisible('paper_practice') && (
+                        <button
+                          type="button"
+                          onClick={openPaperPracticeMode}
+                          disabled={isLoading || effectiveSelectedSubjectNames.length === 0 || (quizMode === 'today_remaining' && isTodayProgressLoading)}
+                          className="w-full py-3 px-4 border border-slate-700 rounded-md shadow-sm text-base font-medium text-slate-800 bg-slate-50 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          紙演習モード
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  {isStudyActionModeVisible('forced') && (
                     <button
                       type="button"
-                      onClick={() => openIpadMode('air')}
-                      disabled={isLoading || effectiveSelectedSubjectNames.length === 0 || quizMode === 'specific_area' || (quizMode === 'today_remaining' && isTodayProgressLoading)}
-                      className="w-full py-3 px-4 border border-cyan-600 rounded-md shadow-sm text-base font-medium text-cyan-700 bg-cyan-50 hover:bg-cyan-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      iPad Airモード
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => openIpadMode('mini')}
-                      disabled={isLoading || effectiveSelectedSubjectNames.length === 0 || quizMode === 'specific_area' || (quizMode === 'today_remaining' && isTodayProgressLoading)}
-                      className="w-full py-3 px-4 border border-sky-600 rounded-md shadow-sm text-base font-medium text-sky-700 bg-sky-50 hover:bg-sky-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      iPad miniモード
-                    </button>
-                    <button
-                      type="button"
-                      onClick={openPaperPracticeMode}
+                      onClick={() => void startQuiz(true)}
                       disabled={isLoading || effectiveSelectedSubjectNames.length === 0 || (quizMode === 'today_remaining' && isTodayProgressLoading)}
-                      className="w-full py-3 px-4 border border-slate-700 rounded-md shadow-sm text-base font-medium text-slate-800 bg-slate-50 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="mt-3 w-full py-3 px-4 border border-[#e8383d] rounded-md shadow-sm text-base font-medium text-[#e8383d] bg-red-50 hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      紙演習モード
+                      強制モード
                     </button>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => void startQuiz(true)}
-                    disabled={isLoading || effectiveSelectedSubjectNames.length === 0 || (quizMode === 'today_remaining' && isTodayProgressLoading)}
-                    className="mt-3 w-full py-3 px-4 border border-[#e8383d] rounded-md shadow-sm text-base font-medium text-[#e8383d] bg-red-50 hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    強制モード
-                  </button>
+                  )}
 
                 </div>
 
-                {(error || plansError) && <p className="text-danger text-sm mt-2 text-center">{error || plansError}</p>}
+                {(error || plansError || studySettingsError) && <p className="text-danger text-sm mt-2 text-center">{error || plansError || studySettingsError}</p>}
 
               </div>
 
@@ -3408,5 +3670,3 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   );
 
 }
-
-

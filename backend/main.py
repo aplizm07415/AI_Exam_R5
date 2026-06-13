@@ -63,6 +63,8 @@ class GenerateKeywordsRequest(BaseModel):
 SpecificAreaHistoryScope = Literal["all", "unanswered", "answered"]
 QuestionTagFilter = Literal["all", "calculation_only", "exclude_calculation"]
 CALCULATION_TAG = "calculation"
+StudyQuizMode = Literal["random", "weak_area", "unanswered", "today_remaining", "specific_area"]
+StudyActionMode = Literal["ipad_air", "ipad_mini", "paper_practice", "forced"]
 
 
 class SpecificAreaSuggestionRequest(BaseModel):
@@ -191,6 +193,18 @@ class Plan(BaseModel):
     autoRedistribute: bool = True
     enabled: bool
     archived: bool = False
+
+class StudySubjectSelectionPattern(BaseModel):
+    id: str
+    name: str
+    subjectNames: list[str] = Field(default_factory=list)
+    createdAt: str
+
+class StudySettings(BaseModel):
+    subject_selection_patterns: list[StudySubjectSelectionPattern] = Field(default_factory=list)
+    default_subject_pattern_id: Optional[str] = None
+    default_quiz_mode: StudyQuizMode = "today_remaining"
+    hidden_study_action_modes: list[StudyActionMode] = Field(default_factory=list)
 
 class ProblemHistoryStatsRequest(BaseModel):
     problem_ids: list[str]
@@ -1244,6 +1258,65 @@ def health():
     return {"status": "ok"}
 
 PLANS_BLOB_NAME = "plans.json"
+STUDY_SETTINGS_BLOB_NAME = "study-settings/settings.json"
+
+def _normalize_study_settings_payload(raw) -> StudySettings:
+    if not isinstance(raw, dict):
+        raw = {}
+
+    patterns: list[StudySubjectSelectionPattern] = []
+    seen_pattern_ids: set[str] = set()
+    for item in raw.get("subject_selection_patterns", []):
+        try:
+            pattern = StudySubjectSelectionPattern.model_validate(item)
+        except Exception as e:
+            print(f"Skipping invalid study subject pattern: {e}")
+            continue
+
+        pattern_id = pattern.id.strip()
+        pattern_name = pattern.name.strip()
+        if not pattern_id or not pattern_name or pattern_id in seen_pattern_ids:
+            continue
+
+        seen_pattern_ids.add(pattern_id)
+        patterns.append(StudySubjectSelectionPattern(
+            id=pattern_id,
+            name=pattern_name,
+            subjectNames=list(dict.fromkeys(name.strip() for name in pattern.subjectNames if name.strip())),
+            createdAt=pattern.createdAt,
+        ))
+
+    default_subject_pattern_id = raw.get("default_subject_pattern_id")
+    if not isinstance(default_subject_pattern_id, str) or default_subject_pattern_id not in seen_pattern_ids:
+        default_subject_pattern_id = None
+
+    default_quiz_mode = raw.get("default_quiz_mode")
+    if default_quiz_mode not in ("random", "weak_area", "unanswered", "today_remaining", "specific_area"):
+        default_quiz_mode = "today_remaining"
+
+    hidden_modes_raw = raw.get("hidden_study_action_modes", [])
+    hidden_modes: list[StudyActionMode] = []
+    allowed_hidden_modes = {"ipad_air", "ipad_mini", "paper_practice", "forced"}
+    if isinstance(hidden_modes_raw, list):
+        for mode in hidden_modes_raw:
+            if mode in allowed_hidden_modes and mode not in hidden_modes:
+                hidden_modes.append(mode)
+
+    return StudySettings(
+        subject_selection_patterns=patterns,
+        default_subject_pattern_id=default_subject_pattern_id,
+        default_quiz_mode=default_quiz_mode,
+        hidden_study_action_modes=hidden_modes,
+    )
+
+def _load_study_settings() -> StudySettings:
+    raw = _load_json_blob_or_default(STUDY_SETTINGS_BLOB_NAME, {})
+    return _normalize_study_settings_payload(raw)
+
+def _save_study_settings(settings: StudySettings) -> StudySettings:
+    normalized = _normalize_study_settings_payload(settings.model_dump())
+    _save_json_blob(STUDY_SETTINGS_BLOB_NAME, normalized.model_dump())
+    return normalized
 
 @api_router.get("/plans", response_model=list[Plan])
 def get_plans():
@@ -1279,6 +1352,16 @@ def save_plans(plans: list[Plan]):
     except Exception as e:
         print(f"Error saving plans to blob: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to save plans to blob storage: {e}")
+
+@api_router.get("/study-settings", response_model=StudySettings)
+def get_study_settings():
+    """端末をまたいで共有するStudy画面設定を取得する"""
+    return _load_study_settings()
+
+@api_router.post("/study-settings", response_model=StudySettings)
+def save_study_settings(settings: StudySettings):
+    """端末をまたいで共有するStudy画面設定をAzure Blob Storageに保存する"""
+    return _save_study_settings(settings)
 
 
 @api_router.get("/subjects")
