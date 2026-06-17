@@ -7,7 +7,7 @@ import unicodedata
 from pathlib import Path
 from fastapi import FastAPI, APIRouter, HTTPException, Query, Response, UploadFile, File, Form
 from pydantic import BaseModel, Field, ValidationError # BaseModelをインポート
-from typing import Literal, List, Optional
+from typing import Any, Literal, List, Optional
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import mimetypes
@@ -63,7 +63,7 @@ class GenerateKeywordsRequest(BaseModel):
 SpecificAreaHistoryScope = Literal["all", "unanswered", "answered"]
 QuestionTagFilter = Literal["all", "calculation_only", "exclude_calculation"]
 CALCULATION_TAG = "calculation"
-StudyQuizMode = Literal["random", "weak_area", "unanswered", "today_remaining", "specific_area"]
+StudyQuizMode = Literal["random", "weak_area", "unanswered", "today_remaining", "specific_area", "worry_practice"]
 StudyActionMode = Literal["ipad_air", "ipad_mini", "paper_practice", "forced"]
 
 
@@ -226,6 +226,16 @@ class ReviewLaterUpsertRequest(BaseModel):
     subject: str
     problem_id: str
 
+
+class ReviewLaterExplanationReviewRequest(BaseModel):
+    question: Optional[dict[str, Any]] = None
+
+
+class ReviewLaterExplanationReviewResponse(BaseModel):
+    reorganized_explanation: str
+    consistency_notes: list[str] = Field(default_factory=list)
+    used_ai: bool = False
+
 class ReviewLaterItem(BaseModel):
     subject: str
     problem_id: str
@@ -343,6 +353,7 @@ class PaperPracticeLot(BaseModel):
 
 class PaperPracticeGradeRequest(BaseModel):
     answers: dict[str, str]
+    grading_scope: Literal["answered_only", "all"] = "all"
 
 class PaperPracticeAttemptAnswer(BaseModel):
     lot_number: int
@@ -360,6 +371,33 @@ class PaperPracticeAttempt(BaseModel):
     total_count: int
     correct_count: int
     answers: list[PaperPracticeAttemptAnswer]
+
+
+class WorryPracticeGenerateRequest(BaseModel):
+    concern_text: str = Field(min_length=1, max_length=4000)
+    count: int = Field(default=5, ge=1, le=20)
+
+
+class WorryPracticeVersionSummary(BaseModel):
+    id: str
+    input_hash: str
+    version: int
+    title: str
+    concern_text: str
+    count: int
+    question_count: int
+    created_at: str
+    updated_at: str
+
+
+class WorryPracticeVersion(WorryPracticeVersionSummary):
+    quiz_set: list[dict]
+
+
+class WorryPracticeGenerateResponse(BaseModel):
+    subject: str
+    quiz_set: list[dict]
+    version: Optional[WorryPracticeVersion] = None
 
 OralVivaStep = Literal["root", "refute", "apply", "summary"]
 
@@ -420,6 +458,10 @@ MUSCLE_AUDIOS_META_BLOB = f"{MUSCLE_DIR}/audios/meta.json"
 REVIEW_LATER_BLOB = "review-later/items.json"
 PAPER_PRACTICE_LOTS_DIR = "paper-practice/lots"
 PAPER_PRACTICE_ATTEMPTS_DIR = "paper-practice/attempts"
+WORRY_PRACTICE_VERSIONS_BLOB = "worry-practice/versions.json"
+WORRY_PRACTICE_SUBJECT_NAME = "心配事演習.json"
+WORRY_PRACTICE_MODE = "worry_practice"
+SIMILAR_PRACTICE_MODE = "similar_practice"
 MUSCLE_AUDIO_FILES_DIR = f"{MUSCLE_DIR}/audios/files"
 MUSCLE_BODY_PARTS = [
     "neck",
@@ -979,6 +1021,52 @@ def _dedupe_preserve_order(values: list[str]) -> list[str]:
     return deduped
 
 
+def _extract_json_object_from_text(raw_text: str) -> dict[str, Any]:
+    text = (raw_text or "").strip()
+    if text.startswith("{"):
+        return json.loads(text)
+    start = text.find("{")
+    end = text.rfind("}")
+    if start >= 0 and end > start:
+        return json.loads(text[start:end + 1])
+    raise ValueError("No JSON object found in AI response.")
+
+
+def _fallback_reorganized_explanation(question: dict[str, Any]) -> ReviewLaterExplanationReviewResponse:
+    explanation_raw = question.get("explanation")
+    explanation_text = (
+        str(explanation_raw.get("text") or "")
+        if isinstance(explanation_raw, dict)
+        else str(explanation_raw or "")
+    ).strip()
+    answer = str(question.get("answer") or "").strip()
+    choices = question.get("choices") if isinstance(question.get("choices"), list) else []
+    correct_choice = next(
+        (
+            choice
+            for choice in choices
+            if isinstance(choice, dict) and str(choice.get("label") or "") == answer
+        ),
+        None,
+    )
+    correct_text = str(correct_choice.get("text") or "").strip() if isinstance(correct_choice, dict) else ""
+
+    base_lines = []
+    if answer:
+        base_lines.append(f"結論: 正解は{answer}{f'（{correct_text}）' if correct_text else ''}。")
+    if explanation_text:
+        base_lines.append(f"理由: {explanation_text}")
+    else:
+        base_lines.append("理由: 現在の解説文が空のため、問題文と正解情報を確認してください。")
+    base_lines.append("確認ポイント: 問題文の条件、選択肢の差分、正解根拠が矛盾していないかを見直してください。")
+
+    return ReviewLaterExplanationReviewResponse(
+        reorganized_explanation="\n".join(base_lines),
+        consistency_notes=["AI整理を使えないため、既存情報から最低限の構成に整えました。"],
+        used_ai=False,
+    )
+
+
 def _load_custom_explanations_map() -> dict[str, dict]:
     if container_client is None:
         raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
@@ -1012,7 +1100,10 @@ def _collect_custom_explanation_library_items(subjects: Optional[list[str]] = No
     if container_client is None:
         raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
 
-    selected_subjects = subjects or get_subjects()
+    selected_subjects = [
+        subject_name for subject_name in (subjects or get_subjects())
+        if subject_name != WORRY_PRACTICE_SUBJECT_NAME
+    ]
     custom_explanations_map = _load_custom_explanations_map()
     if not custom_explanations_map:
         return []
@@ -1185,6 +1276,64 @@ def _save_json_blob(blob_name: str, payload) -> None:
         raise HTTPException(status_code=500, detail=f"Failed to save {blob_name}.")
 
 
+def _worry_practice_input_hash(concern_text: str) -> str:
+    normalized = unicodedata.normalize("NFKC", concern_text).replace("\r\n", "\n").replace("\r", "\n").strip()
+    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:16]
+
+
+def _worry_practice_title(concern_text: str) -> str:
+    for line in concern_text.replace("\r\n", "\n").replace("\r", "\n").split("\n"):
+        title = line.strip()
+        if title:
+            return title[:48]
+    return "心配事演習"
+
+
+def _load_worry_practice_versions() -> list[WorryPracticeVersion]:
+    raw = _load_json_blob_or_default(WORRY_PRACTICE_VERSIONS_BLOB, [])
+    if isinstance(raw, dict):
+        raw = raw.get("versions", [])
+    if not isinstance(raw, list):
+        return []
+
+    versions: list[WorryPracticeVersion] = []
+    for item in raw:
+        try:
+            versions.append(WorryPracticeVersion.model_validate(item))
+        except Exception as e:
+            print(f"Skipping invalid worry practice version: {e}")
+    versions.sort(key=lambda item: item.created_at, reverse=True)
+    return versions
+
+
+def _save_worry_practice_versions(versions: list[WorryPracticeVersion]) -> None:
+    _save_json_blob(
+        WORRY_PRACTICE_VERSIONS_BLOB,
+        [version.model_dump() for version in sorted(versions, key=lambda item: item.created_at, reverse=True)],
+    )
+
+
+def _create_worry_practice_version(concern_text: str, count: int, quiz_set: list[dict]) -> WorryPracticeVersion:
+    versions = _load_worry_practice_versions()
+    input_hash = _worry_practice_input_hash(concern_text)
+    next_version = 1 + max((item.version for item in versions if item.input_hash == input_hash), default=0)
+    now_iso = _now_utc_iso()
+    item = WorryPracticeVersion(
+        id=f"worry-version-{datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:8]}",
+        input_hash=input_hash,
+        version=next_version,
+        title=_worry_practice_title(concern_text),
+        concern_text=concern_text,
+        count=count,
+        question_count=len(quiz_set),
+        quiz_set=quiz_set,
+        created_at=now_iso,
+        updated_at=now_iso,
+    )
+    _save_worry_practice_versions([item, *versions])
+    return item
+
+
 def _normalize_muscle_body_parts(parts: list[str]) -> list[str]:
     allowed = set(MUSCLE_BODY_PARTS)
     out: list[str] = []
@@ -1291,7 +1440,7 @@ def _normalize_study_settings_payload(raw) -> StudySettings:
         default_subject_pattern_id = None
 
     default_quiz_mode = raw.get("default_quiz_mode")
-    if default_quiz_mode not in ("random", "weak_area", "unanswered", "today_remaining", "specific_area"):
+    if default_quiz_mode not in ("random", "weak_area", "unanswered", "today_remaining", "specific_area", "worry_practice"):
         default_quiz_mode = "today_remaining"
 
     hidden_modes_raw = raw.get("hidden_study_action_modes", [])
@@ -1370,7 +1519,7 @@ def get_subjects():
     if container_client is None: return ["（Blob Storage未接続）"]
     try:
         # 科目一覧に不要な管理系JSONを含めない
-        return [
+        subjects = [
             blob.name for blob in container_client.list_blobs()
             if (
                 blob.name.endswith('.json') and
@@ -1383,6 +1532,9 @@ def get_subjects():
                 not blob.name.startswith('review-later/')
             )
         ]
+        if WORRY_PRACTICE_SUBJECT_NAME not in subjects:
+            subjects.append(WORRY_PRACTICE_SUBJECT_NAME)
+        return subjects
     except Exception as e:
         print(f"Error fetching subjects: {e}")
         return [f"（Blob接続エラー: {e}）"]
@@ -1392,6 +1544,8 @@ def get_subject_categories(subject_name: str):
     """指定された科目に含まれるカテゴリの一覧を返す"""
     if container_client is None:
         raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+    if subject_name == WORRY_PRACTICE_SUBJECT_NAME:
+        return []
     
     try:
         questions = _get_all_questions_for_subject(subject_name).values()
@@ -2844,7 +2998,6 @@ def grade_paper_practice_lot(lot_id: str, request: PaperPracticeGradeRequest):
     if not lot:
         raise HTTPException(status_code=404, detail="Paper practice lot not found.")
 
-    missing_numbers: list[int] = []
     attempt_answers: list[PaperPracticeAttemptAnswer] = []
     history_items: list[HistoryItem] = []
     answered_at = datetime.datetime.now(datetime.timezone.utc)
@@ -2855,8 +3008,9 @@ def grade_paper_practice_lot(lot_id: str, request: PaperPracticeGradeRequest):
             raise HTTPException(status_code=400, detail=f"ロット内{index}問目の問題IDが不正です。")
         selected_answer = request.answers.get(problem_id)
         if not selected_answer:
-            missing_numbers.append(index)
-            continue
+            if request.grading_scope == "answered_only":
+                continue
+            selected_answer = ""
         correct_answer = str(question.get("answer") or "")
         is_correct = selected_answer == correct_answer
         subject = str(question.get("subject") or "")
@@ -2880,8 +3034,8 @@ def grade_paper_practice_lot(lot_id: str, request: PaperPracticeGradeRequest):
             answered_at=answered_at,
         ))
 
-    if missing_numbers:
-        raise HTTPException(status_code=400, detail=f"未入力の問題があります: {', '.join(map(str, missing_numbers))}")
+    if not attempt_answers:
+        raise HTTPException(status_code=400, detail="採点対象の入力がありません。")
 
     attempt = PaperPracticeAttempt(
         id=uuid.uuid4().hex,
@@ -2979,6 +3133,10 @@ def _normalize_history_mode(mode: Optional[str]) -> str:
     normalized = mode.strip().lower()
     if normalized == "today_remaining":
         return "today_remaining"
+    if normalized == WORRY_PRACTICE_MODE:
+        return WORRY_PRACTICE_MODE
+    if normalized == SIMILAR_PRACTICE_MODE:
+        return SIMILAR_PRACTICE_MODE
     if normalized in {"random", "weak_area", "unanswered", "specific_area"}:
         return normalized
     return normalized or "legacy"
@@ -3109,6 +3267,15 @@ def _build_analytics_response(
 
     for subject_name in unique_subjects:
         try:
+            if subject_name == WORRY_PRACTICE_SUBJECT_NAME:
+                history_items = _get_history_items_for_subject(subject_name)
+                valid_problem_ids = {item.problem_id for item in history_items}
+                total_problems_in_subject += len(valid_problem_ids)
+                for item in history_items:
+                    all_history_items.append(item)
+                    answered_problem_keys.add((subject_name, item.problem_id))
+                continue
+
             all_questions_for_subject_map = _get_all_questions_for_subject(subject_name)
             total_problems_in_subject += len(all_questions_for_subject_map)
             valid_problem_ids = set(all_questions_for_subject_map.keys())
@@ -3579,13 +3746,221 @@ def _score_question_by_terms(question: dict, terms: list[str]) -> int:
     return score
 
 
+@api_router.post(
+    "/review-later/{subject_name:path}/{problem_id}/reorganize-explanation",
+    response_model=ReviewLaterExplanationReviewResponse,
+)
+def reorganize_review_later_explanation(
+    subject_name: str,
+    problem_id: str,
+    request: ReviewLaterExplanationReviewRequest,
+):
+    """問題データの整合性を確認し、解説文を簡潔な構造に整理する。"""
+    question = request.question
+    if not question:
+        questions = _get_all_questions_for_subject(subject_name)
+        base_question = questions.get(problem_id)
+        if not base_question:
+            raise HTTPException(status_code=404, detail="Problem not found.")
+        question = base_question.copy()
+        question["subject"] = subject_name
+
+    normalized = normalize_question(question.copy())
+    if not normalized:
+        raise HTTPException(status_code=400, detail="問題データの形式が不正です。")
+    normalized["subject"] = str(normalized.get("subject") or subject_name)
+
+    gemini_unavailable_reason = get_gemini_unavailable_reason()
+    if gemini_unavailable_reason:
+        return _fallback_reorganized_explanation(normalized)
+
+    prompt_payload = {
+        "problem_id": problem_id,
+        "subject": subject_name,
+        "question_text": normalized.get("question_text"),
+        "question_text_md": normalized.get("question_text_md"),
+        "question_text_mermaid": normalized.get("question_text_mermaid"),
+        "choices": normalized.get("choices"),
+        "answer": normalized.get("answer"),
+        "category": normalized.get("category"),
+        "explanation": normalized.get("explanation"),
+    }
+
+    prompt = f"""
+あなたは中小企業診断士試験の問題データを点検する編集者です。
+以下の問題データだけを根拠に、正解・選択肢・解説の整合性を確認し、解説文を読みやすく再整理してください。
+通常の問題文だけでなく、question_text_md の表・補足情報、question_text_mermaid の図や関係性も同じ問題データとして扱い、問題文・選択肢・正解・解説との矛盾や不足がないか確認してください。
+
+# 問題データ
+{json.dumps(prompt_payload, ensure_ascii=False)}
+
+# 出力ルール
+- 必ずJSONオブジェクトのみを返す。
+- reorganized_explanation は日本語で、見出し記号やMarkdown記号（#、*、-）を使わず、短い段落を改行で区切る。
+- 1行目は結論、2行目以降は根拠、他選択肢との差分、重要キーワードを必要最小限で整理する。
+- 余計な前置きや励ましは入れない。
+- consistency_notes は、通常問題文、md、Mermaid、選択肢、正解、解説の整合している点または不整合の疑いを最大5件で返す。
+- mdやMermaidが空の場合は、その項目は空として扱い、空であること自体を問題視しない。
+- 情報が足りない場合は、断定せず「確認が必要」と書く。
+
+# JSONスキーマ
+{{
+  "reorganized_explanation": "string",
+  "consistency_notes": ["string"],
+  "used_ai": true
+}}
+"""
+    try:
+        model = create_generative_model()
+        response = model.generate_content(prompt)
+        payload = _extract_json_object_from_text(getattr(response, "text", "") or "")
+        reorganized = str(payload.get("reorganized_explanation") or "").strip()
+        if not reorganized:
+            return _fallback_reorganized_explanation(normalized)
+        notes = [str(item).strip() for item in (payload.get("consistency_notes") or []) if str(item).strip()]
+        return ReviewLaterExplanationReviewResponse(
+            reorganized_explanation=reorganized,
+            consistency_notes=notes[:5],
+            used_ai=True,
+        )
+    except Exception as e:
+        print(f"Error reorganizing review-later explanation: {e}")
+        return _fallback_reorganized_explanation(normalized)
+
+
+@api_router.get("/quiz/worry-practice/versions", response_model=list[WorryPracticeVersionSummary])
+def list_worry_practice_versions():
+    """保存済み心配事演習バージョンの一覧を返す。"""
+    return _load_worry_practice_versions()
+
+
+@api_router.get("/quiz/worry-practice/versions/{version_id}", response_model=WorryPracticeVersion)
+def get_worry_practice_version(version_id: str):
+    """保存済み心配事演習バージョンを取得する。"""
+    for item in _load_worry_practice_versions():
+        if item.id == version_id:
+            return item
+    raise HTTPException(status_code=404, detail="Worry practice version not found.")
+
+
+@api_router.delete("/quiz/worry-practice/versions/{version_id}", status_code=204)
+def delete_worry_practice_version(version_id: str):
+    """保存済み心配事演習バージョンを削除する。"""
+    versions = _load_worry_practice_versions()
+    next_versions = [item for item in versions if item.id != version_id]
+    if len(next_versions) == len(versions):
+        raise HTTPException(status_code=404, detail="Worry practice version not found.")
+    _save_worry_practice_versions(next_versions)
+    return Response(status_code=204)
+
+
+@api_router.post("/quiz/worry-practice/generate", response_model=WorryPracticeGenerateResponse)
+def generate_worry_practice(request: WorryPracticeGenerateRequest):
+    """苦手意識や類題希望から、再利用可能な心配事演習バージョンを生成する。"""
+    gemini_unavailable_reason = get_gemini_unavailable_reason()
+    if gemini_unavailable_reason:
+        raise HTTPException(status_code=500, detail=gemini_unavailable_reason)
+
+    prompt = f"""
+あなたは中小企業診断士試験の一次試験向け問題作成者です。
+これは一般知識クイズではなく、中小企業診断士試験の試験対策専用の問題生成です。
+学習者の心配事や苦手意識を、必ず中小企業診断士試験の出題範囲・出題形式・合否に直結する理解確認へ落とし込み、保存版として再演習できる4択問題セットを作成してください。
+
+# 試験対策として必ず意識する範囲
+- 企業経営理論、財務・会計、運営管理、経済学・経済政策、経営法務、経営情報システム、中小企業経営・中小企業政策
+- 一次試験の4択問題として成立すること
+- 用語暗記だけでなく、概念の区別、条件判断、ひっかけ選択肢、実務場面への適用を問うこと
+- 学習者入力が抽象的でも、診断士試験で問われる論点に変換して出題すること
+
+# 学習者入力
+{request.concern_text}
+
+# 作成数
+{request.count}
+
+# 出力ルール
+- 必ずJSONオブジェクトのみを返す。
+- questions は指定数ちょうど返す。
+- 各問題は4択。choices の label は ア, イ, ウ, エ を使う。
+- answer は choices の label のいずれか。
+- question_text は単体で解ける文章にする。
+- question_text_md と question_text_mermaid は必要な場合だけ文字列を入れ、不要なら空文字。
+- explanation.text は、結論、根拠、他選択肢との差分、重要キーワードを短い改行で整理する。
+- 既存問題の丸写しではなく、同じ論点を問う新作問題にする。
+
+# JSONスキーマ
+{{
+  "questions": [
+    {{
+      "question_text": "string",
+      "question_text_md": "string",
+      "question_text_mermaid": "string",
+      "choices": [
+        {{"label": "ア", "text": "string"}},
+        {{"label": "イ", "text": "string"}},
+        {{"label": "ウ", "text": "string"}},
+        {{"label": "エ", "text": "string"}}
+      ],
+      "answer": "ア",
+      "category": "string",
+      "explanation": {{"text": "string"}}
+    }}
+  ]
+}}
+"""
+    try:
+        model = create_generative_model()
+        response = model.generate_content(prompt)
+        payload = _extract_json_object_from_text(getattr(response, "text", "") or "")
+        raw_questions = payload.get("questions")
+        if not isinstance(raw_questions, list):
+            raise ValueError("questions must be a list.")
+
+        quiz_set: list[dict] = []
+        now_token = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d%H%M%S")
+        for index, raw_question in enumerate(raw_questions[:request.count], start=1):
+            if not isinstance(raw_question, dict):
+                continue
+            question = normalize_question(raw_question.copy())
+            if not question:
+                continue
+            question["id"] = f"worry-{now_token}-{uuid.uuid4().hex[:10]}-{index}"
+            question["subject"] = WORRY_PRACTICE_SUBJECT_NAME
+            question["category"] = str(question.get("category") or "心配事演習")
+            question["custom_explanation"] = ""
+            question["image_urls"] = []
+            question["explanation_image_urls"] = []
+            quiz_set.append(_prepare_question_assets_for_client(question))
+
+        if not quiz_set:
+            raise ValueError("AI response did not include valid questions.")
+
+        version: Optional[WorryPracticeVersion] = None
+        try:
+            version = _create_worry_practice_version(request.concern_text, request.count, quiz_set)
+        except Exception as e:
+            print(f"Error saving worry practice version: {e}")
+
+        return WorryPracticeGenerateResponse(
+            subject=WORRY_PRACTICE_SUBJECT_NAME,
+            quiz_set=quiz_set,
+            version=version,
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error generating worry practice questions: {e}")
+        raise HTTPException(status_code=500, detail=f"心配事演習問題の生成に失敗しました: {e}")
+
+
 @api_router.get("/review-later/{subject_name:path}/{problem_id}/similar", response_model=SimilarQuestionSearchResponse)
 def get_similar_questions_for_review_later(subject_name: str, problem_id: str, count: int = Query(default=5, ge=1, le=20)):
     """後で確認問題からトピックをAI抽出し、同一科目内の類題を返す。"""
     if container_client is None:
         raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
-    if not GOOGLE_API_KEY:
-        raise HTTPException(status_code=500, detail="Google API Key is not configured.")
+    gemini_unavailable_reason = get_gemini_unavailable_reason()
+    if gemini_unavailable_reason:
+        raise HTTPException(status_code=500, detail=gemini_unavailable_reason)
 
     questions = _get_all_questions_for_subject(subject_name)
     base_question = questions.get(problem_id)
@@ -3847,6 +4222,18 @@ def get_subjects_progress(subject_names: list[str] = Query(...)):
 
     for subject_name in subject_names:
         try:
+            if subject_name == WORRY_PRACTICE_SUBJECT_NAME:
+                history_items = _get_history_items_for_subject(subject_name)
+                answered_problem_ids = {item.problem_id for item in history_items}
+                correctly_answered_ids = {item.problem_id for item in history_items if item.is_correct}
+                progress_data[subject_name] = SubjectProgress(
+                    total_problems=len(answered_problem_ids),
+                    answered_problems=len(answered_problem_ids),
+                    correctly_answered_once=len(correctly_answered_ids),
+                    unanswered_problems=0,
+                )
+                continue
+
             # 1. 科目の全問題を取得
             all_questions = _get_all_questions_for_subject(subject_name)
             total_problems = len(all_questions)

@@ -12,7 +12,7 @@ interface SubjectVisibilityModalProps {
   onHiddenSubjectsChange: (newHiddenSubjects: string[]) => void;
   subjectWeights: { [key: string]: 'light' | 'normal' | 'heavy' };
   onSubjectWeightsChange: (newWeights: { [key: string]: 'light' | 'normal' | 'heavy' }) => void;
-  quizMode: 'random' | 'weak_area' | 'unanswered' | 'today_remaining' | 'specific_area';
+  quizMode: 'random' | 'weak_area' | 'unanswered' | 'today_remaining' | 'specific_area' | 'worry_practice';
 }
 
 export default function SubjectVisibilityModal({

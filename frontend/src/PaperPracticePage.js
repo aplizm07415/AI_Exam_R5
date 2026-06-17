@@ -1,11 +1,12 @@
-import { jsxs as _jsxs, jsx as _jsx } from "react/jsx-runtime";
+import { jsxs as _jsxs, jsx as _jsx, Fragment as _Fragment } from "react/jsx-runtime";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import ReactMarkdown from 'react-markdown';
 import remarkBreaks from 'remark-breaks';
 import remarkGfm from 'remark-gfm';
 import LoadingSpinner from './components/LoadingSpinner';
-import { markdownComponents } from './components/markdownComponents';
+import { markdownComponents, markdownRehypePlugins } from './components/markdownComponents';
 import mplusRegularFontUrl from './assets/fonts/MPLUS1p-Regular.ttf';
 const API_BASE_URL = '/api';
 const PAPER_PRACTICE_PENDING_REQUEST_STORAGE_KEY = 'paperPracticePendingRequest';
@@ -17,7 +18,13 @@ const PAPER_LANDSCAPE_WIDTH = 842;
 const PAPER_LANDSCAPE_HEIGHT = 595;
 const PDF_MAX_FONT_SIZE = 13;
 const PDF_MIN_FONT_SIZE = 5;
+const PDF_PORTRAIT_FONT_SIZE_REDUCTION = 5;
 const PDF_LANDSCAPE_FONT_SIZE_REDUCTION = 2;
+const PDF_CAPTURE_SCALE = 2;
+const PDF_SPLIT_BOTTOM_GUARD_PX = 18;
+const PDF_SPLIT_SCAN_RANGE_PX = 180;
+const PDF_SPLIT_MIN_BLANK_ROWS = 8;
+const PDF_CONTINUATION_LINE_WIDTH = 5;
 const JAPANESE_CHOICE_LABELS = ['ア', 'イ', 'ウ', 'エ', 'オ', 'カ', 'キ', 'ク'];
 let pdfFontBinaryStringPromise = null;
 function arrayBufferToBinaryString(buffer) {
@@ -73,6 +80,7 @@ function modeLabel(mode) {
         weak_area: '苦手克服',
         unanswered: '未解答問題',
         specific_area: '特定領域',
+        worry_practice: '心配事',
         paper_practice: '紙演習',
     };
     return mode ? labels[mode] ?? mode : '-';
@@ -86,7 +94,67 @@ function sanitizeFilename(value) {
 function normalizePdfText(value) {
     return (value ?? '').replace(/\r\n/g, '\n').trim();
 }
+function hslToRgb(hue, saturation, lightness) {
+    const chroma = (1 - Math.abs(2 * lightness - 1)) * saturation;
+    const huePrime = hue / 60;
+    const x = chroma * (1 - Math.abs((huePrime % 2) - 1));
+    let red = 0;
+    let green = 0;
+    let blue = 0;
+    if (huePrime >= 0 && huePrime < 1) {
+        red = chroma;
+        green = x;
+    }
+    else if (huePrime >= 1 && huePrime < 2) {
+        red = x;
+        green = chroma;
+    }
+    else if (huePrime >= 2 && huePrime < 3) {
+        green = chroma;
+        blue = x;
+    }
+    else if (huePrime >= 3 && huePrime < 4) {
+        green = x;
+        blue = chroma;
+    }
+    else if (huePrime >= 4 && huePrime < 5) {
+        red = x;
+        blue = chroma;
+    }
+    else {
+        red = chroma;
+        blue = x;
+    }
+    const match = lightness - chroma / 2;
+    return [
+        Math.round((red + match) * 255),
+        Math.round((green + match) * 255),
+        Math.round((blue + match) * 255),
+    ];
+}
+function buildPdfContinuationLineColors(count) {
+    const colors = [];
+    const used = new Set();
+    for (let index = 0; index < count; index += 1) {
+        let attempt = 0;
+        let color;
+        let key = '';
+        do {
+            const hue = (index * 137.508 + attempt * 31) % 360;
+            const saturation = 0.82 + ((index + attempt) % 3) * 0.04;
+            const lightness = 0.64 + ((index + attempt) % 2) * 0.08;
+            color = hslToRgb(hue, saturation, lightness);
+            key = color.join(',');
+            attempt += 1;
+        } while (used.has(key) && attempt < 20);
+        used.add(key);
+        colors.push(color);
+    }
+    return colors;
+}
 function getChoiceDisplayForLabel(question, label) {
+    if (!label)
+        return '未入力';
     const index = question.choices.findIndex((choice) => choice.label === label);
     if (index < 0)
         return label;
@@ -100,10 +168,140 @@ function attemptToGradedAnswers(attempt) {
         isCorrect: answer.is_correct,
     }));
 }
-function PaperReviewCard({ item, }) {
+function waitForNextFrame() {
+    return new Promise((resolve) => {
+        window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(() => resolve());
+        });
+    });
+}
+async function renderQuestionMermaidSvg(chart, idSeed) {
+    const source = chart.trim();
+    if (!source) {
+        return { svg: '', error: '' };
+    }
+    try {
+        const { default: mermaid } = await import('mermaid');
+        mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: 'strict',
+            theme: 'default',
+        });
+        const result = await mermaid.render(`paper-practice-pdf-${idSeed}`, source);
+        return { svg: result.svg, error: '' };
+    }
+    catch (error) {
+        return {
+            svg: '',
+            error: error instanceof Error ? error.message : 'Mermaid図の描画に失敗しました。',
+        };
+    }
+}
+async function renderElementToCanvas(html2canvas, element, width) {
+    const host = document.createElement('div');
+    host.style.position = 'absolute';
+    host.style.left = '-10000px';
+    host.style.top = '0';
+    host.style.width = `${width}px`;
+    host.style.background = '#ffffff';
+    host.style.pointerEvents = 'none';
+    host.style.zIndex = '-1';
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    try {
+        root.render(element);
+        await waitForNextFrame();
+        if (document.fonts?.ready) {
+            await document.fonts.ready;
+        }
+        await waitForNextFrame();
+        const target = host.firstElementChild;
+        if (!target) {
+            throw new Error('PDF用の問題表示を生成できませんでした。');
+        }
+        return await html2canvas(target, {
+            backgroundColor: '#ffffff',
+            scale: PDF_CAPTURE_SCALE,
+            useCORS: true,
+            windowWidth: width,
+            windowHeight: Math.max(target.scrollHeight, target.offsetHeight),
+        });
+    }
+    finally {
+        root.unmount();
+        host.remove();
+    }
+}
+function isCanvasRowBlank(data, width, row, sampleStep) {
+    let coloredSamples = 0;
+    let totalSamples = 0;
+    const rowOffset = row * width * 4;
+    for (let x = 0; x < width; x += sampleStep) {
+        const offset = rowOffset + x * 4;
+        const alpha = data[offset + 3] ?? 0;
+        if (alpha < 12) {
+            totalSamples += 1;
+            continue;
+        }
+        const red = data[offset] ?? 255;
+        const green = data[offset + 1] ?? 255;
+        const blue = data[offset + 2] ?? 255;
+        const isNearWhite = red >= 245 && green >= 245 && blue >= 245;
+        if (!isNearWhite) {
+            coloredSamples += 1;
+        }
+        totalSamples += 1;
+    }
+    return totalSamples === 0 || coloredSamples / totalSamples < 0.012;
+}
+function findReasonableCanvasSliceHeight(canvas, sourceY, maxSliceHeightPx) {
+    const remainingHeight = canvas.height - sourceY;
+    if (remainingHeight <= maxSliceHeightPx) {
+        return remainingHeight;
+    }
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    if (!context) {
+        return Math.max(1, maxSliceHeightPx - PDF_SPLIT_BOTTOM_GUARD_PX);
+    }
+    const safeMaxHeight = Math.max(1, maxSliceHeightPx - PDF_SPLIT_BOTTOM_GUARD_PX);
+    const scanStart = sourceY + safeMaxHeight;
+    const scanEnd = sourceY + Math.max(Math.floor(maxSliceHeightPx * 0.55), safeMaxHeight - PDF_SPLIT_SCAN_RANGE_PX);
+    const imageData = context.getImageData(0, sourceY, canvas.width, safeMaxHeight);
+    const sampleStep = Math.max(1, Math.floor(canvas.width / 180));
+    let blankRun = 0;
+    for (let absoluteRow = scanStart - 1; absoluteRow >= scanEnd; absoluteRow -= 1) {
+        const localRow = absoluteRow - sourceY;
+        if (isCanvasRowBlank(imageData.data, canvas.width, localRow, sampleStep)) {
+            blankRun += 1;
+            if (blankRun >= PDF_SPLIT_MIN_BLANK_ROWS) {
+                return Math.max(1, localRow + PDF_SPLIT_MIN_BLANK_ROWS);
+            }
+        }
+        else {
+            blankRun = 0;
+        }
+    }
+    return safeMaxHeight;
+}
+function PdfQuestionContent({ lot, question, questionIndex, width, fontSize, mermaidSvg, mermaidError, }) {
+    const questionText = normalizePdfText(question.question_text);
+    const questionTextMd = normalizePdfText(question.question_text_md);
+    const questionTextMermaid = normalizePdfText(question.question_text_mermaid);
+    return (_jsxs("div", { className: "paper-practice-pdf-question", style: {
+            width,
+            background: '#ffffff',
+            color: '#0f172a',
+            fontFamily: '"M PLUS 1p", "Hiragino Sans", "Yu Gothic", sans-serif',
+            fontSize,
+            lineHeight: 1.5,
+        }, children: [_jsxs("div", { className: "paper-practice-pdf-question__meta", children: [_jsxs("div", { children: [getLotDisplayTitle(lot), " / \u30ED\u30C3\u30C8\u5185 ", questionIndex + 1, "\u554F\u76EE"] }), _jsxs("div", { children: [question.subject, question.category ? ` / ${question.category}` : ''] })] }), questionText && (_jsx("div", { className: "paper-practice-pdf-question__body", children: questionText })), questionTextMd && (_jsx("div", { className: "paper-practice-pdf-question__markdown question-markdown", children: _jsx(ReactMarkdown, { remarkPlugins: [remarkGfm, remarkBreaks], rehypePlugins: markdownRehypePlugins, components: markdownComponents, children: questionTextMd }) })), questionTextMermaid && (_jsx("div", { className: `paper-practice-pdf-question__mermaid ${mermaidError ? 'paper-practice-pdf-question__mermaid--error' : ''}`, children: mermaidSvg ? (_jsx("div", { dangerouslySetInnerHTML: { __html: mermaidSvg } })) : (_jsxs(_Fragment, { children: [_jsx("div", { className: "paper-practice-pdf-question__mermaid-error", children: mermaidError || 'Mermaid図を描画できませんでした。' }), _jsx("pre", { children: questionTextMermaid })] })) })), _jsx("div", { className: "paper-practice-pdf-question__choices", children: question.choices.map((choice, choiceIndex) => (_jsxs("div", { className: "paper-practice-pdf-question__choice", children: [_jsxs("span", { className: "paper-practice-pdf-question__choice-label", children: [choiceDisplayLabel(choiceIndex, choice.label), "."] }), _jsx("span", { children: choice.text })] }, `${choice.label}-${choiceIndex}`))) })] }));
+}
+function PaperReviewCard({ item, isReviewLaterRegistered, isUpdatingReviewLater, onRegisterReviewLater, }) {
     const selectedChoice = item.question.choices.find((choice) => choice.label === item.selectedAnswer);
     const correctChoice = item.question.choices.find((choice) => choice.label === item.question.answer);
-    return (_jsxs("div", { className: "min-w-0 rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4", children: [_jsxs("div", { className: "mb-3 flex flex-wrap items-center justify-between gap-2", children: [_jsxs("div", { className: "text-sm font-semibold text-slate-900", children: ["\u30ED\u30C3\u30C8\u5185 ", item.lotNumber, "\u554F\u76EE"] }), _jsx("div", { className: `rounded-full px-3 py-1 text-xs font-semibold ${item.isCorrect ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-700'}`, children: item.isCorrect ? '正解' : '不正解' })] }), _jsx("p", { className: "whitespace-pre-wrap break-words text-sm font-semibold leading-7 text-slate-800", children: item.question.question_text }), _jsxs("div", { className: "mt-4 grid gap-2 text-sm sm:grid-cols-2", children: [_jsxs("div", { className: "min-w-0 rounded-lg bg-slate-50 p-3", children: [_jsx("div", { className: "text-xs font-semibold text-slate-500", children: "\u9078\u629E" }), _jsx("div", { className: "mt-1 break-words text-slate-800", children: selectedChoice ? `${item.selectedAnswer}. ${selectedChoice.text}` : item.selectedAnswer })] }), _jsxs("div", { className: "min-w-0 rounded-lg bg-emerald-50 p-3", children: [_jsx("div", { className: "text-xs font-semibold text-emerald-700", children: "\u6B63\u89E3" }), _jsx("div", { className: "mt-1 break-words text-emerald-950", children: correctChoice ? `${item.question.answer}. ${correctChoice.text}` : item.question.answer })] })] }), _jsxs("div", { className: "mt-4 border-t border-slate-200 pt-4", children: [_jsx("h4", { className: "text-base font-semibold text-primary-new", children: "\u89E3\u8AAC" }), _jsx("div", { className: "question-markdown prose prose-sm mt-2 max-w-none text-slate-700", children: _jsx(ReactMarkdown, { remarkPlugins: [remarkGfm, remarkBreaks], components: markdownComponents, children: item.question.explanation?.text || 'この問題の解説はありません。' }) })] })] }));
+    return (_jsxs("div", { className: "min-w-0 rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4", children: [_jsxs("div", { className: "mb-3 flex flex-wrap items-center justify-between gap-2", children: [_jsxs("div", { children: [_jsxs("div", { className: "text-sm font-semibold text-slate-900", children: ["\u30ED\u30C3\u30C8\u5185 ", item.lotNumber, "\u554F\u76EE"] }), _jsxs("div", { className: "mt-1 text-xs text-slate-500", children: [item.question.subject, item.question.category ? ` / ${item.question.category}` : ''] })] }), _jsxs("div", { className: "flex flex-wrap items-center gap-2", children: [_jsx("button", { type: "button", onClick: onRegisterReviewLater, disabled: isReviewLaterRegistered || isUpdatingReviewLater, className: `rounded-full px-3 py-1 text-xs font-semibold ${isReviewLaterRegistered
+                                    ? 'bg-emerald-100 text-emerald-800'
+                                    : 'bg-amber-50 text-amber-900 ring-1 ring-amber-200 hover:bg-amber-100'} disabled:cursor-not-allowed disabled:opacity-70`, children: isUpdatingReviewLater ? '登録中...' : isReviewLaterRegistered ? '後で確認済み' : '後で確認へ登録' }), _jsx("div", { className: `rounded-full px-3 py-1 text-xs font-semibold ${item.isCorrect ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-700'}`, children: item.isCorrect ? '正解' : '不正解' })] })] }), _jsx("p", { className: "whitespace-pre-wrap break-words text-sm font-semibold leading-7 text-slate-800", children: item.question.question_text }), _jsxs("div", { className: "mt-4 grid gap-2 text-sm sm:grid-cols-2", children: [_jsxs("div", { className: "min-w-0 rounded-lg bg-slate-50 p-3", children: [_jsx("div", { className: "text-xs font-semibold text-slate-500", children: "\u9078\u629E" }), _jsx("div", { className: "mt-1 break-words text-slate-800", children: selectedChoice ? `${item.selectedAnswer}. ${selectedChoice.text}` : item.selectedAnswer || '未入力' })] }), _jsxs("div", { className: "min-w-0 rounded-lg bg-emerald-50 p-3", children: [_jsx("div", { className: "text-xs font-semibold text-emerald-700", children: "\u6B63\u89E3" }), _jsx("div", { className: "mt-1 break-words text-emerald-950", children: correctChoice ? `${item.question.answer}. ${correctChoice.text}` : item.question.answer })] })] }), _jsxs("div", { className: "mt-4 border-t border-slate-200 pt-4", children: [_jsx("h4", { className: "text-base font-semibold text-primary-new", children: "\u89E3\u8AAC" }), _jsx("div", { className: "question-markdown prose prose-sm mt-2 max-w-none text-slate-700", children: _jsx(ReactMarkdown, { remarkPlugins: [remarkGfm, remarkBreaks], rehypePlugins: markdownRehypePlugins, components: markdownComponents, children: item.question.explanation?.text || 'この問題の解説はありません。' }) })] })] }));
 }
 export default function PaperPracticePage() {
     const [lots, setLots] = useState([]);
@@ -124,6 +322,10 @@ export default function PaperPracticePage() {
     const [modalStep, setModalStep] = useState('answer');
     const [reviewKind, setReviewKind] = useState('incorrect');
     const [reviewIndex, setReviewIndex] = useState(0);
+    const [gradingScope, setGradingScope] = useState('answered_only');
+    const [reviewLaterKeys, setReviewLaterKeys] = useState([]);
+    const [updatingReviewLaterKey, setUpdatingReviewLaterKey] = useState(null);
+    const [reviewLaterMessage, setReviewLaterMessage] = useState('');
     const pendingHandledRef = useRef(false);
     const fetchLots = useCallback(async () => {
         setIsLoading(true);
@@ -170,6 +372,21 @@ export default function PaperPracticePage() {
     useEffect(() => {
         void fetchLots();
     }, [fetchLots]);
+    const fetchReviewLaterKeys = useCallback(async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/review-later`);
+            if (!response.ok)
+                return;
+            const data = await response.json();
+            setReviewLaterKeys(data.map((item) => `${item.subject}::${item.problem_id}`));
+        }
+        catch (fetchError) {
+            console.error(fetchError);
+        }
+    }, []);
+    useEffect(() => {
+        void fetchReviewLaterKeys();
+    }, [fetchReviewLaterKeys]);
     useEffect(() => {
         if (pendingHandledRef.current)
             return;
@@ -193,6 +410,8 @@ export default function PaperPracticePage() {
         setModalStep('answer');
         setReviewKind('incorrect');
         setReviewIndex(0);
+        setGradingScope('answered_only');
+        setReviewLaterMessage('');
         setError('');
     };
     const closeAnswerModal = () => {
@@ -202,6 +421,7 @@ export default function PaperPracticePage() {
         setAnswers({});
         setGradedAnswers([]);
         setModalStep('answer');
+        setReviewLaterMessage('');
     };
     const fetchAttempts = async (lot) => {
         setHistoryLot(lot);
@@ -236,6 +456,7 @@ export default function PaperPracticePage() {
         setModalStep('result');
         setReviewKind(attempt.answers.some((answer) => !answer.is_correct) ? 'incorrect' : 'correct');
         setReviewIndex(0);
+        setReviewLaterMessage('');
         setError('');
         closeHistoryModal();
     };
@@ -277,6 +498,7 @@ export default function PaperPracticePage() {
         setError('');
         try {
             const { jsPDF } = await import('jspdf');
+            const { default: html2canvas } = await import('html2canvas');
             const fontBinary = await loadPdfFontBinaryString();
             const isLandscapeTwo = layout === 'landscape-two';
             const pdf = new jsPDF({
@@ -288,66 +510,81 @@ export default function PaperPracticePage() {
             pdf.addFileToVFS(PDF_FONT_FILE_NAME, fontBinary);
             pdf.addFont(PDF_FONT_FILE_NAME, PDF_FONT_NAME, 'normal');
             pdf.setFont(PDF_FONT_NAME, 'normal');
-            const drawLines = (lines, x, y, lineHeight) => {
-                lines.forEach((line, index) => {
-                    pdf.text(line, x, y + index * lineHeight);
-                });
-            };
-            const buildBlocks = (question, questionIndex) => {
-                const baseBlocks = [
-                    `${getLotDisplayTitle(lot)} / ロット内 ${questionIndex + 1}問目`,
-                    `${question.subject}${question.category ? ` / ${question.category}` : ''}`,
-                    '',
-                    normalizePdfText(question.question_text),
-                    '',
-                    ...question.choices.map((choice, choiceIndex) => `${choiceDisplayLabel(choiceIndex, choice.label)}. ${choice.text}`),
-                ];
-                return baseBlocks;
-            };
-            const drawQuestion = (question, questionIndex, x, y, width, height, maxFontSize, minFontSize) => {
-                const baseBlocks = buildBlocks(question, questionIndex);
-                let fontSize = maxFontSize;
-                let renderedLines = [];
-                while (fontSize >= minFontSize) {
-                    pdf.setFontSize(fontSize);
-                    renderedLines = baseBlocks.flatMap((block) => (block ? pdf.splitTextToSize(block, width) : ['']));
-                    const lineHeight = fontSize * 1.35;
-                    if (renderedLines.length * lineHeight <= height) {
-                        break;
+            const continuationLineColors = buildPdfContinuationLineColors(lot.questions.length);
+            const drawQuestion = async (question, questionIndex, x, y, width, height, maxFontSize, _minFontSize, addOverflowPage, continuationLineColor) => {
+                const mermaidResult = await renderQuestionMermaidSvg(normalizePdfText(question.question_text_mermaid), `${lot.id}-${question.id}-${questionIndex}`.replace(/[^a-zA-Z0-9_-]/g, '-'));
+                const canvas = await renderElementToCanvas(html2canvas, _jsx(PdfQuestionContent, { lot: lot, question: question, questionIndex: questionIndex, width: width, fontSize: maxFontSize, mermaidSvg: mermaidResult.svg, mermaidError: mermaidResult.error }), width);
+                const pixelsPerPdfUnit = canvas.width / width;
+                const maxSliceHeightPx = Math.max(1, Math.floor(height * pixelsPerPdfUnit));
+                const willOverflow = canvas.height > maxSliceHeightPx;
+                let sourceY = 0;
+                let didOverflow = false;
+                while (sourceY < canvas.height) {
+                    if (sourceY > 0) {
+                        didOverflow = true;
+                        addOverflowPage();
                     }
-                    fontSize -= 1;
+                    const sliceHeightPx = findReasonableCanvasSliceHeight(canvas, sourceY, maxSliceHeightPx);
+                    const sliceCanvas = document.createElement('canvas');
+                    sliceCanvas.width = canvas.width;
+                    sliceCanvas.height = sliceHeightPx;
+                    const context = sliceCanvas.getContext('2d');
+                    if (!context) {
+                        throw new Error('PDF用の問題画像を分割できませんでした。');
+                    }
+                    context.fillStyle = '#ffffff';
+                    context.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+                    context.drawImage(canvas, 0, sourceY, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
+                    const renderHeight = sliceHeightPx / pixelsPerPdfUnit;
+                    if (willOverflow) {
+                        const [red, green, blue] = continuationLineColor;
+                        pdf.setFillColor(red, green, blue);
+                        pdf.rect(Math.max(0, x - 9), y, PDF_CONTINUATION_LINE_WIDTH, height, 'F');
+                    }
+                    pdf.addImage(sliceCanvas, 'PNG', x, y, width, renderHeight, undefined, 'FAST');
+                    sourceY += sliceHeightPx;
                 }
-                pdf.setTextColor(15, 23, 42);
-                pdf.setFontSize(fontSize);
-                drawLines(renderedLines, x, y, fontSize * 1.35);
+                return didOverflow;
             };
             if (isLandscapeTwo) {
-                lot.questions.forEach((question, questionIndex) => {
-                    if (questionIndex > 0 && questionIndex % 2 === 0) {
+                let currentPanelIndex = 0;
+                let hasCreatedLandscapePage = false;
+                const prepareLandscapePage = (shouldAddPage) => {
+                    if (shouldAddPage) {
                         pdf.addPage([PAPER_LANDSCAPE_WIDTH, PAPER_LANDSCAPE_HEIGHT], 'landscape');
                     }
+                    pdf.setFillColor(255, 255, 255);
+                    pdf.rect(0, 0, PAPER_LANDSCAPE_WIDTH, PAPER_LANDSCAPE_HEIGHT, 'F');
+                    pdf.setDrawColor(226, 232, 240);
+                    pdf.line(PAPER_LANDSCAPE_WIDTH / 2, 0, PAPER_LANDSCAPE_WIDTH / 2, PAPER_LANDSCAPE_HEIGHT);
+                    hasCreatedLandscapePage = true;
+                };
+                for (const [questionIndex, question] of lot.questions.entries()) {
                     setPdfProgress(`PDFを生成中... ${questionIndex + 1} / ${lot.questions.length}`);
-                    if (questionIndex % 2 === 0) {
-                        pdf.setFillColor(255, 255, 255);
-                        pdf.rect(0, 0, PAPER_LANDSCAPE_WIDTH, PAPER_LANDSCAPE_HEIGHT, 'F');
-                        pdf.setDrawColor(226, 232, 240);
-                        pdf.line(PAPER_LANDSCAPE_WIDTH / 2, 0, PAPER_LANDSCAPE_WIDTH / 2, PAPER_LANDSCAPE_HEIGHT);
+                    if (currentPanelIndex === 0) {
+                        prepareLandscapePage(hasCreatedLandscapePage);
                     }
-                    const panelIndex = questionIndex % 2;
                     const panelWidth = PAPER_LANDSCAPE_WIDTH / 2;
-                    drawQuestion(question, questionIndex, panelIndex * panelWidth + 12, 18, panelWidth - 24, PAPER_LANDSCAPE_HEIGHT - 32, PDF_MAX_FONT_SIZE - PDF_LANDSCAPE_FONT_SIZE_REDUCTION, PDF_MIN_FONT_SIZE - PDF_LANDSCAPE_FONT_SIZE_REDUCTION);
-                });
+                    const didOverflow = await drawQuestion(question, questionIndex, currentPanelIndex * panelWidth + 12, 18, panelWidth - 24, PAPER_LANDSCAPE_HEIGHT - 32, PDF_MAX_FONT_SIZE - PDF_LANDSCAPE_FONT_SIZE_REDUCTION, PDF_MIN_FONT_SIZE - PDF_LANDSCAPE_FONT_SIZE_REDUCTION, () => {
+                        prepareLandscapePage(true);
+                    }, continuationLineColors[questionIndex] ?? [190, 242, 100]);
+                    currentPanelIndex = didOverflow || currentPanelIndex === 1 ? 0 : 1;
+                }
             }
             else {
-                lot.questions.forEach((question, questionIndex) => {
+                for (const [questionIndex, question] of lot.questions.entries()) {
                     if (questionIndex > 0) {
                         pdf.addPage([PAPER_PAGE_WIDTH, PAPER_PAGE_HEIGHT], 'portrait');
                     }
                     setPdfProgress(`PDFを生成中... ${questionIndex + 1} / ${lot.questions.length}`);
                     pdf.setFillColor(255, 255, 255);
                     pdf.rect(0, 0, PAPER_PAGE_WIDTH, PAPER_PAGE_HEIGHT, 'F');
-                    drawQuestion(question, questionIndex, 16, 24, PAPER_PAGE_WIDTH - 32, PAPER_PAGE_HEIGHT - 34, PDF_MAX_FONT_SIZE, PDF_MIN_FONT_SIZE);
-                });
+                    await drawQuestion(question, questionIndex, 16, 24, PAPER_PAGE_WIDTH - 32, PAPER_PAGE_HEIGHT - 34, PDF_MAX_FONT_SIZE - PDF_PORTRAIT_FONT_SIZE_REDUCTION, PDF_MIN_FONT_SIZE, () => {
+                        pdf.addPage([PAPER_PAGE_WIDTH, PAPER_PAGE_HEIGHT], 'portrait');
+                        pdf.setFillColor(255, 255, 255);
+                        pdf.rect(0, 0, PAPER_PAGE_WIDTH, PAPER_PAGE_HEIGHT, 'F');
+                    }, continuationLineColors[questionIndex] ?? [190, 242, 100]);
+                }
             }
             const suffix = isLandscapeTwo ? 'A4横2問' : 'A4縦1問';
             pdf.save(`${sanitizeFilename(getLotListTitle(lot))}_${suffix}.pdf`);
@@ -366,7 +603,16 @@ export default function PaperPracticePage() {
         const missingNumbers = answerLot.questions
             .map((question, index) => (answers[question.id] ? null : index + 1))
             .filter((value) => value !== null);
-        if (missingNumbers.length > 0) {
+        if (gradingScope === 'answered_only' && answeredCount === 0) {
+            setError('採点対象の入力がありません。');
+            return;
+        }
+        if (gradingScope === 'all' && missingNumbers.length > 0) {
+            const shouldContinue = window.confirm(`未入力の問題があります: ${missingNumbers.join(', ')}\n\n未入力は不正解として実績に含めます。続行しますか？`);
+            if (!shouldContinue)
+                return;
+        }
+        if (gradingScope !== 'all' && missingNumbers.length === answerLot.questions.length) {
             setError(`未入力の問題があります: ${missingNumbers.join(', ')}`);
             return;
         }
@@ -376,7 +622,7 @@ export default function PaperPracticePage() {
             const response = await fetch(`${API_BASE_URL}/paper-practice/lots/${encodeURIComponent(answerLot.id)}/grade`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ answers }),
+                body: JSON.stringify({ answers, grading_scope: gradingScope }),
             });
             if (!response.ok) {
                 const payload = await response.json().catch(() => null);
@@ -396,7 +642,7 @@ export default function PaperPracticePage() {
             setIsSubmittingAnswers(false);
         }
     };
-    const currentReviewItems = useMemo(() => gradedAnswers.filter((item) => (reviewKind === 'incorrect' ? !item.isCorrect : item.isCorrect)), [gradedAnswers, reviewKind]);
+    const currentReviewItems = useMemo(() => gradedAnswers.filter((item) => (reviewKind === 'all' ? true : reviewKind === 'incorrect' ? !item.isCorrect : item.isCorrect)), [gradedAnswers, reviewKind]);
     const currentReviewItem = currentReviewItems[Math.min(reviewIndex, Math.max(0, currentReviewItems.length - 1))];
     const correctCount = gradedAnswers.filter((item) => item.isCorrect).length;
     const incorrectCount = gradedAnswers.length - correctCount;
@@ -405,14 +651,41 @@ export default function PaperPracticePage() {
     const startReview = (kind) => {
         setReviewKind(kind);
         setReviewIndex(0);
+        setReviewLaterMessage('');
         setModalStep('review');
+    };
+    const registerReviewLater = async (item) => {
+        const reviewKey = `${item.question.subject}::${item.question.id}`;
+        if (reviewLaterKeys.includes(reviewKey) || updatingReviewLaterKey)
+            return;
+        try {
+            setUpdatingReviewLaterKey(reviewKey);
+            setReviewLaterMessage('');
+            const response = await fetch(`${API_BASE_URL}/review-later`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ subject: item.question.subject, problem_id: item.question.id }),
+            });
+            if (!response.ok) {
+                const payload = await response.json().catch(() => null);
+                throw new Error(payload?.detail || '後で確認への登録に失敗しました。');
+            }
+            setReviewLaterKeys((current) => Array.from(new Set([...current, reviewKey])));
+            setReviewLaterMessage(`ロット内 ${item.lotNumber}問目を後で確認へ登録しました。`);
+        }
+        catch (registerError) {
+            setError(registerError instanceof Error ? registerError.message : '後で確認への登録に失敗しました。');
+        }
+        finally {
+            setUpdatingReviewLaterKey(null);
+        }
     };
     return (_jsxs("div", { className: "mx-auto max-w-5xl px-4 py-4", children: [_jsxs("div", { className: "mb-5 flex flex-wrap items-end justify-between gap-3", children: [_jsxs("div", { children: [_jsx("h2", { className: "text-2xl font-bold text-slate-900", children: "\u7D19\u6F14\u7FD2\u30E2\u30FC\u30C9" }), _jsx("p", { className: "mt-1 text-sm text-slate-500", children: "\u30ED\u30C3\u30C8\u4E00\u89A7" })] }), _jsx("button", { type: "button", onClick: () => void fetchLots(), disabled: isLoading || isCreatingLot, className: "rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50", children: "\u66F4\u65B0" })] }), isCreatingLot && (_jsx("div", { className: "mb-4 rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm font-medium text-sky-800", children: "\u30ED\u30C3\u30C8\u3092\u4F5C\u6210\u3057\u3066\u3044\u307E\u3059..." })), pdfProgress && (_jsx("div", { className: "mb-4 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700", children: pdfProgress })), error && (_jsx("div", { className: "mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700", children: error })), isLoading ? (_jsx(LoadingSpinner, {})) : lots.length === 0 ? (_jsx("div", { className: "rounded-xl border border-slate-200 bg-white p-8 text-center text-slate-500", children: "\u30ED\u30C3\u30C8\u306F\u307E\u3060\u3042\u308A\u307E\u305B\u3093\u3002" })) : (_jsx("div", { className: "space-y-3", children: lots.map((lot) => (_jsx("div", { className: "rounded-xl border border-slate-200 bg-white p-4 shadow-sm", children: _jsxs("div", { className: "flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between", children: [_jsxs("div", { className: "min-w-0", children: [_jsx("h3", { className: "truncate text-lg font-semibold text-slate-900", children: getLotListTitle(lot) }), _jsxs("div", { className: "mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500", children: [_jsx("span", { children: formatDateTime(lot.created_at) }), _jsx("span", { children: modeLabel(lot.source_mode || lot.mode) }), _jsx("span", { className: "truncate", children: lot.subjects.join(', ') })] })] }), _jsxs("div", { className: "grid grid-cols-2 gap-2 sm:w-[30rem] sm:grid-cols-5", children: [_jsx("button", { type: "button", onClick: () => void exportLotPdf(lot, 'portrait-one'), disabled: isExportingPdf || deletingLotId === lot.id, className: "rounded-md border border-slate-700 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-800 hover:bg-slate-100 disabled:opacity-50", children: "PDF\u7E26" }), _jsx("button", { type: "button", onClick: () => void exportLotPdf(lot, 'landscape-two'), disabled: isExportingPdf || deletingLotId === lot.id, className: "rounded-md border border-slate-700 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-800 hover:bg-slate-100 disabled:opacity-50", children: "PDF\u6A2A" }), _jsx("button", { type: "button", onClick: () => openAnswerModal(lot), disabled: deletingLotId === lot.id, className: "rounded-md bg-primary-new px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50", children: "\u6F14\u7FD2\u958B\u59CB" }), _jsx("button", { type: "button", onClick: () => void fetchAttempts(lot), disabled: deletingLotId === lot.id, className: "rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-50", children: "\u5C65\u6B74" }), _jsx("button", { type: "button", onClick: () => void deleteLot(lot), disabled: deletingLotId === lot.id, className: "rounded-md border border-rose-300 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700 hover:bg-rose-100 disabled:opacity-50", children: deletingLotId === lot.id ? '削除中...' : '削除' })] })] }) }, lot.id))) })), historyLot && createPortal((_jsx("div", { className: "fixed inset-0 z-[1000] flex items-stretch justify-center bg-slate-950/50 px-2 py-3 sm:items-center sm:px-4 sm:py-6", children: _jsxs("div", { className: "flex h-full min-h-0 w-full max-w-3xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl sm:h-[80dvh]", children: [_jsx("div", { className: "shrink-0 border-b border-slate-200 px-4 py-4", children: _jsxs("div", { className: "flex items-center justify-between gap-3", children: [_jsxs("div", { className: "min-w-0", children: [_jsx("h3", { className: "truncate text-base font-semibold text-slate-900 sm:text-lg", children: getLotListTitle(historyLot) }), _jsx("p", { className: "text-xs text-slate-500", children: "\u63A1\u70B9\u5C65\u6B74" })] }), _jsx("button", { type: "button", onClick: closeHistoryModal, className: "shrink-0 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50", children: "\u9589\u3058\u308B" })] }) }), _jsx("div", { className: "min-h-0 flex-1 overflow-y-auto px-4 py-4", children: isLoadingAttempts ? (_jsx(LoadingSpinner, {})) : attemptError ? (_jsx("div", { className: "rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700", children: attemptError })) : lotAttempts.length === 0 ? (_jsx("div", { className: "rounded-lg border border-slate-200 bg-slate-50 p-6 text-center text-sm text-slate-500", children: "\u63A1\u70B9\u5C65\u6B74\u306F\u307E\u3060\u3042\u308A\u307E\u305B\u3093\u3002" })) : (_jsx("div", { className: "space-y-3", children: lotAttempts.map((attempt, index) => {
                                     const incorrectCountForAttempt = attempt.total_count - attempt.correct_count;
                                     const accuracyForAttempt = attempt.total_count > 0 ? Math.round((attempt.correct_count / attempt.total_count) * 100) : 0;
                                     return (_jsx("div", { className: "rounded-lg border border-slate-200 bg-white p-4 shadow-sm", children: _jsxs("div", { className: "flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between", children: [_jsxs("div", { className: "min-w-0", children: [_jsxs("div", { className: "text-sm font-semibold text-slate-900", children: [lotAttempts.length - index, "\u56DE\u76EE / ", formatDateTime(attempt.created_at)] }), _jsxs("div", { className: "mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500", children: [_jsxs("span", { children: ["\u5B9F\u65BD ", attempt.total_count] }), _jsxs("span", { children: ["\u6B63\u89E3 ", attempt.correct_count] }), _jsxs("span", { children: ["\u4E0D\u6B63\u89E3 ", incorrectCountForAttempt] }), _jsxs("span", { children: ["\u6B63\u7B54\u7387 ", accuracyForAttempt, "%"] })] })] }), _jsx("button", { type: "button", onClick: () => openAttemptReview(historyLot, attempt), className: "rounded-md bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700", children: "\u632F\u308A\u8FD4\u308A" })] }) }, attempt.id));
-                                }) })) })] }) })), document.body), answerLot && createPortal((_jsx("div", { className: "fixed inset-0 z-[1000] flex items-stretch justify-center bg-slate-950/50 px-2 py-3 sm:items-center sm:px-4 sm:py-6", children: _jsxs("div", { className: "flex h-full min-h-0 w-full max-w-5xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl sm:h-[92dvh] sm:max-h-[56rem]", children: [_jsxs("div", { className: "shrink-0 border-b border-slate-200 px-3 py-3 sm:px-5 sm:py-4", children: [_jsxs("div", { className: "flex items-center justify-between gap-3", children: [_jsxs("div", { className: "min-w-0", children: [_jsx("h3", { className: "truncate text-base font-semibold text-slate-900 sm:text-lg", children: getLotListTitle(answerLot) }), _jsx("p", { className: "text-xs text-slate-500", children: formatDateTime(answerLot.created_at) })] }), _jsx("button", { type: "button", onClick: closeAnswerModal, className: "shrink-0 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50", children: "\u9589\u3058\u308B" })] }), _jsxs("div", { className: "mt-3 grid grid-cols-3 gap-2 text-center text-xs font-semibold", children: [_jsx("div", { className: `rounded-md px-1.5 py-2 ${modalStep === 'answer' ? 'bg-primary-new text-white' : 'bg-slate-100 text-slate-500'}`, children: "\u89E3\u7B54\u5165\u529B" }), _jsx("div", { className: `rounded-md px-1.5 py-2 ${modalStep === 'result' ? 'bg-primary-new text-white' : 'bg-slate-100 text-slate-500'}`, children: "\u63A1\u70B9\u7D50\u679C" }), _jsx("div", { className: `rounded-md px-1.5 py-2 ${modalStep === 'review' ? 'bg-primary-new text-white' : 'bg-slate-100 text-slate-500'}`, children: "\u89E3\u8AAC\u78BA\u8A8D" })] })] }), _jsxs("div", { className: "min-h-0 flex-1 overflow-y-auto px-2 py-3 sm:px-5 sm:py-4", children: [modalStep === 'answer' && (_jsxs("div", { className: "space-y-2", children: [_jsxs("div", { className: "mb-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600", children: ["\u5165\u529B\u6E08\u307F ", answeredCount, " / ", answerLot.questions.length] }), answerLot.questions.map((question, index) => (_jsxs("div", { className: "grid grid-cols-[3.25rem_minmax(0,1fr)] items-stretch overflow-hidden rounded-lg border border-slate-200 bg-white sm:grid-cols-[4.75rem_minmax(0,1fr)]", children: [_jsx("div", { className: "flex items-center justify-center bg-slate-50 px-1 text-sm font-semibold text-slate-800 sm:px-2", children: index + 1 }), _jsx("div", { className: "grid min-w-0 grid-cols-2 gap-1.5 p-1.5 sm:grid-cols-4 sm:gap-2 sm:p-2", children: question.choices.map((choice, choiceIndex) => (_jsxs("label", { className: `flex min-h-10 cursor-pointer items-center justify-center gap-1.5 rounded-md border px-1.5 py-2 text-sm font-semibold transition-colors sm:gap-2 sm:px-2 ${answers[question.id] === choice.label
+                                }) })) })] }) })), document.body), answerLot && createPortal((_jsx("div", { className: "fixed inset-0 z-[1000] flex items-stretch justify-center bg-slate-950/50 px-2 py-3 sm:items-center sm:px-4 sm:py-6", children: _jsxs("div", { className: "flex h-full min-h-0 w-full max-w-7xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl sm:h-[92dvh] sm:max-h-[56rem]", children: [_jsxs("div", { className: "shrink-0 border-b border-slate-200 px-3 py-3 sm:px-5 sm:py-4", children: [_jsxs("div", { className: "flex items-center justify-between gap-3", children: [_jsxs("div", { className: "min-w-0", children: [_jsx("h3", { className: "truncate text-base font-semibold text-slate-900 sm:text-lg", children: getLotListTitle(answerLot) }), _jsx("p", { className: "text-xs text-slate-500", children: formatDateTime(answerLot.created_at) })] }), _jsx("button", { type: "button", onClick: closeAnswerModal, className: "shrink-0 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50", children: "\u9589\u3058\u308B" })] }), _jsxs("div", { className: "mt-3 grid grid-cols-3 gap-2 text-center text-xs font-semibold", children: [_jsx("div", { className: `rounded-md px-1.5 py-2 ${modalStep === 'answer' ? 'bg-primary-new text-white' : 'bg-slate-100 text-slate-500'}`, children: "\u89E3\u7B54\u5165\u529B" }), _jsx("div", { className: `rounded-md px-1.5 py-2 ${modalStep === 'result' ? 'bg-primary-new text-white' : 'bg-slate-100 text-slate-500'}`, children: "\u63A1\u70B9\u7D50\u679C" }), _jsx("div", { className: `rounded-md px-1.5 py-2 ${modalStep === 'review' ? 'bg-primary-new text-white' : 'bg-slate-100 text-slate-500'}`, children: "\u89E3\u8AAC\u78BA\u8A8D" })] })] }), _jsxs("div", { className: "min-h-0 flex-1 overflow-y-auto px-2 py-3 sm:px-5 sm:py-4", children: [modalStep === 'answer' && (_jsxs("div", { className: "space-y-2", children: [_jsxs("div", { className: "mb-3 grid gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-600 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center", children: [_jsxs("div", { children: ["\u5165\u529B\u6E08\u307F ", answeredCount, " / ", answerLot.questions.length] }), _jsxs("div", { className: "grid gap-2 sm:grid-cols-2", children: [_jsxs("label", { className: `flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 ${gradingScope === 'answered_only' ? 'border-primary-new bg-blue-50 text-primary-new' : 'border-slate-200 bg-white text-slate-700'}`, children: [_jsx("input", { type: "radio", name: "paper-grading-scope", value: "answered_only", checked: gradingScope === 'answered_only', onChange: () => setGradingScope('answered_only'), className: "h-4 w-4" }), _jsx("span", { className: "text-xs font-semibold", children: "\u5165\u529B\u6E08\u307F\u3060\u3051\u5B9F\u7E3E" })] }), _jsxs("label", { className: `flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 ${gradingScope === 'all' ? 'border-primary-new bg-blue-50 text-primary-new' : 'border-slate-200 bg-white text-slate-700'}`, children: [_jsx("input", { type: "radio", name: "paper-grading-scope", value: "all", checked: gradingScope === 'all', onChange: () => setGradingScope('all'), className: "h-4 w-4" }), _jsx("span", { className: "text-xs font-semibold", children: "\u5168\u554F\u3092\u5B9F\u7E3E" })] })] })] }), answerLot.questions.map((question, index) => (_jsxs("div", { className: "grid grid-cols-[3.25rem_minmax(0,1fr)] items-stretch overflow-hidden rounded-lg border border-slate-200 bg-white sm:grid-cols-[4.75rem_minmax(0,1fr)]", children: [_jsx("div", { className: "flex items-center justify-center bg-slate-50 px-1 text-sm font-semibold text-slate-800 sm:px-2", children: index + 1 }), _jsx("div", { className: "grid min-w-0 grid-cols-2 gap-1.5 p-1.5 sm:grid-cols-4 sm:gap-2 sm:p-2", children: question.choices.map((choice, choiceIndex) => (_jsxs("label", { className: `flex min-h-10 cursor-pointer items-center justify-center gap-1.5 rounded-md border px-1.5 py-2 text-sm font-semibold transition-colors sm:gap-2 sm:px-2 ${answers[question.id] === choice.label
                                                             ? 'border-primary-new bg-blue-50 text-primary-new'
-                                                            : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'}`, children: [_jsx("input", { type: "radio", name: `paper-answer-${question.id}`, value: choice.label, checked: answers[question.id] === choice.label, onChange: () => setAnswers((current) => ({ ...current, [question.id]: choice.label })), className: "h-4 w-4" }), _jsx("span", { children: choiceDisplayLabel(choiceIndex, choice.label) })] }, choice.label))) })] }, question.id)))] })), modalStep === 'result' && (_jsxs("div", { className: "space-y-4", children: [_jsxs("div", { className: "grid grid-cols-2 gap-3 sm:grid-cols-4", children: [_jsxs("div", { className: "rounded-lg bg-slate-100 p-3 text-center sm:p-4", children: [_jsx("div", { className: "text-xs font-semibold text-slate-500", children: "\u63A1\u70B9\u6E08\u307F" }), _jsx("div", { className: "mt-1 text-xl font-bold text-slate-800 sm:text-2xl", children: gradedAnswers.length })] }), _jsxs("div", { className: "rounded-lg bg-emerald-50 p-3 text-center sm:p-4", children: [_jsx("div", { className: "text-xs font-semibold text-emerald-700", children: "\u6B63\u89E3" }), _jsx("div", { className: "mt-1 text-xl font-bold text-emerald-800 sm:text-2xl", children: correctCount })] }), _jsxs("div", { className: "rounded-lg bg-rose-50 p-3 text-center sm:p-4", children: [_jsx("div", { className: "text-xs font-semibold text-rose-700", children: "\u4E0D\u6B63\u89E3" }), _jsx("div", { className: "mt-1 text-xl font-bold text-rose-700 sm:text-2xl", children: incorrectCount })] }), _jsxs("div", { className: "rounded-lg bg-blue-50 p-3 text-center sm:p-4", children: [_jsx("div", { className: "text-xs font-semibold text-blue-700", children: "\u6B63\u7B54\u7387" }), _jsxs("div", { className: "mt-1 text-xl font-bold text-blue-800 sm:text-2xl", children: [accuracy, "%"] })] })] }), _jsxs("div", { className: "overflow-hidden rounded-lg border border-slate-200", children: [_jsxs("div", { className: "grid grid-cols-[3rem_minmax(0,1fr)_minmax(0,1fr)_4rem] bg-slate-100 px-2 py-2 text-xs font-semibold text-slate-500 sm:grid-cols-[4rem_minmax(0,1fr)_minmax(0,1fr)_5rem] sm:px-3", children: [_jsx("div", { children: "No." }), _jsx("div", { children: "\u9078\u629E" }), _jsx("div", { children: "\u6B63\u89E3" }), _jsx("div", { className: "text-right", children: "\u7D50\u679C" })] }), _jsx("div", { className: "max-h-[42vh] overflow-y-auto divide-y divide-slate-100", children: gradedAnswers.map((item) => (_jsxs("div", { className: "grid grid-cols-[3rem_minmax(0,1fr)_minmax(0,1fr)_4rem] items-center px-2 py-2 text-sm sm:grid-cols-[4rem_minmax(0,1fr)_minmax(0,1fr)_5rem] sm:px-3", children: [_jsx("div", { className: "font-semibold text-slate-700", children: item.lotNumber }), _jsx("div", { className: "min-w-0 break-words text-slate-700", children: getChoiceDisplayForLabel(item.question, item.selectedAnswer) }), _jsx("div", { className: "min-w-0 break-words text-slate-700", children: getChoiceDisplayForLabel(item.question, item.question.answer) }), _jsx("div", { className: `text-right text-xs font-semibold ${item.isCorrect ? 'text-emerald-700' : 'text-rose-700'}`, children: item.isCorrect ? '正解' : '不正解' })] }, `${item.question.id}-${item.lotNumber}`))) })] }), _jsxs("div", { className: "grid gap-3 sm:grid-cols-2", children: [_jsx("button", { type: "button", onClick: () => startReview('incorrect'), onPointerUp: () => startReview('incorrect'), disabled: incorrectCount === 0, className: "rounded-md bg-rose-600 px-4 py-3 text-sm font-semibold text-white hover:bg-rose-700 disabled:bg-slate-200 disabled:text-slate-500", children: "\u4E0D\u6B63\u89E3\u306E\u89E3\u8AAC\u3092\u78BA\u8A8D" }), _jsx("button", { type: "button", onClick: () => startReview('correct'), onPointerUp: () => startReview('correct'), disabled: correctCount === 0, className: "rounded-md bg-emerald-700 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-800 disabled:bg-slate-200 disabled:text-slate-500", children: "\u6B63\u89E3\u306E\u89E3\u8AAC\u3092\u78BA\u8A8D" })] })] })), modalStep === 'review' && (_jsxs("div", { children: [_jsxs("div", { className: "mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between", children: [_jsxs("div", { className: "flex flex-wrap gap-2", children: [_jsx("button", { type: "button", onClick: () => startReview('incorrect'), disabled: incorrectCount === 0, className: `rounded-md px-4 py-2 text-sm font-medium disabled:opacity-50 ${reviewKind === 'incorrect' ? 'bg-rose-600 text-white' : 'bg-rose-50 text-rose-700 hover:bg-rose-100'}`, children: "\u4E0D\u6B63\u89E3" }), _jsx("button", { type: "button", onClick: () => startReview('correct'), disabled: correctCount === 0, className: `rounded-md px-4 py-2 text-sm font-medium disabled:opacity-50 ${reviewKind === 'correct' ? 'bg-emerald-700 text-white' : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100'}`, children: "\u6B63\u89E3" })] }), _jsx("button", { type: "button", onClick: () => setModalStep('result'), className: "rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 sm:w-auto", children: "\u7D50\u679C\u3078\u623B\u308B" })] }), currentReviewItem ? (_jsxs("div", { className: "space-y-3", children: [_jsx(PaperReviewCard, { item: currentReviewItem }), _jsxs("div", { className: "flex items-center justify-between gap-3", children: [_jsx("button", { type: "button", onClick: () => setReviewIndex((current) => Math.max(0, current - 1)), disabled: reviewIndex <= 0, className: "rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50", children: "\u524D\u3078" }), _jsxs("div", { className: "text-sm text-slate-500", children: [Math.min(reviewIndex + 1, currentReviewItems.length), " / ", currentReviewItems.length] }), _jsx("button", { type: "button", onClick: () => setReviewIndex((current) => Math.min(currentReviewItems.length - 1, current + 1)), disabled: reviewIndex >= currentReviewItems.length - 1, className: "rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50", children: "\u6B21\u3078" })] })] })) : (_jsx("div", { className: "rounded-lg border border-slate-200 bg-slate-50 p-6 text-center text-sm text-slate-500", children: "\u5BFE\u8C61\u306E\u554F\u984C\u306F\u3042\u308A\u307E\u305B\u3093\u3002" }))] }))] }), _jsx("div", { className: "shrink-0 border-t border-slate-200 bg-white px-3 py-3 sm:px-5 sm:py-4", children: modalStep === 'answer' ? (_jsx("button", { type: "button", onClick: () => void submitAnswers(), disabled: isSubmittingAnswers, className: "w-full rounded-md bg-primary-new px-4 py-3 text-base font-medium text-white hover:bg-blue-700 disabled:bg-gray-300", children: isSubmittingAnswers ? '採点中...' : '一括採点' })) : modalStep === 'result' ? (_jsx("button", { type: "button", onClick: closeAnswerModal, className: "w-full rounded-md bg-slate-800 px-4 py-3 text-base font-medium text-white hover:bg-slate-700", children: "\u5B8C\u4E86" })) : (_jsxs("div", { className: "grid gap-2 sm:grid-cols-2", children: [_jsx("button", { type: "button", onClick: () => setModalStep('result'), className: "rounded-md border border-slate-300 px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50", children: "\u7D50\u679C\u3078\u623B\u308B" }), _jsx("button", { type: "button", onClick: closeAnswerModal, className: "rounded-md bg-slate-800 px-4 py-3 text-base font-medium text-white hover:bg-slate-700", children: "\u5B8C\u4E86" })] })) })] }) })), document.body)] }));
+                                                            : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'}`, children: [_jsx("input", { type: "radio", name: `paper-answer-${question.id}`, value: choice.label, checked: answers[question.id] === choice.label, onChange: () => setAnswers((current) => ({ ...current, [question.id]: choice.label })), className: "h-4 w-4" }), _jsx("span", { children: choiceDisplayLabel(choiceIndex, choice.label) })] }, choice.label))) })] }, question.id)))] })), modalStep === 'result' && (_jsxs("div", { className: "space-y-4", children: [_jsxs("div", { className: "grid grid-cols-2 gap-3 sm:grid-cols-4", children: [_jsxs("div", { className: "rounded-lg bg-slate-100 p-3 text-center sm:p-4", children: [_jsx("div", { className: "text-xs font-semibold text-slate-500", children: "\u63A1\u70B9\u6E08\u307F" }), _jsx("div", { className: "mt-1 text-xl font-bold text-slate-800 sm:text-2xl", children: gradedAnswers.length })] }), _jsxs("div", { className: "rounded-lg bg-emerald-50 p-3 text-center sm:p-4", children: [_jsx("div", { className: "text-xs font-semibold text-emerald-700", children: "\u6B63\u89E3" }), _jsx("div", { className: "mt-1 text-xl font-bold text-emerald-800 sm:text-2xl", children: correctCount })] }), _jsxs("div", { className: "rounded-lg bg-rose-50 p-3 text-center sm:p-4", children: [_jsx("div", { className: "text-xs font-semibold text-rose-700", children: "\u4E0D\u6B63\u89E3" }), _jsx("div", { className: "mt-1 text-xl font-bold text-rose-700 sm:text-2xl", children: incorrectCount })] }), _jsxs("div", { className: "rounded-lg bg-blue-50 p-3 text-center sm:p-4", children: [_jsx("div", { className: "text-xs font-semibold text-blue-700", children: "\u6B63\u7B54\u7387" }), _jsxs("div", { className: "mt-1 text-xl font-bold text-blue-800 sm:text-2xl", children: [accuracy, "%"] })] })] }), _jsxs("div", { className: "overflow-hidden rounded-lg border border-slate-200", children: [_jsxs("div", { className: "grid grid-cols-[3rem_minmax(0,1fr)_minmax(0,1fr)_4rem] bg-slate-100 px-2 py-2 text-xs font-semibold text-slate-500 sm:grid-cols-[4rem_minmax(0,1fr)_minmax(0,1fr)_5rem] sm:px-3", children: [_jsx("div", { children: "No." }), _jsx("div", { children: "\u9078\u629E" }), _jsx("div", { children: "\u6B63\u89E3" }), _jsx("div", { className: "text-right", children: "\u7D50\u679C" })] }), _jsx("div", { className: "max-h-[42vh] overflow-y-auto divide-y divide-slate-100", children: gradedAnswers.map((item) => (_jsxs("div", { className: "grid grid-cols-[3rem_minmax(0,1fr)_minmax(0,1fr)_4rem] items-center px-2 py-2 text-sm sm:grid-cols-[4rem_minmax(0,1fr)_minmax(0,1fr)_5rem] sm:px-3", children: [_jsx("div", { className: "font-semibold text-slate-700", children: item.lotNumber }), _jsx("div", { className: "min-w-0 break-words text-slate-700", children: getChoiceDisplayForLabel(item.question, item.selectedAnswer) }), _jsx("div", { className: "min-w-0 break-words text-slate-700", children: getChoiceDisplayForLabel(item.question, item.question.answer) }), _jsx("div", { className: `text-right text-xs font-semibold ${item.isCorrect ? 'text-emerald-700' : 'text-rose-700'}`, children: item.isCorrect ? '正解' : '不正解' })] }, `${item.question.id}-${item.lotNumber}`))) })] }), _jsxs("div", { className: "grid gap-3 sm:grid-cols-2", children: [_jsx("button", { type: "button", onClick: () => startReview('all'), disabled: gradedAnswers.length === 0, className: "rounded-md bg-slate-800 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-700 disabled:bg-slate-200 disabled:text-slate-500", children: "\u554F\u984C\u9806\u306B\u89E3\u8AAC\u3092\u78BA\u8A8D" }), _jsx("button", { type: "button", onClick: () => startReview('incorrect'), onPointerUp: () => startReview('incorrect'), disabled: incorrectCount === 0, className: "rounded-md bg-rose-600 px-4 py-3 text-sm font-semibold text-white hover:bg-rose-700 disabled:bg-slate-200 disabled:text-slate-500", children: "\u4E0D\u6B63\u89E3\u306E\u89E3\u8AAC\u3092\u78BA\u8A8D" }), _jsx("button", { type: "button", onClick: () => startReview('correct'), onPointerUp: () => startReview('correct'), disabled: correctCount === 0, className: "rounded-md bg-emerald-700 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-800 disabled:bg-slate-200 disabled:text-slate-500", children: "\u6B63\u89E3\u306E\u89E3\u8AAC\u3092\u78BA\u8A8D" })] })] })), modalStep === 'review' && (_jsxs("div", { children: [_jsxs("div", { className: "mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between", children: [_jsxs("div", { className: "flex flex-wrap gap-2", children: [_jsx("button", { type: "button", onClick: () => startReview('all'), disabled: gradedAnswers.length === 0, className: `rounded-md px-4 py-2 text-sm font-medium disabled:opacity-50 ${reviewKind === 'all' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`, children: "\u554F\u984C\u9806" }), _jsx("button", { type: "button", onClick: () => startReview('incorrect'), disabled: incorrectCount === 0, className: `rounded-md px-4 py-2 text-sm font-medium disabled:opacity-50 ${reviewKind === 'incorrect' ? 'bg-rose-600 text-white' : 'bg-rose-50 text-rose-700 hover:bg-rose-100'}`, children: "\u4E0D\u6B63\u89E3" }), _jsx("button", { type: "button", onClick: () => startReview('correct'), disabled: correctCount === 0, className: `rounded-md px-4 py-2 text-sm font-medium disabled:opacity-50 ${reviewKind === 'correct' ? 'bg-emerald-700 text-white' : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100'}`, children: "\u6B63\u89E3" })] }), _jsx("button", { type: "button", onClick: () => setModalStep('result'), className: "rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 sm:w-auto", children: "\u7D50\u679C\u3078\u623B\u308B" })] }), reviewLaterMessage && (_jsx("div", { className: "mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800", children: reviewLaterMessage })), currentReviewItem ? (_jsxs("div", { className: "space-y-3", children: [_jsx(PaperReviewCard, { item: currentReviewItem, isReviewLaterRegistered: reviewLaterKeys.includes(`${currentReviewItem.question.subject}::${currentReviewItem.question.id}`), isUpdatingReviewLater: updatingReviewLaterKey === `${currentReviewItem.question.subject}::${currentReviewItem.question.id}`, onRegisterReviewLater: () => void registerReviewLater(currentReviewItem) }), _jsxs("div", { className: "flex items-center justify-between gap-3", children: [_jsx("button", { type: "button", onClick: () => setReviewIndex((current) => Math.max(0, current - 1)), disabled: reviewIndex <= 0, className: "rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50", children: "\u524D\u3078" }), _jsxs("div", { className: "text-sm text-slate-500", children: [Math.min(reviewIndex + 1, currentReviewItems.length), " / ", currentReviewItems.length] }), _jsx("button", { type: "button", onClick: () => setReviewIndex((current) => Math.min(currentReviewItems.length - 1, current + 1)), disabled: reviewIndex >= currentReviewItems.length - 1, className: "rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50", children: "\u6B21\u3078" })] })] })) : (_jsx("div", { className: "rounded-lg border border-slate-200 bg-slate-50 p-6 text-center text-sm text-slate-500", children: "\u5BFE\u8C61\u306E\u554F\u984C\u306F\u3042\u308A\u307E\u305B\u3093\u3002" }))] }))] }), _jsx("div", { className: "shrink-0 border-t border-slate-200 bg-white px-3 py-3 sm:px-5 sm:py-4", children: modalStep === 'answer' ? (_jsx("button", { type: "button", onClick: () => void submitAnswers(), disabled: isSubmittingAnswers, className: "w-full rounded-md bg-primary-new px-4 py-3 text-base font-medium text-white hover:bg-blue-700 disabled:bg-gray-300", children: isSubmittingAnswers ? '採点中...' : gradingScope === 'answered_only' ? '入力済みだけ採点' : '全問を採点' })) : modalStep === 'result' ? (_jsx("button", { type: "button", onClick: closeAnswerModal, className: "w-full rounded-md bg-slate-800 px-4 py-3 text-base font-medium text-white hover:bg-slate-700", children: "\u5B8C\u4E86" })) : (_jsxs("div", { className: "grid gap-2 sm:grid-cols-2", children: [_jsx("button", { type: "button", onClick: () => setModalStep('result'), className: "rounded-md border border-slate-300 px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50", children: "\u7D50\u679C\u3078\u623B\u308B" }), _jsx("button", { type: "button", onClick: closeAnswerModal, className: "rounded-md bg-slate-800 px-4 py-3 text-base font-medium text-white hover:bg-slate-700", children: "\u5B8C\u4E86" })] })) })] }) })), document.body)] }));
 }
 //# sourceMappingURL=PaperPracticePage.js.map

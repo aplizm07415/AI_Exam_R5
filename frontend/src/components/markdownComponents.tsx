@@ -70,7 +70,7 @@ const getCellClassName = (className: unknown, textLength: number): string => {
   const densityClassName =
     textLength >= 180
       ? 'markdown-table-cell--very-long'
-      : textLength >= 80
+      : textLength >= 48
         ? 'markdown-table-cell--long'
         : '';
 

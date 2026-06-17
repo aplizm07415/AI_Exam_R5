@@ -248,6 +248,8 @@ export default function AnalysisDashboard({
     unanswered: '未解答',
     today_remaining: '今日の残り',
     specific_area: '特定領域',
+    worry_practice: '心配事',
+    similar_practice: '類題演習',
     legacy: '旧履歴',
   };
 

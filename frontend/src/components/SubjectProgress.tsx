@@ -3,7 +3,7 @@ import LoadingSpinner from './LoadingSpinner';
 
 const API_BASE_URL = "/api";
 
-type QuizMode = 'random' | 'weak_area' | 'unanswered' | 'today_remaining' | 'specific_area';
+type QuizMode = 'random' | 'weak_area' | 'unanswered' | 'today_remaining' | 'specific_area' | 'worry_practice';
 
 interface SubjectProgressProps {
   selectedSubjectNames: string[];

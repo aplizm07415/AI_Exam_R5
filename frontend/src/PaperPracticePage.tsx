@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import ReactMarkdown from 'react-markdown';
 import remarkBreaks from 'remark-breaks';
 import remarkGfm from 'remark-gfm';
@@ -17,7 +18,13 @@ const PAPER_LANDSCAPE_WIDTH = 842;
 const PAPER_LANDSCAPE_HEIGHT = 595;
 const PDF_MAX_FONT_SIZE = 13;
 const PDF_MIN_FONT_SIZE = 5;
+const PDF_PORTRAIT_FONT_SIZE_REDUCTION = 5;
 const PDF_LANDSCAPE_FONT_SIZE_REDUCTION = 2;
+const PDF_CAPTURE_SCALE = 2;
+const PDF_SPLIT_BOTTOM_GUARD_PX = 18;
+const PDF_SPLIT_SCAN_RANGE_PX = 180;
+const PDF_SPLIT_MIN_BLANK_ROWS = 8;
+const PDF_CONTINUATION_LINE_WIDTH = 5;
 const JAPANESE_CHOICE_LABELS = ['ア', 'イ', 'ウ', 'エ', 'オ', 'カ', 'キ', 'ク'];
 
 interface Choice {
@@ -76,6 +83,10 @@ interface GradedAnswer {
 
 type PaperPracticeModalStep = 'answer' | 'result' | 'review';
 type PaperPracticePdfLayout = 'portrait-one' | 'landscape-two';
+type PaperPracticeReviewKind = 'all' | 'incorrect' | 'correct';
+type PaperPracticeGradingScope = 'answered_only' | 'all';
+type Html2CanvasFunction = typeof import('html2canvas').default;
+type PdfRgbColor = readonly [number, number, number];
 
 interface PaperPracticeAttemptAnswer {
   lot_number: number;
@@ -155,6 +166,7 @@ function modeLabel(mode: string | null | undefined) {
     weak_area: '苦手克服',
     unanswered: '未解答問題',
     specific_area: '特定領域',
+    worry_practice: '心配事',
     paper_practice: '紙演習',
   };
   return mode ? labels[mode] ?? mode : '-';
@@ -172,7 +184,69 @@ function normalizePdfText(value: string | undefined | null) {
   return (value ?? '').replace(/\r\n/g, '\n').trim();
 }
 
+function hslToRgb(hue: number, saturation: number, lightness: number): PdfRgbColor {
+  const chroma = (1 - Math.abs(2 * lightness - 1)) * saturation;
+  const huePrime = hue / 60;
+  const x = chroma * (1 - Math.abs((huePrime % 2) - 1));
+  let red = 0;
+  let green = 0;
+  let blue = 0;
+
+  if (huePrime >= 0 && huePrime < 1) {
+    red = chroma;
+    green = x;
+  } else if (huePrime >= 1 && huePrime < 2) {
+    red = x;
+    green = chroma;
+  } else if (huePrime >= 2 && huePrime < 3) {
+    green = chroma;
+    blue = x;
+  } else if (huePrime >= 3 && huePrime < 4) {
+    green = x;
+    blue = chroma;
+  } else if (huePrime >= 4 && huePrime < 5) {
+    red = x;
+    blue = chroma;
+  } else {
+    red = chroma;
+    blue = x;
+  }
+
+  const match = lightness - chroma / 2;
+  return [
+    Math.round((red + match) * 255),
+    Math.round((green + match) * 255),
+    Math.round((blue + match) * 255),
+  ];
+}
+
+function buildPdfContinuationLineColors(count: number): PdfRgbColor[] {
+  const colors: PdfRgbColor[] = [];
+  const used = new Set<string>();
+
+  for (let index = 0; index < count; index += 1) {
+    let attempt = 0;
+    let color: PdfRgbColor;
+    let key = '';
+
+    do {
+      const hue = (index * 137.508 + attempt * 31) % 360;
+      const saturation = 0.82 + ((index + attempt) % 3) * 0.04;
+      const lightness = 0.64 + ((index + attempt) % 2) * 0.08;
+      color = hslToRgb(hue, saturation, lightness);
+      key = color.join(',');
+      attempt += 1;
+    } while (used.has(key) && attempt < 20);
+
+    used.add(key);
+    colors.push(color);
+  }
+
+  return colors;
+}
+
 function getChoiceDisplayForLabel(question: QuizQuestion, label: string) {
+  if (!label) return '未入力';
   const index = question.choices.findIndex((choice) => choice.label === label);
   if (index < 0) return label;
   return choiceDisplayLabel(index, label);
@@ -187,26 +261,273 @@ function attemptToGradedAnswers(attempt: PaperPracticeAttempt): GradedAnswer[] {
   }));
 }
 
+function waitForNextFrame() {
+  return new Promise<void>((resolve) => {
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => resolve());
+    });
+  });
+}
+
+async function renderQuestionMermaidSvg(chart: string, idSeed: string) {
+  const source = chart.trim();
+  if (!source) {
+    return { svg: '', error: '' };
+  }
+
+  try {
+    const { default: mermaid } = await import('mermaid');
+    mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: 'strict',
+      theme: 'default',
+    });
+    const result = await mermaid.render(`paper-practice-pdf-${idSeed}`, source);
+    return { svg: result.svg, error: '' };
+  } catch (error) {
+    return {
+      svg: '',
+      error: error instanceof Error ? error.message : 'Mermaid図の描画に失敗しました。',
+    };
+  }
+}
+
+async function renderElementToCanvas(
+  html2canvas: Html2CanvasFunction,
+  element: React.ReactElement,
+  width: number,
+) {
+  const host = document.createElement('div');
+  host.style.position = 'absolute';
+  host.style.left = '-10000px';
+  host.style.top = '0';
+  host.style.width = `${width}px`;
+  host.style.background = '#ffffff';
+  host.style.pointerEvents = 'none';
+  host.style.zIndex = '-1';
+  document.body.appendChild(host);
+
+  const root = createRoot(host);
+
+  try {
+    root.render(element);
+    await waitForNextFrame();
+    if (document.fonts?.ready) {
+      await document.fonts.ready;
+    }
+    await waitForNextFrame();
+
+    const target = host.firstElementChild as HTMLElement | null;
+    if (!target) {
+      throw new Error('PDF用の問題表示を生成できませんでした。');
+    }
+
+    return await html2canvas(target, {
+      backgroundColor: '#ffffff',
+      scale: PDF_CAPTURE_SCALE,
+      useCORS: true,
+      windowWidth: width,
+      windowHeight: Math.max(target.scrollHeight, target.offsetHeight),
+    });
+  } finally {
+    root.unmount();
+    host.remove();
+  }
+}
+
+function isCanvasRowBlank(
+  data: Uint8ClampedArray,
+  width: number,
+  row: number,
+  sampleStep: number,
+) {
+  let coloredSamples = 0;
+  let totalSamples = 0;
+  const rowOffset = row * width * 4;
+
+  for (let x = 0; x < width; x += sampleStep) {
+    const offset = rowOffset + x * 4;
+    const alpha = data[offset + 3] ?? 0;
+    if (alpha < 12) {
+      totalSamples += 1;
+      continue;
+    }
+
+    const red = data[offset] ?? 255;
+    const green = data[offset + 1] ?? 255;
+    const blue = data[offset + 2] ?? 255;
+    const isNearWhite = red >= 245 && green >= 245 && blue >= 245;
+    if (!isNearWhite) {
+      coloredSamples += 1;
+    }
+    totalSamples += 1;
+  }
+
+  return totalSamples === 0 || coloredSamples / totalSamples < 0.012;
+}
+
+function findReasonableCanvasSliceHeight(
+  canvas: HTMLCanvasElement,
+  sourceY: number,
+  maxSliceHeightPx: number,
+) {
+  const remainingHeight = canvas.height - sourceY;
+  if (remainingHeight <= maxSliceHeightPx) {
+    return remainingHeight;
+  }
+
+  const context = canvas.getContext('2d', { willReadFrequently: true });
+  if (!context) {
+    return Math.max(1, maxSliceHeightPx - PDF_SPLIT_BOTTOM_GUARD_PX);
+  }
+
+  const safeMaxHeight = Math.max(1, maxSliceHeightPx - PDF_SPLIT_BOTTOM_GUARD_PX);
+  const scanStart = sourceY + safeMaxHeight;
+  const scanEnd = sourceY + Math.max(
+    Math.floor(maxSliceHeightPx * 0.55),
+    safeMaxHeight - PDF_SPLIT_SCAN_RANGE_PX,
+  );
+  const imageData = context.getImageData(0, sourceY, canvas.width, safeMaxHeight);
+  const sampleStep = Math.max(1, Math.floor(canvas.width / 180));
+  let blankRun = 0;
+
+  for (let absoluteRow = scanStart - 1; absoluteRow >= scanEnd; absoluteRow -= 1) {
+    const localRow = absoluteRow - sourceY;
+    if (isCanvasRowBlank(imageData.data, canvas.width, localRow, sampleStep)) {
+      blankRun += 1;
+      if (blankRun >= PDF_SPLIT_MIN_BLANK_ROWS) {
+        return Math.max(1, localRow + PDF_SPLIT_MIN_BLANK_ROWS);
+      }
+    } else {
+      blankRun = 0;
+    }
+  }
+
+  return safeMaxHeight;
+}
+
+function PdfQuestionContent({
+  lot,
+  question,
+  questionIndex,
+  width,
+  fontSize,
+  mermaidSvg,
+  mermaidError,
+}: {
+  lot: PaperPracticeLot;
+  question: QuizQuestion;
+  questionIndex: number;
+  width: number;
+  fontSize: number;
+  mermaidSvg: string;
+  mermaidError: string;
+}) {
+  const questionText = normalizePdfText(question.question_text);
+  const questionTextMd = normalizePdfText(question.question_text_md);
+  const questionTextMermaid = normalizePdfText(question.question_text_mermaid);
+
+  return (
+    <div
+      className="paper-practice-pdf-question"
+      style={{
+        width,
+        background: '#ffffff',
+        color: '#0f172a',
+        fontFamily: '"M PLUS 1p", "Hiragino Sans", "Yu Gothic", sans-serif',
+        fontSize,
+        lineHeight: 1.5,
+      }}
+    >
+      <div className="paper-practice-pdf-question__meta">
+        <div>{getLotDisplayTitle(lot)} / ロット内 {questionIndex + 1}問目</div>
+        <div>{question.subject}{question.category ? ` / ${question.category}` : ''}</div>
+      </div>
+
+      {questionText && (
+        <div className="paper-practice-pdf-question__body">
+          {questionText}
+        </div>
+      )}
+
+      {questionTextMd && (
+        <div className="paper-practice-pdf-question__markdown question-markdown">
+          <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={markdownRehypePlugins} components={markdownComponents}>
+            {questionTextMd}
+          </ReactMarkdown>
+        </div>
+      )}
+
+      {questionTextMermaid && (
+        <div className={`paper-practice-pdf-question__mermaid ${mermaidError ? 'paper-practice-pdf-question__mermaid--error' : ''}`}>
+          {mermaidSvg ? (
+            <div dangerouslySetInnerHTML={{ __html: mermaidSvg }} />
+          ) : (
+            <>
+              <div className="paper-practice-pdf-question__mermaid-error">
+                {mermaidError || 'Mermaid図を描画できませんでした。'}
+              </div>
+              <pre>{questionTextMermaid}</pre>
+            </>
+          )}
+        </div>
+      )}
+
+      <div className="paper-practice-pdf-question__choices">
+        {question.choices.map((choice, choiceIndex) => (
+          <div key={`${choice.label}-${choiceIndex}`} className="paper-practice-pdf-question__choice">
+            <span className="paper-practice-pdf-question__choice-label">{choiceDisplayLabel(choiceIndex, choice.label)}.</span>
+            <span>{choice.text}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function PaperReviewCard({
   item,
+  isReviewLaterRegistered,
+  isUpdatingReviewLater,
+  onRegisterReviewLater,
 }: {
   item: GradedAnswer;
+  isReviewLaterRegistered: boolean;
+  isUpdatingReviewLater: boolean;
+  onRegisterReviewLater: () => void;
 }) {
   const selectedChoice = item.question.choices.find((choice) => choice.label === item.selectedAnswer);
   const correctChoice = item.question.choices.find((choice) => choice.label === item.question.answer);
   return (
     <div className="min-w-0 rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <div className="text-sm font-semibold text-slate-900">ロット内 {item.lotNumber}問目</div>
-        <div className={`rounded-full px-3 py-1 text-xs font-semibold ${item.isCorrect ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-700'}`}>
-          {item.isCorrect ? '正解' : '不正解'}
+        <div>
+          <div className="text-sm font-semibold text-slate-900">ロット内 {item.lotNumber}問目</div>
+          <div className="mt-1 text-xs text-slate-500">{item.question.subject}{item.question.category ? ` / ${item.question.category}` : ''}</div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={onRegisterReviewLater}
+            disabled={isReviewLaterRegistered || isUpdatingReviewLater}
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+              isReviewLaterRegistered
+                ? 'bg-emerald-100 text-emerald-800'
+                : 'bg-amber-50 text-amber-900 ring-1 ring-amber-200 hover:bg-amber-100'
+            } disabled:cursor-not-allowed disabled:opacity-70`}
+          >
+            {isUpdatingReviewLater ? '登録中...' : isReviewLaterRegistered ? '後で確認済み' : '後で確認へ登録'}
+          </button>
+          <div className={`rounded-full px-3 py-1 text-xs font-semibold ${item.isCorrect ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-700'}`}>
+            {item.isCorrect ? '正解' : '不正解'}
+          </div>
         </div>
       </div>
       <p className="whitespace-pre-wrap break-words text-sm font-semibold leading-7 text-slate-800">{item.question.question_text}</p>
       <div className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
         <div className="min-w-0 rounded-lg bg-slate-50 p-3">
           <div className="text-xs font-semibold text-slate-500">選択</div>
-          <div className="mt-1 break-words text-slate-800">{selectedChoice ? `${item.selectedAnswer}. ${selectedChoice.text}` : item.selectedAnswer}</div>
+          <div className="mt-1 break-words text-slate-800">{selectedChoice ? `${item.selectedAnswer}. ${selectedChoice.text}` : item.selectedAnswer || '未入力'}</div>
         </div>
         <div className="min-w-0 rounded-lg bg-emerald-50 p-3">
           <div className="text-xs font-semibold text-emerald-700">正解</div>
@@ -242,8 +563,12 @@ export default function PaperPracticePage() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [gradedAnswers, setGradedAnswers] = useState<GradedAnswer[]>([]);
   const [modalStep, setModalStep] = useState<PaperPracticeModalStep>('answer');
-  const [reviewKind, setReviewKind] = useState<'incorrect' | 'correct'>('incorrect');
+  const [reviewKind, setReviewKind] = useState<PaperPracticeReviewKind>('incorrect');
   const [reviewIndex, setReviewIndex] = useState(0);
+  const [gradingScope, setGradingScope] = useState<PaperPracticeGradingScope>('answered_only');
+  const [reviewLaterKeys, setReviewLaterKeys] = useState<string[]>([]);
+  const [updatingReviewLaterKey, setUpdatingReviewLaterKey] = useState<string | null>(null);
+  const [reviewLaterMessage, setReviewLaterMessage] = useState('');
   const pendingHandledRef = useRef(false);
 
   const fetchLots = useCallback(async () => {
@@ -290,6 +615,21 @@ export default function PaperPracticePage() {
     void fetchLots();
   }, [fetchLots]);
 
+  const fetchReviewLaterKeys = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/review-later`);
+      if (!response.ok) return;
+      const data: Array<{ subject: string; problem_id: string }> = await response.json();
+      setReviewLaterKeys(data.map((item) => `${item.subject}::${item.problem_id}`));
+    } catch (fetchError) {
+      console.error(fetchError);
+    }
+  }, []);
+
+  useEffect(() => {
+    void fetchReviewLaterKeys();
+  }, [fetchReviewLaterKeys]);
+
   useEffect(() => {
     if (pendingHandledRef.current) return;
     pendingHandledRef.current = true;
@@ -311,6 +651,8 @@ export default function PaperPracticePage() {
     setModalStep('answer');
     setReviewKind('incorrect');
     setReviewIndex(0);
+    setGradingScope('answered_only');
+    setReviewLaterMessage('');
     setError('');
   };
 
@@ -320,6 +662,7 @@ export default function PaperPracticePage() {
     setAnswers({});
     setGradedAnswers([]);
     setModalStep('answer');
+    setReviewLaterMessage('');
   };
 
   const fetchAttempts = async (lot: PaperPracticeLot) => {
@@ -355,6 +698,7 @@ export default function PaperPracticePage() {
     setModalStep('result');
     setReviewKind(attempt.answers.some((answer) => !answer.is_correct) ? 'incorrect' : 'correct');
     setReviewIndex(0);
+    setReviewLaterMessage('');
     setError('');
     closeHistoryModal();
   };
@@ -395,6 +739,7 @@ export default function PaperPracticePage() {
 
     try {
       const { jsPDF } = await import('jspdf');
+      const { default: html2canvas } = await import('html2canvas');
       const fontBinary = await loadPdfFontBinaryString();
       const isLandscapeTwo = layout === 'landscape-two';
       const pdf = new jsPDF({
@@ -406,26 +751,9 @@ export default function PaperPracticePage() {
       pdf.addFileToVFS(PDF_FONT_FILE_NAME, fontBinary);
       pdf.addFont(PDF_FONT_FILE_NAME, PDF_FONT_NAME, 'normal');
       pdf.setFont(PDF_FONT_NAME, 'normal');
+      const continuationLineColors = buildPdfContinuationLineColors(lot.questions.length);
 
-      const drawLines = (lines: string[], x: number, y: number, lineHeight: number) => {
-        lines.forEach((line, index) => {
-          pdf.text(line, x, y + index * lineHeight);
-        });
-      };
-
-      const buildBlocks = (question: QuizQuestion, questionIndex: number) => {
-        const baseBlocks = [
-          `${getLotDisplayTitle(lot)} / ロット内 ${questionIndex + 1}問目`,
-          `${question.subject}${question.category ? ` / ${question.category}` : ''}`,
-          '',
-          normalizePdfText(question.question_text),
-          '',
-          ...question.choices.map((choice, choiceIndex) => `${choiceDisplayLabel(choiceIndex, choice.label)}. ${choice.text}`),
-        ];
-        return baseBlocks;
-      };
-
-      const drawQuestion = (
+      const drawQuestion = async (
         question: QuizQuestion,
         questionIndex: number,
         x: number,
@@ -433,60 +761,136 @@ export default function PaperPracticePage() {
         width: number,
         height: number,
         maxFontSize: number,
-        minFontSize: number,
+        _minFontSize: number,
+        addOverflowPage: () => void,
+        continuationLineColor: PdfRgbColor,
       ) => {
-        const baseBlocks = buildBlocks(question, questionIndex);
-        let fontSize = maxFontSize;
-        let renderedLines: string[] = [];
-        while (fontSize >= minFontSize) {
-          pdf.setFontSize(fontSize);
-          renderedLines = baseBlocks.flatMap((block) => (block ? pdf.splitTextToSize(block, width) as string[] : ['']));
-          const lineHeight = fontSize * 1.35;
-          if (renderedLines.length * lineHeight <= height) {
-            break;
+        const mermaidResult = await renderQuestionMermaidSvg(
+          normalizePdfText(question.question_text_mermaid),
+          `${lot.id}-${question.id}-${questionIndex}`.replace(/[^a-zA-Z0-9_-]/g, '-'),
+        );
+        const canvas = await renderElementToCanvas(
+          html2canvas,
+          <PdfQuestionContent
+            lot={lot}
+            question={question}
+            questionIndex={questionIndex}
+            width={width}
+            fontSize={maxFontSize}
+            mermaidSvg={mermaidResult.svg}
+            mermaidError={mermaidResult.error}
+          />,
+          width,
+        );
+        const pixelsPerPdfUnit = canvas.width / width;
+        const maxSliceHeightPx = Math.max(1, Math.floor(height * pixelsPerPdfUnit));
+        const willOverflow = canvas.height > maxSliceHeightPx;
+        let sourceY = 0;
+        let didOverflow = false;
+
+        while (sourceY < canvas.height) {
+          if (sourceY > 0) {
+            didOverflow = true;
+            addOverflowPage();
           }
-          fontSize -= 1;
+
+          const sliceHeightPx = findReasonableCanvasSliceHeight(canvas, sourceY, maxSliceHeightPx);
+          const sliceCanvas = document.createElement('canvas');
+          sliceCanvas.width = canvas.width;
+          sliceCanvas.height = sliceHeightPx;
+          const context = sliceCanvas.getContext('2d');
+          if (!context) {
+            throw new Error('PDF用の問題画像を分割できませんでした。');
+          }
+          context.fillStyle = '#ffffff';
+          context.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+          context.drawImage(
+            canvas,
+            0,
+            sourceY,
+            canvas.width,
+            sliceHeightPx,
+            0,
+            0,
+            canvas.width,
+            sliceHeightPx,
+          );
+
+          const renderHeight = sliceHeightPx / pixelsPerPdfUnit;
+          if (willOverflow) {
+            const [red, green, blue] = continuationLineColor;
+            pdf.setFillColor(red, green, blue);
+            pdf.rect(Math.max(0, x - 9), y, PDF_CONTINUATION_LINE_WIDTH, height, 'F');
+          }
+          pdf.addImage(sliceCanvas, 'PNG', x, y, width, renderHeight, undefined, 'FAST');
+          sourceY += sliceHeightPx;
         }
-        pdf.setTextColor(15, 23, 42);
-        pdf.setFontSize(fontSize);
-        drawLines(renderedLines, x, y, fontSize * 1.35);
+
+        return didOverflow;
       };
 
       if (isLandscapeTwo) {
-        lot.questions.forEach((question, questionIndex) => {
-          if (questionIndex > 0 && questionIndex % 2 === 0) {
+        let currentPanelIndex = 0;
+        let hasCreatedLandscapePage = false;
+
+        const prepareLandscapePage = (shouldAddPage: boolean) => {
+          if (shouldAddPage) {
             pdf.addPage([PAPER_LANDSCAPE_WIDTH, PAPER_LANDSCAPE_HEIGHT], 'landscape');
           }
+          pdf.setFillColor(255, 255, 255);
+          pdf.rect(0, 0, PAPER_LANDSCAPE_WIDTH, PAPER_LANDSCAPE_HEIGHT, 'F');
+          pdf.setDrawColor(226, 232, 240);
+          pdf.line(PAPER_LANDSCAPE_WIDTH / 2, 0, PAPER_LANDSCAPE_WIDTH / 2, PAPER_LANDSCAPE_HEIGHT);
+          hasCreatedLandscapePage = true;
+        };
+
+        for (const [questionIndex, question] of lot.questions.entries()) {
           setPdfProgress(`PDFを生成中... ${questionIndex + 1} / ${lot.questions.length}`);
-          if (questionIndex % 2 === 0) {
-            pdf.setFillColor(255, 255, 255);
-            pdf.rect(0, 0, PAPER_LANDSCAPE_WIDTH, PAPER_LANDSCAPE_HEIGHT, 'F');
-            pdf.setDrawColor(226, 232, 240);
-            pdf.line(PAPER_LANDSCAPE_WIDTH / 2, 0, PAPER_LANDSCAPE_WIDTH / 2, PAPER_LANDSCAPE_HEIGHT);
+          if (currentPanelIndex === 0) {
+            prepareLandscapePage(hasCreatedLandscapePage);
           }
-          const panelIndex = questionIndex % 2;
           const panelWidth = PAPER_LANDSCAPE_WIDTH / 2;
-          drawQuestion(
+          const didOverflow = await drawQuestion(
             question,
             questionIndex,
-            panelIndex * panelWidth + 12,
+            currentPanelIndex * panelWidth + 12,
             18,
             panelWidth - 24,
             PAPER_LANDSCAPE_HEIGHT - 32,
             PDF_MAX_FONT_SIZE - PDF_LANDSCAPE_FONT_SIZE_REDUCTION,
             PDF_MIN_FONT_SIZE - PDF_LANDSCAPE_FONT_SIZE_REDUCTION,
+            () => {
+              prepareLandscapePage(true);
+            },
+            continuationLineColors[questionIndex] ?? [190, 242, 100],
           );
-        });
+          currentPanelIndex = didOverflow || currentPanelIndex === 1 ? 0 : 1;
+        }
       } else {
-        lot.questions.forEach((question, questionIndex) => {
+        for (const [questionIndex, question] of lot.questions.entries()) {
           if (questionIndex > 0) {
             pdf.addPage([PAPER_PAGE_WIDTH, PAPER_PAGE_HEIGHT], 'portrait');
           }
           setPdfProgress(`PDFを生成中... ${questionIndex + 1} / ${lot.questions.length}`);
           pdf.setFillColor(255, 255, 255);
           pdf.rect(0, 0, PAPER_PAGE_WIDTH, PAPER_PAGE_HEIGHT, 'F');
-          drawQuestion(question, questionIndex, 16, 24, PAPER_PAGE_WIDTH - 32, PAPER_PAGE_HEIGHT - 34, PDF_MAX_FONT_SIZE, PDF_MIN_FONT_SIZE);
-        });
+          await drawQuestion(
+            question,
+            questionIndex,
+            16,
+            24,
+            PAPER_PAGE_WIDTH - 32,
+            PAPER_PAGE_HEIGHT - 34,
+            PDF_MAX_FONT_SIZE - PDF_PORTRAIT_FONT_SIZE_REDUCTION,
+            PDF_MIN_FONT_SIZE,
+            () => {
+              pdf.addPage([PAPER_PAGE_WIDTH, PAPER_PAGE_HEIGHT], 'portrait');
+              pdf.setFillColor(255, 255, 255);
+              pdf.rect(0, 0, PAPER_PAGE_WIDTH, PAPER_PAGE_HEIGHT, 'F');
+            },
+            continuationLineColors[questionIndex] ?? [190, 242, 100],
+          );
+        }
       }
 
       const suffix = isLandscapeTwo ? 'A4横2問' : 'A4縦1問';
@@ -504,7 +908,17 @@ export default function PaperPracticePage() {
     const missingNumbers = answerLot.questions
       .map((question, index) => (answers[question.id] ? null : index + 1))
       .filter((value): value is number => value !== null);
-    if (missingNumbers.length > 0) {
+    if (gradingScope === 'answered_only' && answeredCount === 0) {
+      setError('採点対象の入力がありません。');
+      return;
+    }
+    if (gradingScope === 'all' && missingNumbers.length > 0) {
+      const shouldContinue = window.confirm(
+        `未入力の問題があります: ${missingNumbers.join(', ')}\n\n未入力は不正解として実績に含めます。続行しますか？`
+      );
+      if (!shouldContinue) return;
+    }
+    if (gradingScope !== 'all' && missingNumbers.length === answerLot.questions.length) {
       setError(`未入力の問題があります: ${missingNumbers.join(', ')}`);
       return;
     }
@@ -515,7 +929,7 @@ export default function PaperPracticePage() {
       const response = await fetch(`${API_BASE_URL}/paper-practice/lots/${encodeURIComponent(answerLot.id)}/grade`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answers }),
+        body: JSON.stringify({ answers, grading_scope: gradingScope }),
       });
       if (!response.ok) {
         const payload = await response.json().catch(() => null);
@@ -535,7 +949,9 @@ export default function PaperPracticePage() {
   };
 
   const currentReviewItems = useMemo(
-    () => gradedAnswers.filter((item) => (reviewKind === 'incorrect' ? !item.isCorrect : item.isCorrect)),
+    () => gradedAnswers.filter((item) => (
+      reviewKind === 'all' ? true : reviewKind === 'incorrect' ? !item.isCorrect : item.isCorrect
+    )),
     [gradedAnswers, reviewKind],
   );
   const currentReviewItem = currentReviewItems[Math.min(reviewIndex, Math.max(0, currentReviewItems.length - 1))];
@@ -544,10 +960,35 @@ export default function PaperPracticePage() {
   const answeredCount = answerLot ? answerLot.questions.filter((question) => answers[question.id]).length : 0;
   const accuracy = gradedAnswers.length > 0 ? Math.round((correctCount / gradedAnswers.length) * 100) : 0;
 
-  const startReview = (kind: 'incorrect' | 'correct') => {
+  const startReview = (kind: PaperPracticeReviewKind) => {
     setReviewKind(kind);
     setReviewIndex(0);
+    setReviewLaterMessage('');
     setModalStep('review');
+  };
+
+  const registerReviewLater = async (item: GradedAnswer) => {
+    const reviewKey = `${item.question.subject}::${item.question.id}`;
+    if (reviewLaterKeys.includes(reviewKey) || updatingReviewLaterKey) return;
+    try {
+      setUpdatingReviewLaterKey(reviewKey);
+      setReviewLaterMessage('');
+      const response = await fetch(`${API_BASE_URL}/review-later`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject: item.question.subject, problem_id: item.question.id }),
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.detail || '後で確認への登録に失敗しました。');
+      }
+      setReviewLaterKeys((current) => Array.from(new Set([...current, reviewKey])));
+      setReviewLaterMessage(`ロット内 ${item.lotNumber}問目を後で確認へ登録しました。`);
+    } catch (registerError) {
+      setError(registerError instanceof Error ? registerError.message : '後で確認への登録に失敗しました。');
+    } finally {
+      setUpdatingReviewLaterKey(null);
+    }
   };
 
   return (
@@ -716,7 +1157,7 @@ export default function PaperPracticePage() {
 
       {answerLot && createPortal((
         <div className="fixed inset-0 z-[1000] flex items-stretch justify-center bg-slate-950/50 px-2 py-3 sm:items-center sm:px-4 sm:py-6">
-          <div className="flex h-full min-h-0 w-full max-w-5xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl sm:h-[92dvh] sm:max-h-[56rem]">
+          <div className="flex h-full min-h-0 w-full max-w-7xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl sm:h-[92dvh] sm:max-h-[56rem]">
             <div className="shrink-0 border-b border-slate-200 px-3 py-3 sm:px-5 sm:py-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
@@ -741,8 +1182,32 @@ export default function PaperPracticePage() {
             <div className="min-h-0 flex-1 overflow-y-auto px-2 py-3 sm:px-5 sm:py-4">
               {modalStep === 'answer' && (
                 <div className="space-y-2">
-                  <div className="mb-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
-                    入力済み {answeredCount} / {answerLot.questions.length}
+                  <div className="mb-3 grid gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-600 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+                    <div>入力済み {answeredCount} / {answerLot.questions.length}</div>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <label className={`flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 ${gradingScope === 'answered_only' ? 'border-primary-new bg-blue-50 text-primary-new' : 'border-slate-200 bg-white text-slate-700'}`}>
+                        <input
+                          type="radio"
+                          name="paper-grading-scope"
+                          value="answered_only"
+                          checked={gradingScope === 'answered_only'}
+                          onChange={() => setGradingScope('answered_only')}
+                          className="h-4 w-4"
+                        />
+                        <span className="text-xs font-semibold">入力済みだけ実績</span>
+                      </label>
+                      <label className={`flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 ${gradingScope === 'all' ? 'border-primary-new bg-blue-50 text-primary-new' : 'border-slate-200 bg-white text-slate-700'}`}>
+                        <input
+                          type="radio"
+                          name="paper-grading-scope"
+                          value="all"
+                          checked={gradingScope === 'all'}
+                          onChange={() => setGradingScope('all')}
+                          className="h-4 w-4"
+                        />
+                        <span className="text-xs font-semibold">全問を実績</span>
+                      </label>
+                    </div>
                   </div>
                   {answerLot.questions.map((question, index) => (
                     <div key={question.id} className="grid grid-cols-[3.25rem_minmax(0,1fr)] items-stretch overflow-hidden rounded-lg border border-slate-200 bg-white sm:grid-cols-[4.75rem_minmax(0,1fr)]">
@@ -821,6 +1286,14 @@ export default function PaperPracticePage() {
                   <div className="grid gap-3 sm:grid-cols-2">
                     <button
                       type="button"
+                      onClick={() => startReview('all')}
+                      disabled={gradedAnswers.length === 0}
+                      className="rounded-md bg-slate-800 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-700 disabled:bg-slate-200 disabled:text-slate-500"
+                    >
+                      問題順に解説を確認
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => startReview('incorrect')}
                       onPointerUp={() => startReview('incorrect')}
                       disabled={incorrectCount === 0}
@@ -847,6 +1320,14 @@ export default function PaperPracticePage() {
                     <div className="flex flex-wrap gap-2">
                       <button
                         type="button"
+                        onClick={() => startReview('all')}
+                        disabled={gradedAnswers.length === 0}
+                        className={`rounded-md px-4 py-2 text-sm font-medium disabled:opacity-50 ${reviewKind === 'all' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+                      >
+                        問題順
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => startReview('incorrect')}
                         disabled={incorrectCount === 0}
                         className={`rounded-md px-4 py-2 text-sm font-medium disabled:opacity-50 ${reviewKind === 'incorrect' ? 'bg-rose-600 text-white' : 'bg-rose-50 text-rose-700 hover:bg-rose-100'}`}
@@ -870,9 +1351,19 @@ export default function PaperPracticePage() {
                       結果へ戻る
                     </button>
                   </div>
+                  {reviewLaterMessage && (
+                    <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+                      {reviewLaterMessage}
+                    </div>
+                  )}
                   {currentReviewItem ? (
                     <div className="space-y-3">
-                      <PaperReviewCard item={currentReviewItem} />
+                      <PaperReviewCard
+                        item={currentReviewItem}
+                        isReviewLaterRegistered={reviewLaterKeys.includes(`${currentReviewItem.question.subject}::${currentReviewItem.question.id}`)}
+                        isUpdatingReviewLater={updatingReviewLaterKey === `${currentReviewItem.question.subject}::${currentReviewItem.question.id}`}
+                        onRegisterReviewLater={() => void registerReviewLater(currentReviewItem)}
+                      />
                       <div className="flex items-center justify-between gap-3">
                         <button
                           type="button"
@@ -910,7 +1401,7 @@ export default function PaperPracticePage() {
                   disabled={isSubmittingAnswers}
                   className="w-full rounded-md bg-primary-new px-4 py-3 text-base font-medium text-white hover:bg-blue-700 disabled:bg-gray-300"
                 >
-                  {isSubmittingAnswers ? '採点中...' : '一括採点'}
+                  {isSubmittingAnswers ? '採点中...' : gradingScope === 'answered_only' ? '入力済みだけ採点' : '全問を採点'}
                 </button>
               ) : modalStep === 'result' ? (
                 <button

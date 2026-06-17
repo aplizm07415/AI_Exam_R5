@@ -4,6 +4,8 @@ import LoadingSpinner from './components/LoadingSpinner';
 import mplusRegularFontUrl from './assets/fonts/MPLUS1p-Regular.ttf';
 
 const API_BASE_URL = '/api';
+const ADHOC_QUIZ_HISTORY_MODE_STORAGE_KEY = 'adhocQuizHistoryMode';
+const SIMILAR_PRACTICE_HISTORY_MODE = 'similar_practice';
 
 interface Choice {
   label: string;
@@ -17,6 +19,8 @@ interface Explanation {
 interface QuizQuestion {
   id: string;
   question_text: string;
+  question_text_md?: string;
+  question_text_mermaid?: string;
   choices: Choice[];
   answer: string;
   subject: string;
@@ -131,10 +135,13 @@ export default function ReviewLaterPage() {
   const [selectedKey, setSelectedKey] = useState('');
   const [editingProblem, setEditingProblem] = useState<QuizQuestion | null>(null);
   const [customExplanationText, setCustomExplanationText] = useState('');
+  const [showStructuredQuestionFields, setShowStructuredQuestionFields] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSavingProblem, setIsSavingProblem] = useState(false);
   const [isSavingMemo, setIsSavingMemo] = useState(false);
   const [isRegisteringHistory, setIsRegisteringHistory] = useState(false);
+  const [isReorganizingExplanation, setIsReorganizingExplanation] = useState(false);
+  const [aiExplanationReview, setAiExplanationReview] = useState<{ notes: string[]; usedAi: boolean } | null>(null);
   const [isFindingSimilar, setIsFindingSimilar] = useState(false);
   const [isBulkRegisteringFirstMissed, setIsBulkRegisteringFirstMissed] = useState(false);
   const [similarTopics, setSimilarTopics] = useState<string[]>([]);
@@ -238,6 +245,22 @@ export default function ReviewLaterPage() {
     [items]
   );
 
+  const removeReviewLaterEntryLocally = (subject: string, problemId: string) => {
+    const targetKey = `${subject}::${problemId}`;
+    setItems((prev) => {
+      const next = prev.filter((item) => `${item.subject}::${item.problem_id}` !== targetKey);
+      setSelectedKey((currentKey) => {
+        if (currentKey !== targetKey) {
+          return currentKey && next.some((item) => `${item.subject}::${item.problem_id}` === currentKey)
+            ? currentKey
+            : (next[0] ? `${next[0].subject}::${next[0].problem_id}` : '');
+        }
+        return next[0] ? `${next[0].subject}::${next[0].problem_id}` : '';
+      });
+      return next;
+    });
+  };
+
   const sortedSubjectProblems = useMemo(() => {
     const filtered = subjectProblems.filter((problem) => {
       if (!firstMissedDateFrom && !firstMissedDateTo) {
@@ -298,6 +321,8 @@ export default function ReviewLaterPage() {
       setCustomExplanationText('');
     }
     setIsOralVivaActive(false);
+    setAiExplanationReview(null);
+    setShowStructuredQuestionFields(false);
     setOralVivaStepIndex(0);
     setOralVivaMessages([]);
     setOralVivaInput('');
@@ -536,6 +561,52 @@ export default function ReviewLaterPage() {
     }
   };
 
+  const reorganizeExplanationWithAi = async () => {
+    if (!editingProblem || isReorganizingExplanation) return;
+    try {
+      setIsReorganizingExplanation(true);
+      setAiExplanationReview(null);
+      setError('');
+      const response = await fetch(
+        `${API_BASE_URL}/review-later/${encodeURIComponent(editingProblem.subject)}/${encodeURIComponent(editingProblem.id)}/reorganize-explanation`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question: editingProblem }),
+        }
+      );
+      const payload: {
+        reorganized_explanation?: string;
+        consistency_notes?: string[];
+        used_ai?: boolean;
+        detail?: string;
+      } = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.detail || 'AI整理に失敗しました。');
+      }
+      const nextExplanation = (payload.reorganized_explanation || '').trim();
+      if (!nextExplanation) {
+        throw new Error('AI整理結果が空でした。');
+      }
+      setEditingProblem((prev) => prev ? {
+        ...prev,
+        explanation: {
+          ...prev.explanation,
+          text: nextExplanation,
+        },
+      } : prev);
+      setAiExplanationReview({
+        notes: Array.isArray(payload.consistency_notes) ? payload.consistency_notes : [],
+        usedAi: Boolean(payload.used_ai),
+      });
+    } catch (organizeError) {
+      console.error(organizeError);
+      setError(organizeError instanceof Error ? organizeError.message : 'AI整理に失敗しました。');
+    } finally {
+      setIsReorganizingExplanation(false);
+    }
+  };
+
   const startOralViva = async () => {
     if (!editingProblem || isOralVivaLoading) return;
     setIsOralVivaLoading(true);
@@ -742,7 +813,7 @@ export default function ReviewLaterPage() {
         const payload = await response.json().catch(() => null);
         throw new Error(payload?.detail || '登録解除に失敗しました。');
       }
-      await fetchItems();
+      removeReviewLaterEntryLocally(itemToRemove.subject, itemToRemove.problem_id);
     } catch (removeError) {
       console.error(removeError);
       setError(removeError instanceof Error ? removeError.message : '登録解除に失敗しました。');
@@ -770,7 +841,28 @@ export default function ReviewLaterPage() {
         const payload = await response.json().catch(() => null);
         throw new Error(payload?.detail || '後で確認の更新に失敗しました。');
       }
-      await fetchItems();
+      if (enabled) {
+        const now = new Date().toISOString();
+        setItems((prev) => {
+          const itemKey = `${problem.subject}::${problem.id}`;
+          if (prev.some((item) => `${item.subject}::${item.problem_id}` === itemKey)) {
+            return prev;
+          }
+          return [
+            {
+              subject: problem.subject,
+              problem_id: problem.id,
+              created_at: now,
+              updated_at: now,
+              question: problem,
+              error: null,
+            },
+            ...prev,
+          ];
+        });
+      } else {
+        removeReviewLaterEntryLocally(problem.subject, problem.id);
+      }
     } catch (toggleError) {
       console.error(toggleError);
       setError(toggleError instanceof Error ? toggleError.message : '後で確認の更新に失敗しました。');
@@ -839,6 +931,7 @@ export default function ReviewLaterPage() {
       }
       sessionStorage.setItem('adhocQuizSet', JSON.stringify(quizSet));
       sessionStorage.setItem('adhocQuizLabel', `類題演習: ${selectedItem.problem_id}`);
+      sessionStorage.setItem(ADHOC_QUIZ_HISTORY_MODE_STORAGE_KEY, SIMILAR_PRACTICE_HISTORY_MODE);
       navigate('/?adhoc=1');
     } catch (similarError) {
       setError(similarError instanceof Error ? similarError.message : '類題の取得に失敗しました。');
@@ -974,11 +1067,12 @@ export default function ReviewLaterPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="mx-auto w-full max-w-[3200px] space-y-6 px-4 sm:px-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <h2 className="text-3xl font-bold text-dark">後で確認</h2>
           <p className="text-sm text-gray-500 mt-1">現在も登録状態の問題をすべて表示します。登録解除時に、実績を2件計上するか、未計上のまま解除するかを選べます。</p>
+          <p className="mt-2 text-sm font-semibold text-amber-800">登録中 {items.length}件</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button
@@ -1007,6 +1101,10 @@ export default function ReviewLaterPage() {
       ) : (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
           <div className="bg-white rounded-xl shadow p-4 space-y-3">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <div className="text-sm font-semibold text-gray-800">一覧</div>
+              <div className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800">{items.length}件</div>
+            </div>
             {items.map((item) => {
               const itemKey = `${item.subject}::${item.problem_id}`;
               const active = itemKey === selectedKey;
@@ -1091,7 +1189,7 @@ export default function ReviewLaterPage() {
                                 const payload = await response.json().catch(() => null);
                                 throw new Error(payload?.detail || '登録解除に失敗しました。');
                               }
-                              await fetchItems();
+                              removeReviewLaterEntryLocally(selectedItem.subject, selectedItem.problem_id);
                             } catch (removeError) {
                               console.error(removeError);
                               setError(removeError instanceof Error ? removeError.message : '登録解除に失敗しました。');
@@ -1111,19 +1209,67 @@ export default function ReviewLaterPage() {
                     AI抽出トピック: {similarTopics.join(', ')}
                   </div>
                 )}
+                {(isFindingSimilar || isReorganizingExplanation) && (
+                  <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-3">
+                    <div className="flex items-center justify-between gap-3 text-xs font-semibold text-emerald-900">
+                      <span>AI処理中</span>
+                      <span>{isFindingSimilar ? '類題候補を抽出中' : '整合性を確認・整理中'}</span>
+                    </div>
+                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-emerald-100">
+                      <div className="h-full w-2/3 animate-pulse rounded-full bg-emerald-500" />
+                    </div>
+                  </div>
+                )}
 
                 <section className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-800">問題データ</h3>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h3 className="text-lg font-semibold text-gray-800">問題データ</h3>
+                    <button
+                      type="button"
+                      onClick={() => setShowStructuredQuestionFields((prev) => !prev)}
+                      className={`rounded-md border px-3 py-1.5 text-xs font-semibold ${
+                        showStructuredQuestionFields
+                          ? 'border-slate-700 bg-slate-800 text-white'
+                          : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      md / Mermaid
+                    </button>
+                  </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">問題文</label>
                     <textarea
                       name="question_text"
                       value={editingProblem.question_text}
                       onChange={handleProblemChange}
-                      rows={5}
+                      rows={13}
                       className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                     />
                   </div>
+                  {showStructuredQuestionFields && (
+                    <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">問題文 md</label>
+                        <textarea
+                          name="question_text_md"
+                          value={editingProblem.question_text_md || ''}
+                          onChange={handleProblemChange}
+                          rows={12}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">問題文 Mermaid</label>
+                        <textarea
+                          name="question_text_mermaid"
+                          value={editingProblem.question_text_mermaid || ''}
+                          onChange={handleProblemChange}
+                          rows={12}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm"
+                        />
+                      </div>
+                    </div>
+                  )}
                   <div className="space-y-3">
                     {editingProblem.choices.map((choice, index) => (
                       <div key={`${choice.label}-${index}`} className="grid grid-cols-1 gap-2 md:grid-cols-[100px_minmax(0,1fr)]">
@@ -1161,14 +1307,38 @@ export default function ReviewLaterPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">解説</label>
+                    <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+                      <label className="block text-sm font-medium text-gray-700">解説</label>
+                      <button
+                        type="button"
+                        onClick={() => void reorganizeExplanationWithAi()}
+                        disabled={isReorganizingExplanation || isSavingProblem || isSavingMemo}
+                        className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 disabled:bg-gray-100 disabled:text-gray-400"
+                      >
+                        {isReorganizingExplanation ? 'AI整理中...' : 'AIで整合性確認・整理'}
+                      </button>
+                    </div>
                     <textarea
                       name="explanation.text"
                       value={editingProblem.explanation.text}
                       onChange={handleProblemChange}
-                      rows={6}
+                      rows={15}
                       className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                     />
+                    {aiExplanationReview && (
+                      <div className="mt-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-900">
+                        <div className="font-semibold">{aiExplanationReview.usedAi ? 'AI整理結果' : 'ローカル整形結果'}</div>
+                        {aiExplanationReview.notes.length > 0 ? (
+                          <ul className="mt-1 list-disc space-y-1 pl-4">
+                            {aiExplanationReview.notes.map((note, index) => (
+                              <li key={`${note}-${index}`}>{note}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="mt-1">整合性メモはありません。</p>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <button
                     type="button"

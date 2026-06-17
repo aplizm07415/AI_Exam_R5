@@ -19,10 +19,20 @@ const FORCED_ANSWER_TIMER_MS = 80 * 1000;
 const SUBJECT_SELECTION_PATTERNS_STORAGE_KEY = 'subjectSelectionPatterns';
 const STUDY_ACTION_MODE_VISIBILITY_STORAGE_KEY = 'hiddenStudyActionModes';
 const PAPER_PRACTICE_PENDING_REQUEST_STORAGE_KEY = 'paperPracticePendingRequest';
+const ADHOC_QUIZ_HISTORY_MODE_STORAGE_KEY = 'adhocQuizHistoryMode';
+const SIMILAR_PRACTICE_HISTORY_MODE = 'similar_practice';
+const WORRY_PRACTICE_INPUT_STORAGE_KEY = 'worryPracticeInput';
+const WORRY_PRACTICE_SUBJECT_NAME = '心配事演習.json';
 const SPECIFIC_AREA_PROGRESS_STEPS = [
   '条件を確認中',
   '問題文・解説を照合中',
   '対象件数を集計中',
+] as const;
+const WORRY_PRACTICE_GENERATION_STEPS = [
+  '診断士試験の論点へ変換中',
+  '4択問題を生成中',
+  '選択肢と正解根拠を点検中',
+  '保存版を作成中',
 ] as const;
 
 type SpeechRecognitionLike = {
@@ -81,6 +91,22 @@ interface StudySettingsPayload {
   default_subject_pattern_id: string | null;
   default_quiz_mode: QuizMode;
   hidden_study_action_modes: StudyActionMode[];
+}
+
+interface WorryPracticeVersionSummary {
+  id: string;
+  input_hash: string;
+  version: number;
+  title: string;
+  concern_text: string;
+  count: number;
+  question_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+interface WorryPracticeVersion extends WorryPracticeVersionSummary {
+  quiz_set: QuizQuestion[];
 }
 
 interface MermaidDiagramProps {
@@ -181,7 +207,7 @@ interface HistoryStat {
   correct: number;
 }
 
-type QuizMode = 'random' | 'weak_area' | 'unanswered' | 'today_remaining' | 'specific_area';
+type QuizMode = 'random' | 'weak_area' | 'unanswered' | 'today_remaining' | 'specific_area' | 'worry_practice';
 type OralVivaStep = 'root' | 'refute' | 'apply' | 'summary';
 type QuestionTagFilter = 'all' | 'calculation_only' | 'exclude_calculation';
 
@@ -292,6 +318,7 @@ function normalizeStudySettingsPayload(value: unknown): StudySettingsPayload {
       payload.default_quiz_mode === 'weak_area' ||
       payload.default_quiz_mode === 'unanswered' ||
       payload.default_quiz_mode === 'specific_area' ||
+      payload.default_quiz_mode === 'worry_practice' ||
       payload.default_quiz_mode === 'today_remaining'
       ? payload.default_quiz_mode
       : 'today_remaining';
@@ -469,6 +496,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   const [questionStartedAt, setQuestionStartedAt] = useState<number>(Date.now());
   const [isScratchpadOpen, setIsScratchpadOpen] = useState(false);
   const [adhocQuizLabel, setAdhocQuizLabel] = useState('');
+  const [adhocHistoryMode, setAdhocHistoryMode] = useState('');
   const [isOralVivaActive, setIsOralVivaActive] = useState(false);
   const [oralVivaStepIndex, setOralVivaStepIndex] = useState(0);
   const [oralVivaMessages, setOralVivaMessages] = useState<OralVivaMessage[]>([]);
@@ -504,6 +532,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   const currentExplanationImageDataUrls = currentQuestion
     ? getCustomImageUrls(currentQuestion.custom_explanation_image_data_urls, currentQuestion.custom_explanation_image_data_url)
     : [];
+  const isDisposablePracticeQuestion = currentQuestion?.subject === WORRY_PRACTICE_SUBJECT_NAME;
 
   const openMemoModal = (type: 'scratchpad' | 'customExplanation') => {
     const content = type === 'scratchpad' ? scratchpadText : customExplanationText;
@@ -692,6 +721,18 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   const [specificAreaHistoryScope, setSpecificAreaHistoryScope] = useState<SpecificAreaHistoryScope>('all');
   const [specificAreaSuggestions, setSpecificAreaSuggestions] = useState<string[]>([]);
   const [isSpecificAreaSuggestionsLoading, setIsSpecificAreaSuggestionsLoading] = useState(false);
+  const [worryPracticeInput, setWorryPracticeInput] = useState(() => {
+    try {
+      return localStorage.getItem(WORRY_PRACTICE_INPUT_STORAGE_KEY) || '';
+    } catch {
+      return '';
+    }
+  });
+  const [worryPracticeVersions, setWorryPracticeVersions] = useState<WorryPracticeVersionSummary[]>([]);
+  const [isWorryPracticeVersionsLoading, setIsWorryPracticeVersionsLoading] = useState(false);
+  const [isWorryPracticeVersionStarting, setIsWorryPracticeVersionStarting] = useState(false);
+  const [deletingWorryPracticeVersionId, setDeletingWorryPracticeVersionId] = useState('');
+  const [worryPracticeGenerationStep, setWorryPracticeGenerationStep] = useState(0);
   const [hiddenStudyActionModes, setHiddenStudyActionModes] = useState<StudyActionMode[]>(loadCachedHiddenStudyActionModes);
   const [subjectSelectionPatterns, setSubjectSelectionPatterns] = useState<SubjectSelectionPattern[]>(loadCachedSubjectSelectionPatterns);
   const [defaultSubjectPatternId, setDefaultSubjectPatternId] = useState<string | null>(null);
@@ -702,6 +743,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   const [subjectPatternName, setSubjectPatternName] = useState('');
   const [selectedSubjectPatternId, setSelectedSubjectPatternId] = useState('');
   const specificAreaProgressTimerRef = useRef<number | null>(null);
+  const worryPracticeProgressTimerRef = useRef<number | null>(null);
   const didApplyDefaultStudySettingsRef = useRef(false);
   const normalizedSpecificAreaKeywords = useMemo(
     () => specificAreaKeywords.map((keyword) => keyword.trim()).filter((keyword) => keyword.length > 0),
@@ -733,6 +775,13 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     }
   }, []);
 
+  const clearWorryPracticeProgressTimer = useCallback(() => {
+    if (worryPracticeProgressTimerRef.current !== null) {
+      window.clearInterval(worryPracticeProgressTimerRef.current);
+      worryPracticeProgressTimerRef.current = null;
+    }
+  }, []);
+
   useEffect(() => {
     localStorage.setItem('subjectWeights', JSON.stringify(subjectWeights));
   }, [subjectWeights]);
@@ -744,6 +793,37 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   useEffect(() => {
     localStorage.setItem(STUDY_ACTION_MODE_VISIBILITY_STORAGE_KEY, JSON.stringify(hiddenStudyActionModes));
   }, [hiddenStudyActionModes]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(WORRY_PRACTICE_INPUT_STORAGE_KEY, worryPracticeInput);
+    } catch {
+      // no-op
+    }
+  }, [worryPracticeInput]);
+
+  const fetchWorryPracticeVersions = useCallback(async () => {
+    setIsWorryPracticeVersionsLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/quiz/worry-practice/versions`);
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(payload?.detail || '心配事演習の保存版を取得できませんでした。');
+      }
+      setWorryPracticeVersions(Array.isArray(payload) ? payload : []);
+    } catch (versionError) {
+      console.error(versionError);
+      setError(versionError instanceof Error ? versionError.message : '心配事演習の保存版を取得できませんでした。');
+      setWorryPracticeVersions([]);
+    } finally {
+      setIsWorryPracticeVersionsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (quizMode !== 'worry_practice') return;
+    void fetchWorryPracticeVersions();
+  }, [fetchWorryPracticeVersions, quizMode]);
 
   const applyStudySettingsPayload = useCallback((payload: StudySettingsPayload) => {
     const normalized = normalizeStudySettingsPayload(payload);
@@ -967,10 +1047,18 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     if (quizMode === 'today_remaining') {
       setSelectedSubjectNames(todayRemaining.subjects);
       setSelectedSubjectPatternId('');
+    } else if (quizMode === 'worry_practice') {
+      setSelectedSubjectNames([]);
+      setSelectedSubjectPatternId('');
     }
   }, [quizMode, todayRemaining]);
 
-  const effectiveSelectedSubjectNames = quizMode === 'today_remaining' ? todayRemaining.subjects : selectedSubjectNames;
+  const effectiveSelectedSubjectNames =
+    quizMode === 'worry_practice'
+      ? [WORRY_PRACTICE_SUBJECT_NAME]
+      : quizMode === 'today_remaining'
+        ? todayRemaining.subjects
+        : selectedSubjectNames;
 
   useEffect(() => {
     if (quizState !== 'setup') return;
@@ -990,11 +1078,13 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       setQuizState('active');
       setSelectedSubjectNames(Array.from(new Set(parsed.map((q) => q.subject).filter(Boolean))));
       setAdhocQuizLabel(sessionStorage.getItem('adhocQuizLabel') || '類題演習');
+      setAdhocHistoryMode(sessionStorage.getItem(ADHOC_QUIZ_HISTORY_MODE_STORAGE_KEY) || SIMILAR_PRACTICE_HISTORY_MODE);
       shuffledChoicesByQuestionRef.current = {};
       prefetchedImageUrlsRef.current = new Set();
       resetQuestionState();
       sessionStorage.removeItem('adhocQuizSet');
       sessionStorage.removeItem('adhocQuizLabel');
+      sessionStorage.removeItem(ADHOC_QUIZ_HISTORY_MODE_STORAGE_KEY);
       params.delete('adhoc');
       const nextUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`;
       window.history.replaceState({}, '', nextUrl);
@@ -1003,6 +1093,8 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       setError(message);
       sessionStorage.removeItem('adhocQuizSet');
       sessionStorage.removeItem('adhocQuizLabel');
+      sessionStorage.removeItem(ADHOC_QUIZ_HISTORY_MODE_STORAGE_KEY);
+      setAdhocHistoryMode('');
     }
   }, [quizState]);
 
@@ -1041,7 +1133,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     didApplyDefaultStudySettingsRef.current = true;
     setQuizMode(defaultQuizMode);
 
-    if (defaultQuizMode === 'today_remaining' || !defaultSubjectPatternId) {
+    if (defaultQuizMode === 'today_remaining' || defaultQuizMode === 'worry_practice' || !defaultSubjectPatternId) {
       return;
     }
 
@@ -1159,6 +1251,10 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     clearSpecificAreaProgressTimer();
   }, [clearSpecificAreaProgressTimer]);
 
+  useEffect(() => () => {
+    clearWorryPracticeProgressTimer();
+  }, [clearWorryPracticeProgressTimer]);
+
   const fetchHistoryStats = useCallback(async () => {
     if (questions.length === 0) {
       setHistoryStats({});
@@ -1201,6 +1297,10 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       alert('今日の残りモードでは、科目は学習計画から自動選択されます。');
       return;
     }
+    if (quizMode === 'worry_practice') {
+      alert('心配事演習では、科目は心配事演習として自動記録されます。');
+      return;
+    }
 
     const patternName = subjectPatternName.trim();
     if (!patternName) {
@@ -1241,6 +1341,11 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
     if (quizMode === 'today_remaining') {
       alert('今日の残りモードでは、科目は学習計画から自動選択されます。');
+      setSelectedSubjectPatternId('');
+      return;
+    }
+    if (quizMode === 'worry_practice') {
+      alert('心配事演習では、科目パターンは使いません。');
       setSelectedSubjectPatternId('');
       return;
     }
@@ -1403,8 +1508,127 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     }
   };
 
+  const startWorryPracticeVersion = async (versionId: string) => {
+    if (isWorryPracticeVersionStarting) return;
+    setIsWorryPracticeVersionStarting(true);
+    setError('');
+    try {
+      const response = await fetch(`${API_BASE_URL}/quiz/worry-practice/versions/${encodeURIComponent(versionId)}`);
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(payload?.detail || '心配事演習の保存版を取得できませんでした。');
+      }
+      const version = payload as WorryPracticeVersion;
+      const quizSet = Array.isArray(version.quiz_set) ? version.quiz_set : [];
+      if (quizSet.length === 0) {
+        throw new Error('この保存版には再演習できる問題がありません。');
+      }
+
+      setWorryPracticeInput(version.concern_text || '');
+      setQuestions(quizSet);
+      shuffledChoicesByQuestionRef.current = {};
+      prefetchedImageUrlsRef.current = new Set();
+      setAdhocQuizLabel(`心配事演習 v${version.version}`);
+      setAdhocHistoryMode('');
+      setSelectedSubjectNames([WORRY_PRACTICE_SUBJECT_NAME]);
+      setCurrentQuestionIndex(0);
+      setScore(0);
+      setIsForcedSession(false);
+      setQuizState('active');
+      resetQuestionState();
+    } catch (versionError) {
+      console.error(versionError);
+      setError(versionError instanceof Error ? versionError.message : '心配事演習の保存版を開始できませんでした。');
+    } finally {
+      setIsWorryPracticeVersionStarting(false);
+    }
+  };
+
+  const deleteWorryPracticeVersion = async (versionId: string) => {
+    if (deletingWorryPracticeVersionId) return;
+    const shouldDelete = window.confirm('この心配事演習の保存版を削除しますか？');
+    if (!shouldDelete) return;
+
+    setDeletingWorryPracticeVersionId(versionId);
+    setError('');
+    try {
+      const response = await fetch(`${API_BASE_URL}/quiz/worry-practice/versions/${encodeURIComponent(versionId)}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.detail || '心配事演習の保存版を削除できませんでした。');
+      }
+      setWorryPracticeVersions((prev) => prev.filter((item) => item.id !== versionId));
+    } catch (versionError) {
+      console.error(versionError);
+      setError(versionError instanceof Error ? versionError.message : '心配事演習の保存版を削除できませんでした。');
+    } finally {
+      setDeletingWorryPracticeVersionId('');
+    }
+  };
+
   const startQuiz = async (forcedSession = false) => {
+    setAdhocHistoryMode('');
     let questionsToFetch = numQuestions;
+    if (quizMode === 'worry_practice') {
+      const concernText = worryPracticeInput.trim();
+      if (!concernText) {
+        setError('心配事演習では、苦手分野や出してほしい類題情報を入力してください。');
+        return;
+      }
+      if (questionsToFetch <= 0) {
+        setError('出題する問題数が0以下です。');
+        return;
+      }
+
+      setIsLoading(true);
+      setError('');
+      clearWorryPracticeProgressTimer();
+      setWorryPracticeGenerationStep(0);
+      worryPracticeProgressTimerRef.current = window.setInterval(() => {
+        setWorryPracticeGenerationStep((prev) => Math.min(prev + 1, WORRY_PRACTICE_GENERATION_STEPS.length - 1));
+      }, 900);
+      try {
+        const response = await fetch(`${API_BASE_URL}/quiz/worry-practice/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            concern_text: concernText,
+            count: questionsToFetch,
+          }),
+        });
+        const data = await response.json().catch(() => null);
+        if (!response.ok) {
+          throw new Error(data?.detail || '心配事演習問題の生成に失敗しました。');
+        }
+        const quizSet = Array.isArray(data?.quiz_set) ? data.quiz_set : [];
+        if (quizSet.length === 0) {
+          throw new Error('出題できる問題がありません。');
+        }
+        const version = data?.version as WorryPracticeVersionSummary | undefined;
+        if (version?.id) {
+          setWorryPracticeVersions((prev) => [version, ...prev.filter((item) => item.id !== version.id)]);
+        }
+        setWorryPracticeGenerationStep(WORRY_PRACTICE_GENERATION_STEPS.length - 1);
+        setQuestions(quizSet);
+        shuffledChoicesByQuestionRef.current = {};
+        prefetchedImageUrlsRef.current = new Set();
+        setAdhocQuizLabel(version ? `心配事演習 v${version.version}` : '心配事演習');
+        setCurrentQuestionIndex(0);
+        setScore(0);
+        setIsForcedSession(false);
+        setQuizState('active');
+        resetQuestionState();
+      } catch (e: any) {
+        setError(e.message);
+      } finally {
+        clearWorryPracticeProgressTimer();
+        setIsLoading(false);
+      }
+      return;
+    }
+
     if (quizMode === 'today_remaining') {
       if (isTodayProgressLoading) {
         setError('学習予定の実績を読み込み中です。少し待ってから開始してください。');
@@ -1498,6 +1722,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       shuffledChoicesByQuestionRef.current = {};
       prefetchedImageUrlsRef.current = new Set();
       setAdhocQuizLabel('');
+      setAdhocHistoryMode('');
       setCurrentQuestionIndex(0);
       setScore(0);
       setIsForcedSession(forcedSession);
@@ -1710,7 +1935,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
           selected_answer: submittedAnswer,
           is_correct: isCorrect,
           category: currentQuestion.category,
-          mode: quizMode,
+          mode: adhocHistoryMode || quizMode,
         }),
       });
       if (!response.ok) {
@@ -1746,7 +1971,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   const handleNextQuestion = async () => {
     // メモが変更されていたら保存する
     const originalText = currentQuestion?.custom_explanation || '';
-    if (customExplanationText.trim() !== originalText.trim()) {
+    if (!isDisposablePracticeQuestion && customExplanationText.trim() !== originalText.trim()) {
       try {
         await handleSaveCustomExplanation();
       } catch (e) {
@@ -1776,6 +2001,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
   const handleSaveCustomExplanation = async (overrideText?: string) => {
     if (!currentQuestion) return;
+    if (isDisposablePracticeQuestion) return;
     const textToSave = overrideText ?? customExplanationText;
     try {
       setIsSavingCustomExplanation(true);
@@ -2316,7 +2542,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
         <div className="prose prose-sm md:prose-base max-w-none text-gray-700">
           <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={markdownRehypePlugins} components={markdownComponents}>{feedback?.explanation?.text || ''}</ReactMarkdown>
         </div>
-        {currentExplanationImageDataUrls.length > 0 && (
+        {!isDisposablePracticeQuestion && currentExplanationImageDataUrls.length > 0 && (
           <div className="mt-6">
             <h4 className="text-base md:text-lg font-semibold text-primary-new mb-2">My Memo 解説補足画像</h4>
             <div className="space-y-3">
@@ -2337,6 +2563,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
             </div>
           </div>
         )}
+        {!isDisposablePracticeQuestion && (
         <div className="mt-6">
           <div className="flex justify-between items-center mb-2">
             <h4 className="text-base md:text-lg font-semibold text-primary-new">My Memo</h4>
@@ -2351,6 +2578,8 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
             rows={4}
           />
         </div>
+        )}
+        {!isDisposablePracticeQuestion && (
         <div className="mt-6 rounded-xl border border-sky-200 bg-sky-50 p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h4 className="text-base md:text-lg font-semibold text-sky-900">口頭試問モード</h4>
@@ -2479,6 +2708,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
             </div>
           )}
         </div>
+        )}
         <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
@@ -2567,12 +2797,14 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
           )}
         </div>
         <div className="mt-6 pt-4 border-t border-gray-200 flex justify-between items-center">
-          <button
-            onClick={openProblemEditor}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
-          >
-            この問題を編集する
-          </button>
+          {!isDisposablePracticeQuestion ? (
+            <button
+              onClick={openProblemEditor}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+            >
+              この問題を編集する
+            </button>
+          ) : <span />}
           <button id="next-question-button-bottom" type="button" onClick={handleNextQuestion} disabled={isSavingCustomExplanation} className="px-8 py-3 border border-transparent rounded-md shadow-sm text-sm md:text-base font-medium text-dark bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 disabled:cursor-not-allowed">
             {currentQuestionIndex < questions.length - 1 ? '次の問題へ' : '終了'}
           </button>
@@ -2670,19 +2902,21 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
               rows={3}
             />
           )}
-          <div className="mt-3 flex justify-end">
-            <button
-              type="button"
-              onClick={() => void toggleReviewLater()}
-              disabled={isUpdatingReviewLater}
-              className={`px-4 py-2 rounded-md text-sm font-medium border shadow-sm transition-colors ${isCurrentQuestionReviewLater
-                ? 'border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
-                : 'border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100'
-                } disabled:bg-gray-200 disabled:text-gray-500 disabled:border-gray-300 disabled:cursor-not-allowed`}
-            >
-              {isUpdatingReviewLater ? '更新中...' : isCurrentQuestionReviewLater ? '登録済み' : '後で確認'}
-            </button>
-          </div>
+          {!isDisposablePracticeQuestion && (
+            <div className="mt-3 flex justify-end">
+              <button
+                type="button"
+                onClick={() => void toggleReviewLater()}
+                disabled={isUpdatingReviewLater}
+                className={`px-4 py-2 rounded-md text-sm font-medium border shadow-sm transition-colors ${isCurrentQuestionReviewLater
+                  ? 'border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+                  : 'border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100'
+                  } disabled:bg-gray-200 disabled:text-gray-500 disabled:border-gray-300 disabled:cursor-not-allowed`}
+              >
+                {isUpdatingReviewLater ? '更新中...' : isCurrentQuestionReviewLater ? '登録済み' : '後で確認'}
+              </button>
+            </div>
+          )}
           {!isAnswered && ( // Moved "解答する" button here
             <div className="mt-6 text-center">
               <div className="flex flex-col justify-center gap-3 sm:flex-row">
@@ -2887,6 +3121,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                         const isSelected = selectedSubjectNames.includes(s.name);
 
                         const isTodayMode = quizMode === 'today_remaining';
+                        const isWorryMode = quizMode === 'worry_practice';
 
 
 
@@ -2922,7 +3157,9 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
                             // 通常非選択時のスタイル
 
-                            buttonClass += 'bg-gray-200 text-gray-700 hover:bg-gray-300';
+                            buttonClass += isWorryMode
+                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300';
 
                           }
 
@@ -2940,7 +3177,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
                             onClick={() => handleSubjectSelection(s.name)}
 
-                            disabled={isTodayMode}
+                            disabled={isTodayMode || isWorryMode}
 
                             className={buttonClass}
 
@@ -2963,7 +3200,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                           <select
                             value={selectedSubjectPatternId}
                             onChange={(event) => applySubjectSelectionPattern(event.target.value)}
-                            disabled={quizMode === 'today_remaining' || subjectSelectionPatterns.length === 0}
+                            disabled={quizMode === 'today_remaining' || quizMode === 'worry_practice' || subjectSelectionPatterns.length === 0}
                             className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-new focus:outline-none focus:ring-2 focus:ring-primary-new/20 disabled:bg-gray-100 disabled:text-gray-400"
                           >
                             <option value="">パターンを選択</option>
@@ -2989,14 +3226,14 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                           type="text"
                           value={subjectPatternName}
                           onChange={(event) => setSubjectPatternName(event.target.value)}
-                          disabled={quizMode === 'today_remaining'}
+                          disabled={quizMode === 'today_remaining' || quizMode === 'worry_practice'}
                           placeholder=""
                           className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-new focus:outline-none focus:ring-2 focus:ring-primary-new/20 disabled:bg-gray-100 disabled:text-gray-400"
                         />
                         <button
                           type="button"
                           onClick={saveSubjectSelectionPattern}
-                          disabled={quizMode === 'today_remaining' || selectedSubjectNames.length === 0}
+                          disabled={quizMode === 'today_remaining' || quizMode === 'worry_practice' || selectedSubjectNames.length === 0}
                           className="rounded-md bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:bg-gray-300"
                         >
                           現在の選択を登録
@@ -3036,7 +3273,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
                     <label className="heading-2 block text-sm font-medium text-gray-700">モード</label>
 
-                    <div className="mt-2 grid grid-cols-2 sm:grid-cols-5 gap-3">
+                    <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-3">
 
                       <button type="button" onClick={() => setQuizMode('today_remaining')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'today_remaining' ? 'bg-[#e8383d] text-white' : 'bg-red-100 text-gray-700 hover:bg-red-200'}`}>今日の残り</button>
 
@@ -3048,11 +3285,13 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
                       <button type="button" onClick={() => setQuizMode('specific_area')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'specific_area' ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>特定領域</button>
 
+                      <button type="button" onClick={() => setQuizMode('worry_practice')} className={`px-4 py-2 rounded-md text-sm font-medium ${quizMode === 'worry_practice' ? 'bg-amber-600 text-white' : 'bg-amber-100 text-amber-900 hover:bg-amber-200'}`}>心配事</button>
+
                     </div>
 
                     <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
                       <div className="text-xs font-medium text-slate-600">
-                        デフォルト: {defaultQuizMode === 'today_remaining' ? '今日の残り' : defaultQuizMode === 'random' ? 'ランダム' : defaultQuizMode === 'weak_area' ? '苦手克服' : defaultQuizMode === 'unanswered' ? '未解答問題' : '特定領域'}
+                        デフォルト: {defaultQuizMode === 'today_remaining' ? '今日の残り' : defaultQuizMode === 'random' ? 'ランダム' : defaultQuizMode === 'weak_area' ? '苦手克服' : defaultQuizMode === 'unanswered' ? '未解答問題' : defaultQuizMode === 'specific_area' ? '特定領域' : '心配事'}
                       </div>
                       <button
                         type="button"
@@ -3302,6 +3541,110 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                     </div>
                   )}
 
+                  {quizMode === 'worry_practice' && (
+                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-4">
+                      <div className="flex flex-col gap-1">
+                        <label className="heading-2 block text-sm font-semibold text-amber-950">心配事・出題してほしい論点</label>
+                        <div className="text-xs text-amber-800">生成ごとに入力内容と問題セットを保存版として残します。同じ入力から再生成すると v2, v3 として管理します。</div>
+                      </div>
+                      <textarea
+                        value={worryPracticeInput}
+                        onChange={(event) => setWorryPracticeInput(event.target.value)}
+                        rows={6}
+                        className="w-full rounded-md border border-amber-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200"
+                      />
+                      {isLoading && quizMode === 'worry_practice' && (
+                        <div className="rounded-lg border border-amber-200 bg-white px-3 py-3">
+                          <div className="flex items-center justify-between gap-3 text-xs font-semibold text-amber-900">
+                            <span>AI問題生成中</span>
+                            <span>{WORRY_PRACTICE_GENERATION_STEPS[worryPracticeGenerationStep]}</span>
+                          </div>
+                          <div className="mt-2 h-2 overflow-hidden rounded-full bg-amber-100">
+                            <div
+                              className="h-full rounded-full bg-amber-500 transition-all duration-300"
+                              style={{ width: `${((worryPracticeGenerationStep + 1) / WORRY_PRACTICE_GENERATION_STEPS.length) * 100}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-amber-800">
+                        <span>科目: 心配事演習 / モード: 心配事</span>
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() => void fetchWorryPracticeVersions()}
+                            disabled={isWorryPracticeVersionsLoading}
+                            className="rounded-md border border-amber-200 bg-white px-3 py-1.5 font-medium text-amber-900 hover:bg-amber-100 disabled:opacity-50"
+                          >
+                            {isWorryPracticeVersionsLoading ? '更新中' : '保存版を更新'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setWorryPracticeInput('')}
+                            disabled={!worryPracticeInput}
+                            className="rounded-md border border-amber-200 bg-white px-3 py-1.5 font-medium text-amber-900 hover:bg-amber-100 disabled:opacity-50"
+                          >
+                            入力をクリア
+                          </button>
+                        </div>
+                      </div>
+                      <div className="rounded-lg border border-amber-200 bg-white/80 p-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="text-sm font-semibold text-amber-950">保存版</div>
+                          <div className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-900">{worryPracticeVersions.length}件</div>
+                        </div>
+                        {isWorryPracticeVersionsLoading ? (
+                          <p className="mt-3 text-xs text-amber-800">保存版を読み込んでいます。</p>
+                        ) : worryPracticeVersions.length === 0 ? (
+                          <p className="mt-3 text-xs text-amber-800">まだ保存版はありません。演習を開始すると自動で保存されます。</p>
+                        ) : (
+                          <div className="mt-3 max-h-72 space-y-2 overflow-y-auto pr-1">
+                            {worryPracticeVersions.map((version) => (
+                              <div key={version.id} className="rounded-md border border-amber-100 bg-white px-3 py-2">
+                                <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
+                                  <div className="min-w-0">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900">v{version.version}</span>
+                                      <span className="truncate text-sm font-semibold text-slate-800">{version.title}</span>
+                                    </div>
+                                    <div className="mt-1 text-xs text-slate-500">
+                                      {version.question_count}問 / {new Date(version.created_at).toLocaleString()}
+                                    </div>
+                                  </div>
+                                  <div className="flex flex-wrap gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => void startWorryPracticeVersion(version.id)}
+                                      disabled={isWorryPracticeVersionStarting || isLoading}
+                                      className="rounded-md bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700 disabled:bg-gray-300"
+                                    >
+                                      この版で再演習
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setWorryPracticeInput(version.concern_text)}
+                                      className="rounded-md border border-amber-200 bg-white px-3 py-1.5 text-xs font-semibold text-amber-900 hover:bg-amber-50"
+                                    >
+                                      入力へ戻す
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => void deleteWorryPracticeVersion(version.id)}
+                                      disabled={deletingWorryPracticeVersionId === version.id}
+                                      className="rounded-md border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"
+                                    >
+                                      {deletingWorryPracticeVersionId === version.id ? '削除中' : '削除'}
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   <div>
 
                     <label className="heading-2 block text-sm font-medium text-gray-700">問題数</label>
@@ -3327,6 +3670,8 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                       {quizMode === 'specific_area' && isSpecificAreaCountLoading && '(対象選定中...)'}
 
                       {quizMode === 'specific_area' && normalizedSpecificAreaKeywords.length > 0 && !isSpecificAreaCountLoading && !hasSpecificAreaInvestigationResult && !specificAreaCountError && '(対象問題を調査してください)'}
+
+                      {quizMode === 'worry_practice' && '(入力内容から保存版問題を生成)'}
 
                     </div>
 
@@ -3413,7 +3758,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                         <button
                           type="button"
                           onClick={() => openIpadMode('air')}
-                          disabled={isLoading || effectiveSelectedSubjectNames.length === 0 || quizMode === 'specific_area' || (quizMode === 'today_remaining' && isTodayProgressLoading)}
+                          disabled={isLoading || effectiveSelectedSubjectNames.length === 0 || quizMode === 'specific_area' || quizMode === 'worry_practice' || (quizMode === 'today_remaining' && isTodayProgressLoading)}
                           className="w-full py-3 px-4 border border-cyan-600 rounded-md shadow-sm text-base font-medium text-cyan-700 bg-cyan-50 hover:bg-cyan-100 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           iPad Airモード
@@ -3423,7 +3768,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                         <button
                           type="button"
                           onClick={() => openIpadMode('mini')}
-                          disabled={isLoading || effectiveSelectedSubjectNames.length === 0 || quizMode === 'specific_area' || (quizMode === 'today_remaining' && isTodayProgressLoading)}
+                          disabled={isLoading || effectiveSelectedSubjectNames.length === 0 || quizMode === 'specific_area' || quizMode === 'worry_practice' || (quizMode === 'today_remaining' && isTodayProgressLoading)}
                           className="w-full py-3 px-4 border border-sky-600 rounded-md shadow-sm text-base font-medium text-sky-700 bg-sky-50 hover:bg-sky-100 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           iPad miniモード
@@ -3433,7 +3778,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                         <button
                           type="button"
                           onClick={openPaperPracticeMode}
-                          disabled={isLoading || effectiveSelectedSubjectNames.length === 0 || (quizMode === 'today_remaining' && isTodayProgressLoading)}
+                          disabled={isLoading || effectiveSelectedSubjectNames.length === 0 || quizMode === 'worry_practice' || (quizMode === 'today_remaining' && isTodayProgressLoading)}
                           className="w-full py-3 px-4 border border-slate-700 rounded-md shadow-sm text-base font-medium text-slate-800 bg-slate-50 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           紙演習モード
@@ -3445,7 +3790,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                     <button
                       type="button"
                       onClick={() => void startQuiz(true)}
-                      disabled={isLoading || effectiveSelectedSubjectNames.length === 0 || (quizMode === 'today_remaining' && isTodayProgressLoading)}
+                      disabled={isLoading || effectiveSelectedSubjectNames.length === 0 || quizMode === 'worry_practice' || (quizMode === 'today_remaining' && isTodayProgressLoading)}
                       className="mt-3 w-full py-3 px-4 border border-[#e8383d] rounded-md shadow-sm text-base font-medium text-[#e8383d] bg-red-50 hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       強制モード
@@ -3458,7 +3803,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
               </div>
 
-              <SubjectProgress selectedSubjectNames={selectedSubjectNames} quizMode={quizMode} />
+              <SubjectProgress selectedSubjectNames={quizMode === 'worry_practice' ? [WORRY_PRACTICE_SUBJECT_NAME] : selectedSubjectNames} quizMode={quizMode} />
 
             </div>
 
