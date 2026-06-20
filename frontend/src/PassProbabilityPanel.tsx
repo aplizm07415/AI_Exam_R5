@@ -5,6 +5,9 @@ const API_BASE_URL = '/api';
 const PASSING_SCORE_STORAGE_KEY = 'dashboard:passingScore';
 const PAST_EXAM_WEIGHT_STORAGE_KEY = 'dashboard:pastExamWeight';
 const INCLUDE_PAST_EXAM_STORAGE_KEY = 'dashboard:includePastExamRecords';
+const ANALYSIS_POLICY_STORAGE_KEY = 'dashboard:passProbabilityAnalysisPolicy';
+
+type AnalysisPolicy = 'coverage_adjusted' | 'answered_recent_weighted';
 
 interface Subject {
   name: string;
@@ -58,6 +61,7 @@ interface PastExamRecordEvidence {
 
 interface PassProbabilityResponse {
   analysis_id: string;
+  analysis_policy: AnalysisPolicy;
   subjects: string[];
   passing_score: number;
   total_problems: number;
@@ -89,6 +93,7 @@ interface PassProbabilityHistoryItem {
 interface PassProbabilityRequest {
   subjects: string[];
   passingScore: number;
+  analysisPolicy: AnalysisPolicy;
   includePastExamRecords: boolean;
   pastExamColumns: string[];
   pastExamWeight: number;
@@ -126,6 +131,19 @@ function loadInitialIncludePastExamRecords() {
   } catch {
     return false;
   }
+}
+
+function loadInitialAnalysisPolicy(): AnalysisPolicy {
+  try {
+    const raw = localStorage.getItem(ANALYSIS_POLICY_STORAGE_KEY);
+    return raw === 'answered_recent_weighted' ? 'answered_recent_weighted' : 'coverage_adjusted';
+  } catch {
+    return 'coverage_adjusted';
+  }
+}
+
+function analysisPolicyLabel(policy: AnalysisPolicy) {
+  return policy === 'answered_recent_weighted' ? '実施済み・直近重視' : '標準';
 }
 
 function formatPercent(value: number) {
@@ -193,6 +211,7 @@ export default function PassProbabilityPanel({
 }: PassProbabilityPanelProps) {
   const [draftSubjectNames, setDraftSubjectNames] = useState<string[]>(selectedSubjectNames);
   const [passingScore, setPassingScore] = useState(loadInitialPassingScore);
+  const [analysisPolicy, setAnalysisPolicy] = useState<AnalysisPolicy>(loadInitialAnalysisPolicy);
   const [includePastExamRecords, setIncludePastExamRecords] = useState(loadInitialIncludePastExamRecords);
   const [pastExamWeight, setPastExamWeight] = useState(loadInitialPastExamWeight);
   const [pastExamRecordsBook, setPastExamRecordsBook] = useState<PastExamRecordsBook | null>(null);
@@ -222,6 +241,7 @@ export default function PassProbabilityPanel({
   const hasUnappliedChanges = useMemo(() => {
     if (!lastRequest) return draftSubjectNames.length > 0;
     if (lastRequest.passingScore !== passingScore) return true;
+    if (lastRequest.analysisPolicy !== analysisPolicy) return true;
     if (lastRequest.includePastExamRecords !== includePastExamRecords) return true;
     if (lastRequest.pastExamWeight !== pastExamWeight) return true;
     if (lastRequest.subjects.length !== draftSubjectNames.length) return true;
@@ -230,7 +250,7 @@ export default function PassProbabilityPanel({
     if (lastRequest.pastExamColumns.length !== selectedPastExamColumns.length) return true;
     const lastPastExamColumnSet = new Set(lastRequest.pastExamColumns);
     return selectedPastExamColumns.some((column) => !lastPastExamColumnSet.has(column));
-  }, [draftSubjectNames, includePastExamRecords, lastRequest, passingScore, pastExamWeight, selectedPastExamColumns]);
+  }, [analysisPolicy, draftSubjectNames, includePastExamRecords, lastRequest, passingScore, pastExamWeight, selectedPastExamColumns]);
 
   useEffect(() => {
     try {
@@ -239,6 +259,14 @@ export default function PassProbabilityPanel({
       // no-op
     }
   }, [passingScore]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(ANALYSIS_POLICY_STORAGE_KEY, analysisPolicy);
+    } catch {
+      // no-op
+    }
+  }, [analysisPolicy]);
 
   useEffect(() => {
     try {
@@ -345,6 +373,7 @@ export default function PassProbabilityPanel({
       const query = new URLSearchParams();
       targetSubjects.forEach((subject) => query.append('subjects', subject));
       query.append('passing_score', String(passingScore));
+      query.append('analysis_policy', analysisPolicy);
       if (includePastExamRecords) {
         query.append('include_past_exam_records', 'true');
         selectedPastExamColumns.forEach((column) => query.append('past_exam_columns', column));
@@ -359,6 +388,7 @@ export default function PassProbabilityPanel({
       setLastRequest({
         subjects: targetSubjects,
         passingScore,
+        analysisPolicy,
         includePastExamRecords,
         pastExamColumns: includePastExamRecords ? selectedPastExamColumns : [],
         pastExamWeight,
@@ -445,6 +475,26 @@ export default function PassProbabilityPanel({
         </div>
       </div>
 
+      <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <span className="text-xs font-semibold text-slate-600">分析方針</span>
+        <div className="inline-flex rounded-md border border-slate-200 bg-slate-50 p-1">
+          {(['coverage_adjusted', 'answered_recent_weighted'] as AnalysisPolicy[]).map((policy) => (
+            <button
+              key={policy}
+              type="button"
+              onClick={() => setAnalysisPolicy(policy)}
+              className={`rounded px-3 py-1.5 text-xs font-semibold transition ${
+                analysisPolicy === policy
+                  ? 'bg-white text-sky-700 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              {analysisPolicyLabel(policy)}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <label className="flex items-center gap-2 text-sm font-semibold text-slate-800">
@@ -515,7 +565,9 @@ export default function PassProbabilityPanel({
       <div className="mt-4 flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="text-sm text-slate-600">
           {data ? (
-            <span>分析済み: {data.subjects.length}件 / 合格ライン {data.passing_score.toFixed(1)}点 / 保存ID {data.analysis_id.slice(-8)}</span>
+            <span>
+              分析済み: {data.subjects.length}件 / {analysisPolicyLabel(data.analysis_policy)} / 合格ライン {data.passing_score.toFixed(1)}点 / 保存ID {data.analysis_id.slice(-8)}
+            </span>
           ) : (
             <span>分析済みデータはありません。</span>
           )}
@@ -654,7 +706,9 @@ export default function PassProbabilityPanel({
             <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-600">
               <p className="font-semibold text-slate-700">算定ロジック</p>
               <p className="mt-1">
-                未実施問題は対象内の初回正答率と同じ値で置き、実施済み問題は累計正答率、直近5回の重み付き正答率、最後の正誤を混ぜて問題ごとの推定正答確率を出します。
+                {data.analysis_policy === 'answered_recent_weighted'
+                  ? '未解答問題は推定得点の母集団から外し、解答済み問題は直近5回の重み付き正答率と最後の正誤を強めに見て問題ごとの推定正答確率を出します。'
+                  : '未実施問題は対象内の初回正答率と同じ値で置き、実施済み問題は累計正答率、直近5回の重み付き正答率、最後の正誤を混ぜて問題ごとの推定正答確率を出します。'}
                 実戦点数を反映する場合は、問題JSONマッピングに一致する科目列だけを使い、新しい模試/過去問ほど重く平均し、指定比率を上限に最終推定へ混ぜます。
                 その推定得点を、問題数由来のばらつき、合格ラインとの差、履歴量・進捗による根拠信頼度で合格ライン到達可能性へ補正します。
               </p>

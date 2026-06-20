@@ -66,6 +66,7 @@ QuestionTagFilter = Literal["all", "calculation_only", "exclude_calculation"]
 CALCULATION_TAG = "calculation"
 StudyQuizMode = Literal["random", "weak_area", "unanswered", "today_remaining", "specific_area", "worry_practice"]
 StudyActionMode = Literal["ipad_air", "ipad_mini", "paper_practice", "forced"]
+PassProbabilityAnalysisPolicy = Literal["coverage_adjusted", "answered_recent_weighted"]
 
 
 class SpecificAreaSuggestionRequest(BaseModel):
@@ -219,12 +220,14 @@ class PastExamRecordEvidence(BaseModel):
 class PassProbabilityAnalysisRequestSnapshot(BaseModel):
     subjects: list[str]
     passing_score: float
+    analysis_policy: PassProbabilityAnalysisPolicy = "coverage_adjusted"
     include_past_exam_records: bool = False
     past_exam_columns: list[str] = Field(default_factory=list)
     past_exam_weight: float = 0.35
 
 class PassProbabilityResponse(BaseModel):
     analysis_id: str
+    analysis_policy: PassProbabilityAnalysisPolicy = "coverage_adjusted"
     subjects: list[str]
     passing_score: float
     total_problems: int
@@ -1681,7 +1684,11 @@ def _unanswered_mastery_estimate(first_attempt_rate: Optional[float]) -> float:
     return max(0.05, min(0.95, first_attempt_rate))
 
 
-def _estimated_problem_mastery(history_items: list[HistoryItem], unanswered_estimate: float = 0.20) -> float:
+def _estimated_problem_mastery(
+    history_items: list[HistoryItem],
+    unanswered_estimate: float = 0.20,
+    analysis_policy: PassProbabilityAnalysisPolicy = "coverage_adjusted",
+) -> float:
     if not history_items:
         return unanswered_estimate
 
@@ -1693,15 +1700,19 @@ def _estimated_problem_mastery(history_items: list[HistoryItem], unanswered_esti
     recent_items = list(reversed(ordered_items[-5:]))
     weighted_correct = 0.0
     weight_total = 0.0
+    recent_decay = 0.55 if analysis_policy == "answered_recent_weighted" else 0.72
     for index, item in enumerate(recent_items):
-        weight = 0.72 ** index
+        weight = recent_decay ** index
         weight_total += weight
         if item.is_correct:
             weighted_correct += weight
     recent_rate = weighted_correct / weight_total if weight_total else smoothed_rate
     last_signal = 1.0 if ordered_items[-1].is_correct else 0.0
 
-    estimate = (0.55 * smoothed_rate) + (0.35 * recent_rate) + (0.10 * last_signal)
+    if analysis_policy == "answered_recent_weighted":
+        estimate = (0.25 * smoothed_rate) + (0.60 * recent_rate) + (0.15 * last_signal)
+    else:
+        estimate = (0.55 * smoothed_rate) + (0.35 * recent_rate) + (0.10 * last_signal)
     return max(0.05, min(0.98, estimate))
 
 
@@ -1830,6 +1841,7 @@ def _save_pass_probability_analysis(
         request=PassProbabilityAnalysisRequestSnapshot(
             subjects=response.subjects,
             passing_score=response.passing_score,
+            analysis_policy=response.analysis_policy,
             include_past_exam_records=include_past_exam_records,
             past_exam_columns=response.past_exam_records.columns if include_past_exam_records else [],
             past_exam_weight=round(max(0.0, min(1.0, past_exam_weight)), 2),
@@ -1892,6 +1904,7 @@ def _load_pass_probability_history(limit: int = 20) -> list[PassProbabilityHisto
 def _build_pass_probability_response(
     subject_names: list[str],
     passing_score: float,
+    analysis_policy: PassProbabilityAnalysisPolicy = "coverage_adjusted",
     include_past_exam_records: bool = False,
     past_exam_columns: Optional[list[str]] = None,
     past_exam_weight: float = 0.35,
@@ -1960,7 +1973,13 @@ def _build_pass_probability_response(
         subject_strong = 0
         for problem_id in question_ids:
             problem_history = history_by_problem.get(problem_id, [])
-            estimate = _estimated_problem_mastery(problem_history, subject_unanswered_estimate)
+            if not problem_history and analysis_policy == "answered_recent_weighted":
+                continue
+            estimate = _estimated_problem_mastery(
+                problem_history,
+                subject_unanswered_estimate,
+                analysis_policy=analysis_policy,
+            )
             subject_estimates.append(estimate)
             if problem_history:
                 subject_answered += 1
@@ -2052,6 +2071,7 @@ def _build_pass_probability_response(
 
     return PassProbabilityResponse(
         analysis_id=f"passprob-{uuid.uuid4().hex}",
+        analysis_policy=analysis_policy,
         subjects=unique_subjects,
         passing_score=round(passing_score, 1),
         total_problems=total_problems,
@@ -2200,6 +2220,7 @@ def get_pass_probability_history(limit: int = Query(20, ge=1, le=100)):
 def get_pass_probability(
     subjects: list[str] = Query(...),
     passing_score: float = Query(60.0, ge=0, le=100),
+    analysis_policy: PassProbabilityAnalysisPolicy = Query("coverage_adjusted"),
     include_past_exam_records: bool = False,
     past_exam_columns: Optional[List[str]] = Query(None),
     past_exam_weight: float = Query(0.35, ge=0, le=1),
@@ -2210,6 +2231,7 @@ def get_pass_probability(
     response = _build_pass_probability_response(
         subjects,
         passing_score,
+        analysis_policy=analysis_policy,
         include_past_exam_records=include_past_exam_records,
         past_exam_columns=past_exam_columns,
         past_exam_weight=past_exam_weight,

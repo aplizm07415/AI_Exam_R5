@@ -523,6 +523,7 @@ def test_dashboard_pass_probability_uses_history_and_progress(client: TestClient
     assert response.status_code == 200
     payload = response.json()
     assert payload["analysis_id"].startswith("passprob-")
+    assert payload["analysis_policy"] == "coverage_adjusted"
     assert payload["subjects"] == ["subject1.json"]
     assert payload["passing_score"] == 60.0
     assert payload["total_problems"] == 5
@@ -553,7 +554,49 @@ def test_dashboard_pass_probability_uses_history_and_progress(client: TestClient
     assert saved_records[0]["id"] == payload["analysis_id"]
     assert saved_records[0]["request"]["subjects"] == ["subject1.json"]
     assert saved_records[0]["request"]["passing_score"] == 60.0
+    assert saved_records[0]["request"]["analysis_policy"] == "coverage_adjusted"
     assert saved_records[0]["result"]["pass_probability"] == payload["pass_probability"]
+
+
+def test_dashboard_pass_probability_can_ignore_unanswered_and_weight_recent_history(client: TestClient):
+    from backend import main
+
+    response = client.get(
+        "/api/dashboard/pass-probability",
+        params=[
+            ("subjects", "subject1.json"),
+            ("passing_score", "60"),
+            ("analysis_policy", "answered_recent_weighted"),
+        ],
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["analysis_policy"] == "answered_recent_weighted"
+    assert payload["total_problems"] == 5
+    assert payload["answered_problems"] == 4
+    assert payload["coverage_rate"] == 80.0
+
+    history_by_problem = {}
+    for line in TEST_HISTORY_DATA["subject1"]:
+        item = HistoryItem.model_validate_json(line)
+        history_by_problem.setdefault(item.problem_id, []).append(item)
+    expected_score = (
+        sum(
+            main._estimated_problem_mastery(
+                items,
+                analysis_policy="answered_recent_weighted",
+            )
+            for items in history_by_problem.values()
+        )
+        / len(history_by_problem)
+        * 100.0
+    )
+    assert payload["expected_score"] == pytest.approx(round(expected_score, 1))
+    assert payload["subject_breakdown"][0]["expected_score"] == pytest.approx(round(expected_score, 1))
+
+    saved_records = main._test_dashboard_pass_probability_analyses
+    assert saved_records[0]["request"]["analysis_policy"] == "answered_recent_weighted"
 
 
 def test_dashboard_pass_probability_saves_each_analysis_result(client: TestClient):
