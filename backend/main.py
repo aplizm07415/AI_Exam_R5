@@ -2,6 +2,7 @@ import os
 import json
 import random
 import datetime
+import math
 import re
 import unicodedata
 from pathlib import Path
@@ -173,6 +174,88 @@ class MissedProblemDetail(BaseModel):
 
 class FirstMissedProblemsExportResponse(BaseModel):
     questions: list[dict]
+
+class PastExamRecordCell(BaseModel):
+    attempted_at: Optional[str] = None
+    score: Optional[float] = Field(default=None, ge=0, le=100)
+
+class PastExamRecordRow(BaseModel):
+    id: str
+    label: str = Field(min_length=1, max_length=80)
+    cells: dict[str, PastExamRecordCell] = Field(default_factory=dict)
+
+class PastExamRecordsBook(BaseModel):
+    subject_columns: list[str] = Field(default_factory=list)
+    problem_json_mappings: dict[str, list[str]] = Field(default_factory=dict)
+    rows: list[PastExamRecordRow] = Field(default_factory=list)
+    updated_at: Optional[str] = None
+
+class SubjectPassProbabilityItem(BaseModel):
+    subject: str
+    total_problems: int
+    answered_problems: int
+    coverage_rate: float
+    total_attempts: int
+    correct_attempts: int
+    accuracy_rate: float
+    average_attempts_per_answered: float
+    expected_score: float
+    pass_probability: float
+    weak_problem_count: int
+    strong_problem_count: int
+
+class PastExamRecordEvidence(BaseModel):
+    included: bool = False
+    columns: list[str] = Field(default_factory=list)
+    problem_json_mappings: dict[str, list[str]] = Field(default_factory=dict)
+    mapping_applied: bool = False
+    ignored_columns: list[str] = Field(default_factory=list)
+    record_count: int = 0
+    average_score: Optional[float] = None
+    weighted_score: Optional[float] = None
+    requested_weight: float = 0.0
+    effective_weight: float = 0.0
+
+class PassProbabilityAnalysisRequestSnapshot(BaseModel):
+    subjects: list[str]
+    passing_score: float
+    include_past_exam_records: bool = False
+    past_exam_columns: list[str] = Field(default_factory=list)
+    past_exam_weight: float = 0.35
+
+class PassProbabilityResponse(BaseModel):
+    analysis_id: str
+    subjects: list[str]
+    passing_score: float
+    total_problems: int
+    answered_problems: int
+    coverage_rate: float
+    total_attempts: int
+    correct_attempts: int
+    accuracy_rate: float
+    average_attempts_per_answered: float
+    base_expected_score: float
+    expected_score: float
+    projected_score_low: float
+    projected_score_high: float
+    pass_probability: float
+    evidence_confidence: float
+    readiness_label: str
+    recommendation: str
+    past_exam_records: PastExamRecordEvidence = Field(default_factory=PastExamRecordEvidence)
+    subject_breakdown: list[SubjectPassProbabilityItem]
+    analyzed_at: str
+
+class PassProbabilityAnalysisRecord(BaseModel):
+    id: str
+    saved_at: str
+    request: PassProbabilityAnalysisRequestSnapshot
+    result: PassProbabilityResponse
+
+class PassProbabilityHistoryItem(BaseModel):
+    analysis_id: str
+    analyzed_at: str
+    pass_probability: float
 
 class Period(BaseModel):
     from_field: str = Field(alias='from')
@@ -1276,6 +1359,25 @@ def _save_json_blob(blob_name: str, payload) -> None:
         raise HTTPException(status_code=500, detail=f"Failed to save {blob_name}.")
 
 
+def _append_jsonl_blob(blob_name: str, payload) -> None:
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+
+    line = (json.dumps(payload, ensure_ascii=False) + "\n").encode("utf-8")
+    blob_client = container_client.get_blob_client(blob_name)
+    try:
+        if not blob_client.exists():
+            try:
+                blob_client.create_append_blob()
+            except Exception as create_error:
+                if not blob_client.exists():
+                    raise create_error
+        blob_client.append_block(line)
+    except Exception as e:
+        print(f"Error appending jsonl blob {blob_name}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to append {blob_name}.")
+
+
 def _worry_practice_input_hash(concern_text: str) -> str:
     normalized = unicodedata.normalize("NFKC", concern_text).replace("\r\n", "\n").replace("\r", "\n").strip()
     return hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:16]
@@ -1408,6 +1510,569 @@ def health():
 
 PLANS_BLOB_NAME = "plans.json"
 STUDY_SETTINGS_BLOB_NAME = "study-settings/settings.json"
+DASHBOARD_PAST_EXAM_RECORDS_BLOB_NAME = "dashboard/past-exam-records.json"
+DASHBOARD_PASS_PROBABILITY_ANALYSES_BLOB_NAME = "dashboard/pass-probability-analyses.jsonl"
+DEFAULT_PAST_EXAM_SUBJECT_COLUMNS = [
+    "財務・会計",
+    "企業経営理論",
+    "運営管理",
+    "経営法務",
+    "経営情報システム",
+    "中小企業経営・中小企業政策",
+]
+
+
+def _default_past_exam_records_book() -> PastExamRecordsBook:
+    return PastExamRecordsBook(
+        subject_columns=list(DEFAULT_PAST_EXAM_SUBJECT_COLUMNS),
+        problem_json_mappings={},
+        rows=[],
+        updated_at=None,
+    )
+
+
+def _normalize_past_exam_records_payload(raw) -> PastExamRecordsBook:
+    if not isinstance(raw, dict):
+        return _default_past_exam_records_book()
+
+    columns: list[str] = []
+    seen_columns: set[str] = set()
+    raw_columns = raw.get("subject_columns")
+    if not isinstance(raw_columns, list) or not raw_columns:
+        raw_columns = DEFAULT_PAST_EXAM_SUBJECT_COLUMNS
+
+    for item in raw_columns:
+        if not isinstance(item, str):
+            continue
+        column = item.strip()[:80]
+        if not column or column in seen_columns:
+            continue
+        seen_columns.add(column)
+        columns.append(column)
+
+    if not columns:
+        columns = list(DEFAULT_PAST_EXAM_SUBJECT_COLUMNS)
+
+    problem_json_mappings: dict[str, list[str]] = {}
+    raw_mappings = raw.get("problem_json_mappings")
+    if isinstance(raw_mappings, dict):
+        for column in columns:
+            raw_subjects = raw_mappings.get(column)
+            if not isinstance(raw_subjects, list):
+                continue
+            mapped_subjects: list[str] = []
+            seen_subjects: set[str] = set()
+            for item in raw_subjects:
+                if not isinstance(item, str):
+                    continue
+                subject_name = item.strip()[:200]
+                if not subject_name or subject_name in seen_subjects:
+                    continue
+                seen_subjects.add(subject_name)
+                mapped_subjects.append(subject_name)
+            if mapped_subjects:
+                problem_json_mappings[column] = mapped_subjects
+
+    rows: list[PastExamRecordRow] = []
+    seen_row_ids: set[str] = set()
+    raw_rows = raw.get("rows", [])
+    if isinstance(raw_rows, list):
+        for raw_row in raw_rows:
+            if not isinstance(raw_row, dict):
+                continue
+            label = str(raw_row.get("label") or "").strip()[:80]
+            if not label:
+                continue
+            row_id = str(raw_row.get("id") or f"record-{uuid.uuid4().hex[:12]}").strip()
+            if not row_id or row_id in seen_row_ids:
+                row_id = f"record-{uuid.uuid4().hex[:12]}"
+            seen_row_ids.add(row_id)
+
+            cells: dict[str, PastExamRecordCell] = {}
+            raw_cells = raw_row.get("cells", {})
+            if isinstance(raw_cells, dict):
+                for column in columns:
+                    raw_cell = raw_cells.get(column)
+                    if not isinstance(raw_cell, dict):
+                        continue
+                    try:
+                        cell = PastExamRecordCell.model_validate(raw_cell)
+                    except Exception as e:
+                        print(f"Skipping invalid past exam cell: {e}")
+                        continue
+                    if cell.attempted_at or cell.score is not None:
+                        cells[column] = cell
+
+            rows.append(PastExamRecordRow(id=row_id, label=label, cells=cells))
+
+    updated_at = raw.get("updated_at")
+    if not isinstance(updated_at, str):
+        updated_at = None
+
+    return PastExamRecordsBook(
+        subject_columns=columns,
+        problem_json_mappings=problem_json_mappings,
+        rows=rows,
+        updated_at=updated_at,
+    )
+
+
+def _load_past_exam_records_book() -> PastExamRecordsBook:
+    raw = _load_json_blob_or_default(
+        DASHBOARD_PAST_EXAM_RECORDS_BLOB_NAME,
+        _default_past_exam_records_book().model_dump(),
+    )
+    return _normalize_past_exam_records_payload(raw)
+
+
+def _save_past_exam_records_book(book: PastExamRecordsBook) -> PastExamRecordsBook:
+    normalized = _normalize_past_exam_records_payload(book.model_dump())
+    normalized.updated_at = _now_utc_iso()
+    _save_json_blob(DASHBOARD_PAST_EXAM_RECORDS_BLOB_NAME, normalized.model_dump())
+    return normalized
+
+
+def _clamp_percentage(value: float) -> float:
+    return max(0.0, min(100.0, value))
+
+
+def _normal_cdf(value: float) -> float:
+    return 0.5 * (1.0 + math.erf(value / math.sqrt(2.0)))
+
+
+def _readiness_curve_probability(expected_score: float, passing_score: float) -> float:
+    score_gap = passing_score - expected_score
+    try:
+        probability = 100.0 / (1.0 + math.exp(score_gap / 6.5))
+    except OverflowError:
+        probability = 0.0 if score_gap > 0 else 100.0
+    return _clamp_percentage(probability)
+
+
+def _calibrated_pass_probability(expected_score: float, passing_score: float, stddev: float) -> float:
+    if stddev <= 0:
+        return 0.0
+
+    distribution_probability = _clamp_percentage(
+        (1.0 - _normal_cdf((passing_score - expected_score) / stddev)) * 100.0
+    )
+    # The normal approximation can collapse to 0% while a learner is still building evidence.
+    # Keep a soft score-gap curve as a lower signal for a planning dashboard.
+    curve_probability = _readiness_curve_probability(expected_score, passing_score)
+    return _clamp_percentage(max(distribution_probability, curve_probability))
+
+
+def _first_attempt_correct_rate(history_by_problem: dict[str, list[HistoryItem]]) -> Optional[float]:
+    first_attempts: list[HistoryItem] = []
+    for problem_history in history_by_problem.values():
+        if not problem_history:
+            continue
+        first_attempts.append(min(problem_history, key=lambda item: item.answered_at))
+
+    if not first_attempts:
+        return None
+
+    return sum(1 for item in first_attempts if item.is_correct) / len(first_attempts)
+
+
+def _unanswered_mastery_estimate(first_attempt_rate: Optional[float]) -> float:
+    if first_attempt_rate is None:
+        return 0.20
+    return max(0.05, min(0.95, first_attempt_rate))
+
+
+def _estimated_problem_mastery(history_items: list[HistoryItem], unanswered_estimate: float = 0.20) -> float:
+    if not history_items:
+        return unanswered_estimate
+
+    ordered_items = sorted(history_items, key=lambda item: item.answered_at)
+    attempts = len(ordered_items)
+    correct_count = sum(1 for item in ordered_items if item.is_correct)
+    smoothed_rate = (correct_count + 1.0) / (attempts + 2.0)
+
+    recent_items = list(reversed(ordered_items[-5:]))
+    weighted_correct = 0.0
+    weight_total = 0.0
+    for index, item in enumerate(recent_items):
+        weight = 0.72 ** index
+        weight_total += weight
+        if item.is_correct:
+            weighted_correct += weight
+    recent_rate = weighted_correct / weight_total if weight_total else smoothed_rate
+    last_signal = 1.0 if ordered_items[-1].is_correct else 0.0
+
+    estimate = (0.55 * smoothed_rate) + (0.35 * recent_rate) + (0.10 * last_signal)
+    return max(0.05, min(0.98, estimate))
+
+
+def _pass_probability_from_estimates(estimates: list[float], passing_score: float) -> tuple[float, float, float, float]:
+    if not estimates:
+        return 0.0, 0.0, 0.0, 0.0
+
+    expected_score = (sum(estimates) / len(estimates)) * 100.0
+    variance = sum(p * (1.0 - p) for p in estimates)
+    stddev = (math.sqrt(variance) / len(estimates)) * 100.0
+    stddev = max(1.5, stddev)
+    raw_probability = _calibrated_pass_probability(expected_score, passing_score, stddev)
+    return expected_score, stddev, raw_probability, variance
+
+
+def _parse_past_exam_attempted_at(value: Optional[str]) -> datetime.datetime:
+    if not value:
+        return datetime.datetime.min.replace(tzinfo=datetime.timezone.utc)
+    try:
+        parsed = datetime.datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return datetime.datetime.min.replace(tzinfo=datetime.timezone.utc)
+    if parsed.tzinfo is None:
+        parsed = TOKYO_TZ.localize(parsed)
+    return parsed.astimezone(datetime.timezone.utc)
+
+
+def _build_past_exam_record_evidence(
+    include_records: bool,
+    selected_columns: Optional[list[str]],
+    requested_weight: float,
+    target_subjects: Optional[list[str]] = None,
+) -> PastExamRecordEvidence:
+    if not include_records:
+        return PastExamRecordEvidence(included=False)
+
+    book = _load_past_exam_records_book()
+    available_columns = set(book.subject_columns)
+    candidate_columns = [
+        column for column in (selected_columns or book.subject_columns)
+        if column in available_columns
+    ]
+    if not candidate_columns:
+        candidate_columns = list(book.subject_columns)
+
+    target_subject_set = {
+        subject.strip()
+        for subject in (target_subjects or [])
+        if subject and subject.strip()
+    }
+    has_candidate_mappings = any(book.problem_json_mappings.get(column) for column in candidate_columns)
+    mapping_applied = False
+    ignored_columns: list[str] = []
+    columns = candidate_columns
+    if target_subject_set and has_candidate_mappings:
+        mapping_applied = True
+        columns = [
+            column for column in candidate_columns
+            if target_subject_set.intersection(book.problem_json_mappings.get(column, []))
+        ]
+        ignored_columns = [column for column in candidate_columns if column not in columns]
+
+    used_mappings = {
+        column: list(book.problem_json_mappings.get(column, []))
+        for column in columns
+        if book.problem_json_mappings.get(column)
+    }
+
+    score_items: list[tuple[datetime.datetime, float]] = []
+    for row in book.rows:
+        for column in columns:
+            cell = row.cells.get(column)
+            if not cell or cell.score is None:
+                continue
+            score_items.append((_parse_past_exam_attempted_at(cell.attempted_at), float(cell.score)))
+
+    requested_weight = max(0.0, min(1.0, requested_weight))
+    if not score_items:
+        return PastExamRecordEvidence(
+            included=True,
+            columns=columns,
+            problem_json_mappings=used_mappings,
+            mapping_applied=mapping_applied,
+            ignored_columns=ignored_columns,
+            record_count=0,
+            requested_weight=round(requested_weight, 2),
+            effective_weight=0.0,
+        )
+
+    scores = [score for _attempted_at, score in score_items]
+    average_score = sum(scores) / len(scores)
+    recent_first = sorted(score_items, key=lambda item: item[0], reverse=True)
+    weighted_sum = 0.0
+    weight_sum = 0.0
+    for index, (_attempted_at, score) in enumerate(recent_first):
+        weight = 0.85 ** index
+        weighted_sum += score * weight
+        weight_sum += weight
+    weighted_score = weighted_sum / weight_sum if weight_sum else average_score
+    enough_records = max(3, len(columns))
+    record_confidence = min(1.0, len(score_items) / enough_records)
+    effective_weight = requested_weight * record_confidence
+
+    return PastExamRecordEvidence(
+        included=True,
+        columns=columns,
+        problem_json_mappings=used_mappings,
+        mapping_applied=mapping_applied,
+        ignored_columns=ignored_columns,
+        record_count=len(score_items),
+        average_score=round(average_score, 1),
+        weighted_score=round(weighted_score, 1),
+        requested_weight=round(requested_weight, 2),
+        effective_weight=round(effective_weight, 2),
+    )
+
+
+def _save_pass_probability_analysis(
+    response: PassProbabilityResponse,
+    include_past_exam_records: bool,
+    past_exam_weight: float,
+) -> PassProbabilityAnalysisRecord:
+    record = PassProbabilityAnalysisRecord(
+        id=response.analysis_id,
+        saved_at=_now_utc_iso(),
+        request=PassProbabilityAnalysisRequestSnapshot(
+            subjects=response.subjects,
+            passing_score=response.passing_score,
+            include_past_exam_records=include_past_exam_records,
+            past_exam_columns=response.past_exam_records.columns if include_past_exam_records else [],
+            past_exam_weight=round(max(0.0, min(1.0, past_exam_weight)), 2),
+        ),
+        result=response,
+    )
+    _append_jsonl_blob(DASHBOARD_PASS_PROBABILITY_ANALYSES_BLOB_NAME, record.model_dump())
+    return record
+
+
+def _pass_probability_history_sort_key(value: str) -> float:
+    try:
+        parsed = datetime.datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return 0.0
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=datetime.timezone.utc)
+    return parsed.timestamp()
+
+
+def _load_pass_probability_history(limit: int = 20) -> list[PassProbabilityHistoryItem]:
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+
+    blob_client = container_client.get_blob_client(DASHBOARD_PASS_PROBABILITY_ANALYSES_BLOB_NAME)
+    if not blob_client.exists():
+        return []
+
+    try:
+        raw_content = blob_client.download_blob().readall().decode("utf-8")
+    except Exception as e:
+        print(f"Error reading pass probability history: {e}")
+        raise HTTPException(status_code=500, detail="Failed to read pass probability history.")
+
+    items: list[tuple[float, int, PassProbabilityHistoryItem]] = []
+    for index, line in enumerate(raw_content.splitlines()):
+        if not line.strip():
+            continue
+        try:
+            record = PassProbabilityAnalysisRecord.model_validate(json.loads(line))
+        except Exception as e:
+            print(f"Skipping invalid pass probability history line: {e}")
+            continue
+
+        analyzed_at = record.result.analyzed_at or record.saved_at
+        items.append((
+            _pass_probability_history_sort_key(analyzed_at),
+            index,
+            PassProbabilityHistoryItem(
+                analysis_id=record.id,
+                analyzed_at=analyzed_at,
+                pass_probability=record.result.pass_probability,
+            ),
+        ))
+
+    items.sort(key=lambda item: (item[0], item[1]), reverse=True)
+    return [item for _sort_key, _index, item in items[:limit]]
+
+
+def _build_pass_probability_response(
+    subject_names: list[str],
+    passing_score: float,
+    include_past_exam_records: bool = False,
+    past_exam_columns: Optional[list[str]] = None,
+    past_exam_weight: float = 0.35,
+) -> PassProbabilityResponse:
+    unique_subjects: list[str] = []
+    seen_subjects: set[str] = set()
+    for subject in subject_names:
+        subject_name = subject.strip()
+        if not subject_name or subject_name in seen_subjects:
+            continue
+        seen_subjects.add(subject_name)
+        unique_subjects.append(subject_name)
+
+    passing_score = _clamp_percentage(passing_score)
+    passing_rate = passing_score / 100.0
+    all_estimates: list[float] = []
+    total_problems = 0
+    answered_problem_count = 0
+    total_attempts = 0
+    correct_attempts = 0
+    weak_problem_count = 0
+    strong_problem_count = 0
+    subject_breakdown: list[SubjectPassProbabilityItem] = []
+
+    for subject_name in unique_subjects:
+        try:
+            history_items = _get_history_items_for_subject(subject_name)
+            if subject_name == WORRY_PRACTICE_SUBJECT_NAME:
+                question_ids = sorted({item.problem_id for item in history_items})
+            else:
+                question_ids = sorted(_get_all_questions_for_subject(subject_name).keys())
+        except Exception as e:
+            print(f"Warning: failed to build pass probability for {subject_name}: {e}")
+            continue
+
+        if not question_ids:
+            subject_breakdown.append(SubjectPassProbabilityItem(
+                subject=subject_name,
+                total_problems=0,
+                answered_problems=0,
+                coverage_rate=0.0,
+                total_attempts=0,
+                correct_attempts=0,
+                accuracy_rate=0.0,
+                average_attempts_per_answered=0.0,
+                expected_score=0.0,
+                pass_probability=0.0,
+                weak_problem_count=0,
+                strong_problem_count=0,
+            ))
+            continue
+
+        question_id_set = set(question_ids)
+        history_by_problem: dict[str, list[HistoryItem]] = {problem_id: [] for problem_id in question_ids}
+        for item in history_items:
+            if item.problem_id in question_id_set:
+                history_by_problem[item.problem_id].append(item)
+        subject_first_attempt_rate = _first_attempt_correct_rate(history_by_problem)
+        subject_unanswered_estimate = _unanswered_mastery_estimate(subject_first_attempt_rate)
+
+        subject_estimates: list[float] = []
+        subject_attempts = 0
+        subject_correct_attempts = 0
+        subject_answered = 0
+        subject_weak = 0
+        subject_strong = 0
+        for problem_id in question_ids:
+            problem_history = history_by_problem.get(problem_id, [])
+            estimate = _estimated_problem_mastery(problem_history, subject_unanswered_estimate)
+            subject_estimates.append(estimate)
+            if problem_history:
+                subject_answered += 1
+                problem_correct = sum(1 for item in problem_history if item.is_correct)
+                subject_attempts += len(problem_history)
+                subject_correct_attempts += problem_correct
+                if estimate < passing_rate:
+                    subject_weak += 1
+                if len(problem_history) >= 2 and estimate >= max(passing_rate, 0.75):
+                    subject_strong += 1
+
+        subject_expected, _subject_stddev, subject_probability, _subject_variance = _pass_probability_from_estimates(
+            subject_estimates,
+            passing_score,
+        )
+        subject_coverage = (subject_answered / len(question_ids)) * 100.0
+        subject_accuracy = (subject_correct_attempts / subject_attempts) * 100.0 if subject_attempts else 0.0
+        subject_average_attempts = subject_attempts / subject_answered if subject_answered else 0.0
+        subject_breakdown.append(SubjectPassProbabilityItem(
+            subject=subject_name,
+            total_problems=len(question_ids),
+            answered_problems=subject_answered,
+            coverage_rate=round(subject_coverage, 1),
+            total_attempts=subject_attempts,
+            correct_attempts=subject_correct_attempts,
+            accuracy_rate=round(subject_accuracy, 1),
+            average_attempts_per_answered=round(subject_average_attempts, 2),
+            expected_score=round(subject_expected, 1),
+            pass_probability=round(subject_probability, 1),
+            weak_problem_count=subject_weak,
+            strong_problem_count=subject_strong,
+        ))
+
+        all_estimates.extend(subject_estimates)
+        total_problems += len(question_ids)
+        answered_problem_count += subject_answered
+        total_attempts += subject_attempts
+        correct_attempts += subject_correct_attempts
+        weak_problem_count += subject_weak
+        strong_problem_count += subject_strong
+
+    base_expected_score, score_stddev, raw_probability, _variance = _pass_probability_from_estimates(all_estimates, passing_score)
+    past_exam_evidence = _build_past_exam_record_evidence(
+        include_records=include_past_exam_records,
+        selected_columns=past_exam_columns,
+        requested_weight=past_exam_weight,
+        target_subjects=unique_subjects,
+    )
+    expected_score = base_expected_score
+    if (
+        past_exam_evidence.included and
+        past_exam_evidence.weighted_score is not None and
+        past_exam_evidence.effective_weight > 0
+    ):
+        expected_score = (
+            base_expected_score * (1.0 - past_exam_evidence.effective_weight)
+            + past_exam_evidence.weighted_score * past_exam_evidence.effective_weight
+        )
+
+    coverage_rate = (answered_problem_count / total_problems) * 100.0 if total_problems else 0.0
+    accuracy_rate = (correct_attempts / total_attempts) * 100.0 if total_attempts else 0.0
+    average_attempts = total_attempts / answered_problem_count if answered_problem_count else 0.0
+    attempt_depth = min(1.0, total_attempts / max(1.0, total_problems * 2.0)) if total_problems else 0.0
+    accuracy_signal = max(0.0, min(1.0, (accuracy_rate - 45.0) / 35.0)) if total_attempts else 0.0
+    evidence_confidence = (0.55 * (coverage_rate / 100.0)) + (0.35 * attempt_depth) + (0.10 * accuracy_signal)
+    if past_exam_evidence.included and past_exam_evidence.record_count > 0:
+        evidence_confidence += 0.15 * min(1.0, past_exam_evidence.record_count / max(3, len(past_exam_evidence.columns)))
+    evidence_confidence = max(0.0, min(1.0, evidence_confidence))
+    raw_probability = _calibrated_pass_probability(expected_score, passing_score, score_stddev)
+    pass_probability = raw_probability * (0.72 + (0.28 * evidence_confidence))
+    if total_problems > 0 and expected_score > 0 and pass_probability > 0:
+        pass_probability = max(0.1, pass_probability)
+
+    if total_problems == 0:
+        readiness_label = "対象なし"
+        recommendation = "対象問題jsonを選択してください。"
+    elif pass_probability >= 75:
+        readiness_label = "高い"
+        recommendation = "合格ライン付近の問題を維持し、弱点問題を短い間隔で確認してください。"
+    elif pass_probability >= 50:
+        readiness_label = "十分狙える"
+        recommendation = "未実施問題を減らしながら、直近で外した問題を優先すると安定します。"
+    elif pass_probability >= 30:
+        readiness_label = "要強化"
+        recommendation = "進捗と正答率のどちらかが不足しています。未実施問題と弱点問題を先に潰してください。"
+    else:
+        readiness_label = "厳しめ"
+        recommendation = "まず対象問題jsonの実施範囲を広げ、1問あたり2回以上の確認履歴を作ってください。"
+
+    return PassProbabilityResponse(
+        analysis_id=f"passprob-{uuid.uuid4().hex}",
+        subjects=unique_subjects,
+        passing_score=round(passing_score, 1),
+        total_problems=total_problems,
+        answered_problems=answered_problem_count,
+        coverage_rate=round(coverage_rate, 1),
+        total_attempts=total_attempts,
+        correct_attempts=correct_attempts,
+        accuracy_rate=round(accuracy_rate, 1),
+        average_attempts_per_answered=round(average_attempts, 2),
+        base_expected_score=round(base_expected_score, 1),
+        expected_score=round(expected_score, 1),
+        projected_score_low=round(_clamp_percentage(expected_score - score_stddev), 1),
+        projected_score_high=round(_clamp_percentage(expected_score + score_stddev), 1),
+        pass_probability=round(_clamp_percentage(pass_probability), 1),
+        evidence_confidence=round(evidence_confidence * 100.0, 1),
+        readiness_label=readiness_label,
+        recommendation=recommendation,
+        past_exam_records=past_exam_evidence,
+        subject_breakdown=subject_breakdown,
+        analyzed_at=_now_utc_iso(),
+    )
 
 def _normalize_study_settings_payload(raw) -> StudySettings:
     if not isinstance(raw, dict):
@@ -1511,6 +2176,50 @@ def get_study_settings():
 def save_study_settings(settings: StudySettings):
     """端末をまたいで共有するStudy画面設定をAzure Blob Storageに保存する"""
     return _save_study_settings(settings)
+
+
+@api_router.get("/dashboard/past-exam-records", response_model=PastExamRecordsBook)
+def get_past_exam_records():
+    """過去問・模試の手入力記録を取得する"""
+    return _load_past_exam_records_book()
+
+
+@api_router.put("/dashboard/past-exam-records", response_model=PastExamRecordsBook)
+def save_past_exam_records(book: PastExamRecordsBook):
+    """過去問・模試の手入力記録をAzure Blob Storageに保存する"""
+    return _save_past_exam_records_book(book)
+
+
+@api_router.get("/dashboard/pass-probability/history", response_model=list[PassProbabilityHistoryItem])
+def get_pass_probability_history(limit: int = Query(20, ge=1, le=100)):
+    """合格可能性分析の過去履歴を新しい順に返す"""
+    return _load_pass_probability_history(limit=limit)
+
+
+@api_router.get("/dashboard/pass-probability", response_model=PassProbabilityResponse)
+def get_pass_probability(
+    subjects: list[str] = Query(...),
+    passing_score: float = Query(60.0, ge=0, le=100),
+    include_past_exam_records: bool = False,
+    past_exam_columns: Optional[List[str]] = Query(None),
+    past_exam_weight: float = Query(0.35, ge=0, le=1),
+):
+    """選択された問題JSONの履歴と進捗から合格ライン到達可能性を返す"""
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+    response = _build_pass_probability_response(
+        subjects,
+        passing_score,
+        include_past_exam_records=include_past_exam_records,
+        past_exam_columns=past_exam_columns,
+        past_exam_weight=past_exam_weight,
+    )
+    _save_pass_probability_analysis(
+        response,
+        include_past_exam_records=include_past_exam_records,
+        past_exam_weight=past_exam_weight,
+    )
+    return response
 
 
 @api_router.get("/subjects")

@@ -131,6 +131,8 @@ def mock_fastapi_app():
         review_later_items = json.loads(json.dumps(TEST_REVIEW_LATER_ITEMS))
         paper_practice_lots = {}
         paper_practice_attempts = {}
+        dashboard_past_exam_records = {"payload": None}
+        dashboard_pass_probability_analyses = []
         blob_clients = {}
 
         # BlobClientのget_blob_clientメソッドのモック
@@ -156,6 +158,11 @@ def mock_fastapi_app():
                 elif blob_name == "review-later/items.json":
                     review_later_items.clear()
                     review_later_items.extend(json.loads(payload_text))
+                elif blob_name == "dashboard/past-exam-records.json":
+                    payload = json.loads(payload_text)
+                    dashboard_past_exam_records["payload"] = payload
+                    mock_blob_client_instance.exists.return_value = True
+                    mock_blob_client_instance.download_blob.return_value = MockBlobDownload(json.dumps(payload))
                 elif blob_name.startswith("paper-practice/lots/") and blob_name.endswith(".json"):
                     payload = json.loads(payload_text)
                     paper_practice_lots[Path(blob_name).stem] = payload
@@ -183,6 +190,14 @@ def mock_fastapi_app():
                     custom_explanations.pop(problem_id, None)
                 elif blob_name == "review-later/items.json":
                     review_later_items.clear()
+                elif blob_name == "dashboard/past-exam-records.json":
+                    dashboard_past_exam_records["payload"] = None
+                    mock_blob_client_instance.exists.return_value = False
+                    mock_blob_client_instance.download_blob.return_value = MockBlobDownload("{}")
+                elif blob_name == "dashboard/pass-probability-analyses.jsonl":
+                    dashboard_pass_probability_analyses.clear()
+                    mock_blob_client_instance.exists.return_value = False
+                    mock_blob_client_instance.download_blob.return_value = MockBlobDownload("")
                 elif blob_name.startswith("paper-practice/lots/") and blob_name.endswith(".json"):
                     paper_practice_lots.pop(Path(blob_name).stem, None)
                     mock_blob_client_instance.exists.return_value = False
@@ -196,8 +211,28 @@ def mock_fastapi_app():
                     subject_payloads.pop(blob_name, None)
 
             mock_blob_client_instance.delete_blob.side_effect = delete_blob_side_effect
-            mock_blob_client_instance.append_block.side_effect = lambda payload: None
-            mock_blob_client_instance.create_append_blob.side_effect = lambda: None
+
+            def create_append_blob_side_effect():
+                if blob_name == "dashboard/pass-probability-analyses.jsonl":
+                    mock_blob_client_instance.exists.return_value = True
+                    mock_blob_client_instance.download_blob.return_value = MockBlobDownload("")
+
+            def append_block_side_effect(data):
+                if isinstance(data, bytes):
+                    payload_text = data.decode("utf-8")
+                else:
+                    payload_text = data
+                if blob_name == "dashboard/pass-probability-analyses.jsonl":
+                    for line in payload_text.splitlines():
+                        if line.strip():
+                            dashboard_pass_probability_analyses.append(json.loads(line))
+                    mock_blob_client_instance.exists.return_value = True
+                    mock_blob_client_instance.download_blob.return_value = MockBlobDownload(
+                        "\n".join(json.dumps(item) for item in dashboard_pass_probability_analyses)
+                    )
+
+            mock_blob_client_instance.append_block.side_effect = append_block_side_effect
+            mock_blob_client_instance.create_append_blob.side_effect = create_append_blob_side_effect
             
             if blob_name.startswith("custom-explanations/") and blob_name.endswith(".json"):
                 problem_id = Path(blob_name).stem
@@ -210,6 +245,15 @@ def mock_fastapi_app():
             elif blob_name == "review-later/items.json":
                 mock_blob_client_instance.exists.return_value = True
                 mock_blob_client_instance.download_blob.return_value = MockBlobDownload(json.dumps(review_later_items))
+            elif blob_name == "dashboard/past-exam-records.json":
+                payload = dashboard_past_exam_records["payload"]
+                mock_blob_client_instance.exists.return_value = payload is not None
+                mock_blob_client_instance.download_blob.return_value = MockBlobDownload(json.dumps(payload or {}))
+            elif blob_name == "dashboard/pass-probability-analyses.jsonl":
+                mock_blob_client_instance.exists.return_value = bool(dashboard_pass_probability_analyses)
+                mock_blob_client_instance.download_blob.return_value = MockBlobDownload(
+                    "\n".join(json.dumps(item) for item in dashboard_pass_probability_analyses)
+                )
             # questions blob
             elif blob_name.endswith(".json") and not blob_name.startswith("history/") and "/" not in blob_name:
                 questions_for_subject = subject_payloads.get(blob_name, [])
@@ -250,6 +294,8 @@ def mock_fastapi_app():
             blob_names.extend(f"history/{subject}.jsonl" for subject in history_payloads.keys())
             blob_names.extend(f"custom-explanations/{problem_id}.json" for problem_id in custom_explanations.keys())
             blob_names.append("review-later/items.json")
+            if dashboard_pass_probability_analyses:
+                blob_names.append("dashboard/pass-probability-analyses.jsonl")
             blob_names.extend(f"paper-practice/lots/{lot_id}.json" for lot_id in paper_practice_lots.keys())
             blob_names.extend(
                 f"paper-practice/attempts/{lot_id}/{attempt_id}.json"
@@ -273,6 +319,8 @@ def mock_fastapi_app():
         main._test_review_later_items = review_later_items
         main._test_paper_practice_lots = paper_practice_lots
         main._test_paper_practice_attempts = paper_practice_attempts
+        main._test_dashboard_past_exam_records = dashboard_past_exam_records
+        main._test_dashboard_pass_probability_analyses = dashboard_pass_probability_analyses
         main._test_blob_clients = blob_clients
         
         # FastAPIアプリのインスタンスをTestClientに渡す
@@ -383,6 +431,285 @@ def test_grade_paper_practice_lot_records_history_and_attempts(client: TestClien
     assert len(attempts) == 2
     assert {attempt["id"] for attempt in attempts} == {first_attempt["id"], second_grade.json()["id"]}
     assert len(main._test_history_payloads["subject1"]) == before_history_count + 2
+
+
+def test_dashboard_past_exam_records_roundtrip(client: TestClient):
+    default_response = client.get("/api/dashboard/past-exam-records")
+    assert default_response.status_code == 200
+    default_payload = default_response.json()
+    assert default_payload["subject_columns"] == [
+        "財務・会計",
+        "企業経営理論",
+        "運営管理",
+        "経営法務",
+        "経営情報システム",
+        "中小企業経営・中小企業政策",
+    ]
+    assert default_payload["problem_json_mappings"] == {}
+    assert default_payload["rows"] == []
+
+    save_response = client.put(
+        "/api/dashboard/past-exam-records",
+        json={
+            "subject_columns": default_payload["subject_columns"],
+            "problem_json_mappings": {
+                "財務・会計": ["subject1.json"],
+            },
+            "rows": [
+                {
+                    "id": "row-r6",
+                    "label": "令和6年度",
+                    "cells": {
+                        "財務・会計": {
+                            "attempted_at": "2026-06-20T09:30",
+                            "score": 68,
+                        }
+                    },
+                }
+            ],
+        },
+    )
+    assert save_response.status_code == 200
+    saved_payload = save_response.json()
+    assert saved_payload["problem_json_mappings"] == {"財務・会計": ["subject1.json"]}
+    assert saved_payload["rows"][0]["cells"]["財務・会計"]["score"] == 68
+    assert saved_payload["updated_at"]
+
+    get_response = client.get("/api/dashboard/past-exam-records")
+    assert get_response.status_code == 200
+    assert get_response.json()["rows"][0]["label"] == "令和6年度"
+
+    custom_columns_response = client.put(
+        "/api/dashboard/past-exam-records",
+        json={
+            "subject_columns": ["財務・会計", "自作科目"],
+            "problem_json_mappings": {
+                "財務・会計": ["subject1.json"],
+                "自作科目": ["subject2.json"],
+                "企業経営理論": ["stale.json"],
+            },
+            "rows": [
+                {
+                    "id": "row-custom",
+                    "label": "追加科目テスト",
+                    "cells": {
+                        "財務・会計": {"attempted_at": "2026-06-20T09:30", "score": 68},
+                        "自作科目": {"attempted_at": "2026-06-21T09:30", "score": 72},
+                        "企業経営理論": {"attempted_at": "2026-06-22T09:30", "score": 99},
+                    },
+                }
+            ],
+        },
+    )
+    assert custom_columns_response.status_code == 200
+    custom_payload = custom_columns_response.json()
+    assert custom_payload["subject_columns"] == ["財務・会計", "自作科目"]
+    assert custom_payload["problem_json_mappings"] == {
+        "財務・会計": ["subject1.json"],
+        "自作科目": ["subject2.json"],
+    }
+    assert custom_payload["rows"][0]["cells"]["自作科目"]["score"] == 72
+    assert "企業経営理論" not in custom_payload["rows"][0]["cells"]
+
+
+def test_dashboard_pass_probability_uses_history_and_progress(client: TestClient):
+    from backend import main
+
+    response = client.get(
+        "/api/dashboard/pass-probability",
+        params=[("subjects", "subject1.json"), ("passing_score", "60")],
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["analysis_id"].startswith("passprob-")
+    assert payload["subjects"] == ["subject1.json"]
+    assert payload["passing_score"] == 60.0
+    assert payload["total_problems"] == 5
+    assert payload["answered_problems"] == 4
+    assert payload["coverage_rate"] == 80.0
+    assert payload["total_attempts"] == 6
+    assert payload["correct_attempts"] == 3
+    assert payload["base_expected_score"] == payload["expected_score"]
+    assert payload["past_exam_records"]["included"] is False
+    assert 0 <= payload["pass_probability"] <= 100
+    assert payload["projected_score_low"] <= payload["expected_score"] <= payload["projected_score_high"]
+    assert payload["readiness_label"] in {"高い", "十分狙える", "要強化", "厳しめ"}
+
+    subject_payload = payload["subject_breakdown"][0]
+    assert subject_payload["subject"] == "subject1.json"
+    assert subject_payload["weak_problem_count"] >= 1
+
+    history_by_problem = {}
+    for line in TEST_HISTORY_DATA["subject1"]:
+        item = HistoryItem.model_validate_json(line)
+        history_by_problem.setdefault(item.problem_id, []).append(item)
+    first_attempt_rate = main._first_attempt_correct_rate(history_by_problem)
+    assert first_attempt_rate == pytest.approx(0.5)
+    assert main._unanswered_mastery_estimate(first_attempt_rate) == pytest.approx(0.5)
+
+    saved_records = main._test_dashboard_pass_probability_analyses
+    assert len(saved_records) == 1
+    assert saved_records[0]["id"] == payload["analysis_id"]
+    assert saved_records[0]["request"]["subjects"] == ["subject1.json"]
+    assert saved_records[0]["request"]["passing_score"] == 60.0
+    assert saved_records[0]["result"]["pass_probability"] == payload["pass_probability"]
+
+
+def test_dashboard_pass_probability_saves_each_analysis_result(client: TestClient):
+    from backend import main
+
+    first_response = client.get(
+        "/api/dashboard/pass-probability",
+        params=[("subjects", "subject1.json"), ("passing_score", "60")],
+    )
+    second_response = client.get(
+        "/api/dashboard/pass-probability",
+        params=[("subjects", "subject2.json"), ("passing_score", "65")],
+    )
+
+    assert first_response.status_code == 200
+    assert second_response.status_code == 200
+    first_payload = first_response.json()
+    second_payload = second_response.json()
+    saved_records = main._test_dashboard_pass_probability_analyses
+    assert len(saved_records) == 2
+    assert [record["id"] for record in saved_records] == [
+        first_payload["analysis_id"],
+        second_payload["analysis_id"],
+    ]
+    assert saved_records[0]["request"]["subjects"] == ["subject1.json"]
+    assert saved_records[1]["request"]["subjects"] == ["subject2.json"]
+    assert saved_records[1]["request"]["passing_score"] == 65.0
+    assert saved_records[0]["saved_at"]
+
+    history_response = client.get("/api/dashboard/pass-probability/history")
+    assert history_response.status_code == 200
+    history = history_response.json()
+    assert [item["analysis_id"] for item in history] == [
+        second_payload["analysis_id"],
+        first_payload["analysis_id"],
+    ]
+    assert history[0]["analyzed_at"] == second_payload["analyzed_at"]
+    assert history[0]["pass_probability"] == second_payload["pass_probability"]
+
+    limited_history_response = client.get("/api/dashboard/pass-probability/history", params={"limit": 1})
+    assert limited_history_response.status_code == 200
+    assert [item["analysis_id"] for item in limited_history_response.json()] == [second_payload["analysis_id"]]
+
+
+def test_dashboard_pass_probability_avoids_zero_when_target_is_high(client: TestClient):
+    response = client.get(
+        "/api/dashboard/pass-probability",
+        params=[("subjects", "subject1.json"), ("passing_score", "100")],
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert 0 < payload["pass_probability"] < 10
+    assert payload["readiness_label"] == "厳しめ"
+
+
+def test_dashboard_pass_probability_can_include_past_exam_records(client: TestClient):
+    from backend import main
+
+    save_response = client.put(
+        "/api/dashboard/past-exam-records",
+        json={
+            "subject_columns": [
+                "財務・会計",
+                "企業経営理論",
+            ],
+            "rows": [
+                {
+                    "id": "row-1",
+                    "label": "令和6年度",
+                    "cells": {
+                        "財務・会計": {"attempted_at": "2026-06-10T09:00", "score": 82},
+                        "企業経営理論": {"attempted_at": "2026-06-11T09:00", "score": 78},
+                    },
+                }
+            ],
+        },
+    )
+    assert save_response.status_code == 200
+
+    response = client.get(
+        "/api/dashboard/pass-probability",
+        params=[
+            ("subjects", "subject1.json"),
+            ("passing_score", "60"),
+            ("include_past_exam_records", "true"),
+            ("past_exam_columns", "財務・会計"),
+            ("past_exam_columns", "企業経営理論"),
+            ("past_exam_weight", "0.4"),
+        ],
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    evidence = payload["past_exam_records"]
+    assert evidence["included"] is True
+    assert evidence["record_count"] == 2
+    assert evidence["columns"] == ["財務・会計", "企業経営理論"]
+    assert evidence["weighted_score"] > 75
+    assert evidence["effective_weight"] > 0
+    assert payload["expected_score"] > payload["base_expected_score"]
+
+    saved_records = main._test_dashboard_pass_probability_analyses
+    assert len(saved_records) == 1
+    assert saved_records[0]["request"]["include_past_exam_records"] is True
+    assert saved_records[0]["request"]["past_exam_columns"] == ["財務・会計", "企業経営理論"]
+    assert saved_records[0]["result"]["past_exam_records"]["record_count"] == 2
+
+
+def test_dashboard_pass_probability_uses_problem_json_mapping_for_past_exam_records(client: TestClient):
+    save_response = client.put(
+        "/api/dashboard/past-exam-records",
+        json={
+            "subject_columns": [
+                "財務・会計",
+                "企業経営理論",
+            ],
+            "problem_json_mappings": {
+                "財務・会計": ["subject1.json"],
+                "企業経営理論": ["subject2.json"],
+            },
+            "rows": [
+                {
+                    "id": "row-1",
+                    "label": "令和6年度",
+                    "cells": {
+                        "財務・会計": {"attempted_at": "2026-06-10T09:00", "score": 82},
+                        "企業経営理論": {"attempted_at": "2026-06-11T09:00", "score": 40},
+                    },
+                }
+            ],
+        },
+    )
+    assert save_response.status_code == 200
+
+    response = client.get(
+        "/api/dashboard/pass-probability",
+        params=[
+            ("subjects", "subject1.json"),
+            ("passing_score", "60"),
+            ("include_past_exam_records", "true"),
+            ("past_exam_columns", "財務・会計"),
+            ("past_exam_columns", "企業経営理論"),
+            ("past_exam_weight", "0.4"),
+        ],
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    evidence = payload["past_exam_records"]
+    assert evidence["mapping_applied"] is True
+    assert evidence["columns"] == ["財務・会計"]
+    assert evidence["ignored_columns"] == ["企業経営理論"]
+    assert evidence["problem_json_mappings"] == {"財務・会計": ["subject1.json"]}
+    assert evidence["record_count"] == 1
+    assert evidence["weighted_score"] == 82.0
 
 
 def test_start_quiz_filters_calculation_tag(client: TestClient):

@@ -4,6 +4,8 @@ import LoadingSpinner from './components/LoadingSpinner';
 import SectionHeading from './components/SectionHeading';
 import AnalysisDashboard from './AnalysisDashboard';
 import PlanManagementDashboard from './PlanManagementDashboard';
+import PastExamRecordsPanel from './PastExamRecordsPanel';
+import PassProbabilityPanel from './PassProbabilityPanel';
 
 const API_BASE_URL = "/api";
 const DASHBOARD_SELECTED_SUBJECTS_KEY = 'dashboard:selectedSubjectNames';
@@ -346,6 +348,16 @@ export default function DashboardPage({ subjects }: DashboardPageProps) {
           </div>
         </div>
       </section>
+      <div className="motion-rise motion-delay-3">
+        <PastExamRecordsPanel subjects={subjects} />
+      </div>
+      <div className="motion-rise motion-delay-3">
+        <PassProbabilityPanel
+          subjects={subjects}
+          selectedSubjectNames={selectedSubjectNames}
+          setSelectedSubjectNames={setSelectedSubjectNames}
+        />
+      </div>
       <div className="motion-rise motion-delay-3">
         <PlanManagementDashboard subjects={subjects} />
       </div>
