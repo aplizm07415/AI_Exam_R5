@@ -49,6 +49,7 @@ export default function ReviewLaterPage() {
     const [items, setItems] = useState([]);
     const [subjectNames, setSubjectNames] = useState([]);
     const [selectedSubjectName, setSelectedSubjectName] = useState('');
+    const [loadedSubjectProblemName, setLoadedSubjectProblemName] = useState('');
     const [subjectProblems, setSubjectProblems] = useState([]);
     const [isLoadingSubjectProblems, setIsLoadingSubjectProblems] = useState(false);
     const [sortMode, setSortMode] = useState('default');
@@ -65,6 +66,11 @@ export default function ReviewLaterPage() {
     const [isSavingMemo, setIsSavingMemo] = useState(false);
     const [isRegisteringHistory, setIsRegisteringHistory] = useState(false);
     const [isReorganizingExplanation, setIsReorganizingExplanation] = useState(false);
+    const [isBulkReorganizingSubject, setIsBulkReorganizingSubject] = useState(false);
+    const [bulkReorganizeResult, setBulkReorganizeResult] = useState(null);
+    const [bulkReorganizeJob, setBulkReorganizeJob] = useState(null);
+    const [bulkReorganizeSubjectNames, setBulkReorganizeSubjectNames] = useState([]);
+    const [maxParallelReorganizeSubjects, setMaxParallelReorganizeSubjects] = useState(2);
     const [aiExplanationReview, setAiExplanationReview] = useState(null);
     const [isFindingSimilar, setIsFindingSimilar] = useState(false);
     const [isBulkRegisteringFirstMissed, setIsBulkRegisteringFirstMissed] = useState(false);
@@ -140,6 +146,7 @@ export default function ReviewLaterPage() {
         void fetchSubjects();
     }, []);
     const selectedItem = useMemo(() => items.find((item) => `${item.subject}::${item.problem_id}` === selectedKey) ?? null, [items, selectedKey]);
+    const isSelectedSubjectProblemListLoaded = selectedSubjectName !== '' && loadedSubjectProblemName === selectedSubjectName;
     const questionSupplementImageUrls = editingProblem
         ? getCustomImageUrls(editingProblem.custom_question_image_data_urls, editingProblem.custom_question_image_data_url)
         : [];
@@ -150,9 +157,21 @@ export default function ReviewLaterPage() {
         if (selectedItem?.question) {
             return selectedItem.question;
         }
+        if (!isSelectedSubjectProblemListLoaded) {
+            return null;
+        }
         return subjectProblems.find((problem) => `${problem.subject}::${problem.id}` === selectedKey) ?? null;
-    }, [selectedItem, subjectProblems, selectedKey]);
+    }, [isSelectedSubjectProblemListLoaded, selectedItem, subjectProblems, selectedKey]);
     const reviewLaterKeySet = useMemo(() => new Set(items.map((item) => `${item.subject}::${item.problem_id}`)), [items]);
+    const bulkReorganizeSubjectNameSet = useMemo(() => new Set(bulkReorganizeSubjectNames), [bulkReorganizeSubjectNames]);
+    const bulkReorganizeProgressPercent = useMemo(() => {
+        if (!bulkReorganizeJob || bulkReorganizeJob.total_problems <= 0) {
+            return bulkReorganizeJob && bulkReorganizeJob.total_subjects > 0
+                ? Math.round((bulkReorganizeJob.completed_subjects / bulkReorganizeJob.total_subjects) * 100)
+                : 0;
+        }
+        return Math.round((bulkReorganizeJob.processed_problems / bulkReorganizeJob.total_problems) * 100);
+    }, [bulkReorganizeJob]);
     const removeReviewLaterEntryLocally = (subject, problemId) => {
         const targetKey = `${subject}::${problemId}`;
         setItems((prev) => {
@@ -169,6 +188,9 @@ export default function ReviewLaterPage() {
         });
     };
     const sortedSubjectProblems = useMemo(() => {
+        if (!isSelectedSubjectProblemListLoaded) {
+            return [];
+        }
         const filtered = subjectProblems.filter((problem) => {
             if (!firstMissedDateFrom && !firstMissedDateTo) {
                 return true;
@@ -199,7 +221,7 @@ export default function ReviewLaterPage() {
             return next;
         }
         return next.sort((a, b) => a.id.localeCompare(b.id));
-    }, [subjectProblems, sortMode, firstMissedIds, firstMissedDateById, firstMissedDateFrom, firstMissedDateTo]);
+    }, [isSelectedSubjectProblemListLoaded, subjectProblems, sortMode, firstMissedIds, firstMissedDateById, firstMissedDateFrom, firstMissedDateTo]);
     const unregisteredFirstMissedProblems = useMemo(() => sortedSubjectProblems.filter((problem) => firstMissedIds.has(problem.id) && !reviewLaterKeySet.has(`${problem.subject}::${problem.id}`)), [sortedSubjectProblems, firstMissedIds, reviewLaterKeySet]);
     useEffect(() => {
         if (subjectNames.length === 0) {
@@ -214,6 +236,16 @@ export default function ReviewLaterPage() {
                 : subjectNames[0] || '';
         });
     }, [selectedItem?.subject, subjectNames]);
+    useEffect(() => {
+        setBulkReorganizeSubjectNames((prev) => {
+            const available = new Set(subjectNames);
+            const next = prev.filter((subjectName) => available.has(subjectName));
+            if (next.length > 0) {
+                return next;
+            }
+            return selectedSubjectName && available.has(selectedSubjectName) ? [selectedSubjectName] : [];
+        });
+    }, [selectedSubjectName, subjectNames]);
     useEffect(() => {
         if (selectedProblem) {
             setEditingProblem({ ...selectedProblem });
@@ -233,65 +265,63 @@ export default function ReviewLaterPage() {
         setOralVivaResult(null);
         setIsOralVivaLoading(false);
     }, [selectedProblem]);
-    useEffect(() => {
-        const fetchSubjectProblems = async () => {
-            if (!selectedSubjectName) {
-                setSubjectProblems([]);
-                setFirstMissedIds(new Set());
-                setFirstMissedDateById({});
-                return;
+    const loadSubjectProblems = async (subjectName = selectedSubjectName, force = false) => {
+        if (!subjectName || isLoadingSubjectProblems) {
+            return;
+        }
+        const cachedProblems = subjectProblemsCacheRef.current[subjectName];
+        const cachedFirstMissed = firstMissedCacheRef.current[subjectName];
+        if (!force && cachedProblems && cachedFirstMissed) {
+            setSubjectProblems(cachedProblems);
+            setFirstMissedIds(new Set(cachedFirstMissed.ids));
+            setFirstMissedDateById(cachedFirstMissed.dates);
+            setLoadedSubjectProblemName(subjectName);
+            return;
+        }
+        setIsLoadingSubjectProblems(true);
+        setError('');
+        try {
+            const [problemsResponse, firstMissedResponse] = await Promise.all([
+                fetch(`${API_BASE_URL}/subjects/${encodeURIComponent(subjectName)}/problems`),
+                fetch(`${API_BASE_URL}/analytics/export/first-missed-problems?subjects=${encodeURIComponent(subjectName)}`),
+            ]);
+            if (!problemsResponse.ok) {
+                const payload = await problemsResponse.json().catch(() => null);
+                throw new Error(payload?.detail || '科目問題一覧の取得に失敗しました。');
             }
-            const cachedProblems = subjectProblemsCacheRef.current[selectedSubjectName];
-            const cachedFirstMissed = firstMissedCacheRef.current[selectedSubjectName];
-            if (cachedProblems && cachedFirstMissed) {
-                setSubjectProblems(cachedProblems);
-                setFirstMissedIds(new Set(cachedFirstMissed.ids));
-                setFirstMissedDateById(cachedFirstMissed.dates);
-                return;
+            const problems = await problemsResponse.json();
+            subjectProblemsCacheRef.current[subjectName] = problems;
+            setSubjectProblems(problems);
+            if (firstMissedResponse.ok) {
+                const payload = await firstMissedResponse.json();
+                const firstMissedQuestions = payload.questions || [];
+                const ids = firstMissedQuestions.map((question) => question.id);
+                const dates = Object.fromEntries(firstMissedQuestions
+                    .filter((question) => question.first_missed_answered_at)
+                    .map((question) => [question.id, question.first_missed_answered_at]));
+                firstMissedCacheRef.current[subjectName] = { ids, dates };
+                setFirstMissedIds(new Set(ids));
+                setFirstMissedDateById(dates);
             }
-            setIsLoadingSubjectProblems(true);
-            try {
-                const [problemsResponse, firstMissedResponse] = await Promise.all([
-                    fetch(`${API_BASE_URL}/subjects/${encodeURIComponent(selectedSubjectName)}/problems`),
-                    fetch(`${API_BASE_URL}/analytics/export/first-missed-problems?subjects=${encodeURIComponent(selectedSubjectName)}`),
-                ]);
-                if (!problemsResponse.ok) {
-                    const payload = await problemsResponse.json().catch(() => null);
-                    throw new Error(payload?.detail || '科目問題一覧の取得に失敗しました。');
-                }
-                const problems = await problemsResponse.json();
-                subjectProblemsCacheRef.current[selectedSubjectName] = problems;
-                setSubjectProblems(problems);
-                if (firstMissedResponse.ok) {
-                    const payload = await firstMissedResponse.json();
-                    const firstMissedQuestions = payload.questions || [];
-                    const ids = firstMissedQuestions.map((question) => question.id);
-                    const dates = Object.fromEntries(firstMissedQuestions
-                        .filter((question) => question.first_missed_answered_at)
-                        .map((question) => [question.id, question.first_missed_answered_at]));
-                    firstMissedCacheRef.current[selectedSubjectName] = { ids, dates };
-                    setFirstMissedIds(new Set(ids));
-                    setFirstMissedDateById(dates);
-                }
-                else {
-                    firstMissedCacheRef.current[selectedSubjectName] = { ids: [], dates: {} };
-                    setFirstMissedIds(new Set());
-                    setFirstMissedDateById({});
-                }
-            }
-            catch (fetchError) {
-                console.error(fetchError);
-                setError(fetchError instanceof Error ? fetchError.message : '科目問題一覧の取得に失敗しました。');
-                setSubjectProblems([]);
+            else {
+                firstMissedCacheRef.current[subjectName] = { ids: [], dates: {} };
                 setFirstMissedIds(new Set());
                 setFirstMissedDateById({});
             }
-            finally {
-                setIsLoadingSubjectProblems(false);
-            }
-        };
-        void fetchSubjectProblems();
-    }, [selectedSubjectName]);
+            setLoadedSubjectProblemName(subjectName);
+        }
+        catch (fetchError) {
+            console.error(fetchError);
+            setError(fetchError instanceof Error ? fetchError.message : '科目問題一覧の取得に失敗しました。');
+            setLoadedSubjectProblemName('');
+            setSubjectProblems([]);
+            setFirstMissedIds(new Set());
+            setFirstMissedDateById({});
+        }
+        finally {
+            setIsLoadingSubjectProblems(false);
+        }
+    };
     const handleProblemChange = (event) => {
         if (!editingProblem)
             return;
@@ -454,8 +484,10 @@ export default function ReviewLaterPage() {
             if (!nextExplanation) {
                 throw new Error('AI整理結果が空でした。');
             }
+            const nextQuestionTextMd = payload.reorganized_question_text_md?.trim();
             setEditingProblem((prev) => prev ? {
                 ...prev,
+                ...(nextQuestionTextMd ? { question_text_md: nextQuestionTextMd } : {}),
                 explanation: {
                     ...prev.explanation,
                     text: nextExplanation,
@@ -769,6 +801,86 @@ export default function ReviewLaterPage() {
             setIsBulkRegisteringFirstMissed(false);
         }
     };
+    const refreshSubjectProblems = async (subjectName) => {
+        delete subjectProblemsCacheRef.current[subjectName];
+        delete firstMissedCacheRef.current[subjectName];
+        if (subjectName === selectedSubjectName && loadedSubjectProblemName === subjectName) {
+            await loadSubjectProblems(subjectName, true);
+        }
+    };
+    const fetchBulkReorganizeJob = async (jobId) => {
+        const response = await fetch(`${API_BASE_URL}/review-later/reorganize-jobs/${encodeURIComponent(jobId)}`);
+        const payload = await response.json().catch(() => null);
+        if (!response.ok || !payload) {
+            throw new Error(payload?.detail || 'AI整理ジョブの進捗取得に失敗しました。');
+        }
+        setBulkReorganizeJob(payload);
+        if (payload.status === 'completed' || payload.status === 'failed') {
+            setIsBulkReorganizingSubject(false);
+            await fetchItems();
+            if (loadedSubjectProblemName === selectedSubjectName &&
+                payload.subjects.some((subject) => subject.subject === selectedSubjectName)) {
+                await refreshSubjectProblems(selectedSubjectName);
+            }
+        }
+        return payload;
+    };
+    useEffect(() => {
+        if (!bulkReorganizeJob || !['queued', 'running'].includes(bulkReorganizeJob.status)) {
+            return;
+        }
+        let cancelled = false;
+        const poll = async () => {
+            try {
+                const payload = await fetchBulkReorganizeJob(bulkReorganizeJob.job_id);
+                if (cancelled)
+                    return;
+                if (payload.status === 'completed' || payload.status === 'failed') {
+                    window.clearInterval(intervalId);
+                }
+            }
+            catch (pollError) {
+                if (!cancelled) {
+                    setError(pollError instanceof Error ? pollError.message : 'AI整理ジョブの進捗取得に失敗しました。');
+                }
+            }
+        };
+        const intervalId = window.setInterval(() => { void poll(); }, 1500);
+        void poll();
+        return () => {
+            cancelled = true;
+            window.clearInterval(intervalId);
+        };
+    }, [bulkReorganizeJob?.job_id, bulkReorganizeJob?.status, selectedSubjectName]);
+    const handleBulkReorganizeSubject = async () => {
+        const targetSubjects = bulkReorganizeSubjectNames.filter((subjectName) => subjectNames.includes(subjectName));
+        if (targetSubjects.length === 0 || isBulkReorganizingSubject)
+            return;
+        try {
+            setIsBulkReorganizingSubject(true);
+            setBulkReorganizeResult(null);
+            setBulkReorganizeJob(null);
+            setError('');
+            const response = await fetch(`${API_BASE_URL}/review-later/reorganize-jobs`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    subjects: targetSubjects,
+                    max_parallel_subjects: maxParallelReorganizeSubjects,
+                }),
+            });
+            const payload = await response.json().catch(() => null);
+            if (!response.ok || !payload) {
+                throw new Error(payload?.detail || '問題JSON全体のAI整理に失敗しました。');
+            }
+            setBulkReorganizeJob(payload);
+        }
+        catch (bulkError) {
+            console.error(bulkError);
+            setError(bulkError instanceof Error ? bulkError.message : '問題JSON全体のAI整理に失敗しました。');
+            setIsBulkReorganizingSubject(false);
+        }
+    };
     const openIpadReview = (profile) => {
         if (!selectedItem)
             return;
@@ -959,15 +1071,22 @@ export default function ReviewLaterPage() {
                                                                 ['論理性', oralVivaScores.logicality],
                                                                 ['具体性', oralVivaScores.specificity],
                                                                 ['再現性', oralVivaScores.reproducibility],
-                                                            ].map(([label, value]) => (_jsxs("div", { className: "rounded-md border border-sky-200 bg-white px-2 py-2", children: [_jsxs("div", { className: "flex justify-between text-xs text-sky-900 mb-1", children: [_jsx("span", { children: label }), _jsx("span", { children: value })] }), _jsx("div", { className: "h-2 rounded bg-sky-100 overflow-hidden", children: _jsx("div", { className: "h-full bg-sky-500", style: { width: `${Math.max(0, Math.min(100, value))}%` } }) })] }, label))) }), _jsx("div", { className: "max-h-64 overflow-y-auto rounded-md border border-sky-200 bg-white p-2 space-y-2", children: oralVivaMessages.map((msg, idx) => (_jsxs("div", { className: `rounded-md px-2 py-1 text-sm ${msg.role === 'assistant' ? 'bg-sky-100 text-sky-900' : 'bg-gray-100 text-gray-800'}`, children: [_jsx("p", { className: "text-[11px] font-semibold", children: msg.role === 'assistant' ? 'AI面接官' : 'あなた' }), _jsx("p", { className: "whitespace-pre-wrap", children: msg.content })] }, `${msg.role}-${idx}`))) }), !oralVivaResult && (_jsxs("div", { className: "space-y-2", children: [_jsx("textarea", { value: oralVivaInput, onChange: (event) => setOralVivaInput(event.target.value), rows: 3, className: "w-full rounded-md border border-sky-300 px-3 py-2 text-sm bg-white", placeholder: "\u56DE\u7B54\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044" }), _jsxs("div", { className: "flex flex-wrap gap-2", children: [_jsx("button", { type: "button", onClick: () => void submitOralViva(), disabled: isOralVivaLoading || !oralVivaInput.trim(), className: "px-3 py-1.5 rounded-md bg-sky-700 text-white text-xs font-medium hover:bg-sky-800 disabled:bg-gray-300", children: isOralVivaLoading ? '送信中...' : '送信' }), _jsx("button", { type: "button", onClick: () => void skipToSummary(), disabled: isOralVivaLoading, className: "px-3 py-1.5 rounded-md border border-sky-300 bg-white text-sky-900 text-xs font-medium hover:bg-sky-100 disabled:bg-gray-100 disabled:text-gray-400", children: "\u8981\u7D04\u3078\u30B9\u30AD\u30C3\u30D7" }), _jsx("button", { type: "button", onClick: () => setIsOralVivaActive(false), disabled: isOralVivaLoading, className: "px-3 py-1.5 rounded-md border border-gray-300 bg-white text-gray-700 text-xs font-medium hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400", children: "\u53E3\u982D\u8A66\u554F\u3092\u9589\u3058\u308B" })] })] })), oralVivaResult && (_jsxs("div", { className: "rounded-md border border-sky-200 bg-white p-3 space-y-2", children: [_jsx("h5", { className: "text-sm font-semibold text-sky-900", children: "\u6700\u7D42\u30D5\u30A3\u30FC\u30C9\u30D0\u30C3\u30AF" }), _jsx("ul", { className: "list-disc pl-5 text-sm text-gray-700 space-y-1", children: oralVivaResult.improvementPoints.map((point, idx) => (_jsx("li", { children: point }, `${point}-${idx}`))) }), oralVivaResult.miniQuizQuestion && (_jsxs("p", { className: "text-sm text-gray-800 whitespace-pre-wrap", children: ["\u6B21\u56DE\u78BA\u8A8D\u30DF\u30CB\u554F\u984C: ", oralVivaResult.miniQuizQuestion] })), oralVivaResult.miniQuizAnswer && (_jsxs("p", { className: "text-sm text-gray-700 whitespace-pre-wrap", children: ["\u60F3\u5B9A\u89E3\u7B54: ", oralVivaResult.miniQuizAnswer] })), _jsx("p", { className: "text-xs text-gray-500", children: "\u6700\u7D42\u8981\u7D04\u306F My Memo \u306B\u81EA\u52D5\u8FFD\u8A18\u30FB\u4FDD\u5B58\u3055\u308C\u307E\u3059\u3002" })] }))] }))] }), questionSupplementImageUrls.length > 0 && (_jsxs("div", { children: [_jsx("div", { className: "text-sm font-medium text-gray-700 mb-2", children: "\u554F\u984C\u6587\u88DC\u8DB3\u753B\u50CF" }), _jsx("div", { className: "space-y-3", children: questionSupplementImageUrls.map((url, index) => (_jsx("img", { src: url, alt: `Question supplement ${index + 1}`, className: "max-h-56 rounded-lg border border-gray-200 bg-gray-50" }, `question-preview-${index}`))) })] })), explanationSupplementImageUrls.length > 0 && (_jsxs("div", { children: [_jsx("div", { className: "text-sm font-medium text-gray-700 mb-2", children: "\u89E3\u8AAC\u88DC\u8DB3\u753B\u50CF" }), _jsx("div", { className: "space-y-3", children: explanationSupplementImageUrls.map((url, index) => (_jsx("img", { src: url, alt: `Explanation supplement ${index + 1}`, className: "max-h-56 rounded-lg border border-gray-200 bg-gray-50" }, `explanation-preview-${index}`))) })] }))] })] })) })] })), _jsxs("div", { className: "bg-white rounded-xl shadow p-6 space-y-4", children: [_jsxs("div", { className: "flex flex-col gap-3 md:flex-row md:items-end md:justify-between", children: [_jsxs("div", { children: [_jsx("h3", { className: "heading-2 text-xl font-semibold text-gray-800", children: "\u79D1\u76EE\u5225\u306E\u554F\u984C\u4E00\u89A7" }), _jsx("p", { className: "text-sm text-gray-500 mt-1", children: "\u3053\u3053\u3067\u306E\u5F8C\u3067\u78BA\u8A8D\u306E\u767B\u9332\u5207\u308A\u66FF\u3048\u306F\u3001\u5B9F\u7E3E\u3092\u8A18\u9332\u3057\u307E\u305B\u3093\u3002" })] }), _jsxs("div", { className: "flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end", children: [_jsxs("label", { className: "text-sm text-gray-600", children: [_jsx("span", { className: "heading-2 block mb-1", children: "\u79D1\u76EE" }), _jsx("select", { value: selectedSubjectName, onChange: (event) => setSelectedSubjectName(event.target.value), className: "rounded-md border border-gray-300 px-3 py-2 text-sm", children: subjectNames.map((subjectName) => (_jsx("option", { value: subjectName, children: subjectName }, subjectName))) })] }), _jsxs("label", { className: "text-sm text-gray-600", children: [_jsx("span", { className: "heading-2 block mb-1", children: "\u4E26\u3073\u9806" }), _jsxs("select", { value: sortMode, onChange: (event) => setSortMode(event.target.value), className: "rounded-md border border-gray-300 px-3 py-2 text-sm", children: [_jsx("option", { value: "default", children: "\u554F\u984CID\u9806" }), _jsx("option", { value: "first_missed", children: "\u521D\u56DE\u4E0D\u6B63\u89E3\u3092\u4E0A\u4F4D" })] })] }), _jsxs("label", { className: "text-sm text-gray-600", children: [_jsx("span", { className: "block mb-1", children: "\u4E0D\u6B63\u89E3\u65E5 From" }), _jsx("input", { type: "date", value: firstMissedDateFrom, onChange: (event) => setFirstMissedDateFrom(event.target.value), className: "rounded-md border border-gray-300 px-3 py-2 text-sm" })] }), _jsxs("label", { className: "text-sm text-gray-600", children: [_jsx("span", { className: "block mb-1", children: "\u4E0D\u6B63\u89E3\u65E5 To" }), _jsx("input", { type: "date", value: firstMissedDateTo, onChange: (event) => setFirstMissedDateTo(event.target.value), className: "rounded-md border border-gray-300 px-3 py-2 text-sm" })] }), _jsx("button", { type: "button", onClick: () => void handleBulkRegisterFirstMissed(), disabled: isBulkRegisteringFirstMissed || unregisteredFirstMissedProblems.length === 0, className: "rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:bg-gray-300", children: isBulkRegisteringFirstMissed
+                                                            ].map(([label, value]) => (_jsxs("div", { className: "rounded-md border border-sky-200 bg-white px-2 py-2", children: [_jsxs("div", { className: "flex justify-between text-xs text-sky-900 mb-1", children: [_jsx("span", { children: label }), _jsx("span", { children: value })] }), _jsx("div", { className: "h-2 rounded bg-sky-100 overflow-hidden", children: _jsx("div", { className: "h-full bg-sky-500", style: { width: `${Math.max(0, Math.min(100, value))}%` } }) })] }, label))) }), _jsx("div", { className: "max-h-64 overflow-y-auto rounded-md border border-sky-200 bg-white p-2 space-y-2", children: oralVivaMessages.map((msg, idx) => (_jsxs("div", { className: `rounded-md px-2 py-1 text-sm ${msg.role === 'assistant' ? 'bg-sky-100 text-sky-900' : 'bg-gray-100 text-gray-800'}`, children: [_jsx("p", { className: "text-[11px] font-semibold", children: msg.role === 'assistant' ? 'AI面接官' : 'あなた' }), _jsx("p", { className: "whitespace-pre-wrap", children: msg.content })] }, `${msg.role}-${idx}`))) }), !oralVivaResult && (_jsxs("div", { className: "space-y-2", children: [_jsx("textarea", { value: oralVivaInput, onChange: (event) => setOralVivaInput(event.target.value), rows: 3, className: "w-full rounded-md border border-sky-300 px-3 py-2 text-sm bg-white", placeholder: "\u56DE\u7B54\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044" }), _jsxs("div", { className: "flex flex-wrap gap-2", children: [_jsx("button", { type: "button", onClick: () => void submitOralViva(), disabled: isOralVivaLoading || !oralVivaInput.trim(), className: "px-3 py-1.5 rounded-md bg-sky-700 text-white text-xs font-medium hover:bg-sky-800 disabled:bg-gray-300", children: isOralVivaLoading ? '送信中...' : '送信' }), _jsx("button", { type: "button", onClick: () => void skipToSummary(), disabled: isOralVivaLoading, className: "px-3 py-1.5 rounded-md border border-sky-300 bg-white text-sky-900 text-xs font-medium hover:bg-sky-100 disabled:bg-gray-100 disabled:text-gray-400", children: "\u8981\u7D04\u3078\u30B9\u30AD\u30C3\u30D7" }), _jsx("button", { type: "button", onClick: () => setIsOralVivaActive(false), disabled: isOralVivaLoading, className: "px-3 py-1.5 rounded-md border border-gray-300 bg-white text-gray-700 text-xs font-medium hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400", children: "\u53E3\u982D\u8A66\u554F\u3092\u9589\u3058\u308B" })] })] })), oralVivaResult && (_jsxs("div", { className: "rounded-md border border-sky-200 bg-white p-3 space-y-2", children: [_jsx("h5", { className: "text-sm font-semibold text-sky-900", children: "\u6700\u7D42\u30D5\u30A3\u30FC\u30C9\u30D0\u30C3\u30AF" }), _jsx("ul", { className: "list-disc pl-5 text-sm text-gray-700 space-y-1", children: oralVivaResult.improvementPoints.map((point, idx) => (_jsx("li", { children: point }, `${point}-${idx}`))) }), oralVivaResult.miniQuizQuestion && (_jsxs("p", { className: "text-sm text-gray-800 whitespace-pre-wrap", children: ["\u6B21\u56DE\u78BA\u8A8D\u30DF\u30CB\u554F\u984C: ", oralVivaResult.miniQuizQuestion] })), oralVivaResult.miniQuizAnswer && (_jsxs("p", { className: "text-sm text-gray-700 whitespace-pre-wrap", children: ["\u60F3\u5B9A\u89E3\u7B54: ", oralVivaResult.miniQuizAnswer] })), _jsx("p", { className: "text-xs text-gray-500", children: "\u6700\u7D42\u8981\u7D04\u306F My Memo \u306B\u81EA\u52D5\u8FFD\u8A18\u30FB\u4FDD\u5B58\u3055\u308C\u307E\u3059\u3002" })] }))] }))] }), questionSupplementImageUrls.length > 0 && (_jsxs("div", { children: [_jsx("div", { className: "text-sm font-medium text-gray-700 mb-2", children: "\u554F\u984C\u6587\u88DC\u8DB3\u753B\u50CF" }), _jsx("div", { className: "space-y-3", children: questionSupplementImageUrls.map((url, index) => (_jsx("img", { src: url, alt: `Question supplement ${index + 1}`, className: "max-h-56 rounded-lg border border-gray-200 bg-gray-50" }, `question-preview-${index}`))) })] })), explanationSupplementImageUrls.length > 0 && (_jsxs("div", { children: [_jsx("div", { className: "text-sm font-medium text-gray-700 mb-2", children: "\u89E3\u8AAC\u88DC\u8DB3\u753B\u50CF" }), _jsx("div", { className: "space-y-3", children: explanationSupplementImageUrls.map((url, index) => (_jsx("img", { src: url, alt: `Explanation supplement ${index + 1}`, className: "max-h-56 rounded-lg border border-gray-200 bg-gray-50" }, `explanation-preview-${index}`))) })] }))] })] })) })] })), _jsxs("div", { className: "space-y-5", children: [_jsxs("section", { className: "rounded-xl border border-emerald-200 bg-white p-6 shadow", children: [_jsxs("div", { className: "flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between", children: [_jsxs("div", { children: [_jsx("h3", { className: "heading-2 text-xl font-semibold text-emerald-950", children: "\u4E00\u62ECAI\u6574\u7406" }), _jsxs("div", { className: "mt-1 text-sm text-emerald-800", children: ["\u5BFE\u8C61 ", bulkReorganizeSubjectNames.length, "\u79D1\u76EE / \u4E26\u884C ", maxParallelReorganizeSubjects, "\u79D1\u76EE"] })] }), _jsxs("div", { className: "flex flex-wrap items-center gap-2", children: [_jsxs("label", { className: "flex items-center gap-2 text-xs font-semibold text-emerald-900", children: ["\u4E26\u884C", _jsx("select", { value: maxParallelReorganizeSubjects, onChange: (event) => setMaxParallelReorganizeSubjects(Number(event.target.value)), disabled: isBulkReorganizingSubject, className: "rounded-md border border-emerald-200 bg-white px-2 py-1 text-xs", children: [1, 2, 3, 4].map((value) => (_jsx("option", { value: value, children: value }, value))) }), "\u79D1\u76EE"] }), _jsx("button", { type: "button", onClick: () => void handleBulkReorganizeSubject(), disabled: isBulkReorganizingSubject || isBulkRegisteringFirstMissed || bulkReorganizeSubjectNames.length === 0, className: "rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:bg-gray-300", children: isBulkReorganizingSubject ? 'AI整理中...' : 'AI整理を開始' })] })] }), _jsxs("div", { className: "mt-4 flex flex-wrap items-center gap-2", children: [_jsx("button", { type: "button", onClick: () => setBulkReorganizeSubjectNames(selectedSubjectName ? [selectedSubjectName] : []), disabled: !selectedSubjectName || isBulkReorganizingSubject, className: "rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 disabled:opacity-50", children: "\u9078\u629E\u79D1\u76EE" }), _jsx("button", { type: "button", onClick: () => setBulkReorganizeSubjectNames(subjectNames), disabled: isBulkReorganizingSubject || subjectNames.length === 0, className: "rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 disabled:opacity-50", children: "\u5168\u79D1\u76EE" }), _jsx("button", { type: "button", onClick: () => setBulkReorganizeSubjectNames([]), disabled: isBulkReorganizingSubject, className: "rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 disabled:opacity-50", children: "\u89E3\u9664" })] }), _jsx("div", { className: "mt-3 grid max-h-40 gap-2 overflow-y-auto sm:grid-cols-2 lg:grid-cols-3", children: subjectNames.map((subjectName) => (_jsxs("label", { className: "flex min-w-0 items-center gap-2 rounded-md border border-emerald-100 bg-emerald-50/60 px-3 py-2 text-xs text-emerald-950", children: [_jsx("input", { type: "checkbox", checked: bulkReorganizeSubjectNameSet.has(subjectName), disabled: isBulkReorganizingSubject, onChange: () => {
+                                                setBulkReorganizeSubjectNames((prev) => (prev.includes(subjectName)
+                                                    ? prev.filter((item) => item !== subjectName)
+                                                    : [...prev, subjectName]));
+                                            }, className: "h-4 w-4 rounded border-emerald-300 text-emerald-600" }), _jsx("span", { className: "truncate", title: subjectName, children: subjectName })] }, `bulk-reorganize-${subjectName}`))) }), bulkReorganizeJob && (_jsxs("div", { className: "mt-4 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-950", children: [_jsxs("div", { className: "flex flex-col gap-2 md:flex-row md:items-center md:justify-between", children: [_jsxs("div", { className: "font-semibold", children: ["AI\u6574\u7406\u30B8\u30E7\u30D6: ", bulkReorganizeJob.status === 'completed' ? '完了' : bulkReorganizeJob.status === 'failed' ? '失敗' : '実行中'] }), _jsxs("div", { className: "text-xs font-semibold text-emerald-800", children: ["\u79D1\u76EE ", bulkReorganizeJob.completed_subjects, "/", bulkReorganizeJob.total_subjects, " / \u554F\u984C ", bulkReorganizeJob.processed_problems, "/", bulkReorganizeJob.total_problems || '-', " / \u66F4\u65B0 ", bulkReorganizeJob.updated, " / \u5931\u6557 ", bulkReorganizeJob.failed] })] }), _jsx("div", { className: "mt-3 h-2 overflow-hidden rounded-full bg-emerald-100", children: _jsx("div", { className: "h-full rounded-full bg-emerald-500 transition-all", style: { width: `${Math.max(2, Math.min(100, bulkReorganizeProgressPercent))}%` } }) }), _jsx("div", { className: "mt-3 grid gap-2 lg:grid-cols-2", children: bulkReorganizeJob.subjects.map((subject) => (_jsxs("div", { className: "rounded-md border border-emerald-100 bg-white px-3 py-2", children: [_jsxs("div", { className: "flex items-center justify-between gap-2", children: [_jsx("div", { className: "min-w-0 truncate text-xs font-semibold text-emerald-950", title: subject.subject, children: subject.subject }), _jsx("div", { className: "shrink-0 text-xs text-emerald-800", children: subject.status === 'completed' ? '完了' : subject.status === 'failed' ? '失敗' : subject.status === 'running' ? '実行中' : '待機' })] }), _jsxs("div", { className: "mt-1 text-xs text-emerald-800", children: [subject.processed, "/", subject.total || '-', "\u554F / \u66F4\u65B0 ", subject.updated, " / \u5931\u6557 ", subject.failed, subject.current_problem_id ? ` / 処理中 ${subject.current_problem_id}` : '', subject.error ? ` / ${subject.error}` : ''] }), _jsx("div", { className: "mt-2 h-1.5 overflow-hidden rounded-full bg-emerald-100", children: _jsx("div", { className: "h-full rounded-full bg-emerald-500", style: { width: `${subject.total > 0 ? Math.max(2, Math.min(100, Math.round((subject.processed / subject.total) * 100))) : 2}%` } }) })] }, `bulk-progress-${subject.subject}`))) }), bulkReorganizeJob.subjects.some((subject) => subject.items.some((item) => item.error)) && (_jsx("ul", { className: "mt-2 list-disc space-y-1 pl-5 text-xs", children: bulkReorganizeJob.subjects.flatMap((subject) => subject.items)
+                                            .filter((item) => item.error)
+                                            .slice(0, 5)
+                                            .map((item) => (_jsxs("li", { children: [item.problem_id, ": ", item.error] }, `${item.subject}:${item.problem_id}`))) }))] }))] }), _jsxs("section", { className: "rounded-xl border border-slate-200 bg-white p-6 shadow", children: [_jsxs("div", { className: "flex flex-col gap-3 md:flex-row md:items-start md:justify-between", children: [_jsxs("div", { children: [_jsx("h3", { className: "heading-2 text-xl font-semibold text-gray-800", children: "\u79D1\u76EE\u5225\u306E\u554F\u984C\u4E00\u89A7" }), _jsx("p", { className: "mt-1 text-sm text-gray-500", children: "\u3053\u3053\u3067\u306E\u5F8C\u3067\u78BA\u8A8D\u306E\u767B\u9332\u5207\u308A\u66FF\u3048\u306F\u3001\u5B9F\u7E3E\u3092\u8A18\u9332\u3057\u307E\u305B\u3093\u3002" })] }), _jsx("button", { type: "button", onClick: () => void loadSubjectProblems(selectedSubjectName, true), disabled: !selectedSubjectName || isLoadingSubjectProblems || isBulkReorganizingSubject, className: "rounded-md bg-slate-800 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-900 disabled:bg-gray-300", children: isLoadingSubjectProblems ? '読込中...' : isSelectedSubjectProblemListLoaded ? '問題一覧を再読込' : '問題一覧を表示' })] }), _jsxs("div", { className: "mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end", children: [_jsxs("label", { className: "text-sm text-gray-600", children: [_jsx("span", { className: "heading-2 block mb-1", children: "\u79D1\u76EE" }), _jsx("select", { value: selectedSubjectName, onChange: (event) => setSelectedSubjectName(event.target.value), className: "rounded-md border border-gray-300 px-3 py-2 text-sm", children: subjectNames.map((subjectName) => (_jsx("option", { value: subjectName, children: subjectName }, subjectName))) })] }), _jsxs("label", { className: "text-sm text-gray-600", children: [_jsx("span", { className: "heading-2 block mb-1", children: "\u4E26\u3073\u9806" }), _jsxs("select", { value: sortMode, onChange: (event) => setSortMode(event.target.value), disabled: !isSelectedSubjectProblemListLoaded, className: "rounded-md border border-gray-300 px-3 py-2 text-sm disabled:bg-gray-100", children: [_jsx("option", { value: "default", children: "\u554F\u984CID\u9806" }), _jsx("option", { value: "first_missed", children: "\u521D\u56DE\u4E0D\u6B63\u89E3\u3092\u4E0A\u4F4D" })] })] }), _jsxs("label", { className: "text-sm text-gray-600", children: [_jsx("span", { className: "block mb-1", children: "\u4E0D\u6B63\u89E3\u65E5 From" }), _jsx("input", { type: "date", value: firstMissedDateFrom, onChange: (event) => setFirstMissedDateFrom(event.target.value), disabled: !isSelectedSubjectProblemListLoaded, className: "rounded-md border border-gray-300 px-3 py-2 text-sm disabled:bg-gray-100" })] }), _jsxs("label", { className: "text-sm text-gray-600", children: [_jsx("span", { className: "block mb-1", children: "\u4E0D\u6B63\u89E3\u65E5 To" }), _jsx("input", { type: "date", value: firstMissedDateTo, onChange: (event) => setFirstMissedDateTo(event.target.value), disabled: !isSelectedSubjectProblemListLoaded, className: "rounded-md border border-gray-300 px-3 py-2 text-sm disabled:bg-gray-100" })] }), _jsx("button", { type: "button", onClick: () => void handleBulkRegisterFirstMissed(), disabled: !isSelectedSubjectProblemListLoaded || isBulkRegisteringFirstMissed || isBulkReorganizingSubject || unregisteredFirstMissedProblems.length === 0, className: "rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:bg-gray-300", children: isBulkRegisteringFirstMissed
                                             ? '一括登録中...'
-                                            : `表示中を一括で後で確認に登録${unregisteredFirstMissedProblems.length > 0 ? ` (${unregisteredFirstMissedProblems.length})` : ''}` })] })] }), isLoadingSubjectProblems ? (_jsx(LoadingSpinner, {})) : selectedSubjectName === '' ? (_jsx("div", { className: "text-sm text-gray-500", children: "\u79D1\u76EE\u304C\u3042\u308A\u307E\u305B\u3093\u3002" })) : (_jsx("div", { className: "overflow-x-auto", children: _jsxs("table", { className: "min-w-full text-sm", children: [_jsx("thead", { children: _jsxs("tr", { className: "border-b text-left text-gray-500", children: [_jsx("th", { className: "px-3 py-2", children: "\u554F\u984CID" }), _jsx("th", { className: "px-3 py-2", children: "\u30AB\u30C6\u30B4\u30EA" }), _jsx("th", { className: "px-3 py-2", children: "\u554F\u984C\u6587" }), _jsx("th", { className: "px-3 py-2", children: "\u521D\u56DE\u4E0D\u6B63\u89E3" }), _jsx("th", { className: "px-3 py-2", children: "\u521D\u56DE\u4E0D\u6B63\u89E3\u65E5" }), _jsx("th", { className: "px-3 py-2", children: "\u5F8C\u3067\u78BA\u8A8D" })] }) }), _jsx("tbody", { children: sortedSubjectProblems.map((problem) => {
-                                        const key = `${problem.subject}::${problem.id}`;
-                                        const isReviewLater = reviewLaterKeySet.has(key);
-                                        const firstMissedDate = firstMissedDateById[problem.id];
-                                        return (_jsxs("tr", { className: "border-b align-top", children: [_jsx("td", { className: "px-3 py-2 font-medium text-gray-800", children: problem.id }), _jsx("td", { className: "px-3 py-2 text-gray-600", children: problem.category || '-' }), _jsx("td", { className: "px-3 py-2 text-gray-700", children: _jsx("button", { type: "button", onClick: () => setSelectedKey(key), className: "whitespace-pre-wrap text-left hover:text-primary-new", children: problem.question_text }) }), _jsx("td", { className: "px-3 py-2", children: firstMissedIds.has(problem.id) ? (_jsx("span", { className: "rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800", children: "\u5BFE\u8C61" })) : (_jsx("span", { className: "text-gray-400", children: "-" })) }), _jsx("td", { className: "px-3 py-2 text-gray-600", children: firstMissedDate ? firstMissedDate.slice(0, 10) : '-' }), _jsx("td", { className: "px-3 py-2", children: _jsx("button", { type: "button", onClick: () => void handleToggleReviewLater(problem, !isReviewLater), className: `rounded-md px-3 py-1.5 text-xs font-medium ${isReviewLater
-                                                            ? 'bg-primary-new text-white hover:bg-blue-700'
-                                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`, children: isReviewLater ? '登録中' : '未登録' }) })] }, key));
-                                    }) })] }) }))] })] }));
+                                            : `表示中を一括で後で確認に登録${unregisteredFirstMissedProblems.length > 0 ? ` (${unregisteredFirstMissedProblems.length})` : ''}` })] }), _jsx("div", { className: "mt-4", children: isLoadingSubjectProblems ? (_jsx(LoadingSpinner, {})) : selectedSubjectName === '' ? (_jsx("div", { className: "rounded-md border border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-gray-500", children: "\u79D1\u76EE\u304C\u3042\u308A\u307E\u305B\u3093\u3002" })) : !isSelectedSubjectProblemListLoaded ? (_jsx("div", { className: "rounded-md border border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-gray-500", children: "\u554F\u984C\u4E00\u89A7\u306F\u672A\u8868\u793A\u3067\u3059\u3002" })) : sortedSubjectProblems.length === 0 ? (_jsx("div", { className: "rounded-md border border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-gray-500", children: "\u8868\u793A\u5BFE\u8C61\u306E\u554F\u984C\u304C\u3042\u308A\u307E\u305B\u3093\u3002" })) : (_jsx("div", { className: "overflow-x-auto", children: _jsxs("table", { className: "min-w-full text-sm", children: [_jsx("thead", { children: _jsxs("tr", { className: "border-b text-left text-gray-500", children: [_jsx("th", { className: "px-3 py-2", children: "\u554F\u984CID" }), _jsx("th", { className: "px-3 py-2", children: "\u30AB\u30C6\u30B4\u30EA" }), _jsx("th", { className: "px-3 py-2", children: "\u554F\u984C\u6587" }), _jsx("th", { className: "px-3 py-2", children: "\u521D\u56DE\u4E0D\u6B63\u89E3" }), _jsx("th", { className: "px-3 py-2", children: "\u521D\u56DE\u4E0D\u6B63\u89E3\u65E5" }), _jsx("th", { className: "px-3 py-2", children: "\u5F8C\u3067\u78BA\u8A8D" })] }) }), _jsx("tbody", { children: sortedSubjectProblems.map((problem) => {
+                                                    const key = `${problem.subject}::${problem.id}`;
+                                                    const isReviewLater = reviewLaterKeySet.has(key);
+                                                    const firstMissedDate = firstMissedDateById[problem.id];
+                                                    return (_jsxs("tr", { className: "border-b align-top", children: [_jsx("td", { className: "px-3 py-2 font-medium text-gray-800", children: problem.id }), _jsx("td", { className: "px-3 py-2 text-gray-600", children: problem.category || '-' }), _jsx("td", { className: "px-3 py-2 text-gray-700", children: _jsx("button", { type: "button", onClick: () => setSelectedKey(key), className: "whitespace-pre-wrap text-left hover:text-primary-new", children: problem.question_text }) }), _jsx("td", { className: "px-3 py-2", children: firstMissedIds.has(problem.id) ? (_jsx("span", { className: "rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800", children: "\u5BFE\u8C61" })) : (_jsx("span", { className: "text-gray-400", children: "-" })) }), _jsx("td", { className: "px-3 py-2 text-gray-600", children: firstMissedDate ? firstMissedDate.slice(0, 10) : '-' }), _jsx("td", { className: "px-3 py-2", children: _jsx("button", { type: "button", onClick: () => void handleToggleReviewLater(problem, !isReviewLater), className: `rounded-md px-3 py-1.5 text-xs font-medium ${isReviewLater
+                                                                        ? 'bg-primary-new text-white hover:bg-blue-700'
+                                                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`, children: isReviewLater ? '登録中' : '未登録' }) })] }, key));
+                                                }) })] }) })) })] })] })] }));
 }
 //# sourceMappingURL=ReviewLaterPage.js.map

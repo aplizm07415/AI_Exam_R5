@@ -4,6 +4,7 @@ from unittest.mock import patch, MagicMock
 from datetime import datetime, timedelta, timezone
 import json
 import os
+import time
 from pathlib import Path
 
 # テスト対象のFastAPIアプリケーションをインポート
@@ -133,6 +134,7 @@ def mock_fastapi_app():
         paper_practice_attempts = {}
         dashboard_past_exam_records = {"payload": None}
         dashboard_pass_probability_analyses = []
+        review_later_reorganize_jobs = {}
         blob_clients = {}
 
         # BlobClientのget_blob_clientメソッドのモック
@@ -158,6 +160,11 @@ def mock_fastapi_app():
                 elif blob_name == "review-later/items.json":
                     review_later_items.clear()
                     review_later_items.extend(json.loads(payload_text))
+                elif blob_name.startswith("review-later/reorganize-jobs/") and blob_name.endswith(".json"):
+                    payload = json.loads(payload_text)
+                    review_later_reorganize_jobs[blob_name] = payload
+                    mock_blob_client_instance.exists.return_value = True
+                    mock_blob_client_instance.download_blob.return_value = MockBlobDownload(json.dumps(payload))
                 elif blob_name == "dashboard/past-exam-records.json":
                     payload = json.loads(payload_text)
                     dashboard_past_exam_records["payload"] = payload
@@ -190,6 +197,10 @@ def mock_fastapi_app():
                     custom_explanations.pop(problem_id, None)
                 elif blob_name == "review-later/items.json":
                     review_later_items.clear()
+                elif blob_name.startswith("review-later/reorganize-jobs/") and blob_name.endswith(".json"):
+                    review_later_reorganize_jobs.pop(blob_name, None)
+                    mock_blob_client_instance.exists.return_value = False
+                    mock_blob_client_instance.download_blob.return_value = MockBlobDownload("{}")
                 elif blob_name == "dashboard/past-exam-records.json":
                     dashboard_past_exam_records["payload"] = None
                     mock_blob_client_instance.exists.return_value = False
@@ -245,6 +256,10 @@ def mock_fastapi_app():
             elif blob_name == "review-later/items.json":
                 mock_blob_client_instance.exists.return_value = True
                 mock_blob_client_instance.download_blob.return_value = MockBlobDownload(json.dumps(review_later_items))
+            elif blob_name.startswith("review-later/reorganize-jobs/") and blob_name.endswith(".json"):
+                payload = review_later_reorganize_jobs.get(blob_name)
+                mock_blob_client_instance.exists.return_value = payload is not None
+                mock_blob_client_instance.download_blob.return_value = MockBlobDownload(json.dumps(payload or {}))
             elif blob_name == "dashboard/past-exam-records.json":
                 payload = dashboard_past_exam_records["payload"]
                 mock_blob_client_instance.exists.return_value = payload is not None
@@ -294,6 +309,7 @@ def mock_fastapi_app():
             blob_names.extend(f"history/{subject}.jsonl" for subject in history_payloads.keys())
             blob_names.extend(f"custom-explanations/{problem_id}.json" for problem_id in custom_explanations.keys())
             blob_names.append("review-later/items.json")
+            blob_names.extend(review_later_reorganize_jobs.keys())
             if dashboard_pass_probability_analyses:
                 blob_names.append("dashboard/pass-probability-analyses.jsonl")
             blob_names.extend(f"paper-practice/lots/{lot_id}.json" for lot_id in paper_practice_lots.keys())
@@ -317,6 +333,7 @@ def mock_fastapi_app():
         main._test_history_payloads = history_payloads
         main._test_custom_explanations = custom_explanations
         main._test_review_later_items = review_later_items
+        main._test_review_later_reorganize_jobs = review_later_reorganize_jobs
         main._test_paper_practice_lots = paper_practice_lots
         main._test_paper_practice_attempts = paper_practice_attempts
         main._test_dashboard_past_exam_records = dashboard_past_exam_records
@@ -556,6 +573,38 @@ def test_dashboard_pass_probability_uses_history_and_progress(client: TestClient
     assert saved_records[0]["request"]["passing_score"] == 60.0
     assert saved_records[0]["request"]["analysis_policy"] == "coverage_adjusted"
     assert saved_records[0]["result"]["pass_probability"] == payload["pass_probability"]
+
+
+def test_dashboard_pass_probability_includes_exam_date_practice_plan(client: TestClient):
+    from backend import main
+
+    exam_date = (datetime.now(timezone.utc) + timedelta(days=30)).date().isoformat()
+    response = client.get(
+        "/api/dashboard/pass-probability",
+        params=[
+            ("subjects", "subject1.json"),
+            ("passing_score", "60"),
+            ("exam_name", "本試験"),
+            ("exam_date", exam_date),
+            ("daily_practice_capacity", "5"),
+        ],
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    plan = payload["practice_plan"]
+    assert plan["exam_name"] == "本試験"
+    assert plan["exam_date"] == exam_date
+    assert plan["days_to_exam"] is not None
+    assert plan["daily_practice_capacity"] == 5
+    assert plan["total_recommended_attempts"] >= 0
+    assert plan["feasible_by_exam_date"] in {True, False}
+    assert plan["subject_recommendations"][0]["subject"] == "subject1.json"
+
+    saved_records = main._test_dashboard_pass_probability_analyses
+    assert saved_records[0]["request"]["exam_name"] == "本試験"
+    assert saved_records[0]["request"]["exam_date"] == exam_date
+    assert saved_records[0]["request"]["daily_practice_capacity"] == 5
 
 
 def test_dashboard_pass_probability_can_ignore_unanswered_and_weight_recent_history(client: TestClient):
@@ -1386,6 +1435,60 @@ def test_get_review_later_includes_question_subject(client: TestClient):
     first = payload[0]
     assert first["subject"] == "subject1.json"
     assert first["question"]["subject"] == "subject1.json"
+
+
+def test_reorganize_subject_problems_updates_all_question_json_with_fallback(client: TestClient):
+    from backend import main
+
+    with patch("backend.main.get_gemini_unavailable_reason", return_value="test"):
+        response = client.post("/api/subjects/subject1.json/problems/reorganize")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["subject"] == "subject1.json"
+    assert payload["total"] == 5
+    assert payload["failed"] == 0
+    assert payload["updated"] >= 1
+    assert all(item["used_ai"] is False for item in payload["items"])
+
+    q2 = next(question for question in main._test_subject_payloads["subject1.json"] if question["id"] == "q2")
+    assert q2["explanation"]["text"].startswith("結論: 正解はB")
+
+
+def test_review_later_reorganize_job_tracks_parallel_subject_progress(client: TestClient):
+    from backend import main
+
+    with patch("backend.main.get_gemini_unavailable_reason", return_value="test"):
+        response = client.post(
+            "/api/review-later/reorganize-jobs",
+            json={
+                "subjects": ["subject1.json", "subject2.json"],
+                "max_parallel_subjects": 2,
+            },
+        )
+
+        assert response.status_code == 200
+        payload = response.json()
+        assert payload["job_id"].startswith("review-reorganize-")
+        assert payload["total_subjects"] == 2
+        assert payload["max_parallel_subjects"] == 2
+
+        for _ in range(60):
+            status_response = client.get(f"/api/review-later/reorganize-jobs/{payload['job_id']}")
+            assert status_response.status_code == 200
+            payload = status_response.json()
+            if payload["status"] in {"completed", "failed"}:
+                break
+            time.sleep(0.05)
+
+    assert payload["status"] == "completed"
+    assert payload["completed_subjects"] == 2
+    assert payload["total_problems"] == 6
+    assert payload["processed_problems"] == payload["total_problems"]
+    assert payload["updated"] >= 1
+    assert {subject["subject"] for subject in payload["subjects"]} == {"subject1.json", "subject2.json"}
+    assert all(subject["status"] == "completed" for subject in payload["subjects"])
+    assert any(name.startswith("review-later/reorganize-jobs/") for name in main._test_review_later_reorganize_jobs)
 
 
 def test_save_review_later_rejects_missing_problem(client: TestClient):

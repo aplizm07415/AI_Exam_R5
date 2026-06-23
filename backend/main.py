@@ -5,6 +5,8 @@ import datetime
 import math
 import re
 import unicodedata
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from fastapi import FastAPI, APIRouter, HTTPException, Query, Response, UploadFile, File, Form
 from pydantic import BaseModel, Field, ValidationError # BaseModelをインポート
@@ -217,6 +219,25 @@ class PastExamRecordEvidence(BaseModel):
     requested_weight: float = 0.0
     effective_weight: float = 0.0
 
+class SubjectPracticeRecommendation(BaseModel):
+    subject: str
+    recommended_attempts: int
+    daily_attempts: Optional[float] = None
+    score_gap: float
+    focus: str
+    reason: str
+
+class PassProbabilityPracticePlan(BaseModel):
+    exam_name: Optional[str] = None
+    exam_date: Optional[str] = None
+    days_to_exam: Optional[int] = None
+    daily_practice_capacity: int = 20
+    total_recommended_attempts: int = 0
+    recommended_daily_attempts: Optional[float] = None
+    feasible_by_exam_date: Optional[bool] = None
+    time_adjustment_factor: float = 1.0
+    subject_recommendations: list[SubjectPracticeRecommendation] = Field(default_factory=list)
+
 class PassProbabilityAnalysisRequestSnapshot(BaseModel):
     subjects: list[str]
     passing_score: float
@@ -224,6 +245,9 @@ class PassProbabilityAnalysisRequestSnapshot(BaseModel):
     include_past_exam_records: bool = False
     past_exam_columns: list[str] = Field(default_factory=list)
     past_exam_weight: float = 0.35
+    exam_name: Optional[str] = None
+    exam_date: Optional[str] = None
+    daily_practice_capacity: int = 20
 
 class PassProbabilityResponse(BaseModel):
     analysis_id: str
@@ -246,6 +270,7 @@ class PassProbabilityResponse(BaseModel):
     readiness_label: str
     recommendation: str
     past_exam_records: PastExamRecordEvidence = Field(default_factory=PastExamRecordEvidence)
+    practice_plan: PassProbabilityPracticePlan = Field(default_factory=PassProbabilityPracticePlan)
     subject_breakdown: list[SubjectPassProbabilityItem]
     analyzed_at: str
 
@@ -319,8 +344,58 @@ class ReviewLaterExplanationReviewRequest(BaseModel):
 
 class ReviewLaterExplanationReviewResponse(BaseModel):
     reorganized_explanation: str
+    reorganized_question_text_md: Optional[str] = None
     consistency_notes: list[str] = Field(default_factory=list)
     used_ai: bool = False
+
+class ReviewLaterBulkReorganizeItem(BaseModel):
+    subject: str
+    problem_id: str
+    updated: bool = False
+    used_ai: bool = False
+    consistency_notes: list[str] = Field(default_factory=list)
+    error: Optional[str] = None
+
+class ReviewLaterBulkReorganizeResponse(BaseModel):
+    subject: str
+    total: int
+    updated: int
+    failed: int
+    items: list[ReviewLaterBulkReorganizeItem] = Field(default_factory=list)
+
+ReviewLaterBulkReorganizeJobState = Literal["queued", "running", "completed", "failed"]
+ReviewLaterBulkReorganizeSubjectState = Literal["queued", "running", "completed", "failed"]
+
+class ReviewLaterBulkReorganizeJobRequest(BaseModel):
+    subjects: list[str] = Field(min_length=1)
+    max_parallel_subjects: int = Field(default=2, ge=1, le=4)
+
+class ReviewLaterBulkReorganizeSubjectProgress(BaseModel):
+    subject: str
+    status: ReviewLaterBulkReorganizeSubjectState = "queued"
+    total: int = 0
+    processed: int = 0
+    updated: int = 0
+    failed: int = 0
+    current_problem_id: Optional[str] = None
+    error: Optional[str] = None
+    started_at: Optional[str] = None
+    completed_at: Optional[str] = None
+    items: list[ReviewLaterBulkReorganizeItem] = Field(default_factory=list)
+
+class ReviewLaterBulkReorganizeJobStatus(BaseModel):
+    job_id: str
+    status: ReviewLaterBulkReorganizeJobState
+    total_subjects: int
+    completed_subjects: int
+    total_problems: int
+    processed_problems: int
+    updated: int
+    failed: int
+    max_parallel_subjects: int
+    started_at: str
+    completed_at: Optional[str] = None
+    subjects: list[ReviewLaterBulkReorganizeSubjectProgress] = Field(default_factory=list)
 
 class ReviewLaterItem(BaseModel):
     subject: str
@@ -1118,13 +1193,17 @@ def _extract_json_object_from_text(raw_text: str) -> dict[str, Any]:
     raise ValueError("No JSON object found in AI response.")
 
 
-def _fallback_reorganized_explanation(question: dict[str, Any]) -> ReviewLaterExplanationReviewResponse:
+def _question_explanation_text(question: dict[str, Any]) -> str:
     explanation_raw = question.get("explanation")
-    explanation_text = (
+    return (
         str(explanation_raw.get("text") or "")
         if isinstance(explanation_raw, dict)
         else str(explanation_raw or "")
     ).strip()
+
+
+def _fallback_reorganized_explanation(question: dict[str, Any]) -> ReviewLaterExplanationReviewResponse:
+    explanation_text = _question_explanation_text(question)
     answer = str(question.get("answer") or "").strip()
     choices = question.get("choices") if isinstance(question.get("choices"), list) else []
     correct_choice = next(
@@ -1148,9 +1227,124 @@ def _fallback_reorganized_explanation(question: dict[str, Any]) -> ReviewLaterEx
 
     return ReviewLaterExplanationReviewResponse(
         reorganized_explanation="\n".join(base_lines),
+        reorganized_question_text_md=None,
         consistency_notes=["AI整理を使えないため、既存情報から最低限の構成に整えました。"],
         used_ai=False,
     )
+
+
+def _build_review_later_reorganize_prompt(
+    subject_name: str,
+    problem_id: str,
+    normalized: dict[str, Any],
+) -> str:
+    prompt_payload = {
+        "problem_id": problem_id,
+        "subject": subject_name,
+        "question_text": normalized.get("question_text"),
+        "question_text_md": normalized.get("question_text_md"),
+        "question_text_mermaid": normalized.get("question_text_mermaid"),
+        "choices": normalized.get("choices"),
+        "answer": normalized.get("answer"),
+        "category": normalized.get("category"),
+        "explanation": normalized.get("explanation"),
+    }
+
+    return f"""
+あなたは中小企業診断士試験の問題データを点検する編集者です。
+以下の問題データだけを根拠に、正解・選択肢・解説の整合性を確認し、解説文とMarkdown問題文を読みやすく再整理してください。
+通常の問題文だけでなく、question_text_md の表・補足情報、question_text_mermaid の図や関係性も同じ問題データとして扱い、問題文・選択肢・正解・解説との矛盾や不足がないか確認してください。
+
+# 問題データ
+{json.dumps(prompt_payload, ensure_ascii=False)}
+
+# 出力ルール
+- 必ずJSONオブジェクトのみを返す。
+- reorganized_explanation は日本語で、見出し記号やMarkdown記号（#、*、-）を使わず、短い段落を改行で区切る。
+- reorganized_explanation の1行目は結論、2行目以降は根拠、他選択肢との差分、重要キーワードを必要最小限で整理する。
+- reorganized_question_text_md は、question_text_md が空でなければMarkdownとして返す。空なら null を返す。
+- reorganized_question_text_md は、1問の中に複数の設問や枝問がある場合、各設問ごとに「問題文」「条件・資料」「選択肢」を対応が分かる順序で整理する。
+- reorganized_question_text_md では、元データにある数値、固有名詞、表、選択肢、制約条件を削除・改変しない。情報が不足する場合は補わず、見出しと改行だけで読みやすくする。
+- 余計な前置きや励ましは入れない。
+- consistency_notes は、通常問題文、md、Mermaid、選択肢、正解、解説の整合している点または不整合の疑いを最大5件で返す。
+- mdやMermaidが空の場合は、その項目は空として扱い、空であること自体を問題視しない。
+- 情報が足りない場合は、断定せず「確認が必要」と書く。
+
+# JSONスキーマ
+{{
+  "reorganized_explanation": "string",
+  "reorganized_question_text_md": "string|null",
+  "consistency_notes": ["string"],
+  "used_ai": true
+}}
+"""
+
+
+def _reorganize_question_with_ai_or_fallback(
+    subject_name: str,
+    problem_id: str,
+    question: dict[str, Any],
+) -> ReviewLaterExplanationReviewResponse:
+    normalized = normalize_question(question.copy())
+    if not normalized:
+        raise HTTPException(status_code=400, detail="問題データの形式が不正です。")
+    normalized["subject"] = str(normalized.get("subject") or subject_name)
+
+    gemini_unavailable_reason = get_gemini_unavailable_reason()
+    if gemini_unavailable_reason:
+        return _fallback_reorganized_explanation(normalized)
+
+    prompt = _build_review_later_reorganize_prompt(subject_name, problem_id, normalized)
+    try:
+        model = create_generative_model()
+        response = model.generate_content(prompt)
+        payload = _extract_json_object_from_text(getattr(response, "text", "") or "")
+        reorganized = str(payload.get("reorganized_explanation") or "").strip()
+        if not reorganized:
+            return _fallback_reorganized_explanation(normalized)
+        raw_question_text_md = payload.get("reorganized_question_text_md")
+        reorganized_question_text_md = (
+            raw_question_text_md.strip()
+            if isinstance(raw_question_text_md, str) and raw_question_text_md.strip()
+            else None
+        )
+        notes = [str(item).strip() for item in (payload.get("consistency_notes") or []) if str(item).strip()]
+        return ReviewLaterExplanationReviewResponse(
+            reorganized_explanation=reorganized,
+            reorganized_question_text_md=reorganized_question_text_md,
+            consistency_notes=notes[:5],
+            used_ai=True,
+        )
+    except Exception as e:
+        print(f"Error reorganizing question {subject_name}/{problem_id}: {e}")
+        return _fallback_reorganized_explanation(normalized)
+
+
+def _apply_reorganized_question_fields(
+    original_question: dict,
+    review: ReviewLaterExplanationReviewResponse,
+) -> tuple[dict, bool]:
+    next_question = dict(original_question)
+    changed = False
+    next_explanation_text = review.reorganized_explanation.strip()
+    if next_explanation_text:
+        current_explanation = next_question.get("explanation")
+        if isinstance(current_explanation, dict):
+            next_explanation = dict(current_explanation)
+            if str(next_explanation.get("text") or "") != next_explanation_text:
+                next_explanation["text"] = next_explanation_text
+                next_question["explanation"] = next_explanation
+                changed = True
+        elif str(current_explanation or "") != next_explanation_text:
+            next_question["explanation"] = {"text": next_explanation_text, "images": []}
+            changed = True
+
+    next_question_text_md = (review.reorganized_question_text_md or "").strip()
+    if next_question_text_md and str(next_question.get("question_text_md") or "") != next_question_text_md:
+        next_question["question_text_md"] = next_question_text_md
+        changed = True
+
+    return next_question, changed
 
 
 def _load_custom_explanations_map() -> dict[str, dict]:
@@ -1665,6 +1859,131 @@ def _calibrated_pass_probability(expected_score: float, passing_score: float, st
     return _clamp_percentage(max(distribution_probability, curve_probability))
 
 
+def _parse_exam_date(value: Optional[str]) -> Optional[datetime.date]:
+    if not value:
+        return None
+    try:
+        return datetime.date.fromisoformat(value[:10])
+    except ValueError:
+        return None
+
+
+def _days_until_exam(exam_date: Optional[str]) -> Optional[int]:
+    target_date = _parse_exam_date(exam_date)
+    if target_date is None:
+        return None
+    today = datetime.datetime.now(TOKYO_TZ).date()
+    return max(0, (target_date - today).days)
+
+
+def _subject_practice_attempts(
+    item: SubjectPassProbabilityItem,
+    passing_score: float,
+) -> tuple[int, str, str]:
+    unanswered = max(0, item.total_problems - item.answered_problems)
+    score_gap = max(0.0, passing_score - item.expected_score)
+    if item.total_problems <= 0:
+        return 0, "対象なし", "問題数が0件のため推奨演習はありません。"
+
+    coverage_attempts = unanswered
+    weak_attempts = item.weak_problem_count * (2 if score_gap > 0 else 1)
+    gap_attempts = math.ceil((score_gap / 100.0) * item.total_problems * 2.4)
+    maintenance_attempts = math.ceil(max(0, item.total_problems - item.answered_problems) * 0.2)
+
+    if score_gap > 0:
+        recommended = max(gap_attempts, coverage_attempts + weak_attempts)
+    elif item.weak_problem_count > 0 or unanswered > 0:
+        recommended = weak_attempts + maintenance_attempts
+    else:
+        recommended = 0
+
+    if score_gap > 0 and unanswered > 0:
+        focus = "未実施と弱点"
+        reason = f"推定得点が合格ラインまで{score_gap:.1f}点不足し、未実施{unanswered}問と弱点{item.weak_problem_count}問を優先します。"
+    elif score_gap > 0:
+        focus = "弱点補強"
+        reason = f"推定得点が合格ラインまで{score_gap:.1f}点不足しているため、弱点{item.weak_problem_count}問を厚めに回します。"
+    elif item.weak_problem_count > 0:
+        focus = "維持と弱点"
+        reason = f"合格ラインは超えていますが、弱点{item.weak_problem_count}問を短い間隔で確認します。"
+    elif unanswered > 0:
+        focus = "未実施確認"
+        reason = f"合格ラインは超えていますが、未実施{unanswered}問を薄く確認します。"
+    else:
+        focus = "維持"
+        reason = "現状は合格ライン以上のため、追加推奨演習は最小です。"
+
+    return int(max(0, recommended)), focus, reason
+
+
+def _build_practice_plan(
+    subject_breakdown: list[SubjectPassProbabilityItem],
+    passing_score: float,
+    exam_name: Optional[str],
+    exam_date: Optional[str],
+    daily_practice_capacity: int,
+) -> PassProbabilityPracticePlan:
+    days_to_exam = _days_until_exam(exam_date)
+    normalized_capacity = max(1, min(500, daily_practice_capacity))
+    recommendations: list[SubjectPracticeRecommendation] = []
+    total_recommended = 0
+
+    for item in subject_breakdown:
+        recommended_attempts, focus, reason = _subject_practice_attempts(item, passing_score)
+        total_recommended += recommended_attempts
+        daily_attempts = (
+            round(recommended_attempts / days_to_exam, 1)
+            if days_to_exam and days_to_exam > 0
+            else None
+        )
+        recommendations.append(SubjectPracticeRecommendation(
+            subject=item.subject,
+            recommended_attempts=recommended_attempts,
+            daily_attempts=daily_attempts,
+            score_gap=round(max(0.0, passing_score - item.expected_score), 1),
+            focus=focus,
+            reason=reason,
+        ))
+
+    recommendations.sort(key=lambda item: (-item.recommended_attempts, item.subject))
+    recommended_daily = (
+        round(total_recommended / days_to_exam, 1)
+        if days_to_exam and days_to_exam > 0
+        else None
+    )
+    feasible = None
+    time_adjustment_factor = 1.0
+    if days_to_exam is not None:
+        if total_recommended <= 0:
+            feasible = True
+            time_adjustment_factor = 1.04
+        elif days_to_exam <= 0:
+            feasible = False
+            time_adjustment_factor = 0.72
+        else:
+            capacity_until_exam = days_to_exam * normalized_capacity
+            coverage_ratio = capacity_until_exam / max(1, total_recommended)
+            feasible = coverage_ratio >= 1.0
+            if coverage_ratio >= 1.25:
+                time_adjustment_factor = 1.06
+            elif coverage_ratio >= 1.0:
+                time_adjustment_factor = 1.0
+            else:
+                time_adjustment_factor = max(0.62, 0.72 + (0.28 * coverage_ratio))
+
+    return PassProbabilityPracticePlan(
+        exam_name=exam_name.strip()[:120] if isinstance(exam_name, str) and exam_name.strip() else None,
+        exam_date=exam_date[:10] if _parse_exam_date(exam_date) else None,
+        days_to_exam=days_to_exam,
+        daily_practice_capacity=normalized_capacity,
+        total_recommended_attempts=total_recommended,
+        recommended_daily_attempts=recommended_daily,
+        feasible_by_exam_date=feasible,
+        time_adjustment_factor=round(time_adjustment_factor, 2),
+        subject_recommendations=recommendations,
+    )
+
+
 def _first_attempt_correct_rate(history_by_problem: dict[str, list[HistoryItem]]) -> Optional[float]:
     first_attempts: list[HistoryItem] = []
     for problem_history in history_by_problem.values():
@@ -1834,6 +2153,9 @@ def _save_pass_probability_analysis(
     response: PassProbabilityResponse,
     include_past_exam_records: bool,
     past_exam_weight: float,
+    exam_name: Optional[str] = None,
+    exam_date: Optional[str] = None,
+    daily_practice_capacity: int = 20,
 ) -> PassProbabilityAnalysisRecord:
     record = PassProbabilityAnalysisRecord(
         id=response.analysis_id,
@@ -1845,6 +2167,9 @@ def _save_pass_probability_analysis(
             include_past_exam_records=include_past_exam_records,
             past_exam_columns=response.past_exam_records.columns if include_past_exam_records else [],
             past_exam_weight=round(max(0.0, min(1.0, past_exam_weight)), 2),
+            exam_name=exam_name.strip()[:120] if isinstance(exam_name, str) and exam_name.strip() else None,
+            exam_date=exam_date[:10] if _parse_exam_date(exam_date) else None,
+            daily_practice_capacity=max(1, min(500, daily_practice_capacity)),
         ),
         result=response,
     )
@@ -1908,6 +2233,9 @@ def _build_pass_probability_response(
     include_past_exam_records: bool = False,
     past_exam_columns: Optional[list[str]] = None,
     past_exam_weight: float = 0.35,
+    exam_name: Optional[str] = None,
+    exam_date: Optional[str] = None,
+    daily_practice_capacity: int = 20,
 ) -> PassProbabilityResponse:
     unique_subjects: list[str] = []
     seen_subjects: set[str] = set()
@@ -2053,6 +2381,16 @@ def _build_pass_probability_response(
     if total_problems > 0 and expected_score > 0 and pass_probability > 0:
         pass_probability = max(0.1, pass_probability)
 
+    practice_plan = _build_practice_plan(
+        subject_breakdown=subject_breakdown,
+        passing_score=passing_score,
+        exam_name=exam_name,
+        exam_date=exam_date,
+        daily_practice_capacity=daily_practice_capacity,
+    )
+    if practice_plan.days_to_exam is not None:
+        pass_probability *= practice_plan.time_adjustment_factor
+
     if total_problems == 0:
         readiness_label = "対象なし"
         recommendation = "対象問題jsonを選択してください。"
@@ -2090,6 +2428,7 @@ def _build_pass_probability_response(
         readiness_label=readiness_label,
         recommendation=recommendation,
         past_exam_records=past_exam_evidence,
+        practice_plan=practice_plan,
         subject_breakdown=subject_breakdown,
         analyzed_at=_now_utc_iso(),
     )
@@ -2224,6 +2563,9 @@ def get_pass_probability(
     include_past_exam_records: bool = False,
     past_exam_columns: Optional[List[str]] = Query(None),
     past_exam_weight: float = Query(0.35, ge=0, le=1),
+    exam_name: Optional[str] = Query(None),
+    exam_date: Optional[str] = Query(None),
+    daily_practice_capacity: int = Query(20, ge=1, le=500),
 ):
     """選択された問題JSONの履歴と進捗から合格ライン到達可能性を返す"""
     if container_client is None:
@@ -2235,11 +2577,17 @@ def get_pass_probability(
         include_past_exam_records=include_past_exam_records,
         past_exam_columns=past_exam_columns,
         past_exam_weight=past_exam_weight,
+        exam_name=exam_name,
+        exam_date=exam_date,
+        daily_practice_capacity=daily_practice_capacity,
     )
     _save_pass_probability_analysis(
         response,
         include_past_exam_records=include_past_exam_records,
         past_exam_weight=past_exam_weight,
+        exam_name=exam_name,
+        exam_date=exam_date,
+        daily_practice_capacity=daily_practice_capacity,
     )
     return response
 
@@ -4496,67 +4844,350 @@ def reorganize_review_later_explanation(
         question = base_question.copy()
         question["subject"] = subject_name
 
-    normalized = normalize_question(question.copy())
-    if not normalized:
-        raise HTTPException(status_code=400, detail="問題データの形式が不正です。")
-    normalized["subject"] = str(normalized.get("subject") or subject_name)
+    return _reorganize_question_with_ai_or_fallback(subject_name, problem_id, question)
 
-    gemini_unavailable_reason = get_gemini_unavailable_reason()
-    if gemini_unavailable_reason:
-        return _fallback_reorganized_explanation(normalized)
 
-    prompt_payload = {
-        "problem_id": problem_id,
-        "subject": subject_name,
-        "question_text": normalized.get("question_text"),
-        "question_text_md": normalized.get("question_text_md"),
-        "question_text_mermaid": normalized.get("question_text_mermaid"),
-        "choices": normalized.get("choices"),
-        "answer": normalized.get("answer"),
-        "category": normalized.get("category"),
-        "explanation": normalized.get("explanation"),
-    }
+def _reorganize_subject_questions(
+    subject_name: str,
+    progress_callback: Optional[Any] = None,
+) -> ReviewLaterBulkReorganizeResponse:
+    is_dict_format, original_questions, base_payload = _subject_blob_payload(subject_name)
+    next_questions: list[dict] = []
+    results: list[ReviewLaterBulkReorganizeItem] = []
+    updated_count = 0
+    failed_count = 0
 
-    prompt = f"""
-あなたは中小企業診断士試験の問題データを点検する編集者です。
-以下の問題データだけを根拠に、正解・選択肢・解説の整合性を確認し、解説文を読みやすく再整理してください。
-通常の問題文だけでなく、question_text_md の表・補足情報、question_text_mermaid の図や関係性も同じ問題データとして扱い、問題文・選択肢・正解・解説との矛盾や不足がないか確認してください。
+    if progress_callback:
+        progress_callback({
+            "event": "subject_loaded",
+            "subject": subject_name,
+            "total": len(original_questions),
+        })
 
-# 問題データ
-{json.dumps(prompt_payload, ensure_ascii=False)}
+    for index, original_question in enumerate(original_questions):
+        normalized = normalize_question(original_question.copy()) if isinstance(original_question, dict) else None
+        problem_id = str((normalized or {}).get("id") or original_question.get("id") or f"index-{index + 1}") if isinstance(original_question, dict) else f"index-{index + 1}"
+        if progress_callback:
+            progress_callback({
+                "event": "problem_started",
+                "subject": subject_name,
+                "problem_id": problem_id,
+            })
+        if not isinstance(original_question, dict) or not normalized:
+            next_questions.append(original_question)
+            failed_count += 1
+            result_item = ReviewLaterBulkReorganizeItem(
+                subject=subject_name,
+                problem_id=problem_id,
+                updated=False,
+                used_ai=False,
+                error="問題データの形式が不正です。",
+            )
+            results.append(result_item)
+            if progress_callback:
+                progress_callback({
+                    "event": "problem_finished",
+                    "subject": subject_name,
+                    "item": result_item,
+                    "processed": len(results),
+                    "updated": updated_count,
+                    "failed": failed_count,
+                })
+            continue
 
-# 出力ルール
-- 必ずJSONオブジェクトのみを返す。
-- reorganized_explanation は日本語で、見出し記号やMarkdown記号（#、*、-）を使わず、短い段落を改行で区切る。
-- 1行目は結論、2行目以降は根拠、他選択肢との差分、重要キーワードを必要最小限で整理する。
-- 余計な前置きや励ましは入れない。
-- consistency_notes は、通常問題文、md、Mermaid、選択肢、正解、解説の整合している点または不整合の疑いを最大5件で返す。
-- mdやMermaidが空の場合は、その項目は空として扱い、空であること自体を問題視しない。
-- 情報が足りない場合は、断定せず「確認が必要」と書く。
+        question_for_review = normalized.copy()
+        question_for_review["subject"] = subject_name
+        try:
+            review = _reorganize_question_with_ai_or_fallback(subject_name, problem_id, question_for_review)
+            next_question, changed = _apply_reorganized_question_fields(original_question, review)
+            next_questions.append(next_question)
+            if changed:
+                updated_count += 1
+            result_item = ReviewLaterBulkReorganizeItem(
+                subject=subject_name,
+                problem_id=problem_id,
+                updated=changed,
+                used_ai=review.used_ai,
+                consistency_notes=review.consistency_notes,
+            )
+            results.append(result_item)
+        except Exception as e:
+            next_questions.append(original_question)
+            failed_count += 1
+            result_item = ReviewLaterBulkReorganizeItem(
+                subject=subject_name,
+                problem_id=problem_id,
+                updated=False,
+                used_ai=False,
+                error=str(e),
+            )
+            results.append(result_item)
 
-# JSONスキーマ
-{{
-  "reorganized_explanation": "string",
-  "consistency_notes": ["string"],
-  "used_ai": true
-}}
-"""
+        if progress_callback:
+            progress_callback({
+                "event": "problem_finished",
+                "subject": subject_name,
+                "item": result_item,
+                "processed": len(results),
+                "updated": updated_count,
+                "failed": failed_count,
+            })
+
+    if updated_count > 0:
+        _write_subject_questions(subject_name, next_questions, base_payload, is_dict_format)
+
+    return ReviewLaterBulkReorganizeResponse(
+        subject=subject_name,
+        total=len(original_questions),
+        updated=updated_count,
+        failed=failed_count,
+        items=results,
+    )
+
+
+@api_router.post(
+    "/subjects/{subject_name:path}/problems/reorganize",
+    response_model=ReviewLaterBulkReorganizeResponse,
+)
+def reorganize_subject_problems(subject_name: str):
+    """選択された問題JSON内の全問題にAI整合性確認・整理を適用し、問題JSONを上書き保存する。"""
+    return _reorganize_subject_questions(subject_name)
+
+
+REVIEW_LATER_REORGANIZE_JOBS_DIR = "review-later/reorganize-jobs"
+REVIEW_LATER_REORGANIZE_JOBS_LOCK = threading.Lock()
+
+
+def _reorganize_job_blob_name(job_id: str) -> str:
+    safe_job_id = re.sub(r"[^a-zA-Z0-9_-]", "", job_id)
+    return f"{REVIEW_LATER_REORGANIZE_JOBS_DIR}/{safe_job_id}.json"
+
+
+def _load_reorganize_job_payload(job_id: str) -> dict[str, Any]:
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+    blob_client = container_client.get_blob_client(_reorganize_job_blob_name(job_id))
+    if not blob_client.exists():
+        raise HTTPException(status_code=404, detail="Reorganize job not found.")
     try:
-        model = create_generative_model()
-        response = model.generate_content(prompt)
-        payload = _extract_json_object_from_text(getattr(response, "text", "") or "")
-        reorganized = str(payload.get("reorganized_explanation") or "").strip()
-        if not reorganized:
-            return _fallback_reorganized_explanation(normalized)
-        notes = [str(item).strip() for item in (payload.get("consistency_notes") or []) if str(item).strip()]
-        return ReviewLaterExplanationReviewResponse(
-            reorganized_explanation=reorganized,
-            consistency_notes=notes[:5],
-            used_ai=True,
-        )
+        payload = json.loads(blob_client.download_blob().readall())
+        if not isinstance(payload, dict):
+            raise ValueError("invalid job payload")
+        return payload
+    except HTTPException:
+        raise
     except Exception as e:
-        print(f"Error reorganizing review-later explanation: {e}")
-        return _fallback_reorganized_explanation(normalized)
+        print(f"Error reading reorganize job {job_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to read reorganize job.")
+
+
+def _save_reorganize_job_payload(job_id: str, payload: dict[str, Any]) -> None:
+    _save_json_blob(_reorganize_job_blob_name(job_id), payload)
+
+
+def _serialize_reorganize_job_payload(job_id: str, job: dict[str, Any]) -> ReviewLaterBulkReorganizeJobStatus:
+    subject_order = list(job.get("subject_order") or [])
+    raw_subjects = job.get("subjects") if isinstance(job.get("subjects"), dict) else {}
+    subjects = [
+        ReviewLaterBulkReorganizeSubjectProgress.model_validate(raw_subjects[subject])
+        for subject in subject_order
+        if subject in raw_subjects
+    ]
+    total_problems = sum(subject.total for subject in subjects)
+    processed_problems = sum(subject.processed for subject in subjects)
+    updated = sum(subject.updated for subject in subjects)
+    failed = sum(subject.failed for subject in subjects)
+    completed_subjects = sum(1 for subject in subjects if subject.status in {"completed", "failed"})
+    return ReviewLaterBulkReorganizeJobStatus(
+        job_id=job_id,
+        status=job.get("status", "queued"),
+        total_subjects=len(subject_order),
+        completed_subjects=completed_subjects,
+        total_problems=total_problems,
+        processed_problems=processed_problems,
+        updated=updated,
+        failed=failed,
+        max_parallel_subjects=int(job.get("max_parallel_subjects") or 1),
+        started_at=str(job.get("started_at") or _now_utc_iso()),
+        completed_at=job.get("completed_at"),
+        subjects=subjects,
+    )
+
+
+def _serialize_reorganize_job(job_id: str) -> ReviewLaterBulkReorganizeJobStatus:
+    return _serialize_reorganize_job_payload(job_id, _load_reorganize_job_payload(job_id))
+
+
+def _mutate_reorganize_job(job_id: str, mutator) -> dict[str, Any]:
+    with REVIEW_LATER_REORGANIZE_JOBS_LOCK:
+        job = _load_reorganize_job_payload(job_id)
+        mutator(job)
+        _save_reorganize_job_payload(job_id, job)
+        return job
+
+
+def _update_reorganize_subject_progress(job_id: str, event: dict[str, Any]) -> None:
+    subject_name = str(event.get("subject") or "")
+    if not subject_name:
+        return
+
+    def mutate(job: dict[str, Any]) -> None:
+        subjects = job.get("subjects") if isinstance(job.get("subjects"), dict) else {}
+        progress = subjects.get(subject_name)
+        if not progress:
+            return
+        event_name = event.get("event")
+        if event_name == "subject_loaded":
+            progress["status"] = "running"
+            progress["total"] = int(event.get("total") or 0)
+            progress["started_at"] = progress.get("started_at") or _now_utc_iso()
+        elif event_name == "problem_started":
+            progress["status"] = "running"
+            progress["current_problem_id"] = str(event.get("problem_id") or "")
+        elif event_name == "problem_finished":
+            item = event.get("item")
+            if isinstance(item, ReviewLaterBulkReorganizeItem):
+                progress.setdefault("items", []).append(item.model_dump())
+            progress["processed"] = int(event.get("processed") or progress.get("processed") or 0)
+            progress["updated"] = int(event.get("updated") or progress.get("updated") or 0)
+            progress["failed"] = int(event.get("failed") or progress.get("failed") or 0)
+
+    _mutate_reorganize_job(job_id, mutate)
+
+
+def _run_reorganize_job_subject(job_id: str, subject_name: str) -> None:
+    def mark_running(job: dict[str, Any]) -> None:
+        progress = job["subjects"][subject_name]
+        progress["status"] = "running"
+        progress["started_at"] = _now_utc_iso()
+
+    _mutate_reorganize_job(job_id, mark_running)
+    try:
+        response = _reorganize_subject_questions(
+            subject_name,
+            progress_callback=lambda event: _update_reorganize_subject_progress(job_id, event),
+        )
+
+        def mark_completed(job: dict[str, Any]) -> None:
+            progress = job["subjects"][subject_name]
+            progress["status"] = "completed"
+            progress["total"] = response.total
+            progress["processed"] = response.total
+            progress["updated"] = response.updated
+            progress["failed"] = response.failed
+            progress["current_problem_id"] = None
+            progress["completed_at"] = _now_utc_iso()
+            progress["items"] = [item.model_dump() for item in response.items]
+
+        _mutate_reorganize_job(job_id, mark_completed)
+    except Exception as e:
+        def mark_failed(job: dict[str, Any]) -> None:
+            progress = job["subjects"][subject_name]
+            progress["status"] = "failed"
+            progress["error"] = str(e)
+            progress["current_problem_id"] = None
+            progress["completed_at"] = _now_utc_iso()
+
+        _mutate_reorganize_job(job_id, mark_failed)
+
+
+def _run_reorganize_job(job_id: str, subject_names: list[str], max_parallel_subjects: int) -> None:
+    try:
+        _mutate_reorganize_job(job_id, lambda job: job.update({"status": "running"}))
+        with ThreadPoolExecutor(max_workers=max_parallel_subjects) as executor:
+            future_by_subject = {
+                executor.submit(_run_reorganize_job_subject, job_id, subject_name): subject_name
+                for subject_name in subject_names
+            }
+            for future in as_completed(future_by_subject):
+                subject_name = future_by_subject[future]
+                try:
+                    future.result()
+                except Exception as e:
+                    def mark_subject_failed(job: dict[str, Any]) -> None:
+                        progress = job["subjects"][subject_name]
+                        progress["status"] = "failed"
+                        progress["error"] = str(e)
+                        progress["completed_at"] = _now_utc_iso()
+
+                    _mutate_reorganize_job(job_id, mark_subject_failed)
+        def mark_job_finished(job: dict[str, Any]) -> None:
+            subjects = job.get("subjects") if isinstance(job.get("subjects"), dict) else {}
+            has_failed_subject = any(
+                isinstance(progress, dict) and progress.get("status") == "failed"
+                for progress in subjects.values()
+            )
+            job["status"] = "failed" if has_failed_subject else "completed"
+            job["completed_at"] = _now_utc_iso()
+
+        _mutate_reorganize_job(job_id, mark_job_finished)
+    except Exception as e:
+        def mark_job_failed(job: dict[str, Any]) -> None:
+            job["status"] = "failed"
+            job["error"] = str(e)
+            job["completed_at"] = _now_utc_iso()
+
+        try:
+            _mutate_reorganize_job(job_id, mark_job_failed)
+        except Exception as save_error:
+            print(f"Error marking reorganize job failed: {save_error}")
+
+
+@api_router.post("/review-later/reorganize-jobs", response_model=ReviewLaterBulkReorganizeJobStatus)
+def start_review_later_reorganize_job(request: ReviewLaterBulkReorganizeJobRequest):
+    """複数の問題JSONを並行してAI整理するジョブを開始する。"""
+    subject_names: list[str] = []
+    seen_subjects: set[str] = set()
+    for subject in request.subjects:
+        subject_name = str(subject or "").strip()
+        if not subject_name or subject_name in seen_subjects:
+            continue
+        seen_subjects.add(subject_name)
+        subject_names.append(subject_name)
+    if not subject_names:
+        raise HTTPException(status_code=400, detail="対象問題jsonが未選択です。")
+
+    max_parallel_subjects = max(1, min(request.max_parallel_subjects, len(subject_names), 4))
+    job_id = f"review-reorganize-{uuid.uuid4().hex}"
+    now_iso = _now_utc_iso()
+    job_payload = {
+        "status": "queued",
+        "subject_order": subject_names,
+        "max_parallel_subjects": max_parallel_subjects,
+        "started_at": now_iso,
+        "completed_at": None,
+        "subjects": {
+            subject_name: {
+                "subject": subject_name,
+                "status": "queued",
+                "total": 0,
+                "processed": 0,
+                "updated": 0,
+                "failed": 0,
+                "current_problem_id": None,
+                "error": None,
+                "started_at": None,
+                "completed_at": None,
+                "items": [],
+            }
+            for subject_name in subject_names
+        },
+    }
+    _save_reorganize_job_payload(job_id, job_payload)
+
+    worker = threading.Thread(
+        target=_run_reorganize_job,
+        args=(job_id, subject_names, max_parallel_subjects),
+        daemon=True,
+    )
+    worker.start()
+    return _serialize_reorganize_job_payload(job_id, job_payload)
+
+
+@api_router.get("/review-later/reorganize-jobs/{job_id}", response_model=ReviewLaterBulkReorganizeJobStatus)
+def get_review_later_reorganize_job(job_id: str):
+    """AI整理ジョブの進捗を返す。"""
+    return _serialize_reorganize_job(job_id)
 
 
 @api_router.get("/quiz/worry-practice/versions", response_model=list[WorryPracticeVersionSummary])
@@ -5251,6 +5882,10 @@ async def serve_portal_route():
 
 @app.get("/dashboard", response_class=FileResponse)
 async def serve_dashboard_route():
+    return FileResponse(DIST_DIR / "index.html")
+
+@app.get("/dashboard/review-later", response_class=FileResponse)
+async def serve_dashboard_review_later_route():
     return FileResponse(DIST_DIR / "index.html")
 
 @app.get("/paper-practice", response_class=FileResponse)

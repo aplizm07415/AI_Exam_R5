@@ -68,6 +68,50 @@ interface OralVivaResponse {
   memo_summary?: string | null;
 }
 
+interface BulkReorganizeResult {
+  subject: string;
+  total: number;
+  updated: number;
+  failed: number;
+  items: Array<{
+    subject: string;
+    problem_id: string;
+    updated: boolean;
+    used_ai: boolean;
+    consistency_notes?: string[];
+    error?: string | null;
+  }>;
+}
+
+type BulkReorganizeStatus = 'queued' | 'running' | 'completed' | 'failed';
+
+interface BulkReorganizeSubjectProgress {
+  subject: string;
+  status: BulkReorganizeStatus;
+  total: number;
+  processed: number;
+  updated: number;
+  failed: number;
+  current_problem_id?: string | null;
+  error?: string | null;
+  items: BulkReorganizeResult['items'];
+}
+
+interface BulkReorganizeJobStatus {
+  job_id: string;
+  status: BulkReorganizeStatus;
+  total_subjects: number;
+  completed_subjects: number;
+  total_problems: number;
+  processed_problems: number;
+  updated: number;
+  failed: number;
+  max_parallel_subjects: number;
+  started_at: string;
+  completed_at?: string | null;
+  subjects: BulkReorganizeSubjectProgress[];
+}
+
 type IpadProfile = 'air' | 'mini';
 
 const getCustomImageUrls = (
@@ -125,6 +169,7 @@ export default function ReviewLaterPage() {
   const [items, setItems] = useState<ReviewLaterEntry[]>([]);
   const [subjectNames, setSubjectNames] = useState<string[]>([]);
   const [selectedSubjectName, setSelectedSubjectName] = useState('');
+  const [loadedSubjectProblemName, setLoadedSubjectProblemName] = useState('');
   const [subjectProblems, setSubjectProblems] = useState<SubjectProblem[]>([]);
   const [isLoadingSubjectProblems, setIsLoadingSubjectProblems] = useState(false);
   const [sortMode, setSortMode] = useState<'default' | 'first_missed'>('default');
@@ -141,6 +186,11 @@ export default function ReviewLaterPage() {
   const [isSavingMemo, setIsSavingMemo] = useState(false);
   const [isRegisteringHistory, setIsRegisteringHistory] = useState(false);
   const [isReorganizingExplanation, setIsReorganizingExplanation] = useState(false);
+  const [isBulkReorganizingSubject, setIsBulkReorganizingSubject] = useState(false);
+  const [bulkReorganizeResult, setBulkReorganizeResult] = useState<BulkReorganizeResult | null>(null);
+  const [bulkReorganizeJob, setBulkReorganizeJob] = useState<BulkReorganizeJobStatus | null>(null);
+  const [bulkReorganizeSubjectNames, setBulkReorganizeSubjectNames] = useState<string[]>([]);
+  const [maxParallelReorganizeSubjects, setMaxParallelReorganizeSubjects] = useState(2);
   const [aiExplanationReview, setAiExplanationReview] = useState<{ notes: string[]; usedAi: boolean } | null>(null);
   const [isFindingSimilar, setIsFindingSimilar] = useState(false);
   const [isBulkRegisteringFirstMissed, setIsBulkRegisteringFirstMissed] = useState(false);
@@ -226,6 +276,8 @@ export default function ReviewLaterPage() {
     () => items.find((item) => `${item.subject}::${item.problem_id}` === selectedKey) ?? null,
     [items, selectedKey]
   );
+  const isSelectedSubjectProblemListLoaded =
+    selectedSubjectName !== '' && loadedSubjectProblemName === selectedSubjectName;
   const questionSupplementImageUrls = editingProblem
     ? getCustomImageUrls(editingProblem.custom_question_image_data_urls, editingProblem.custom_question_image_data_url)
     : [];
@@ -237,13 +289,28 @@ export default function ReviewLaterPage() {
     if (selectedItem?.question) {
       return selectedItem.question;
     }
+    if (!isSelectedSubjectProblemListLoaded) {
+      return null;
+    }
     return subjectProblems.find((problem) => `${problem.subject}::${problem.id}` === selectedKey) ?? null;
-  }, [selectedItem, subjectProblems, selectedKey]);
+  }, [isSelectedSubjectProblemListLoaded, selectedItem, subjectProblems, selectedKey]);
 
   const reviewLaterKeySet = useMemo(
     () => new Set(items.map((item) => `${item.subject}::${item.problem_id}`)),
     [items]
   );
+  const bulkReorganizeSubjectNameSet = useMemo(
+    () => new Set(bulkReorganizeSubjectNames),
+    [bulkReorganizeSubjectNames]
+  );
+  const bulkReorganizeProgressPercent = useMemo(() => {
+    if (!bulkReorganizeJob || bulkReorganizeJob.total_problems <= 0) {
+      return bulkReorganizeJob && bulkReorganizeJob.total_subjects > 0
+        ? Math.round((bulkReorganizeJob.completed_subjects / bulkReorganizeJob.total_subjects) * 100)
+        : 0;
+    }
+    return Math.round((bulkReorganizeJob.processed_problems / bulkReorganizeJob.total_problems) * 100);
+  }, [bulkReorganizeJob]);
 
   const removeReviewLaterEntryLocally = (subject: string, problemId: string) => {
     const targetKey = `${subject}::${problemId}`;
@@ -262,6 +329,9 @@ export default function ReviewLaterPage() {
   };
 
   const sortedSubjectProblems = useMemo(() => {
+    if (!isSelectedSubjectProblemListLoaded) {
+      return [];
+    }
     const filtered = subjectProblems.filter((problem) => {
       if (!firstMissedDateFrom && !firstMissedDateTo) {
         return true;
@@ -292,7 +362,7 @@ export default function ReviewLaterPage() {
       return next;
     }
     return next.sort((a, b) => a.id.localeCompare(b.id));
-  }, [subjectProblems, sortMode, firstMissedIds, firstMissedDateById, firstMissedDateFrom, firstMissedDateTo]);
+  }, [isSelectedSubjectProblemListLoaded, subjectProblems, sortMode, firstMissedIds, firstMissedDateById, firstMissedDateFrom, firstMissedDateTo]);
   const unregisteredFirstMissedProblems = useMemo(
     () => sortedSubjectProblems.filter((problem) => firstMissedIds.has(problem.id) && !reviewLaterKeySet.has(`${problem.subject}::${problem.id}`)),
     [sortedSubjectProblems, firstMissedIds, reviewLaterKeySet]
@@ -313,6 +383,17 @@ export default function ReviewLaterPage() {
   }, [selectedItem?.subject, subjectNames]);
 
   useEffect(() => {
+    setBulkReorganizeSubjectNames((prev) => {
+      const available = new Set(subjectNames);
+      const next = prev.filter((subjectName) => available.has(subjectName));
+      if (next.length > 0) {
+        return next;
+      }
+      return selectedSubjectName && available.has(selectedSubjectName) ? [selectedSubjectName] : [];
+    });
+  }, [selectedSubjectName, subjectNames]);
+
+  useEffect(() => {
     if (selectedProblem) {
       setEditingProblem({ ...selectedProblem });
       setCustomExplanationText(selectedProblem.custom_explanation || '');
@@ -331,64 +412,62 @@ export default function ReviewLaterPage() {
     setIsOralVivaLoading(false);
   }, [selectedProblem]);
 
-  useEffect(() => {
-    const fetchSubjectProblems = async () => {
-      if (!selectedSubjectName) {
-        setSubjectProblems([]);
+  const loadSubjectProblems = async (subjectName = selectedSubjectName, force = false) => {
+    if (!subjectName || isLoadingSubjectProblems) {
+      return;
+    }
+    const cachedProblems = subjectProblemsCacheRef.current[subjectName];
+    const cachedFirstMissed = firstMissedCacheRef.current[subjectName];
+    if (!force && cachedProblems && cachedFirstMissed) {
+      setSubjectProblems(cachedProblems);
+      setFirstMissedIds(new Set(cachedFirstMissed.ids));
+      setFirstMissedDateById(cachedFirstMissed.dates);
+      setLoadedSubjectProblemName(subjectName);
+      return;
+    }
+    setIsLoadingSubjectProblems(true);
+    setError('');
+    try {
+      const [problemsResponse, firstMissedResponse] = await Promise.all([
+        fetch(`${API_BASE_URL}/subjects/${encodeURIComponent(subjectName)}/problems`),
+        fetch(`${API_BASE_URL}/analytics/export/first-missed-problems?subjects=${encodeURIComponent(subjectName)}`),
+      ]);
+      if (!problemsResponse.ok) {
+        const payload = await problemsResponse.json().catch(() => null);
+        throw new Error(payload?.detail || '科目問題一覧の取得に失敗しました。');
+      }
+      const problems: SubjectProblem[] = await problemsResponse.json();
+      subjectProblemsCacheRef.current[subjectName] = problems;
+      setSubjectProblems(problems);
+      if (firstMissedResponse.ok) {
+        const payload: { questions?: QuizQuestion[] } = await firstMissedResponse.json();
+        const firstMissedQuestions = payload.questions || [];
+        const ids = firstMissedQuestions.map((question) => question.id);
+        const dates = Object.fromEntries(
+          firstMissedQuestions
+            .filter((question) => question.first_missed_answered_at)
+            .map((question) => [question.id, question.first_missed_answered_at as string])
+        );
+        firstMissedCacheRef.current[subjectName] = { ids, dates };
+        setFirstMissedIds(new Set(ids));
+        setFirstMissedDateById(dates);
+      } else {
+        firstMissedCacheRef.current[subjectName] = { ids: [], dates: {} };
         setFirstMissedIds(new Set());
         setFirstMissedDateById({});
-        return;
       }
-      const cachedProblems = subjectProblemsCacheRef.current[selectedSubjectName];
-      const cachedFirstMissed = firstMissedCacheRef.current[selectedSubjectName];
-      if (cachedProblems && cachedFirstMissed) {
-        setSubjectProblems(cachedProblems);
-        setFirstMissedIds(new Set(cachedFirstMissed.ids));
-        setFirstMissedDateById(cachedFirstMissed.dates);
-        return;
-      }
-      setIsLoadingSubjectProblems(true);
-      try {
-        const [problemsResponse, firstMissedResponse] = await Promise.all([
-          fetch(`${API_BASE_URL}/subjects/${encodeURIComponent(selectedSubjectName)}/problems`),
-          fetch(`${API_BASE_URL}/analytics/export/first-missed-problems?subjects=${encodeURIComponent(selectedSubjectName)}`),
-        ]);
-        if (!problemsResponse.ok) {
-          const payload = await problemsResponse.json().catch(() => null);
-          throw new Error(payload?.detail || '科目問題一覧の取得に失敗しました。');
-        }
-        const problems: SubjectProblem[] = await problemsResponse.json();
-        subjectProblemsCacheRef.current[selectedSubjectName] = problems;
-        setSubjectProblems(problems);
-        if (firstMissedResponse.ok) {
-          const payload: { questions?: QuizQuestion[] } = await firstMissedResponse.json();
-          const firstMissedQuestions = payload.questions || [];
-          const ids = firstMissedQuestions.map((question) => question.id);
-          const dates = Object.fromEntries(
-            firstMissedQuestions
-              .filter((question) => question.first_missed_answered_at)
-              .map((question) => [question.id, question.first_missed_answered_at as string])
-          );
-          firstMissedCacheRef.current[selectedSubjectName] = { ids, dates };
-          setFirstMissedIds(new Set(ids));
-          setFirstMissedDateById(dates);
-        } else {
-          firstMissedCacheRef.current[selectedSubjectName] = { ids: [], dates: {} };
-          setFirstMissedIds(new Set());
-          setFirstMissedDateById({});
-        }
-      } catch (fetchError) {
-        console.error(fetchError);
-        setError(fetchError instanceof Error ? fetchError.message : '科目問題一覧の取得に失敗しました。');
-        setSubjectProblems([]);
-        setFirstMissedIds(new Set());
-        setFirstMissedDateById({});
-      } finally {
-        setIsLoadingSubjectProblems(false);
-      }
-    };
-    void fetchSubjectProblems();
-  }, [selectedSubjectName]);
+      setLoadedSubjectProblemName(subjectName);
+    } catch (fetchError) {
+      console.error(fetchError);
+      setError(fetchError instanceof Error ? fetchError.message : '科目問題一覧の取得に失敗しました。');
+      setLoadedSubjectProblemName('');
+      setSubjectProblems([]);
+      setFirstMissedIds(new Set());
+      setFirstMissedDateById({});
+    } finally {
+      setIsLoadingSubjectProblems(false);
+    }
+  };
 
   const handleProblemChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     if (!editingProblem) return;
@@ -577,6 +656,7 @@ export default function ReviewLaterPage() {
       );
       const payload: {
         reorganized_explanation?: string;
+        reorganized_question_text_md?: string | null;
         consistency_notes?: string[];
         used_ai?: boolean;
         detail?: string;
@@ -588,8 +668,10 @@ export default function ReviewLaterPage() {
       if (!nextExplanation) {
         throw new Error('AI整理結果が空でした。');
       }
+      const nextQuestionTextMd = payload.reorganized_question_text_md?.trim();
       setEditingProblem((prev) => prev ? {
         ...prev,
+        ...(nextQuestionTextMd ? { question_text_md: nextQuestionTextMd } : {}),
         explanation: {
           ...prev.explanation,
           text: nextExplanation,
@@ -894,6 +976,89 @@ export default function ReviewLaterPage() {
       setError(bulkError instanceof Error ? bulkError.message : '初回不正解問題の一括登録に失敗しました。');
     } finally {
       setIsBulkRegisteringFirstMissed(false);
+    }
+  };
+
+  const refreshSubjectProblems = async (subjectName: string) => {
+    delete subjectProblemsCacheRef.current[subjectName];
+    delete firstMissedCacheRef.current[subjectName];
+    if (subjectName === selectedSubjectName && loadedSubjectProblemName === subjectName) {
+      await loadSubjectProblems(subjectName, true);
+    }
+  };
+
+  const fetchBulkReorganizeJob = async (jobId: string) => {
+    const response = await fetch(`${API_BASE_URL}/review-later/reorganize-jobs/${encodeURIComponent(jobId)}`);
+    const payload = await response.json().catch(() => null) as (BulkReorganizeJobStatus & { detail?: string }) | null;
+    if (!response.ok || !payload) {
+      throw new Error(payload?.detail || 'AI整理ジョブの進捗取得に失敗しました。');
+    }
+    setBulkReorganizeJob(payload);
+    if (payload.status === 'completed' || payload.status === 'failed') {
+      setIsBulkReorganizingSubject(false);
+      await fetchItems();
+      if (
+        loadedSubjectProblemName === selectedSubjectName &&
+        payload.subjects.some((subject) => subject.subject === selectedSubjectName)
+      ) {
+        await refreshSubjectProblems(selectedSubjectName);
+      }
+    }
+    return payload;
+  };
+
+  useEffect(() => {
+    if (!bulkReorganizeJob || !['queued', 'running'].includes(bulkReorganizeJob.status)) {
+      return;
+    }
+    let cancelled = false;
+    const poll = async () => {
+      try {
+        const payload = await fetchBulkReorganizeJob(bulkReorganizeJob.job_id);
+        if (cancelled) return;
+        if (payload.status === 'completed' || payload.status === 'failed') {
+          window.clearInterval(intervalId);
+        }
+      } catch (pollError) {
+        if (!cancelled) {
+          setError(pollError instanceof Error ? pollError.message : 'AI整理ジョブの進捗取得に失敗しました。');
+        }
+      }
+    };
+    const intervalId = window.setInterval(() => { void poll(); }, 1500);
+    void poll();
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [bulkReorganizeJob?.job_id, bulkReorganizeJob?.status, selectedSubjectName]);
+
+  const handleBulkReorganizeSubject = async () => {
+    const targetSubjects = bulkReorganizeSubjectNames.filter((subjectName) => subjectNames.includes(subjectName));
+    if (targetSubjects.length === 0 || isBulkReorganizingSubject) return;
+
+    try {
+      setIsBulkReorganizingSubject(true);
+      setBulkReorganizeResult(null);
+      setBulkReorganizeJob(null);
+      setError('');
+      const response = await fetch(`${API_BASE_URL}/review-later/reorganize-jobs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subjects: targetSubjects,
+          max_parallel_subjects: maxParallelReorganizeSubjects,
+        }),
+      });
+      const payload = await response.json().catch(() => null) as (BulkReorganizeJobStatus & { detail?: string }) | null;
+      if (!response.ok || !payload) {
+        throw new Error(payload?.detail || '問題JSON全体のAI整理に失敗しました。');
+      }
+      setBulkReorganizeJob(payload);
+    } catch (bulkError) {
+      console.error(bulkError);
+      setError(bulkError instanceof Error ? bulkError.message : '問題JSON全体のAI整理に失敗しました。');
+      setIsBulkReorganizingSubject(false);
     }
   };
 
@@ -1574,13 +1739,159 @@ export default function ReviewLaterPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow p-6 space-y-4">
-        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-          <div>
-            <h3 className="heading-2 text-xl font-semibold text-gray-800">科目別の問題一覧</h3>
-            <p className="text-sm text-gray-500 mt-1">ここでの後で確認の登録切り替えは、実績を記録しません。</p>
+      <div className="space-y-5">
+        <section className="rounded-xl border border-emerald-200 bg-white p-6 shadow">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <h3 className="heading-2 text-xl font-semibold text-emerald-950">一括AI整理</h3>
+              <div className="mt-1 text-sm text-emerald-800">
+                対象 {bulkReorganizeSubjectNames.length}科目 / 並行 {maxParallelReorganizeSubjects}科目
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <label className="flex items-center gap-2 text-xs font-semibold text-emerald-900">
+                並行
+                <select
+                  value={maxParallelReorganizeSubjects}
+                  onChange={(event) => setMaxParallelReorganizeSubjects(Number(event.target.value))}
+                  disabled={isBulkReorganizingSubject}
+                  className="rounded-md border border-emerald-200 bg-white px-2 py-1 text-xs"
+                >
+                  {[1, 2, 3, 4].map((value) => (
+                    <option key={value} value={value}>{value}</option>
+                  ))}
+                </select>
+                科目
+              </label>
+              <button
+                type="button"
+                onClick={() => void handleBulkReorganizeSubject()}
+                disabled={isBulkReorganizingSubject || isBulkRegisteringFirstMissed || bulkReorganizeSubjectNames.length === 0}
+                className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:bg-gray-300"
+              >
+                {isBulkReorganizingSubject ? 'AI整理中...' : 'AI整理を開始'}
+              </button>
+            </div>
           </div>
-          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setBulkReorganizeSubjectNames(selectedSubjectName ? [selectedSubjectName] : [])}
+              disabled={!selectedSubjectName || isBulkReorganizingSubject}
+              className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 disabled:opacity-50"
+            >
+              選択科目
+            </button>
+            <button
+              type="button"
+              onClick={() => setBulkReorganizeSubjectNames(subjectNames)}
+              disabled={isBulkReorganizingSubject || subjectNames.length === 0}
+              className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 disabled:opacity-50"
+            >
+              全科目
+            </button>
+            <button
+              type="button"
+              onClick={() => setBulkReorganizeSubjectNames([])}
+              disabled={isBulkReorganizingSubject}
+              className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 disabled:opacity-50"
+            >
+              解除
+            </button>
+          </div>
+
+          <div className="mt-3 grid max-h-40 gap-2 overflow-y-auto sm:grid-cols-2 lg:grid-cols-3">
+            {subjectNames.map((subjectName) => (
+              <label key={`bulk-reorganize-${subjectName}`} className="flex min-w-0 items-center gap-2 rounded-md border border-emerald-100 bg-emerald-50/60 px-3 py-2 text-xs text-emerald-950">
+                <input
+                  type="checkbox"
+                  checked={bulkReorganizeSubjectNameSet.has(subjectName)}
+                  disabled={isBulkReorganizingSubject}
+                  onChange={() => {
+                    setBulkReorganizeSubjectNames((prev) => (
+                      prev.includes(subjectName)
+                        ? prev.filter((item) => item !== subjectName)
+                        : [...prev, subjectName]
+                    ));
+                  }}
+                  className="h-4 w-4 rounded border-emerald-300 text-emerald-600"
+                />
+                <span className="truncate" title={subjectName}>{subjectName}</span>
+              </label>
+            ))}
+          </div>
+
+          {bulkReorganizeJob && (
+            <div className="mt-4 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-950">
+              <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                <div className="font-semibold">
+                  AI整理ジョブ: {bulkReorganizeJob.status === 'completed' ? '完了' : bulkReorganizeJob.status === 'failed' ? '失敗' : '実行中'}
+                </div>
+                <div className="text-xs font-semibold text-emerald-800">
+                  科目 {bulkReorganizeJob.completed_subjects}/{bulkReorganizeJob.total_subjects} / 問題 {bulkReorganizeJob.processed_problems}/{bulkReorganizeJob.total_problems || '-'} / 更新 {bulkReorganizeJob.updated} / 失敗 {bulkReorganizeJob.failed}
+                </div>
+              </div>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-emerald-100">
+                <div
+                  className="h-full rounded-full bg-emerald-500 transition-all"
+                  style={{ width: `${Math.max(2, Math.min(100, bulkReorganizeProgressPercent))}%` }}
+                />
+              </div>
+              <div className="mt-3 grid gap-2 lg:grid-cols-2">
+                {bulkReorganizeJob.subjects.map((subject) => (
+                  <div key={`bulk-progress-${subject.subject}`} className="rounded-md border border-emerald-100 bg-white px-3 py-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0 truncate text-xs font-semibold text-emerald-950" title={subject.subject}>{subject.subject}</div>
+                      <div className="shrink-0 text-xs text-emerald-800">
+                        {subject.status === 'completed' ? '完了' : subject.status === 'failed' ? '失敗' : subject.status === 'running' ? '実行中' : '待機'}
+                      </div>
+                    </div>
+                    <div className="mt-1 text-xs text-emerald-800">
+                      {subject.processed}/{subject.total || '-'}問 / 更新 {subject.updated} / 失敗 {subject.failed}
+                      {subject.current_problem_id ? ` / 処理中 ${subject.current_problem_id}` : ''}
+                      {subject.error ? ` / ${subject.error}` : ''}
+                    </div>
+                    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-emerald-100">
+                      <div
+                        className="h-full rounded-full bg-emerald-500"
+                        style={{ width: `${subject.total > 0 ? Math.max(2, Math.min(100, Math.round((subject.processed / subject.total) * 100))) : 2}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {bulkReorganizeJob.subjects.some((subject) => subject.items.some((item) => item.error)) && (
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-xs">
+                  {bulkReorganizeJob.subjects.flatMap((subject) => subject.items)
+                    .filter((item) => item.error)
+                    .slice(0, 5)
+                    .map((item) => (
+                      <li key={`${item.subject}:${item.problem_id}`}>{item.problem_id}: {item.error}</li>
+                    ))}
+                </ul>
+              )}
+            </div>
+          )}
+        </section>
+
+        <section className="rounded-xl border border-slate-200 bg-white p-6 shadow">
+          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <div>
+              <h3 className="heading-2 text-xl font-semibold text-gray-800">科目別の問題一覧</h3>
+              <p className="mt-1 text-sm text-gray-500">ここでの後で確認の登録切り替えは、実績を記録しません。</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => void loadSubjectProblems(selectedSubjectName, true)}
+              disabled={!selectedSubjectName || isLoadingSubjectProblems || isBulkReorganizingSubject}
+              className="rounded-md bg-slate-800 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-900 disabled:bg-gray-300"
+            >
+              {isLoadingSubjectProblems ? '読込中...' : isSelectedSubjectProblemListLoaded ? '問題一覧を再読込' : '問題一覧を表示'}
+            </button>
+          </div>
+
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
             <label className="text-sm text-gray-600">
               <span className="heading-2 block mb-1">科目</span>
               <select
@@ -1600,7 +1911,8 @@ export default function ReviewLaterPage() {
               <select
                 value={sortMode}
                 onChange={(event) => setSortMode(event.target.value as 'default' | 'first_missed')}
-                className="rounded-md border border-gray-300 px-3 py-2 text-sm"
+                disabled={!isSelectedSubjectProblemListLoaded}
+                className="rounded-md border border-gray-300 px-3 py-2 text-sm disabled:bg-gray-100"
               >
                 <option value="default">問題ID順</option>
                 <option value="first_missed">初回不正解を上位</option>
@@ -1612,7 +1924,8 @@ export default function ReviewLaterPage() {
                 type="date"
                 value={firstMissedDateFrom}
                 onChange={(event) => setFirstMissedDateFrom(event.target.value)}
-                className="rounded-md border border-gray-300 px-3 py-2 text-sm"
+                disabled={!isSelectedSubjectProblemListLoaded}
+                className="rounded-md border border-gray-300 px-3 py-2 text-sm disabled:bg-gray-100"
               />
             </label>
             <label className="text-sm text-gray-600">
@@ -1621,13 +1934,14 @@ export default function ReviewLaterPage() {
                 type="date"
                 value={firstMissedDateTo}
                 onChange={(event) => setFirstMissedDateTo(event.target.value)}
-                className="rounded-md border border-gray-300 px-3 py-2 text-sm"
+                disabled={!isSelectedSubjectProblemListLoaded}
+                className="rounded-md border border-gray-300 px-3 py-2 text-sm disabled:bg-gray-100"
               />
             </label>
             <button
               type="button"
               onClick={() => void handleBulkRegisterFirstMissed()}
-              disabled={isBulkRegisteringFirstMissed || unregisteredFirstMissedProblems.length === 0}
+              disabled={!isSelectedSubjectProblemListLoaded || isBulkRegisteringFirstMissed || isBulkReorganizingSubject || unregisteredFirstMissedProblems.length === 0}
               className="rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:bg-gray-300"
             >
               {isBulkRegisteringFirstMissed
@@ -1635,73 +1949,79 @@ export default function ReviewLaterPage() {
                 : `表示中を一括で後で確認に登録${unregisteredFirstMissedProblems.length > 0 ? ` (${unregisteredFirstMissedProblems.length})` : ''}`}
             </button>
           </div>
-        </div>
 
-        {isLoadingSubjectProblems ? (
-          <LoadingSpinner />
-        ) : selectedSubjectName === '' ? (
-          <div className="text-sm text-gray-500">科目がありません。</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr className="border-b text-left text-gray-500">
-                  <th className="px-3 py-2">問題ID</th>
-                  <th className="px-3 py-2">カテゴリ</th>
-                  <th className="px-3 py-2">問題文</th>
-                  <th className="px-3 py-2">初回不正解</th>
-                  <th className="px-3 py-2">初回不正解日</th>
-                  <th className="px-3 py-2">後で確認</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sortedSubjectProblems.map((problem) => {
-                  const key = `${problem.subject}::${problem.id}`;
-                  const isReviewLater = reviewLaterKeySet.has(key);
-                  const firstMissedDate = firstMissedDateById[problem.id];
-                  return (
-                    <tr key={key} className="border-b align-top">
-                      <td className="px-3 py-2 font-medium text-gray-800">{problem.id}</td>
-                      <td className="px-3 py-2 text-gray-600">{problem.category || '-'}</td>
-                      <td className="px-3 py-2 text-gray-700">
-                        <button
-                          type="button"
-                          onClick={() => setSelectedKey(key)}
-                          className="whitespace-pre-wrap text-left hover:text-primary-new"
-                        >
-                          {problem.question_text}
-                        </button>
-                      </td>
-                      <td className="px-3 py-2">
-                        {firstMissedIds.has(problem.id) ? (
-                          <span className="rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800">対象</span>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </td>
-                      <td className="px-3 py-2 text-gray-600">
-                        {firstMissedDate ? firstMissedDate.slice(0, 10) : '-'}
-                      </td>
-                      <td className="px-3 py-2">
-                        <button
-                          type="button"
-                          onClick={() => void handleToggleReviewLater(problem, !isReviewLater)}
-                          className={`rounded-md px-3 py-1.5 text-xs font-medium ${
-                            isReviewLater
-                              ? 'bg-primary-new text-white hover:bg-blue-700'
-                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                          }`}
-                        >
-                          {isReviewLater ? '登録中' : '未登録'}
-                        </button>
-                      </td>
+          <div className="mt-4">
+            {isLoadingSubjectProblems ? (
+              <LoadingSpinner />
+            ) : selectedSubjectName === '' ? (
+              <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-gray-500">科目がありません。</div>
+            ) : !isSelectedSubjectProblemListLoaded ? (
+              <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-gray-500">問題一覧は未表示です。</div>
+            ) : sortedSubjectProblems.length === 0 ? (
+              <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-gray-500">表示対象の問題がありません。</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm">
+                  <thead>
+                    <tr className="border-b text-left text-gray-500">
+                      <th className="px-3 py-2">問題ID</th>
+                      <th className="px-3 py-2">カテゴリ</th>
+                      <th className="px-3 py-2">問題文</th>
+                      <th className="px-3 py-2">初回不正解</th>
+                      <th className="px-3 py-2">初回不正解日</th>
+                      <th className="px-3 py-2">後で確認</th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody>
+                    {sortedSubjectProblems.map((problem) => {
+                      const key = `${problem.subject}::${problem.id}`;
+                      const isReviewLater = reviewLaterKeySet.has(key);
+                      const firstMissedDate = firstMissedDateById[problem.id];
+                      return (
+                        <tr key={key} className="border-b align-top">
+                          <td className="px-3 py-2 font-medium text-gray-800">{problem.id}</td>
+                          <td className="px-3 py-2 text-gray-600">{problem.category || '-'}</td>
+                          <td className="px-3 py-2 text-gray-700">
+                            <button
+                              type="button"
+                              onClick={() => setSelectedKey(key)}
+                              className="whitespace-pre-wrap text-left hover:text-primary-new"
+                            >
+                              {problem.question_text}
+                            </button>
+                          </td>
+                          <td className="px-3 py-2">
+                            {firstMissedIds.has(problem.id) ? (
+                              <span className="rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800">対象</span>
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
+                          </td>
+                          <td className="px-3 py-2 text-gray-600">
+                            {firstMissedDate ? firstMissedDate.slice(0, 10) : '-'}
+                          </td>
+                          <td className="px-3 py-2">
+                            <button
+                              type="button"
+                              onClick={() => void handleToggleReviewLater(problem, !isReviewLater)}
+                              className={`rounded-md px-3 py-1.5 text-xs font-medium ${
+                                isReviewLater
+                                  ? 'bg-primary-new text-white hover:bg-blue-700'
+                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              }`}
+                            >
+                              {isReviewLater ? '登録中' : '未登録'}
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
-        )}
+        </section>
       </div>
     </div>
   );
