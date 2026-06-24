@@ -112,6 +112,34 @@ interface BulkReorganizeJobStatus {
   subjects: BulkReorganizeSubjectProgress[];
 }
 
+interface QuestionTextMdDedupeItem {
+  subject: string;
+  problem_id: string;
+  updated: boolean;
+  duplicates_removed: number;
+  before_length: number;
+  after_length: number;
+  error?: string | null;
+}
+
+interface QuestionTextMdDedupeSubjectResult {
+  subject: string;
+  total: number;
+  updated: number;
+  failed: number;
+  duplicates_removed: number;
+  items: QuestionTextMdDedupeItem[];
+}
+
+interface QuestionTextMdDedupeResult {
+  total_subjects: number;
+  total: number;
+  updated: number;
+  failed: number;
+  duplicates_removed: number;
+  subjects: QuestionTextMdDedupeSubjectResult[];
+}
+
 type IpadProfile = 'air' | 'mini';
 
 const getCustomImageUrls = (
@@ -191,6 +219,8 @@ export default function ReviewLaterPage() {
   const [bulkReorganizeJob, setBulkReorganizeJob] = useState<BulkReorganizeJobStatus | null>(null);
   const [bulkReorganizeSubjectNames, setBulkReorganizeSubjectNames] = useState<string[]>([]);
   const [maxParallelReorganizeSubjects, setMaxParallelReorganizeSubjects] = useState(2);
+  const [isCheckingQuestionTextMdDuplicates, setIsCheckingQuestionTextMdDuplicates] = useState(false);
+  const [questionTextMdDedupeResult, setQuestionTextMdDedupeResult] = useState<QuestionTextMdDedupeResult | null>(null);
   const [aiExplanationReview, setAiExplanationReview] = useState<{ notes: string[]; usedAi: boolean } | null>(null);
   const [isFindingSimilar, setIsFindingSimilar] = useState(false);
   const [isBulkRegisteringFirstMissed, setIsBulkRegisteringFirstMissed] = useState(false);
@@ -311,6 +341,7 @@ export default function ReviewLaterPage() {
     }
     return Math.round((bulkReorganizeJob.processed_problems / bulkReorganizeJob.total_problems) * 100);
   }, [bulkReorganizeJob]);
+  const isBulkQuestionOperationRunning = isBulkReorganizingSubject || isCheckingQuestionTextMdDuplicates;
 
   const removeReviewLaterEntryLocally = (subject: string, problemId: string) => {
     const targetKey = `${subject}::${problemId}`;
@@ -1035,7 +1066,7 @@ export default function ReviewLaterPage() {
 
   const handleBulkReorganizeSubject = async () => {
     const targetSubjects = bulkReorganizeSubjectNames.filter((subjectName) => subjectNames.includes(subjectName));
-    if (targetSubjects.length === 0 || isBulkReorganizingSubject) return;
+    if (targetSubjects.length === 0 || isBulkQuestionOperationRunning) return;
 
     try {
       setIsBulkReorganizingSubject(true);
@@ -1059,6 +1090,39 @@ export default function ReviewLaterPage() {
       console.error(bulkError);
       setError(bulkError instanceof Error ? bulkError.message : '問題JSON全体のAI整理に失敗しました。');
       setIsBulkReorganizingSubject(false);
+    }
+  };
+
+  const handleQuestionTextMdDuplicateCheck = async () => {
+    const targetSubjects = bulkReorganizeSubjectNames.filter((subjectName) => subjectNames.includes(subjectName));
+    if (targetSubjects.length === 0 || isBulkQuestionOperationRunning) return;
+
+    try {
+      setIsCheckingQuestionTextMdDuplicates(true);
+      setQuestionTextMdDedupeResult(null);
+      setError('');
+      const response = await fetch(`${API_BASE_URL}/review-later/question-text-md-dedupe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subjects: targetSubjects }),
+      });
+      const payload = await response.json().catch(() => null) as (QuestionTextMdDedupeResult & { detail?: string }) | null;
+      if (!response.ok || !payload) {
+        throw new Error(payload?.detail || 'python重複確認に失敗しました。');
+      }
+      setQuestionTextMdDedupeResult(payload);
+      await fetchItems();
+      if (
+        loadedSubjectProblemName === selectedSubjectName &&
+        targetSubjects.includes(selectedSubjectName)
+      ) {
+        await refreshSubjectProblems(selectedSubjectName);
+      }
+    } catch (dedupeError) {
+      console.error(dedupeError);
+      setError(dedupeError instanceof Error ? dedupeError.message : 'python重複確認に失敗しました。');
+    } finally {
+      setIsCheckingQuestionTextMdDuplicates(false);
     }
   };
 
@@ -1754,7 +1818,7 @@ export default function ReviewLaterPage() {
                 <select
                   value={maxParallelReorganizeSubjects}
                   onChange={(event) => setMaxParallelReorganizeSubjects(Number(event.target.value))}
-                  disabled={isBulkReorganizingSubject}
+                  disabled={isBulkQuestionOperationRunning}
                   className="rounded-md border border-emerald-200 bg-white px-2 py-1 text-xs"
                 >
                   {[1, 2, 3, 4].map((value) => (
@@ -1766,10 +1830,18 @@ export default function ReviewLaterPage() {
               <button
                 type="button"
                 onClick={() => void handleBulkReorganizeSubject()}
-                disabled={isBulkReorganizingSubject || isBulkRegisteringFirstMissed || bulkReorganizeSubjectNames.length === 0}
+                disabled={isBulkQuestionOperationRunning || isBulkRegisteringFirstMissed || bulkReorganizeSubjectNames.length === 0}
                 className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:bg-gray-300"
               >
                 {isBulkReorganizingSubject ? 'AI整理中...' : 'AI整理を開始'}
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleQuestionTextMdDuplicateCheck()}
+                disabled={isBulkQuestionOperationRunning || isBulkRegisteringFirstMissed || bulkReorganizeSubjectNames.length === 0}
+                className="rounded-md border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-semibold text-sky-800 hover:bg-sky-100 disabled:bg-gray-100 disabled:text-gray-400"
+              >
+                {isCheckingQuestionTextMdDuplicates ? '重複確認中...' : 'python重複確認'}
               </button>
             </div>
           </div>
@@ -1778,7 +1850,7 @@ export default function ReviewLaterPage() {
             <button
               type="button"
               onClick={() => setBulkReorganizeSubjectNames(selectedSubjectName ? [selectedSubjectName] : [])}
-              disabled={!selectedSubjectName || isBulkReorganizingSubject}
+              disabled={!selectedSubjectName || isBulkQuestionOperationRunning}
               className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 disabled:opacity-50"
             >
               選択科目
@@ -1786,7 +1858,7 @@ export default function ReviewLaterPage() {
             <button
               type="button"
               onClick={() => setBulkReorganizeSubjectNames(subjectNames)}
-              disabled={isBulkReorganizingSubject || subjectNames.length === 0}
+              disabled={isBulkQuestionOperationRunning || subjectNames.length === 0}
               className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 disabled:opacity-50"
             >
               全科目
@@ -1794,7 +1866,7 @@ export default function ReviewLaterPage() {
             <button
               type="button"
               onClick={() => setBulkReorganizeSubjectNames([])}
-              disabled={isBulkReorganizingSubject}
+              disabled={isBulkQuestionOperationRunning}
               className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 disabled:opacity-50"
             >
               解除
@@ -1807,7 +1879,7 @@ export default function ReviewLaterPage() {
                 <input
                   type="checkbox"
                   checked={bulkReorganizeSubjectNameSet.has(subjectName)}
-                  disabled={isBulkReorganizingSubject}
+                  disabled={isBulkQuestionOperationRunning}
                   onChange={() => {
                     setBulkReorganizeSubjectNames((prev) => (
                       prev.includes(subjectName)
@@ -1873,6 +1945,37 @@ export default function ReviewLaterPage() {
               )}
             </div>
           )}
+
+          {questionTextMdDedupeResult && (
+            <div className="mt-4 rounded-md border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-950">
+              <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                <div className="font-semibold">python重複確認: 完了</div>
+                <div className="text-xs font-semibold text-sky-800">
+                  科目 {questionTextMdDedupeResult.total_subjects} / 問題 {questionTextMdDedupeResult.total} / 更新 {questionTextMdDedupeResult.updated} / 削除 {questionTextMdDedupeResult.duplicates_removed} / 失敗 {questionTextMdDedupeResult.failed}
+                </div>
+              </div>
+              <div className="mt-3 grid gap-2 lg:grid-cols-2">
+                {questionTextMdDedupeResult.subjects.map((subject) => (
+                  <div key={`question-md-dedupe-${subject.subject}`} className="rounded-md border border-sky-100 bg-white px-3 py-2">
+                    <div className="min-w-0 truncate text-xs font-semibold text-sky-950" title={subject.subject}>{subject.subject}</div>
+                    <div className="mt-1 text-xs text-sky-800">
+                      {subject.total}問 / 更新 {subject.updated} / 削除 {subject.duplicates_removed} / 失敗 {subject.failed}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {questionTextMdDedupeResult.subjects.some((subject) => subject.items.some((item) => item.error)) && (
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-xs">
+                  {questionTextMdDedupeResult.subjects.flatMap((subject) => subject.items)
+                    .filter((item) => item.error)
+                    .slice(0, 5)
+                    .map((item) => (
+                      <li key={`${item.subject}:${item.problem_id}`}>{item.problem_id}: {item.error}</li>
+                    ))}
+                </ul>
+              )}
+            </div>
+          )}
         </section>
 
         <section className="rounded-xl border border-slate-200 bg-white p-6 shadow">
@@ -1884,7 +1987,7 @@ export default function ReviewLaterPage() {
             <button
               type="button"
               onClick={() => void loadSubjectProblems(selectedSubjectName, true)}
-              disabled={!selectedSubjectName || isLoadingSubjectProblems || isBulkReorganizingSubject}
+              disabled={!selectedSubjectName || isLoadingSubjectProblems || isBulkQuestionOperationRunning}
               className="rounded-md bg-slate-800 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-900 disabled:bg-gray-300"
             >
               {isLoadingSubjectProblems ? '読込中...' : isSelectedSubjectProblemListLoaded ? '問題一覧を再読込' : '問題一覧を表示'}

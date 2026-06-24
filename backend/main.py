@@ -397,6 +397,38 @@ class ReviewLaterBulkReorganizeJobStatus(BaseModel):
     completed_at: Optional[str] = None
     subjects: list[ReviewLaterBulkReorganizeSubjectProgress] = Field(default_factory=list)
 
+
+class ReviewLaterQuestionTextMdDedupeRequest(BaseModel):
+    subjects: list[str] = Field(min_length=1)
+
+
+class ReviewLaterQuestionTextMdDedupeItem(BaseModel):
+    subject: str
+    problem_id: str
+    updated: bool = False
+    duplicates_removed: int = 0
+    before_length: int = 0
+    after_length: int = 0
+    error: Optional[str] = None
+
+
+class ReviewLaterQuestionTextMdDedupeSubjectResult(BaseModel):
+    subject: str
+    total: int
+    updated: int
+    failed: int
+    duplicates_removed: int
+    items: list[ReviewLaterQuestionTextMdDedupeItem] = Field(default_factory=list)
+
+
+class ReviewLaterQuestionTextMdDedupeResponse(BaseModel):
+    total_subjects: int
+    total: int
+    updated: int
+    failed: int
+    duplicates_removed: int
+    subjects: list[ReviewLaterQuestionTextMdDedupeSubjectResult] = Field(default_factory=list)
+
 class ReviewLaterItem(BaseModel):
     subject: str
     problem_id: str
@@ -1345,6 +1377,178 @@ def _apply_reorganized_question_fields(
         changed = True
 
     return next_question, changed
+
+
+MIN_QUESTION_MD_DUPLICATE_LENGTH = 12
+
+
+def _normalize_question_md_duplicate_text(value: str) -> str:
+    text = unicodedata.normalize("NFKC", value or "")
+    text = re.sub(r"(?m)^\s{0,3}(?:#{1,6}\s*|>\s*|[-*+]\s+|\d+[\.)]\s+)", "", text)
+    text = re.sub(r"<[^>]+>", "", text)
+    text = re.sub(r"[*_`~]", "", text)
+    text = re.sub(r"\s+", "", text)
+    return text.casefold()
+
+
+def _looks_like_structured_markdown_block(value: str) -> bool:
+    lines = [line.strip() for line in (value or "").splitlines() if line.strip()]
+    if not lines:
+        return False
+    if any(line.startswith("```") for line in lines):
+        return True
+    return any("|" in line for line in lines)
+
+
+def _is_duplicate_question_text_md_unit(unit: str, question_norm: str) -> bool:
+    unit_norm = _normalize_question_md_duplicate_text(unit)
+    if not unit_norm or not question_norm:
+        return False
+    if unit_norm == question_norm and len(unit_norm) >= 4:
+        return True
+    if len(unit_norm) < MIN_QUESTION_MD_DUPLICATE_LENGTH:
+        return False
+    if unit_norm in question_norm:
+        return True
+    return (
+        len(question_norm) >= MIN_QUESTION_MD_DUPLICATE_LENGTH
+        and question_norm in unit_norm
+        and not _looks_like_structured_markdown_block(unit)
+    )
+
+
+def _split_markdown_blocks(markdown_text: str) -> list[str]:
+    blocks: list[str] = []
+    current_lines: list[str] = []
+    for raw_line in markdown_text.replace("\r\n", "\n").replace("\r", "\n").split("\n"):
+        line = raw_line.rstrip()
+        if line.strip():
+            current_lines.append(line)
+            continue
+        if current_lines:
+            blocks.append("\n".join(current_lines))
+            current_lines = []
+    if current_lines:
+        blocks.append("\n".join(current_lines))
+    return blocks
+
+
+def _is_orphan_question_md_label(block: str) -> bool:
+    lines = [line for line in block.splitlines() if line.strip()]
+    if not lines or len(lines) > 2:
+        return False
+    generic_labels = {"問題", "問題文", "本文", "設問", "question", "questiontext"}
+    return all(_normalize_question_md_duplicate_text(line) in generic_labels for line in lines)
+
+
+def _remove_duplicate_question_text_md_lines(block: str, question_norm: str) -> tuple[str, int]:
+    kept_lines: list[str] = []
+    removed_count = 0
+    for line in block.splitlines():
+        if _is_duplicate_question_text_md_unit(line, question_norm):
+            removed_count += 1
+            continue
+        kept_lines.append(line.rstrip())
+    cleaned = "\n".join(kept_lines).strip()
+    if removed_count > 0 and _is_orphan_question_md_label(cleaned):
+        return "", removed_count + 1
+    return cleaned, removed_count
+
+
+def _remove_duplicate_question_text_md(question_text: str, question_text_md: str) -> tuple[str, int]:
+    question_norm = _normalize_question_md_duplicate_text(question_text)
+    if not question_norm or not question_text_md.strip():
+        return question_text_md, 0
+
+    kept_blocks: list[str] = []
+    removed_count = 0
+    for block in _split_markdown_blocks(question_text_md):
+        if _is_duplicate_question_text_md_unit(block, question_norm):
+            removed_count += 1
+            continue
+        cleaned_block, line_removed_count = _remove_duplicate_question_text_md_lines(block, question_norm)
+        removed_count += line_removed_count
+        if cleaned_block:
+            kept_blocks.append(cleaned_block)
+
+    return "\n\n".join(kept_blocks).strip(), removed_count
+
+
+def _dedupe_subject_question_text_md(subject_name: str) -> ReviewLaterQuestionTextMdDedupeSubjectResult:
+    is_dict_format, original_questions, base_payload = _subject_blob_payload(subject_name)
+    next_questions: list[dict] = []
+    results: list[ReviewLaterQuestionTextMdDedupeItem] = []
+    updated_count = 0
+    failed_count = 0
+    removed_total = 0
+
+    for index, original_question in enumerate(original_questions):
+        if not isinstance(original_question, dict):
+            problem_id = f"index-{index + 1}"
+            next_questions.append(original_question)
+            failed_count += 1
+            results.append(ReviewLaterQuestionTextMdDedupeItem(
+                subject=subject_name,
+                problem_id=problem_id,
+                error="問題データの形式が不正です。",
+            ))
+            continue
+
+        normalized = normalize_question(original_question.copy())
+        problem_id = str((normalized or {}).get("id") or original_question.get("id") or f"index-{index + 1}")
+        if not normalized:
+            next_questions.append(original_question)
+            failed_count += 1
+            results.append(ReviewLaterQuestionTextMdDedupeItem(
+                subject=subject_name,
+                problem_id=problem_id,
+                error="問題データの形式が不正です。",
+            ))
+            continue
+
+        question_text_md = original_question.get("question_text_md")
+        if not isinstance(question_text_md, str) or not question_text_md.strip():
+            next_questions.append(original_question)
+            results.append(ReviewLaterQuestionTextMdDedupeItem(
+                subject=subject_name,
+                problem_id=problem_id,
+            ))
+            continue
+
+        question_text = str(original_question.get("question_text") or normalized.get("question_text") or "")
+        cleaned_question_text_md, removed_count = _remove_duplicate_question_text_md(question_text, question_text_md)
+        before_length = len(question_text_md)
+        after_length = len(cleaned_question_text_md)
+        changed = removed_count > 0 and cleaned_question_text_md != question_text_md
+        if changed:
+            next_question = dict(original_question)
+            next_question["question_text_md"] = cleaned_question_text_md
+            next_questions.append(next_question)
+            updated_count += 1
+            removed_total += removed_count
+        else:
+            next_questions.append(original_question)
+
+        results.append(ReviewLaterQuestionTextMdDedupeItem(
+            subject=subject_name,
+            problem_id=problem_id,
+            updated=changed,
+            duplicates_removed=removed_count if changed else 0,
+            before_length=before_length,
+            after_length=after_length if changed else before_length,
+        ))
+
+    if updated_count > 0:
+        _write_subject_questions(subject_name, next_questions, base_payload, is_dict_format)
+
+    return ReviewLaterQuestionTextMdDedupeSubjectResult(
+        subject=subject_name,
+        total=len(original_questions),
+        updated=updated_count,
+        failed=failed_count,
+        duplicates_removed=removed_total,
+        items=results,
+    )
 
 
 def _load_custom_explanations_map() -> dict[str, dict]:
@@ -4952,6 +5156,37 @@ def _reorganize_subject_questions(
 def reorganize_subject_problems(subject_name: str):
     """選択された問題JSON内の全問題にAI整合性確認・整理を適用し、問題JSONを上書き保存する。"""
     return _reorganize_subject_questions(subject_name)
+
+
+@api_router.post(
+    "/review-later/question-text-md-dedupe",
+    response_model=ReviewLaterQuestionTextMdDedupeResponse,
+)
+def dedupe_review_later_question_text_md(request: ReviewLaterQuestionTextMdDedupeRequest):
+    """問題文とMarkdown問題文の重複をPython処理で検出し、Markdown側から削除する。"""
+    subject_names: list[str] = []
+    seen_subjects: set[str] = set()
+    for subject in request.subjects:
+        subject_name = str(subject or "").strip()
+        if not subject_name or subject_name in seen_subjects:
+            continue
+        seen_subjects.add(subject_name)
+        subject_names.append(subject_name)
+    if not subject_names:
+        raise HTTPException(status_code=400, detail="対象問題jsonが未選択です。")
+
+    subject_results: list[ReviewLaterQuestionTextMdDedupeSubjectResult] = []
+    for subject_name in subject_names:
+        subject_results.append(_dedupe_subject_question_text_md(subject_name))
+
+    return ReviewLaterQuestionTextMdDedupeResponse(
+        total_subjects=len(subject_results),
+        total=sum(subject.total for subject in subject_results),
+        updated=sum(subject.updated for subject in subject_results),
+        failed=sum(subject.failed for subject in subject_results),
+        duplicates_removed=sum(subject.duplicates_removed for subject in subject_results),
+        subjects=subject_results,
+    )
 
 
 REVIEW_LATER_REORGANIZE_JOBS_DIR = "review-later/reorganize-jobs"

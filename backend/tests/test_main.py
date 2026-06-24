@@ -1491,6 +1491,37 @@ def test_review_later_reorganize_job_tracks_parallel_subject_progress(client: Te
     assert any(name.startswith("review-later/reorganize-jobs/") for name in main._test_review_later_reorganize_jobs)
 
 
+def test_question_text_md_dedupe_updates_markdown_without_ai(client: TestClient):
+    from backend import main
+
+    q2 = next(question for question in main._test_subject_payloads["subject1.json"] if question["id"] == "q2")
+    q2["question_text"] = "Question 2 duplicated in markdown with enough length"
+    q2["question_text_md"] = (
+        "## 問題文\n"
+        "Question 2 duplicated in markdown with enough length\n\n"
+        "| 指標 | 値 |\n"
+        "| --- | --- |\n"
+        "| IRR | 12% |"
+    )
+
+    with patch("backend.main.create_generative_model", side_effect=AssertionError("AI should not be used")):
+        response = client.post(
+            "/api/review-later/question-text-md-dedupe",
+            json={"subjects": ["subject1.json"]},
+        )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["total_subjects"] == 1
+    assert payload["total"] == 5
+    assert payload["updated"] == 1
+    assert payload["duplicates_removed"] >= 1
+
+    updated_q2 = next(question for question in main._test_subject_payloads["subject1.json"] if question["id"] == "q2")
+    assert "Question 2 duplicated in markdown with enough length" not in updated_q2["question_text_md"]
+    assert "| IRR | 12% |" in updated_q2["question_text_md"]
+
+
 def test_save_review_later_rejects_missing_problem(client: TestClient):
     response = client.post(
         "/api/review-later",
