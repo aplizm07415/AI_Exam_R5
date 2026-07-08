@@ -170,6 +170,10 @@ def mock_fastapi_app():
                     dashboard_past_exam_records["payload"] = payload
                     mock_blob_client_instance.exists.return_value = True
                     mock_blob_client_instance.download_blob.return_value = MockBlobDownload(json.dumps(payload))
+                elif blob_name == "paper-practice/lot-counter.json":
+                    payload = json.loads(payload_text)
+                    mock_blob_client_instance.exists.return_value = True
+                    mock_blob_client_instance.download_blob.return_value = MockBlobDownload(json.dumps(payload))
                 elif blob_name.startswith("paper-practice/lots/") and blob_name.endswith(".json"):
                     payload = json.loads(payload_text)
                     paper_practice_lots[Path(blob_name).stem] = payload
@@ -367,6 +371,7 @@ def test_create_and_list_paper_practice_lots(client: TestClient):
     assert first.status_code == 200
     first_lot = first.json()
     assert first_lot["title"] == "紙演習テスト1"
+    assert first_lot["serial_number"] == 1
     assert first_lot["count"] == 2
     assert len(first_lot["questions"]) == 2
     assert all(question["subject"] == "subject1.json" for question in first_lot["questions"])
@@ -396,6 +401,8 @@ def test_create_and_list_paper_practice_lots(client: TestClient):
     )
     assert second.status_code == 200
     second_lot = second.json()
+    # 連番はロット作成のたびに増える（2つ目のロットはデフォルトタイトル作成分を挟んで3番）
+    assert second_lot["serial_number"] == 3
 
     listed = client.get("/api/paper-practice/lots")
     assert listed.status_code == 200

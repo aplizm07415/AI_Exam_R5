@@ -535,6 +535,7 @@ class PaperPracticeLotCreateRequest(QuizStartRequest):
 
 class PaperPracticeLot(BaseModel):
     id: str
+    serial_number: Optional[int] = None
     title: str
     created_at: str
     subjects: list[str]
@@ -669,6 +670,7 @@ MUSCLE_RECORDS_BLOB = f"{MUSCLE_DIR}/records.json"
 MUSCLE_AUDIOS_META_BLOB = f"{MUSCLE_DIR}/audios/meta.json"
 REVIEW_LATER_BLOB = "review-later/items.json"
 PAPER_PRACTICE_LOTS_DIR = "paper-practice/lots"
+PAPER_PRACTICE_LOT_COUNTER_BLOB = "paper-practice/lot-counter.json"
 PAPER_PRACTICE_ATTEMPTS_DIR = "paper-practice/attempts"
 WORRY_PRACTICE_VERSIONS_BLOB = "worry-practice/versions.json"
 WORRY_PRACTICE_SUBJECT_NAME = "心配事演習.json"
@@ -875,6 +877,26 @@ def _load_paper_practice_lot(blob_name: str) -> PaperPracticeLot | None:
 def _save_paper_practice_lot(lot: PaperPracticeLot) -> None:
     payload = json.dumps(lot.model_dump(), ensure_ascii=False, indent=2).encode("utf-8")
     _overwrite_blob_bytes(_paper_practice_lot_blob_name(lot.id), payload)
+
+
+def _issue_paper_practice_lot_serial() -> int:
+    """紙演習ロットの連番を発番する。ロットが削除されても番号は再利用しない。"""
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+
+    last_serial = 0
+    try:
+        blob_client = container_client.get_blob_client(PAPER_PRACTICE_LOT_COUNTER_BLOB)
+        if blob_client.exists():
+            payload = json.loads(blob_client.download_blob().readall())
+            last_serial = int(payload.get("last_serial") or 0)
+    except Exception as e:
+        print(f"Error reading paper practice lot counter: {e}")
+
+    serial = last_serial + 1
+    payload_bytes = json.dumps({"last_serial": serial}).encode("utf-8")
+    _overwrite_blob_bytes(PAPER_PRACTICE_LOT_COUNTER_BLOB, payload_bytes)
+    return serial
 
 
 def _load_paper_practice_attempt(blob_name: str) -> PaperPracticeAttempt | None:
@@ -4263,6 +4285,7 @@ def create_paper_practice_lot(request: PaperPracticeLotCreateRequest):
     title = (request.title or "").strip() or f"紙演習ロット {_format_jst_lot_timestamp(created_at)}"
     lot = PaperPracticeLot(
         id=lot_id,
+        serial_number=_issue_paper_practice_lot_serial(),
         title=title,
         created_at=created_at,
         subjects=request.subjects,

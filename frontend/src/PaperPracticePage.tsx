@@ -56,6 +56,7 @@ interface QuizQuestion {
 
 interface PaperPracticeLot {
   id: string;
+  serial_number?: number | null;
   title: string;
   created_at: string;
   subjects: string[];
@@ -158,8 +159,13 @@ function getLotDisplayTitle(lot: Pick<PaperPracticeLot, 'title' | 'created_at'>)
   return lot.title.replace(/^紙演習ロット\s*/, '').trim() || formatDateTime(lot.created_at);
 }
 
+function getLotSerialLabel(lot: Pick<PaperPracticeLot, 'serial_number'>) {
+  return lot.serial_number ? `nm${String(lot.serial_number).padStart(3, '0')}` : '';
+}
+
 function getLotListTitle(lot: PaperPracticeLot) {
-  return `${getLotDisplayTitle(lot)} ${lot.count}問`;
+  const serialLabel = getLotSerialLabel(lot);
+  return `${serialLabel ? `${serialLabel} ` : ''}${getLotDisplayTitle(lot)} ${lot.count}問`;
 }
 
 function modeLabel(mode: string | null | undefined) {
@@ -824,6 +830,14 @@ export default function PaperPracticePage() {
         const pageHeight = isLandscapeTwo ? PAPER_LANDSCAPE_HEIGHT : PAPER_PAGE_HEIGHT;
         pdf.setFillColor(255, 255, 255);
         pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+        const [accentRed, accentGreen, accentBlue] = PDF_COVER_ACCENT_RGB;
+
+        const serialLabel = getLotSerialLabel(lot);
+        if (serialLabel) {
+          pdf.setFontSize(40);
+          pdf.setTextColor(accentRed, accentGreen, accentBlue);
+          pdf.text(serialLabel, pageWidth - 40 - pdf.getTextWidth(serialLabel), 60);
+        }
 
         const titleX = 62;
         const titleTop = 92;
@@ -836,7 +850,6 @@ export default function PaperPracticePage() {
           pdf.text(line, titleX, titleTop + index * titleLineHeight);
         });
 
-        const [accentRed, accentGreen, accentBlue] = PDF_COVER_ACCENT_RGB;
         pdf.setFillColor(accentRed, accentGreen, accentBlue);
         pdf.rect(46, titleTop - titleFontSize, 6, titleLineHeight * titleLines.length + 4, 'F');
 
@@ -866,6 +879,7 @@ export default function PaperPracticePage() {
         height: number,
         addOverflowPage: () => void,
         continuationLineColor: PdfRgbColor,
+        verticalAlign: 'top' | 'bottom' = 'top',
       ) => {
         const canvas = await renderElementToCanvas(html2canvas, element, width);
         const pixelsPerPdfUnit = canvas.width / width;
@@ -908,7 +922,8 @@ export default function PaperPracticePage() {
             pdf.setFillColor(red, green, blue);
             pdf.rect(Math.max(0, x - 9), y, PDF_CONTINUATION_LINE_WIDTH, height, 'F');
           }
-          pdf.addImage(sliceCanvas, 'PNG', x, y, width, renderHeight, undefined, 'FAST');
+          const drawY = verticalAlign === 'bottom' ? y + Math.max(0, height - renderHeight) : y;
+          pdf.addImage(sliceCanvas, 'PNG', x, drawY, width, renderHeight, undefined, 'FAST');
           sourceY += sliceHeightPx;
         }
 
@@ -1007,13 +1022,14 @@ export default function PaperPracticePage() {
           } else {
             addPortraitPage();
           }
+          // 問題ページは上に余白を確保する
           await drawQuestion(
             question,
             questionIndex,
             16,
-            24,
+            48,
             PAPER_PAGE_WIDTH - 32,
-            PAPER_PAGE_HEIGHT - 34,
+            PAPER_PAGE_HEIGHT - 58,
             PDF_MAX_FONT_SIZE - PDF_PORTRAIT_FONT_SIZE_REDUCTION,
             PDF_MIN_FONT_SIZE,
             addPortraitPage,
@@ -1021,6 +1037,7 @@ export default function PaperPracticePage() {
           );
 
           addPortraitPage();
+          // 解説ページは下揃え（切り取り時に問題面と向きを合わせやすくするため上詰めにしない）
           await drawRenderedElement(
             <PdfExplanationContent
               lot={lot}
@@ -1035,6 +1052,7 @@ export default function PaperPracticePage() {
             PAPER_PAGE_HEIGHT - 34,
             addPortraitPage,
             continuationLineColors[questionIndex] ?? [190, 242, 100],
+            'bottom',
           );
         }
       } else {
@@ -1224,7 +1242,14 @@ export default function PaperPracticePage() {
             <div key={lot.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
-                  <h3 className="truncate text-lg font-semibold text-slate-900">{getLotListTitle(lot)}</h3>
+                  <div className="flex min-w-0 items-center gap-2">
+                    {lot.serial_number ? (
+                      <span className="shrink-0 rounded bg-primary-new px-2 py-0.5 text-xs font-bold text-white">
+                        {getLotSerialLabel(lot)}
+                      </span>
+                    ) : null}
+                    <h3 className="truncate text-lg font-semibold text-slate-900">{`${getLotDisplayTitle(lot)} ${lot.count}問`}</h3>
+                  </div>
                   <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
                     <span>{formatDateTime(lot.created_at)}</span>
                     <span>{modeLabel(lot.source_mode || lot.mode)}</span>
