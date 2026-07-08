@@ -566,9 +566,28 @@ class PaperPracticeAttempt(BaseModel):
     answers: list[PaperPracticeAttemptAnswer]
 
 
+class PaperPracticeDailySlotSummary(BaseModel):
+    attempts: int = 0
+    total_count: int = 0
+    correct_count: int = 0
+
+
+class PaperPracticeDailySummary(BaseModel):
+    date: str
+    morning: PaperPracticeDailySlotSummary
+    evening: PaperPracticeDailySlotSummary
+
+
+class PaperPracticeMonthlySummaryResponse(BaseModel):
+    year: int
+    month: int
+    days: list[PaperPracticeDailySummary]
+
+
 class WorryPracticeGenerateRequest(BaseModel):
     concern_text: str = Field(min_length=1, max_length=4000)
     count: int = Field(default=5, ge=1, le=20)
+    reference_subjects: list[str] = Field(default_factory=list, max_length=10)
 
 
 class WorryPracticeVersionSummary(BaseModel):
@@ -654,6 +673,7 @@ PAPER_PRACTICE_ATTEMPTS_DIR = "paper-practice/attempts"
 WORRY_PRACTICE_VERSIONS_BLOB = "worry-practice/versions.json"
 WORRY_PRACTICE_SUBJECT_NAME = "心配事演習.json"
 WORRY_PRACTICE_MODE = "worry_practice"
+WORRY_PRACTICE_REFERENCE_QUESTION_LIMIT = 12
 SIMILAR_PRACTICE_MODE = "similar_practice"
 MUSCLE_AUDIO_FILES_DIR = f"{MUSCLE_DIR}/audios/files"
 MUSCLE_BODY_PARTS = [
@@ -1793,6 +1813,9 @@ def _worry_practice_title(concern_text: str) -> str:
 
 
 def _load_worry_practice_versions() -> list[WorryPracticeVersion]:
+    if container_client is None:
+        return []
+
     raw = _load_json_blob_or_default(WORRY_PRACTICE_VERSIONS_BLOB, [])
     if isinstance(raw, dict):
         raw = raw.get("versions", [])
@@ -1814,6 +1837,28 @@ def _save_worry_practice_versions(versions: list[WorryPracticeVersion]) -> None:
         WORRY_PRACTICE_VERSIONS_BLOB,
         [version.model_dump() for version in sorted(versions, key=lambda item: item.created_at, reverse=True)],
     )
+
+
+def _collect_worry_practice_reference_questions(subject_names: list[str]) -> list[dict]:
+    """選択された問題jsonから、類題生成の参考情報にする問題を抜粋する。"""
+    collected: list[dict] = []
+    for subject_name in subject_names:
+        try:
+            subject_questions = _get_all_questions_for_subject(subject_name)
+        except HTTPException as e:
+            print(f"Skipping worry practice reference subject '{subject_name}': {e.detail}")
+            continue
+        for question in subject_questions.values():
+            collected.append({
+                "subject": subject_name,
+                "category": str(question.get("category") or ""),
+                "question_text": str(question.get("question_text") or ""),
+                "choices": question.get("choices") or [],
+                "answer": str(question.get("answer") or ""),
+            })
+    if len(collected) > WORRY_PRACTICE_REFERENCE_QUESTION_LIMIT:
+        collected = random.sample(collected, WORRY_PRACTICE_REFERENCE_QUESTION_LIMIT)
+    return collected
 
 
 def _create_worry_practice_version(concern_text: str, count: int, quiz_set: list[dict]) -> WorryPracticeVersion:
@@ -4248,6 +4293,67 @@ def delete_paper_practice_lot(lot_id: str):
         raise HTTPException(status_code=500, detail=f"Failed to delete paper practice lot: {e}")
 
 
+@api_router.get("/paper-practice/attempts/monthly-summary", response_model=PaperPracticeMonthlySummaryResponse)
+def get_paper_practice_monthly_summary(
+    year: int = Query(ge=2000, le=2100),
+    month: int = Query(ge=1, le=12),
+):
+    """紙演習の回答提出（採点）実績を、日本時間の日付・提出時間帯別に集計して返す。
+
+    3:00〜14:59（JST）提出を morning（行き）、15:00〜翌2:59 提出を evening（帰り）として扱う。
+    深夜 0:00〜2:59 の提出は前日の帰りに計上する。
+    通常のクイズ実施履歴は含めず、紙演習ロットへの回答提出のみを対象にする。
+    """
+    if container_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
+
+    days: dict[str, PaperPracticeDailySummary] = {}
+    try:
+        prefix = f"{PAPER_PRACTICE_ATTEMPTS_DIR}/"
+        for blob in container_client.list_blobs(name_starts_with=prefix):
+            if not blob.name.endswith(".json"):
+                continue
+            attempt = _load_paper_practice_attempt(blob.name)
+            if not attempt:
+                continue
+            try:
+                created = datetime.datetime.fromisoformat(attempt.created_at.replace("Z", "+00:00"))
+            except ValueError:
+                continue
+            if created.tzinfo is None:
+                created = created.replace(tzinfo=datetime.timezone.utc)
+            local_created = created.astimezone(TOKYO_TZ)
+            # 3時間戻すと行き=0:00〜11:59・帰り=12:00〜23:59の同日区分になり、
+            # 深夜0:00〜2:59の提出は前日の帰りに計上される。
+            slot_reference = local_created - datetime.timedelta(hours=3)
+            if slot_reference.year != year or slot_reference.month != month:
+                continue
+            date_key = slot_reference.strftime("%Y-%m-%d")
+            summary = days.setdefault(
+                date_key,
+                PaperPracticeDailySummary(
+                    date=date_key,
+                    morning=PaperPracticeDailySlotSummary(),
+                    evening=PaperPracticeDailySlotSummary(),
+                ),
+            )
+            slot = summary.morning if slot_reference.hour < 12 else summary.evening
+            slot.attempts += 1
+            slot.total_count += attempt.total_count
+            slot.correct_count += attempt.correct_count
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error building paper practice monthly summary: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to build paper practice monthly summary: {e}")
+
+    return PaperPracticeMonthlySummaryResponse(
+        year=year,
+        month=month,
+        days=sorted(days.values(), key=lambda item: item.date),
+    )
+
+
 @api_router.get("/paper-practice/lots/{lot_id}/attempts", response_model=list[PaperPracticeAttempt])
 def list_paper_practice_attempts(lot_id: str):
     """紙演習ロットごとの採点履歴を新しい順に返す。"""
@@ -5458,6 +5564,21 @@ def generate_worry_practice(request: WorryPracticeGenerateRequest):
     if gemini_unavailable_reason:
         raise HTTPException(status_code=500, detail=gemini_unavailable_reason)
 
+    reference_questions = (
+        _collect_worry_practice_reference_questions(request.reference_subjects)
+        if request.reference_subjects
+        else []
+    )
+    reference_block = ""
+    if reference_questions:
+        reference_block = f"""
+# 参考問題（学習者が選択した問題jsonからの抜粋）
+- 以下は学習者が選択した問題データの抜粋。出題形式・難易度・論点の傾向を読み取り、類題生成の参考情報にする。
+- 学習者入力と参考問題の両方に関連する論点を優先して出題する。
+- 参考問題の丸写しは禁止。同じ論点や周辺論点を問う新作問題にする。
+{json.dumps(reference_questions, ensure_ascii=False, indent=2)}
+"""
+
     prompt = f"""
 あなたは中小企業診断士試験の一次試験向け問題作成者です。
 これは一般知識クイズではなく、中小企業診断士試験の試験対策専用の問題生成です。
@@ -5471,7 +5592,7 @@ def generate_worry_practice(request: WorryPracticeGenerateRequest):
 
 # 学習者入力
 {request.concern_text}
-
+{reference_block}
 # 作成数
 {request.count}
 
@@ -6125,6 +6246,10 @@ async def serve_dashboard_review_later_route():
 
 @app.get("/paper-practice", response_class=FileResponse)
 async def serve_paper_practice_route():
+    return FileResponse(DIST_DIR / "index.html")
+
+@app.get("/commute-practice", response_class=FileResponse)
+async def serve_commute_practice_route():
     return FileResponse(DIST_DIR / "index.html")
 
 app.mount("/", StaticFiles(directory=DIST_DIR, html=True), name="static")

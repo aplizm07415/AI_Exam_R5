@@ -9,8 +9,8 @@ except ModuleNotFoundError:
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
-# Default to the explicitly requested preview model.
-DEFAULT_GEMINI_MODEL = os.getenv("GOOGLE_GENAI_MODEL", "gemini-3-flash-preview")
+# Default to the rolling Flash alias unless an explicit model is pinned.
+DEFAULT_GEMINI_MODEL = os.getenv("GOOGLE_GENAI_MODEL", "gemini-flash-latest")
 
 # Optional alias for automatic upgrades when the Flash "latest" alias is preferred.
 LATEST_GEMINI_MODEL_ALIAS = os.getenv("GOOGLE_GENAI_LATEST_ALIAS", "gemini-flash-latest")

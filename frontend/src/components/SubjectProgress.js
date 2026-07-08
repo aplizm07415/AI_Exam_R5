@@ -6,6 +6,9 @@ const SubjectProgress = ({ selectedSubjectNames, quizMode }) => {
     const [progressData, setProgressData] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
+    // selectedSubjectNames は呼び出し元でレンダーごとに新しい配列が渡される場合があるため、
+    // 配列の参照ではなく中身から安定したキーを作り、無限ループ（再フェッチ）を防ぐ。
+    const subjectNamesKey = selectedSubjectNames.join('|');
     useEffect(() => {
         const fetchProgressData = async () => {
             if (quizMode === 'today_remaining' || selectedSubjectNames.length === 0) {
@@ -33,7 +36,8 @@ const SubjectProgress = ({ selectedSubjectNames, quizMode }) => {
             }
         };
         fetchProgressData();
-    }, [selectedSubjectNames, quizMode]);
+        // selectedSubjectNames は subjectNamesKey 経由で安定参照しているため依存に含めない。
+    }, [subjectNamesKey, quizMode]);
     if (isLoading) {
         return _jsx("div", { className: "my-4", children: _jsx(LoadingSpinner, {}) });
     }

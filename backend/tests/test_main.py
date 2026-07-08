@@ -412,6 +412,231 @@ def test_create_and_list_paper_practice_lots(client: TestClient):
     assert second_lot["id"] in remaining_ids
 
 
+def test_worry_practice_versions_returns_empty_without_blob(client: TestClient):
+    from backend import main
+
+    original_container_client = main.container_client
+    main.container_client = None
+    try:
+        response = client.get("/api/quiz/worry-practice/versions")
+    finally:
+        main.container_client = original_container_client
+
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+def test_worry_practice_generate_continues_without_blob(client: TestClient):
+    from backend import main
+
+    class FakeWorryPracticeModel:
+        def generate_content(self, prompt):
+            return type(
+                "FakeResponse",
+                (),
+                {
+                    "text": json.dumps(
+                        {
+                            "questions": [
+                                {
+                                    "question_text": "NPVとIRRの関係として最も適切なものはどれか。",
+                                    "question_text_md": "",
+                                    "question_text_mermaid": "",
+                                    "choices": [
+                                        {"label": "ア", "text": "NPVは金額、IRRは収益率で投資案を評価する。"},
+                                        {"label": "イ", "text": "NPVとIRRは常に同じ順位になる。"},
+                                        {"label": "ウ", "text": "IRRは割引率を使わずに計算する。"},
+                                        {"label": "エ", "text": "NPVは投資額を考慮しない。"},
+                                    ],
+                                    "answer": "ア",
+                                    "category": "財務・会計",
+                                    "explanation": {"text": "NPVは現在価値の差額、IRRはNPVがゼロとなる割引率。"},
+                                }
+                            ]
+                        },
+                        ensure_ascii=False,
+                    )
+                },
+            )()
+
+    original_container_client = main.container_client
+    main.container_client = None
+    try:
+        with patch("backend.main.get_gemini_unavailable_reason", return_value=None), patch(
+            "backend.main.create_generative_model",
+            return_value=FakeWorryPracticeModel(),
+        ):
+            response = client.post(
+                "/api/quiz/worry-practice/generate",
+                json={"concern_text": "NPVとIRRの違いが心配", "count": 1},
+            )
+    finally:
+        main.container_client = original_container_client
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["subject"] == "心配事演習.json"
+    assert payload["version"] is None
+    assert len(payload["quiz_set"]) == 1
+    assert payload["quiz_set"][0]["subject"] == "心配事演習.json"
+
+
+def test_worry_practice_generate_includes_selected_question_json_as_reference(client: TestClient):
+    captured = {}
+
+    class FakeWorryPracticeModel:
+        def generate_content(self, prompt):
+            captured["prompt"] = prompt
+            return type(
+                "FakeResponse",
+                (),
+                {
+                    "text": json.dumps(
+                        {
+                            "questions": [
+                                {
+                                    "question_text": "NPVに関する新作問題。",
+                                    "question_text_md": "",
+                                    "question_text_mermaid": "",
+                                    "choices": [
+                                        {"label": "ア", "text": "選択肢ア"},
+                                        {"label": "イ", "text": "選択肢イ"},
+                                        {"label": "ウ", "text": "選択肢ウ"},
+                                        {"label": "エ", "text": "選択肢エ"},
+                                    ],
+                                    "answer": "ア",
+                                    "category": "財務・会計",
+                                    "explanation": {"text": "解説"},
+                                }
+                            ]
+                        },
+                        ensure_ascii=False,
+                    )
+                },
+            )()
+
+    with patch("backend.main.get_gemini_unavailable_reason", return_value=None), patch(
+        "backend.main.create_generative_model",
+        return_value=FakeWorryPracticeModel(),
+    ):
+        response = client.post(
+            "/api/quiz/worry-practice/generate",
+            json={
+                "concern_text": "NPVとIRRの違いが心配",
+                "count": 1,
+                "reference_subjects": ["subject1.json", "missing-subject.json"],
+            },
+        )
+
+    assert response.status_code == 200
+    prompt = captured["prompt"]
+    assert "参考問題" in prompt
+    assert "Question 1 about NPV" in prompt
+    # 存在しない科目はスキップされ、生成自体は継続する
+    assert "missing-subject.json" not in prompt
+
+
+def test_worry_practice_generate_without_reference_subjects_omits_reference_block(client: TestClient):
+    captured = {}
+
+    class FakeWorryPracticeModel:
+        def generate_content(self, prompt):
+            captured["prompt"] = prompt
+            return type(
+                "FakeResponse",
+                (),
+                {
+                    "text": json.dumps(
+                        {
+                            "questions": [
+                                {
+                                    "question_text": "NPVに関する新作問題。",
+                                    "question_text_md": "",
+                                    "question_text_mermaid": "",
+                                    "choices": [
+                                        {"label": "ア", "text": "選択肢ア"},
+                                        {"label": "イ", "text": "選択肢イ"},
+                                        {"label": "ウ", "text": "選択肢ウ"},
+                                        {"label": "エ", "text": "選択肢エ"},
+                                    ],
+                                    "answer": "ア",
+                                    "category": "財務・会計",
+                                    "explanation": {"text": "解説"},
+                                }
+                            ]
+                        },
+                        ensure_ascii=False,
+                    )
+                },
+            )()
+
+    with patch("backend.main.get_gemini_unavailable_reason", return_value=None), patch(
+        "backend.main.create_generative_model",
+        return_value=FakeWorryPracticeModel(),
+    ):
+        response = client.post(
+            "/api/quiz/worry-practice/generate",
+            json={"concern_text": "NPVとIRRの違いが心配", "count": 1},
+        )
+
+    assert response.status_code == 200
+    assert "参考問題" not in captured["prompt"]
+
+
+def test_paper_practice_monthly_summary_aggregates_attempts_by_jst_slot(client: TestClient):
+    import pytz
+
+    lot_response = client.post(
+        "/api/paper-practice/lots",
+        json={
+            "subjects": ["subject1.json"],
+            "count": 1,
+            "mode": "random",
+            "source_mode": "random",
+            "title": "通勤演習集計テスト",
+        },
+    )
+    assert lot_response.status_code == 200
+    lot = lot_response.json()
+    question = lot["questions"][0]
+
+    grade = client.post(
+        f"/api/paper-practice/lots/{lot['id']}/grade",
+        json={"answers": {question["id"]: question["answer"]}},
+    )
+    assert grade.status_code == 200
+    attempt = grade.json()
+
+    created = datetime.fromisoformat(attempt["created_at"].replace("Z", "+00:00"))
+    local_created = created.astimezone(pytz.timezone("Asia/Tokyo"))
+    # 行き=3:00〜14:59 / 帰り=15:00〜翌2:59 (3時間戻した時刻の午前/午後で判定)
+    slot_reference = local_created - timedelta(hours=3)
+    expected_slot = "morning" if slot_reference.hour < 12 else "evening"
+    other_slot = "evening" if expected_slot == "morning" else "morning"
+
+    response = client.get(
+        f"/api/paper-practice/attempts/monthly-summary?year={slot_reference.year}&month={slot_reference.month}"
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["year"] == slot_reference.year
+    assert payload["month"] == slot_reference.month
+    day = next(item for item in payload["days"] if item["date"] == slot_reference.strftime("%Y-%m-%d"))
+    assert day[expected_slot]["attempts"] == 1
+    assert day[expected_slot]["total_count"] == 1
+    assert day[expected_slot]["correct_count"] == 1
+    assert day[other_slot]["attempts"] == 0
+
+    # 対象月以外の照会では実績が返らない
+    prev_month = 12 if slot_reference.month == 1 else slot_reference.month - 1
+    prev_year = slot_reference.year - 1 if slot_reference.month == 1 else slot_reference.year
+    empty_response = client.get(
+        f"/api/paper-practice/attempts/monthly-summary?year={prev_year}&month={prev_month}"
+    )
+    assert empty_response.status_code == 200
+    assert empty_response.json()["days"] == []
+
+
 def test_grade_paper_practice_lot_records_history_and_attempts(client: TestClient):
     from backend import main
 

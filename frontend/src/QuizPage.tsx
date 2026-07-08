@@ -1053,12 +1053,17 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
     }
   }, [quizMode, todayRemaining]);
 
-  const effectiveSelectedSubjectNames =
-    quizMode === 'worry_practice'
-      ? [WORRY_PRACTICE_SUBJECT_NAME]
-      : quizMode === 'today_remaining'
-        ? todayRemaining.subjects
-        : selectedSubjectNames;
+  // メモ化しないと worry_practice モードでレンダーごとに新しい配列が生成され、
+  // この値を依存に持つ useEffect / 子コンポーネントが無限ループする。
+  const effectiveSelectedSubjectNames = useMemo(
+    () =>
+      quizMode === 'worry_practice'
+        ? [WORRY_PRACTICE_SUBJECT_NAME]
+        : quizMode === 'today_remaining'
+          ? todayRemaining.subjects
+          : selectedSubjectNames,
+    [quizMode, todayRemaining.subjects, selectedSubjectNames],
+  );
 
   useEffect(() => {
     if (quizState !== 'setup') return;
@@ -1596,6 +1601,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
           body: JSON.stringify({
             concern_text: concernText,
             count: questionsToFetch,
+            reference_subjects: selectedSubjectNames,
           }),
         });
         const data = await response.json().catch(() => null);
@@ -3121,7 +3127,6 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                         const isSelected = selectedSubjectNames.includes(s.name);
 
                         const isTodayMode = quizMode === 'today_remaining';
-                        const isWorryMode = quizMode === 'worry_practice';
 
 
 
@@ -3157,9 +3162,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
                             // 通常非選択時のスタイル
 
-                            buttonClass += isWorryMode
-                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300';
+                            buttonClass += 'bg-gray-200 text-gray-700 hover:bg-gray-300';
 
                           }
 
@@ -3177,7 +3180,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
                             onClick={() => handleSubjectSelection(s.name)}
 
-                            disabled={isTodayMode || isWorryMode}
+                            disabled={isTodayMode}
 
                             className={buttonClass}
 
@@ -3546,6 +3549,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                       <div className="flex flex-col gap-1">
                         <label className="heading-2 block text-sm font-semibold text-amber-950">心配事・出題してほしい論点</label>
                         <div className="text-xs text-amber-800">生成ごとに入力内容と問題セットを保存版として残します。同じ入力から再生成すると v2, v3 として管理します。</div>
+                        <div className="text-xs text-amber-800">科目（問題json）を選択すると、その問題を参考情報として類題を生成します。未選択の場合は入力内容のみから生成します。</div>
                       </div>
                       <textarea
                         value={worryPracticeInput}
@@ -3568,7 +3572,10 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                         </div>
                       )}
                       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-amber-800">
-                        <span>科目: 心配事演習 / モード: 心配事</span>
+                        <span>
+                          科目: 心配事演習 / モード: 心配事
+                          {selectedSubjectNames.length > 0 && ` / 参考問題: ${selectedSubjectNames.join(', ')}`}
+                        </span>
                         <div className="flex flex-wrap gap-2">
                           <button
                             type="button"
@@ -3803,7 +3810,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
 
               </div>
 
-              <SubjectProgress selectedSubjectNames={quizMode === 'worry_practice' ? [WORRY_PRACTICE_SUBJECT_NAME] : selectedSubjectNames} quizMode={quizMode} />
+              <SubjectProgress selectedSubjectNames={quizMode === 'worry_practice' ? effectiveSelectedSubjectNames : selectedSubjectNames} quizMode={quizMode} />
 
             </div>
 

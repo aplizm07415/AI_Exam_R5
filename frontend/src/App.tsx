@@ -10,6 +10,7 @@ import PhotoPage from './PhotoPage';
 import MusclePage from './MusclePage';
 import SoragakiPage from './SoragakiPage'; // Import SoragakiPage
 import PaperPracticePage from './PaperPracticePage';
+import CommutePracticePage from './CommutePracticePage';
 import SecondaryExamPage from './SecondaryExamPage';
 import SecondaryExamResultPage from './SecondaryExamResultPage';
 import SecondaryExamExplanationPage from './SecondaryExamExplanationPage';
@@ -163,6 +164,7 @@ export default function App() {
 
   const navItems = useMemo(() => [
     { id: 'quiz', path: '/', label: 'Study', icon: <PencilIcon className="w-5 h-5" /> },
+    { id: 'commute-practice', path: '/commute-practice', label: '通勤演習', icon: <CalendarDaysIcon className="w-5 h-5" /> },
     { id: 'secondary-exam', path: '/secondary-exam', label: '二次', icon: <FileTextIcon className="w-5 h-5" /> },
     { id: 'dashboard', path: '/dashboard', label: 'Dashboard', icon: <BarChartIcon className="w-5 h-5" /> },
     { id: 'soragaki', path: '/soragaki', label: '空描き', icon: <PencilIcon className="w-5 h-5" /> },
@@ -204,6 +206,10 @@ export default function App() {
 
     if (activePath === '/paper-practice') {
       return [{ label: 'ホーム', path: '/' }, { label: '紙演習' }];
+    }
+
+    if (activePath === '/commute-practice') {
+      return [{ label: 'ホーム', path: '/' }, { label: '紙演習', path: '/paper-practice' }, { label: '通勤演習管理' }];
     }
 
     if (activePath === '/secondary-exam') {
@@ -470,6 +476,7 @@ export default function App() {
               <Route path="/muscle" element={<MusclePage />} />
               <Route path="/soragaki" element={<SoragakiPage />} />
               <Route path="/paper-practice" element={<PaperPracticePage />} />
+              <Route path="/commute-practice" element={<CommutePracticePage />} />
               <Route path="/secondary-exam" element={<SecondaryExamPage />} />
               <Route path="/secondary-exam/results/:attemptId" element={<SecondaryExamResultPage />} />
               <Route path="/secondary-exam/results/:attemptId/explanations" element={<SecondaryExamExplanationPage />} />

@@ -22,6 +22,10 @@ const SubjectProgress: React.FC<SubjectProgressProps> = ({ selectedSubjectNames,
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // selectedSubjectNames は呼び出し元でレンダーごとに新しい配列が渡される場合があるため、
+  // 配列の参照ではなく中身から安定したキーを作り、無限ループ（再フェッチ）を防ぐ。
+  const subjectNamesKey = selectedSubjectNames.join('|');
+
   useEffect(() => {
     const fetchProgressData = async () => {
       if (quizMode === 'today_remaining' || selectedSubjectNames.length === 0) {
@@ -52,7 +56,8 @@ const SubjectProgress: React.FC<SubjectProgressProps> = ({ selectedSubjectNames,
     };
 
     fetchProgressData();
-  }, [selectedSubjectNames, quizMode]);
+    // selectedSubjectNames は subjectNamesKey 経由で安定参照しているため依存に含めない。
+  }, [subjectNamesKey, quizMode]);
 
   if (isLoading) {
     return <div className="my-4"><LoadingSpinner /></div>;

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import ReactMarkdown from 'react-markdown';
@@ -25,6 +26,8 @@ const PDF_SPLIT_BOTTOM_GUARD_PX = 18;
 const PDF_SPLIT_SCAN_RANGE_PX = 180;
 const PDF_SPLIT_MIN_BLANK_ROWS = 8;
 const PDF_CONTINUATION_LINE_WIDTH = 5;
+// アプリのメインカラー（tailwind: primary-new #3d7cce）
+const PDF_COVER_ACCENT_RGB: readonly [number, number, number] = [61, 124, 206];
 const JAPANESE_CHOICE_LABELS = ['ア', 'イ', 'ウ', 'エ', 'オ', 'カ', 'キ', 'ク'];
 
 interface Choice {
@@ -82,7 +85,7 @@ interface GradedAnswer {
 }
 
 type PaperPracticeModalStep = 'answer' | 'result' | 'review';
-type PaperPracticePdfLayout = 'portrait-one' | 'landscape-two';
+type PaperPracticePdfLayout = 'portrait-one' | 'landscape-two' | 'single-side-pair';
 type PaperPracticeReviewKind = 'all' | 'incorrect' | 'correct';
 type PaperPracticeGradingScope = 'answered_only' | 'all';
 type Html2CanvasFunction = typeof import('html2canvas').default;
@@ -485,6 +488,66 @@ function PdfQuestionContent({
   );
 }
 
+function PdfExplanationContent({
+  lot,
+  question,
+  questionIndex,
+  width,
+  fontSize,
+}: {
+  lot: PaperPracticeLot;
+  question: QuizQuestion;
+  questionIndex: number;
+  width: number;
+  fontSize: number;
+}) {
+  const explanationText = normalizePdfText(question.explanation?.text) || 'この問題の解説はありません。';
+  const customExplanation = normalizePdfText(question.custom_explanation);
+  const answerIndex = question.choices.findIndex((choice) => choice.label === question.answer);
+  const answerChoice = answerIndex >= 0 ? question.choices[answerIndex] : undefined;
+
+  return (
+    <div
+      className="paper-practice-pdf-question"
+      style={{
+        width,
+        background: '#ffffff',
+        color: '#0f172a',
+        fontFamily: '"M PLUS 1p", "Hiragino Sans", "Yu Gothic", sans-serif',
+        fontSize,
+        lineHeight: 1.5,
+      }}
+    >
+      <div className="paper-practice-pdf-question__meta">
+        <div>{getLotDisplayTitle(lot)} / ロット内 {questionIndex + 1}問目の解説</div>
+        <div>{question.subject}{question.category ? ` / ${question.category}` : ''}</div>
+      </div>
+
+      <div className="paper-practice-pdf-question__answer">
+        正解: {answerIndex >= 0 ? choiceDisplayLabel(answerIndex, question.answer) : question.answer}
+        {answerChoice ? `. ${answerChoice.text}` : ''}
+      </div>
+
+      <div className="paper-practice-pdf-question__markdown question-markdown">
+        <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={markdownRehypePlugins} components={markdownComponents}>
+          {explanationText}
+        </ReactMarkdown>
+      </div>
+
+      {customExplanation && (
+        <div className="paper-practice-pdf-question__custom">
+          <div className="paper-practice-pdf-question__custom-title">mymemo</div>
+          <div className="paper-practice-pdf-question__markdown question-markdown">
+            <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={markdownRehypePlugins} components={markdownComponents}>
+              {customExplanation}
+            </ReactMarkdown>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PaperReviewCard({
   item,
   isReviewLaterRegistered,
@@ -551,6 +614,7 @@ export default function PaperPracticePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreatingLot, setIsCreatingLot] = useState(false);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [includeCoverPage, setIncludeCoverPage] = useState(false);
   const [deletingLotId, setDeletingLotId] = useState<string | null>(null);
   const [isSubmittingAnswers, setIsSubmittingAnswers] = useState(false);
   const [historyLot, setHistoryLot] = useState<PaperPracticeLot | null>(null);
@@ -742,6 +806,7 @@ export default function PaperPracticePage() {
       const { default: html2canvas } = await import('html2canvas');
       const fontBinary = await loadPdfFontBinaryString();
       const isLandscapeTwo = layout === 'landscape-two';
+      const isSingleSidePair = layout === 'single-side-pair';
       const pdf = new jsPDF({
         orientation: isLandscapeTwo ? 'landscape' : 'portrait',
         unit: 'px',
@@ -752,36 +817,57 @@ export default function PaperPracticePage() {
       pdf.addFont(PDF_FONT_FILE_NAME, PDF_FONT_NAME, 'normal');
       pdf.setFont(PDF_FONT_NAME, 'normal');
       const continuationLineColors = buildPdfContinuationLineColors(lot.questions.length);
+      const hasCoverPage = includeCoverPage;
 
-      const drawQuestion = async (
-        question: QuizQuestion,
-        questionIndex: number,
+      if (hasCoverPage) {
+        const pageWidth = isLandscapeTwo ? PAPER_LANDSCAPE_WIDTH : PAPER_PAGE_WIDTH;
+        const pageHeight = isLandscapeTwo ? PAPER_LANDSCAPE_HEIGHT : PAPER_PAGE_HEIGHT;
+        pdf.setFillColor(255, 255, 255);
+        pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+
+        const titleX = 62;
+        const titleTop = 92;
+        const titleFontSize = 29;
+        const titleLineHeight = titleFontSize * 1.4;
+        pdf.setFontSize(titleFontSize);
+        pdf.setTextColor(15, 23, 42);
+        const titleLines = pdf.splitTextToSize(`紙演習 ${getLotDisplayTitle(lot)}`, pageWidth - titleX - 40) as string[];
+        titleLines.forEach((line, index) => {
+          pdf.text(line, titleX, titleTop + index * titleLineHeight);
+        });
+
+        const [accentRed, accentGreen, accentBlue] = PDF_COVER_ACCENT_RGB;
+        pdf.setFillColor(accentRed, accentGreen, accentBlue);
+        pdf.rect(46, titleTop - titleFontSize, 6, titleLineHeight * titleLines.length + 4, 'F');
+
+        pdf.setFontSize(18);
+        pdf.setTextColor(51, 65, 85);
+        const metaLines = [
+          `作成日時: ${formatDateTime(lot.created_at)}`,
+          `科目: ${lot.subjects.join(', ')}`,
+          `問題数: ${lot.count}問`,
+          `出力日時: ${formatDateTime(new Date().toISOString())}`,
+        ];
+        let metaY = titleTop + titleLineHeight * titleLines.length + 26;
+        for (const metaLine of metaLines) {
+          const wrappedLines = pdf.splitTextToSize(metaLine, pageWidth - titleX - 40) as string[];
+          for (const wrappedLine of wrappedLines) {
+            pdf.text(wrappedLine, titleX, metaY);
+            metaY += 26;
+          }
+        }
+      }
+
+      const drawRenderedElement = async (
+        element: React.ReactElement,
         x: number,
         y: number,
         width: number,
         height: number,
-        maxFontSize: number,
-        _minFontSize: number,
         addOverflowPage: () => void,
         continuationLineColor: PdfRgbColor,
       ) => {
-        const mermaidResult = await renderQuestionMermaidSvg(
-          normalizePdfText(question.question_text_mermaid),
-          `${lot.id}-${question.id}-${questionIndex}`.replace(/[^a-zA-Z0-9_-]/g, '-'),
-        );
-        const canvas = await renderElementToCanvas(
-          html2canvas,
-          <PdfQuestionContent
-            lot={lot}
-            question={question}
-            questionIndex={questionIndex}
-            width={width}
-            fontSize={maxFontSize}
-            mermaidSvg={mermaidResult.svg}
-            mermaidError={mermaidResult.error}
-          />,
-          width,
-        );
+        const canvas = await renderElementToCanvas(html2canvas, element, width);
         const pixelsPerPdfUnit = canvas.width / width;
         const maxSliceHeightPx = Math.max(1, Math.floor(height * pixelsPerPdfUnit));
         const willOverflow = canvas.height > maxSliceHeightPx;
@@ -829,9 +915,44 @@ export default function PaperPracticePage() {
         return didOverflow;
       };
 
+      const drawQuestion = async (
+        question: QuizQuestion,
+        questionIndex: number,
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        maxFontSize: number,
+        _minFontSize: number,
+        addOverflowPage: () => void,
+        continuationLineColor: PdfRgbColor,
+      ) => {
+        const mermaidResult = await renderQuestionMermaidSvg(
+          normalizePdfText(question.question_text_mermaid),
+          `${lot.id}-${question.id}-${questionIndex}`.replace(/[^a-zA-Z0-9_-]/g, '-'),
+        );
+        return drawRenderedElement(
+          <PdfQuestionContent
+            lot={lot}
+            question={question}
+            questionIndex={questionIndex}
+            width={width}
+            fontSize={maxFontSize}
+            mermaidSvg={mermaidResult.svg}
+            mermaidError={mermaidResult.error}
+          />,
+          x,
+          y,
+          width,
+          height,
+          addOverflowPage,
+          continuationLineColor,
+        );
+      };
+
       if (isLandscapeTwo) {
         let currentPanelIndex = 0;
-        let hasCreatedLandscapePage = false;
+        let hasCreatedLandscapePage = hasCoverPage;
 
         const prepareLandscapePage = (shouldAddPage: boolean) => {
           if (shouldAddPage) {
@@ -866,9 +987,59 @@ export default function PaperPracticePage() {
           );
           currentPanelIndex = didOverflow || currentPanelIndex === 1 ? 0 : 1;
         }
+      } else if (isSingleSidePair) {
+        const paintPortraitBackground = () => {
+          pdf.setFillColor(255, 255, 255);
+          pdf.rect(0, 0, PAPER_PAGE_WIDTH, PAPER_PAGE_HEIGHT, 'F');
+        };
+        const addPortraitPage = () => {
+          pdf.addPage([PAPER_PAGE_WIDTH, PAPER_PAGE_HEIGHT], 'portrait');
+          paintPortraitBackground();
+        };
+        // 片面印刷前提で問題ページ→解説ページの順に出力する。
+        // 1問1枚に収まる場合は奇数枚目=問題・偶数枚目=解説になり、
+        // 1問が複数ページに跨った場合はその分だけ後続がずれる。
+
+        for (const [questionIndex, question] of lot.questions.entries()) {
+          setPdfProgress(`PDFを生成中... ${questionIndex + 1} / ${lot.questions.length}`);
+          if (questionIndex === 0 && !hasCoverPage) {
+            paintPortraitBackground();
+          } else {
+            addPortraitPage();
+          }
+          await drawQuestion(
+            question,
+            questionIndex,
+            16,
+            24,
+            PAPER_PAGE_WIDTH - 32,
+            PAPER_PAGE_HEIGHT - 34,
+            PDF_MAX_FONT_SIZE - PDF_PORTRAIT_FONT_SIZE_REDUCTION,
+            PDF_MIN_FONT_SIZE,
+            addPortraitPage,
+            continuationLineColors[questionIndex] ?? [190, 242, 100],
+          );
+
+          addPortraitPage();
+          await drawRenderedElement(
+            <PdfExplanationContent
+              lot={lot}
+              question={question}
+              questionIndex={questionIndex}
+              width={PAPER_PAGE_WIDTH - 32}
+              fontSize={PDF_MAX_FONT_SIZE - PDF_PORTRAIT_FONT_SIZE_REDUCTION}
+            />,
+            16,
+            24,
+            PAPER_PAGE_WIDTH - 32,
+            PAPER_PAGE_HEIGHT - 34,
+            addPortraitPage,
+            continuationLineColors[questionIndex] ?? [190, 242, 100],
+          );
+        }
       } else {
         for (const [questionIndex, question] of lot.questions.entries()) {
-          if (questionIndex > 0) {
+          if (questionIndex > 0 || hasCoverPage) {
             pdf.addPage([PAPER_PAGE_WIDTH, PAPER_PAGE_HEIGHT], 'portrait');
           }
           setPdfProgress(`PDFを生成中... ${questionIndex + 1} / ${lot.questions.length}`);
@@ -893,7 +1064,7 @@ export default function PaperPracticePage() {
         }
       }
 
-      const suffix = isLandscapeTwo ? 'A4横2問' : 'A4縦1問';
+      const suffix = isLandscapeTwo ? 'A4横2問' : isSingleSidePair ? 'A4縦片面_問題解説' : 'A4縦1問';
       pdf.save(`${sanitizeFilename(getLotListTitle(lot))}_${suffix}.pdf`);
     } catch (exportError) {
       setError(exportError instanceof Error ? exportError.message : 'PDF出力に失敗しました。');
@@ -998,14 +1169,31 @@ export default function PaperPracticePage() {
           <h2 className="text-2xl font-bold text-slate-900">紙演習モード</h2>
           <p className="mt-1 text-sm text-slate-500">ロット一覧</p>
         </div>
-        <button
-          type="button"
-          onClick={() => void fetchLots()}
-          disabled={isLoading || isCreatingLot}
-          className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-        >
-          更新
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <Link
+            to="/commute-practice"
+            className="rounded-md border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-primary-new hover:bg-blue-100"
+          >
+            通勤演習管理
+          </Link>
+          <label className="flex cursor-pointer items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+            <input
+              type="checkbox"
+              checked={includeCoverPage}
+              onChange={(event) => setIncludeCoverPage(event.target.checked)}
+              className="h-4 w-4"
+            />
+            PDFに表紙を追加
+          </label>
+          <button
+            type="button"
+            onClick={() => void fetchLots()}
+            disabled={isLoading || isCreatingLot}
+            className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+          >
+            更新
+          </button>
+        </div>
       </div>
 
       {isCreatingLot && (
@@ -1043,7 +1231,7 @@ export default function PaperPracticePage() {
                     <span className="truncate">{lot.subjects.join(', ')}</span>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-2 sm:w-[30rem] sm:grid-cols-5">
+                <div className="grid grid-cols-2 gap-2 sm:w-[36rem] sm:grid-cols-6">
                   <button
                     type="button"
                     onClick={() => void exportLotPdf(lot, 'portrait-one')}
@@ -1059,6 +1247,15 @@ export default function PaperPracticePage() {
                     className="rounded-md border border-slate-700 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-800 hover:bg-slate-100 disabled:opacity-50"
                   >
                     PDF横
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void exportLotPdf(lot, 'single-side-pair')}
+                    disabled={isExportingPdf || deletingLotId === lot.id}
+                    title="片面印刷用: 奇数枚目に問題・選択肢、偶数枚目に解説を割り当てます"
+                    className="rounded-md border border-slate-700 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-800 hover:bg-slate-100 disabled:opacity-50"
+                  >
+                    PDF片面
                   </button>
                   <button
                     type="button"
