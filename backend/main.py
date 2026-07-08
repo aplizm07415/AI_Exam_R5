@@ -670,7 +670,6 @@ MUSCLE_RECORDS_BLOB = f"{MUSCLE_DIR}/records.json"
 MUSCLE_AUDIOS_META_BLOB = f"{MUSCLE_DIR}/audios/meta.json"
 REVIEW_LATER_BLOB = "review-later/items.json"
 PAPER_PRACTICE_LOTS_DIR = "paper-practice/lots"
-PAPER_PRACTICE_LOT_COUNTER_BLOB = "paper-practice/lot-counter.json"
 PAPER_PRACTICE_ATTEMPTS_DIR = "paper-practice/attempts"
 WORRY_PRACTICE_VERSIONS_BLOB = "worry-practice/versions.json"
 WORRY_PRACTICE_SUBJECT_NAME = "心配事演習.json"
@@ -880,23 +879,24 @@ def _save_paper_practice_lot(lot: PaperPracticeLot) -> None:
 
 
 def _issue_paper_practice_lot_serial() -> int:
-    """紙演習ロットの連番を発番する。ロットが削除されても番号は再利用しない。"""
+    """紙演習ロットの連番を発番する。常に既存ロットの最大番号+1（削除された番号は詰めて再利用する）。"""
     if container_client is None:
         raise HTTPException(status_code=500, detail="Azure Blob Storage is not configured.")
 
-    last_serial = 0
+    max_serial = 0
     try:
-        blob_client = container_client.get_blob_client(PAPER_PRACTICE_LOT_COUNTER_BLOB)
-        if blob_client.exists():
-            payload = json.loads(blob_client.download_blob().readall())
-            last_serial = int(payload.get("last_serial") or 0)
+        for blob in container_client.list_blobs(name_starts_with=f"{PAPER_PRACTICE_LOTS_DIR}/"):
+            blob_name = getattr(blob, "name", "")
+            if not blob_name.endswith(".json"):
+                continue
+            lot = _load_paper_practice_lot(blob_name)
+            if lot and lot.serial_number:
+                max_serial = max(max_serial, lot.serial_number)
     except Exception as e:
-        print(f"Error reading paper practice lot counter: {e}")
+        print(f"Error scanning paper practice lot serials: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to issue paper practice lot serial: {e}")
 
-    serial = last_serial + 1
-    payload_bytes = json.dumps({"last_serial": serial}).encode("utf-8")
-    _overwrite_blob_bytes(PAPER_PRACTICE_LOT_COUNTER_BLOB, payload_bytes)
-    return serial
+    return max_serial + 1
 
 
 def _load_paper_practice_attempt(blob_name: str) -> PaperPracticeAttempt | None:

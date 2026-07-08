@@ -170,10 +170,6 @@ def mock_fastapi_app():
                     dashboard_past_exam_records["payload"] = payload
                     mock_blob_client_instance.exists.return_value = True
                     mock_blob_client_instance.download_blob.return_value = MockBlobDownload(json.dumps(payload))
-                elif blob_name == "paper-practice/lot-counter.json":
-                    payload = json.loads(payload_text)
-                    mock_blob_client_instance.exists.return_value = True
-                    mock_blob_client_instance.download_blob.return_value = MockBlobDownload(json.dumps(payload))
                 elif blob_name.startswith("paper-practice/lots/") and blob_name.endswith(".json"):
                     payload = json.loads(payload_text)
                     paper_practice_lots[Path(blob_name).stem] = payload
@@ -401,7 +397,7 @@ def test_create_and_list_paper_practice_lots(client: TestClient):
     )
     assert second.status_code == 200
     second_lot = second.json()
-    # 連番はロット作成のたびに増える（2つ目のロットはデフォルトタイトル作成分を挟んで3番）
+    # 連番は既存ロットの最大番号+1（デフォルトタイトル作成分を挟んで3番）
     assert second_lot["serial_number"] == 3
 
     listed = client.get("/api/paper-practice/lots")
@@ -417,6 +413,21 @@ def test_create_and_list_paper_practice_lots(client: TestClient):
     remaining_ids = [lot["id"] for lot in listed_after_delete.json()]
     assert first_lot["id"] not in remaining_ids
     assert second_lot["id"] in remaining_ids
+
+    # 最大番号のロットを削除すると、番号は詰められて再利用される（残る最大は2番 → 次は3番）
+    assert client.delete(f"/api/paper-practice/lots/{second_lot['id']}").status_code == 204
+    reissued = client.post(
+        "/api/paper-practice/lots",
+        json={
+            "subjects": ["subject1.json"],
+            "count": 1,
+            "mode": "random",
+            "source_mode": "random",
+            "title": "紙演習テスト3",
+        },
+    )
+    assert reissued.status_code == 200
+    assert reissued.json()["serial_number"] == 3
 
 
 def test_worry_practice_versions_returns_empty_without_blob(client: TestClient):
