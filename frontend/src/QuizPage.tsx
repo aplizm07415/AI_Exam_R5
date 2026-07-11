@@ -22,6 +22,15 @@ const PAPER_PRACTICE_PENDING_REQUEST_STORAGE_KEY = 'paperPracticePendingRequest'
 const ADHOC_QUIZ_HISTORY_MODE_STORAGE_KEY = 'adhocQuizHistoryMode';
 const SIMILAR_PRACTICE_HISTORY_MODE = 'similar_practice';
 const WORRY_PRACTICE_INPUT_STORAGE_KEY = 'worryPracticeInput';
+const TEXT_VOLUME_ORDER_STORAGE_KEY = 'quizTextVolumeOrder';
+
+type TextVolumeOrder = 'none' | 'desc' | 'asc';
+
+const TEXT_VOLUME_ORDER_OPTIONS: Array<{ value: TextVolumeOrder; label: string }> = [
+  { value: 'none', label: '指定なし' },
+  { value: 'desc', label: '多い順' },
+  { value: 'asc', label: '少ない順' },
+];
 const WORRY_PRACTICE_SUBJECT_NAME = '心配事演習.json';
 const SPECIFIC_AREA_PROGRESS_STEPS = [
   '条件を確認中',
@@ -466,6 +475,10 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   const [selectedSubjectNames, setSelectedSubjectNames] = useState<string[]>([]);
   const [quizMode, setQuizMode] = useState<QuizMode>('today_remaining');
   const [questionTagFilter, setQuestionTagFilter] = useState<QuestionTagFilter>('exclude_calculation');
+  const [textVolumeOrder, setTextVolumeOrder] = useState<TextVolumeOrder>(() => {
+    const raw = localStorage.getItem(TEXT_VOLUME_ORDER_STORAGE_KEY);
+    return raw === 'desc' || raw === 'asc' ? raw : 'none';
+  });
   const [numQuestions, setNumQuestions] = useState<number>(10);
   const [quizState, setQuizState] = useState<'setup' | 'active' | 'finished'>('setup');
   const [isForcedSession, setIsForcedSession] = useState(false);
@@ -793,6 +806,10 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
   useEffect(() => {
     localStorage.setItem(STUDY_ACTION_MODE_VISIBILITY_STORAGE_KEY, JSON.stringify(hiddenStudyActionModes));
   }, [hiddenStudyActionModes]);
+
+  useEffect(() => {
+    localStorage.setItem(TEXT_VOLUME_ORDER_STORAGE_KEY, textVolumeOrder);
+  }, [textVolumeOrder]);
 
   useEffect(() => {
     try {
@@ -1701,6 +1718,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
           keywords: quizMode === 'specific_area' ? normalizedSpecificAreaKeywords : undefined,
           specific_area_history_scope: quizMode === 'specific_area' ? specificAreaHistoryScope : undefined,
           tag_filter: questionTagFilter,
+          text_volume_order: textVolumeOrder,
         }),
       });
 
@@ -1865,6 +1883,7 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
       keywords: quizMode === 'specific_area' ? normalizedSpecificAreaKeywords : undefined,
       specific_area_history_scope: quizMode === 'specific_area' ? specificAreaHistoryScope : undefined,
       tag_filter: questionTagFilter,
+      text_volume_order: textVolumeOrder,
     }));
     navigate('/paper-practice');
   };
@@ -3648,6 +3667,25 @@ export default function QuizPage({ subjects: allSubjects }: QuizPageProps) {
                             ))}
                           </div>
                         )}
+                      </div>
+                    </div>
+                  )}
+
+                  {quizMode !== 'worry_practice' && (
+                    <div>
+                      <label className="heading-2 block text-sm font-medium text-gray-700">問題文量で並び替え</label>
+                      <div className="mt-2 text-xs text-gray-500">指定すると、対象問題を問題文（テキスト+Markdown）の文字量順に並べ、先頭から問題数分を出題します。</div>
+                      <div className="mt-2 grid grid-cols-3 gap-3">
+                        {TEXT_VOLUME_ORDER_OPTIONS.map((option) => (
+                          <button
+                            key={option.value}
+                            type="button"
+                            onClick={() => setTextVolumeOrder(option.value)}
+                            className={`px-4 py-2 rounded-md text-sm font-medium ${textVolumeOrder === option.value ? 'bg-primary-new text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
                       </div>
                     </div>
                   )}

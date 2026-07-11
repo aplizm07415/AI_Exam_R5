@@ -76,6 +76,7 @@ interface PendingPaperPracticeRequest {
   keywords?: string[];
   specific_area_history_scope?: string;
   tag_filter?: string;
+  text_volume_order?: string;
 }
 
 interface GradedAnswer {

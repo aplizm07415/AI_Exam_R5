@@ -528,6 +528,7 @@ class QuizStartRequest(BaseModel):
     keywords: list[str] = Field(default_factory=list)
     specific_area_history_scope: SpecificAreaHistoryScope = "all"
     tag_filter: QuestionTagFilter = "all"
+    text_volume_order: Literal["none", "desc", "asc"] = "none"
 
 class PaperPracticeLotCreateRequest(QuizStartRequest):
     source_mode: Optional[str] = None
@@ -4118,6 +4119,11 @@ def get_specific_area_count(
     matched_questions = _filter_questions_by_tag_filter(matched_questions, tag_filter)
     return {"specific_area_count": len(matched_questions)}
 
+def _question_text_volume(question: dict) -> int:
+    """問題文量（通常テキスト+Markdown問題文）を文字数で返す。"""
+    return len(str(question.get("question_text") or "")) + len(str(question.get("question_text_md") or ""))
+
+
 @api_router.post("/quiz/start")
 def start_quiz(request: QuizStartRequest):
     """指定された複数の科目からクイズを開始する"""
@@ -4171,7 +4177,25 @@ def start_quiz(request: QuizStartRequest):
     num_to_select = min(request.count, len(working_questions))
     selected_questions = []
 
-    if request.mode == "weak_area":
+    if request.text_volume_order in ("desc", "asc"):
+        # 問題文量（テキスト+Markdown）で並び替え、先頭から問題数分を出題する。
+        # このオプションが有効な場合、各モードのランダム抽出や優先度順は使わない
+        # （未解答モードの絞り込みなど、対象問題のフィルタは維持する）。
+        candidate_questions = working_questions
+        if request.mode == "unanswered":
+            history_items = []
+            for subject_name in request.subjects:
+                history_items.extend(_get_history_items_for_subject(subject_name))
+            answered_problem_ids = {item.problem_id for item in history_items}
+            candidate_questions = [q for q in candidate_questions if q.get("id") not in answered_problem_ids]
+        candidate_questions = sorted(
+            candidate_questions,
+            key=_question_text_volume,
+            reverse=request.text_volume_order == "desc",
+        )
+        selected_questions = candidate_questions[:min(request.count, len(candidate_questions))]
+
+    elif request.mode == "weak_area":
         history_items = []
         for subject_name in request.subjects:
             history_items.extend(_get_history_items_for_subject(subject_name))

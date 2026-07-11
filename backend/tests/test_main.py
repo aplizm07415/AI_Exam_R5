@@ -601,6 +601,52 @@ def test_worry_practice_generate_without_reference_subjects_omits_reference_bloc
     assert "参考問題" not in captured["prompt"]
 
 
+def test_start_quiz_orders_questions_by_text_volume(client: TestClient):
+    # subject1.json の問題文字数: q2(10) < q1(20) < q4(27) < q5(29) < q6(31)
+    desc_response = client.post(
+        "/api/quiz/start",
+        json={
+            "subjects": ["subject1.json"],
+            "mode": "random",
+            "count": 2,
+            "tag_filter": "all",
+            "text_volume_order": "desc",
+        },
+    )
+    assert desc_response.status_code == 200
+    desc_ids = [question["id"] for question in desc_response.json()["quiz_set"]]
+    assert desc_ids == ["q6", "q5"]
+
+    asc_response = client.post(
+        "/api/quiz/start",
+        json={
+            "subjects": ["subject1.json"],
+            "mode": "random",
+            "count": 2,
+            "tag_filter": "all",
+            "text_volume_order": "asc",
+        },
+    )
+    assert asc_response.status_code == 200
+    asc_ids = [question["id"] for question in asc_response.json()["quiz_set"]]
+    assert asc_ids == ["q2", "q1"]
+
+    # 未解答モードでは絞り込みを維持したまま並び替える（q1, q2, q5, q6 は回答履歴あり）
+    unanswered_response = client.post(
+        "/api/quiz/start",
+        json={
+            "subjects": ["subject1.json"],
+            "mode": "unanswered",
+            "count": 5,
+            "tag_filter": "all",
+            "text_volume_order": "desc",
+        },
+    )
+    assert unanswered_response.status_code == 200
+    unanswered_ids = [question["id"] for question in unanswered_response.json()["quiz_set"]]
+    assert unanswered_ids == ["q4"]
+
+
 def test_grade_paper_practice_lot_respects_custom_answered_at(client: TestClient):
     lot_response = client.post(
         "/api/paper-practice/lots",
