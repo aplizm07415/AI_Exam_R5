@@ -222,39 +222,32 @@
   min-width: 0;
   max-width: none;
   padding: 0.35em 0.45em;
+  /* PDFでは横スクロールできないため、セル内で必ず折り返して見切れを防ぐ */
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
-.paper-practice-pdf-question__mermaid {
-  margin: 0.85em 0 1em;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  padding: 0.55em;
-  overflow: visible;
+.paper-practice-pdf-question__markdown .markdown-table-cell--long,
+.paper-practice-pdf-question__markdown .markdown-table-cell--very-long {
+  min-width: 0;
 }
 
-.paper-practice-pdf-question__mermaid svg {
-  display: block;
-  max-width: 100%;
-  height: auto;
-  margin: 0 auto;
-}
-
-.paper-practice-pdf-question__mermaid--error {
-  border-color: #fecaca;
-  background: #fef2f2;
-  color: #7f1d1d;
-}
-
-.paper-practice-pdf-question__mermaid-error {
-  font-size: 0.85em;
-  font-weight: 700;
-}
-
-.paper-practice-pdf-question__mermaid pre {
-  margin: 0.45em 0 0;
+.paper-practice-pdf-question__markdown pre {
+  overflow-x: visible;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  font-size: 0.82em;
+  word-break: break-word;
+}
+
+.paper-practice-pdf-question__markdown code {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.paper-practice-pdf-question__markdown img {
+  max-width: 100%;
+  height: auto;
 }
 
 .paper-practice-pdf-question__choices {
@@ -270,6 +263,14 @@
 }
 
 .paper-practice-pdf-question__choice-label {
+  font-weight: 700;
+}
+
+.paper-practice-pdf-question__setsumon {
+  background: #fde047;
+  color: inherit;
+  padding: 0.05em 0.2em;
+  border-radius: 3px;
   font-weight: 700;
 }
 

@@ -601,6 +601,52 @@ def test_worry_practice_generate_without_reference_subjects_omits_reference_bloc
     assert "参考問題" not in captured["prompt"]
 
 
+def test_grade_paper_practice_lot_respects_custom_answered_at(client: TestClient):
+    lot_response = client.post(
+        "/api/paper-practice/lots",
+        json={
+            "subjects": ["subject1.json"],
+            "count": 1,
+            "mode": "random",
+            "source_mode": "random",
+            "title": "実施日時指定テスト",
+        },
+    )
+    assert lot_response.status_code == 200
+    lot = lot_response.json()
+    question = lot["questions"][0]
+
+    # JST 2026-07-01 08:30 に実施した分を後から採点する（UTCのISO形式で送信）
+    grade = client.post(
+        f"/api/paper-practice/lots/{lot['id']}/grade",
+        json={
+            "answers": {question["id"]: question["answer"]},
+            "answered_at": "2026-06-30T23:30:00.000Z",
+        },
+    )
+    assert grade.status_code == 200
+    attempt = grade.json()
+    assert attempt["created_at"] == "2026-06-30T23:30:00+00:00"
+
+    # 通勤演習の月次集計にも指定日時（JST 7/1 8:30 → 行き）で反映される
+    summary = client.get("/api/paper-practice/attempts/monthly-summary?year=2026&month=7")
+    assert summary.status_code == 200
+    day = next(item for item in summary.json()["days"] if item["date"] == "2026-07-01")
+    assert day["morning"]["attempts"] == 1
+    assert day["morning"]["total_count"] == 1
+    assert day["evening"]["attempts"] == 0
+
+    # 不正な日時はエラー
+    invalid = client.post(
+        f"/api/paper-practice/lots/{lot['id']}/grade",
+        json={
+            "answers": {question["id"]: question["answer"]},
+            "answered_at": "invalid-datetime",
+        },
+    )
+    assert invalid.status_code == 400
+
+
 def test_paper_practice_monthly_summary_aggregates_attempts_by_jst_slot(client: TestClient):
     import pytz
 

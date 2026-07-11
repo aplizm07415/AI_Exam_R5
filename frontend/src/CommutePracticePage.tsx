@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom';
 import LoadingSpinner from './components/LoadingSpinner';
 
 const API_BASE_URL = '/api';
-const TARGET_QUESTIONS_PER_SLOT = 20;
+const DEFAULT_TARGET_QUESTIONS_PER_SLOT = 20;
+const TARGET_QUESTIONS_STORAGE_KEY = 'commutePracticeTargetQuestions';
+const MAX_TARGET_QUESTIONS = 999;
 // 運用開始日。前日（2026-07-08）以前で実績のない日は薄くグレーアウトする。
 const TRACKING_START_DATE = '2026-07-09';
 const WEEKDAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
@@ -55,9 +57,14 @@ function getTodayKeyInTokyo() {
   return `${year}-${month}-${day}`;
 }
 
-function getSlotStatus(slot: CommuteSlotSummary | undefined, dateKey: string, todayKey: string): CommuteDotStatus {
+function getSlotStatus(
+  slot: CommuteSlotSummary | undefined,
+  dateKey: string,
+  todayKey: string,
+  targetQuestions: number,
+): CommuteDotStatus {
   const totalCount = slot?.total_count ?? 0;
-  if (totalCount >= TARGET_QUESTIONS_PER_SLOT) return 'achieved';
+  if (totalCount >= targetQuestions) return 'achieved';
   if (totalCount > 0) return 'partial';
   if (dateKey < TRACKING_START_DATE) return 'inactive';
   return dateKey > todayKey ? 'future' : 'missed';
@@ -98,6 +105,7 @@ function CommuteDotCalendar({
   month,
   daysByDate,
   todayKey,
+  targetQuestions,
   selectedDate,
   onSelectDate,
 }: {
@@ -108,13 +116,14 @@ function CommuteDotCalendar({
   month: number;
   daysByDate: Map<string, CommuteDaySummary>;
   todayKey: string;
+  targetQuestions: number;
   selectedDate: string;
   onSelectDate: (dateKey: string) => void;
 }) {
   const daysInMonth = new Date(year, month, 0).getDate();
   const firstWeekday = new Date(year, month - 1, 1).getDay();
   const achievedCount = Array.from({ length: daysInMonth }, (_, index) => buildDateKey(year, month, index + 1))
-    .filter((dateKey) => getSlotStatus(daysByDate.get(dateKey)?.[slotKey], dateKey, todayKey) === 'achieved')
+    .filter((dateKey) => getSlotStatus(daysByDate.get(dateKey)?.[slotKey], dateKey, todayKey, targetQuestions) === 'achieved')
     .length;
 
   return (
@@ -122,7 +131,7 @@ function CommuteDotCalendar({
       <div className="mb-3 flex items-start justify-between gap-2">
         <div>
           <h3 className="text-base font-semibold text-slate-900">{title}</h3>
-          <p className="mt-0.5 text-xs text-slate-500">{subtitle} / 目標 {TARGET_QUESTIONS_PER_SLOT}問</p>
+          <p className="mt-0.5 text-xs text-slate-500">{subtitle} / 目標 {targetQuestions}問</p>
         </div>
         <div className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-primary-new">
           達成 {achievedCount}日
@@ -140,7 +149,7 @@ function CommuteDotCalendar({
         {Array.from({ length: daysInMonth }, (_, index) => {
           const day = index + 1;
           const dateKey = buildDateKey(year, month, day);
-          const status = getSlotStatus(daysByDate.get(dateKey)?.[slotKey], dateKey, todayKey);
+          const status = getSlotStatus(daysByDate.get(dateKey)?.[slotKey], dateKey, todayKey, targetQuestions);
           return (
             <button
               key={dateKey}
@@ -166,6 +175,16 @@ export default function CommutePracticePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
+  const [targetQuestions, setTargetQuestions] = useState(() => {
+    const parsed = Number(localStorage.getItem(TARGET_QUESTIONS_STORAGE_KEY));
+    return Number.isInteger(parsed) && parsed >= 1 && parsed <= MAX_TARGET_QUESTIONS
+      ? parsed
+      : DEFAULT_TARGET_QUESTIONS_PER_SLOT;
+  });
+
+  useEffect(() => {
+    localStorage.setItem(TARGET_QUESTIONS_STORAGE_KEY, String(targetQuestions));
+  }, [targetQuestions]);
 
   const fetchSummary = useCallback(async (year: number, month: number) => {
     setIsLoading(true);
@@ -205,8 +224,8 @@ export default function CommutePracticePage() {
     for (let day = 1; day <= daysInMonth; day += 1) {
       const dateKey = buildDateKey(viewYear, viewMonth, day);
       const summaryForDay = daysByDate.get(dateKey);
-      const morningDone = getSlotStatus(summaryForDay?.morning, dateKey, todayKey) === 'achieved';
-      const eveningDone = getSlotStatus(summaryForDay?.evening, dateKey, todayKey) === 'achieved';
+      const morningDone = getSlotStatus(summaryForDay?.morning, dateKey, todayKey, targetQuestions) === 'achieved';
+      const eveningDone = getSlotStatus(summaryForDay?.evening, dateKey, todayKey, targetQuestions) === 'achieved';
       if (morningDone) morningAchieved += 1;
       if (eveningDone) eveningAchieved += 1;
       if (morningDone && eveningDone) bothAchieved += 1;
@@ -220,7 +239,7 @@ export default function CommutePracticePage() {
       totalQuestions,
       accuracy: totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0,
     };
-  }, [daysByDate, viewYear, viewMonth, todayKey]);
+  }, [daysByDate, viewYear, viewMonth, todayKey, targetQuestions]);
 
   const selectedDaySummary = selectedDate ? daysByDate.get(selectedDate) : undefined;
 
@@ -237,15 +256,34 @@ export default function CommutePracticePage() {
         <div>
           <h2 className="text-2xl font-bold text-slate-900">通勤演習管理</h2>
           <p className="mt-1 text-sm text-slate-500">
-            通勤時間の演習（行き{TARGET_QUESTIONS_PER_SLOT}問・帰り{TARGET_QUESTIONS_PER_SLOT}問）を、紙演習モードの回答提出記録から一元管理します。
+            通勤時間の演習（行き{targetQuestions}問・帰り{targetQuestions}問）を、紙演習モードの回答提出記録から一元管理します。
           </p>
         </div>
-        <Link
-          to="/paper-practice"
-          className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-        >
-          紙演習ロット一覧へ
-        </Link>
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700">
+            目標
+            <input
+              type="number"
+              min={1}
+              max={MAX_TARGET_QUESTIONS}
+              value={targetQuestions}
+              onChange={(event) => {
+                const value = Number(event.target.value);
+                if (Number.isInteger(value) && value >= 1 && value <= MAX_TARGET_QUESTIONS) {
+                  setTargetQuestions(value);
+                }
+              }}
+              className="w-16 rounded border border-slate-300 px-2 py-1 text-right text-sm"
+            />
+            問/回
+          </label>
+          <Link
+            to="/paper-practice"
+            className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            紙演習ロット一覧へ
+          </Link>
+        </div>
       </div>
 
       <div className="mb-4 flex items-center justify-center gap-4">
@@ -311,6 +349,7 @@ export default function CommutePracticePage() {
                 month={viewMonth}
                 daysByDate={daysByDate}
                 todayKey={todayKey}
+                targetQuestions={targetQuestions}
                 selectedDate={selectedDate}
                 onSelectDate={(dateKey) => setSelectedDate((current) => (current === dateKey ? '' : dateKey))}
               />
@@ -320,11 +359,11 @@ export default function CommutePracticePage() {
           <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-500">
             <span className="flex items-center gap-1.5">
               <span className="inline-block h-3 w-3 rounded bg-primary-new" />
-              {TARGET_QUESTIONS_PER_SLOT}問以上（達成）
+              {targetQuestions}問以上（達成）
             </span>
             <span className="flex items-center gap-1.5">
               <span className="inline-block h-3 w-3 rounded bg-blue-300" />
-              1〜{TARGET_QUESTIONS_PER_SLOT - 1}問
+              1〜{Math.max(1, targetQuestions - 1)}問
             </span>
             <span className="flex items-center gap-1.5">
               <span className="inline-block h-3 w-3 rounded bg-slate-200" />
@@ -338,7 +377,7 @@ export default function CommutePracticePage() {
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 {SLOT_DEFINITIONS.map((slot) => {
                   const slotSummary = selectedDaySummary?.[slot.key];
-                  const status = getSlotStatus(slotSummary, selectedDate, todayKey);
+                  const status = getSlotStatus(slotSummary, selectedDate, todayKey, targetQuestions);
                   return (
                     <div key={slot.key} className="rounded-lg bg-slate-50 p-3">
                       <div className="flex items-center justify-between gap-2">

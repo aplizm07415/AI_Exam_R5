@@ -138,6 +138,11 @@ function loadPdfFontBinaryString() {
   return pdfFontBinaryStringPromise;
 }
 
+function formatDateTimeLocalInput(date: Date) {
+  const pad = (value: number) => String(value).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 function formatDateTime(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
@@ -192,6 +197,61 @@ function sanitizeFilename(value: string) {
 function normalizePdfText(value: string | undefined | null) {
   return (value ?? '').replace(/\r\n/g, '\n').trim();
 }
+
+// 「設問1」「設問 ２」のような設問の区切りに黄色マーカーを引くためのパターン
+const SETSUMON_PATTERN = /(設問\s*[0-9０-９]+)/;
+
+function renderTextWithSetsumonMarker(text: string) {
+  const parts = text.split(SETSUMON_PATTERN);
+  if (parts.length === 1) return text;
+  return parts.map((part, index) => (
+    index % 2 === 1
+      ? <mark key={`setsumon-${index}`} className="paper-practice-pdf-question__setsumon">{part}</mark>
+      : part
+  ));
+}
+
+interface MarkerHastNode {
+  type: string;
+  tagName?: string;
+  value?: string;
+  properties?: Record<string, unknown>;
+  children?: MarkerHastNode[];
+}
+
+function highlightSetsumonInHast(node: MarkerHastNode) {
+  if (!Array.isArray(node.children)) return;
+  const nextChildren: MarkerHastNode[] = [];
+  for (const child of node.children) {
+    if (child.type === 'text' && typeof child.value === 'string' && SETSUMON_PATTERN.test(child.value)) {
+      child.value.split(SETSUMON_PATTERN).forEach((part, index) => {
+        if (!part) return;
+        if (index % 2 === 1) {
+          nextChildren.push({
+            type: 'element',
+            tagName: 'mark',
+            properties: { className: ['paper-practice-pdf-question__setsumon'] },
+            children: [{ type: 'text', value: part }],
+          });
+        } else {
+          nextChildren.push({ type: 'text', value: part });
+        }
+      });
+      continue;
+    }
+    if (!(child.type === 'element' && (child.tagName === 'code' || child.tagName === 'pre'))) {
+      highlightSetsumonInHast(child);
+    }
+    nextChildren.push(child);
+  }
+  node.children = nextChildren;
+}
+
+const rehypeSetsumonMarker = () => (tree: unknown) => {
+  highlightSetsumonInHast(tree as MarkerHastNode);
+};
+
+const pdfQuestionRehypePlugins = [...markdownRehypePlugins, rehypeSetsumonMarker];
 
 function hslToRgb(hue: number, saturation: number, lightness: number): PdfRgbColor {
   const chroma = (1 - Math.abs(2 * lightness - 1)) * saturation;
@@ -276,29 +336,6 @@ function waitForNextFrame() {
       window.requestAnimationFrame(() => resolve());
     });
   });
-}
-
-async function renderQuestionMermaidSvg(chart: string, idSeed: string) {
-  const source = chart.trim();
-  if (!source) {
-    return { svg: '', error: '' };
-  }
-
-  try {
-    const { default: mermaid } = await import('mermaid');
-    mermaid.initialize({
-      startOnLoad: false,
-      securityLevel: 'strict',
-      theme: 'default',
-    });
-    const result = await mermaid.render(`paper-practice-pdf-${idSeed}`, source);
-    return { svg: result.svg, error: '' };
-  } catch (error) {
-    return {
-      svg: '',
-      error: error instanceof Error ? error.message : 'Mermaid図の描画に失敗しました。',
-    };
-  }
 }
 
 async function renderElementToCanvas(
@@ -421,20 +458,15 @@ function PdfQuestionContent({
   questionIndex,
   width,
   fontSize,
-  mermaidSvg,
-  mermaidError,
 }: {
   lot: PaperPracticeLot;
   question: QuizQuestion;
   questionIndex: number;
   width: number;
   fontSize: number;
-  mermaidSvg: string;
-  mermaidError: string;
 }) {
   const questionText = normalizePdfText(question.question_text);
   const questionTextMd = normalizePdfText(question.question_text_md);
-  const questionTextMermaid = normalizePdfText(question.question_text_mermaid);
 
   return (
     <div
@@ -455,30 +487,15 @@ function PdfQuestionContent({
 
       {questionText && (
         <div className="paper-practice-pdf-question__body">
-          {questionText}
+          {renderTextWithSetsumonMarker(questionText)}
         </div>
       )}
 
       {questionTextMd && (
         <div className="paper-practice-pdf-question__markdown question-markdown">
-          <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={markdownRehypePlugins} components={markdownComponents}>
+          <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={pdfQuestionRehypePlugins} components={markdownComponents}>
             {questionTextMd}
           </ReactMarkdown>
-        </div>
-      )}
-
-      {questionTextMermaid && (
-        <div className={`paper-practice-pdf-question__mermaid ${mermaidError ? 'paper-practice-pdf-question__mermaid--error' : ''}`}>
-          {mermaidSvg ? (
-            <div dangerouslySetInnerHTML={{ __html: mermaidSvg }} />
-          ) : (
-            <>
-              <div className="paper-practice-pdf-question__mermaid-error">
-                {mermaidError || 'Mermaid図を描画できませんでした。'}
-              </div>
-              <pre>{questionTextMermaid}</pre>
-            </>
-          )}
         </div>
       )}
 
@@ -636,6 +653,7 @@ export default function PaperPracticePage() {
   const [reviewKind, setReviewKind] = useState<PaperPracticeReviewKind>('incorrect');
   const [reviewIndex, setReviewIndex] = useState(0);
   const [gradingScope, setGradingScope] = useState<PaperPracticeGradingScope>('answered_only');
+  const [answeredAt, setAnsweredAt] = useState('');
   const [reviewLaterKeys, setReviewLaterKeys] = useState<string[]>([]);
   const [updatingReviewLaterKey, setUpdatingReviewLaterKey] = useState<string | null>(null);
   const [reviewLaterMessage, setReviewLaterMessage] = useState('');
@@ -722,6 +740,7 @@ export default function PaperPracticePage() {
     setReviewKind('incorrect');
     setReviewIndex(0);
     setGradingScope('answered_only');
+    setAnsweredAt(formatDateTimeLocalInput(new Date()));
     setReviewLaterMessage('');
     setError('');
   };
@@ -942,10 +961,6 @@ export default function PaperPracticePage() {
         addOverflowPage: () => void,
         continuationLineColor: PdfRgbColor,
       ) => {
-        const mermaidResult = await renderQuestionMermaidSvg(
-          normalizePdfText(question.question_text_mermaid),
-          `${lot.id}-${question.id}-${questionIndex}`.replace(/[^a-zA-Z0-9_-]/g, '-'),
-        );
         return drawRenderedElement(
           <PdfQuestionContent
             lot={lot}
@@ -953,8 +968,6 @@ export default function PaperPracticePage() {
             questionIndex={questionIndex}
             width={width}
             fontSize={maxFontSize}
-            mermaidSvg={mermaidResult.svg}
-            mermaidError={mermaidResult.error}
           />,
           x,
           y,
@@ -1112,13 +1125,23 @@ export default function PaperPracticePage() {
       return;
     }
 
+    const answeredAtDate = answeredAt ? new Date(answeredAt) : null;
+    if (answeredAt && Number.isNaN(answeredAtDate?.getTime())) {
+      setError('実施日時の形式が不正です。');
+      return;
+    }
+
     try {
       setIsSubmittingAnswers(true);
       setError('');
       const response = await fetch(`${API_BASE_URL}/paper-practice/lots/${encodeURIComponent(answerLot.id)}/grade`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answers, grading_scope: gradingScope }),
+        body: JSON.stringify({
+          answers,
+          grading_scope: gradingScope,
+          ...(answeredAtDate ? { answered_at: answeredAtDate.toISOString() } : {}),
+        }),
       });
       if (!response.ok) {
         const payload = await response.json().catch(() => null);
@@ -1405,7 +1428,19 @@ export default function PaperPracticePage() {
               {modalStep === 'answer' && (
                 <div className="space-y-2">
                   <div className="mb-3 grid gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-600 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
-                    <div>入力済み {answeredCount} / {answerLot.questions.length}</div>
+                    <div>
+                      <div>入力済み {answeredCount} / {answerLot.questions.length}</div>
+                      <label className="mt-2 flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-600">
+                        実施日時
+                        <input
+                          type="datetime-local"
+                          value={answeredAt}
+                          onChange={(event) => setAnsweredAt(event.target.value)}
+                          className="rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm font-normal text-slate-800"
+                        />
+                      </label>
+                      <div className="mt-1 text-xs font-normal text-slate-500">過去に実施した分を採点する場合は日時を変更してください。この日時で実績が登録されます。</div>
+                    </div>
                     <div className="grid gap-2 sm:grid-cols-2">
                       <label className={`flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 ${gradingScope === 'answered_only' ? 'border-primary-new bg-blue-50 text-primary-new' : 'border-slate-200 bg-white text-slate-700'}`}>
                         <input

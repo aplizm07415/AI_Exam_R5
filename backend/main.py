@@ -548,6 +548,7 @@ class PaperPracticeLot(BaseModel):
 class PaperPracticeGradeRequest(BaseModel):
     answers: dict[str, str]
     grading_scope: Literal["answered_only", "all"] = "all"
+    answered_at: Optional[str] = None
 
 class PaperPracticeAttemptAnswer(BaseModel):
     lot_number: int
@@ -4412,7 +4413,16 @@ def grade_paper_practice_lot(lot_id: str, request: PaperPracticeGradeRequest):
 
     attempt_answers: list[PaperPracticeAttemptAnswer] = []
     history_items: list[HistoryItem] = []
+    # 実施日時が指定された場合はその日時で実績を登録する（過去実施分の後日採点など）
     answered_at = datetime.datetime.now(datetime.timezone.utc)
+    if request.answered_at:
+        try:
+            parsed_answered_at = datetime.datetime.fromisoformat(request.answered_at.replace("Z", "+00:00"))
+        except ValueError:
+            raise HTTPException(status_code=400, detail="実施日時の形式が不正です。")
+        if parsed_answered_at.tzinfo is None:
+            parsed_answered_at = TOKYO_TZ.localize(parsed_answered_at)
+        answered_at = parsed_answered_at.astimezone(datetime.timezone.utc)
 
     for index, question in enumerate(lot.questions, start=1):
         problem_id = str(question.get("id") or question.get("problem_id") or "")
