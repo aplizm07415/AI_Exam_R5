@@ -353,6 +353,7 @@ class ReviewLaterBulkReorganizeItem(BaseModel):
     problem_id: str
     updated: bool = False
     used_ai: bool = False
+    skipped: bool = False
     consistency_notes: list[str] = Field(default_factory=list)
     error: Optional[str] = None
 
@@ -361,6 +362,7 @@ class ReviewLaterBulkReorganizeResponse(BaseModel):
     total: int
     updated: int
     failed: int
+    skipped: int = 0
     items: list[ReviewLaterBulkReorganizeItem] = Field(default_factory=list)
 
 ReviewLaterBulkReorganizeJobState = Literal["queued", "running", "completed", "failed"]
@@ -377,6 +379,7 @@ class ReviewLaterBulkReorganizeSubjectProgress(BaseModel):
     processed: int = 0
     updated: int = 0
     failed: int = 0
+    skipped: int = 0
     current_problem_id: Optional[str] = None
     error: Optional[str] = None
     started_at: Optional[str] = None
@@ -392,6 +395,7 @@ class ReviewLaterBulkReorganizeJobStatus(BaseModel):
     processed_problems: int
     updated: int
     failed: int
+    skipped: int = 0
     max_parallel_subjects: int
     started_at: str
     completed_at: Optional[str] = None
@@ -1309,10 +1313,44 @@ def _fallback_reorganized_explanation(question: dict[str, Any]) -> ReviewLaterEx
     )
 
 
+def _reorganize_content_hash(question: dict[str, Any]) -> str:
+    """AI整理のスキップ判定に使う、問題内容のフィンガープリントを返す。"""
+    payload = {
+        "question_text": str(question.get("question_text") or ""),
+        "question_text_md": str(question.get("question_text_md") or ""),
+        "question_text_mermaid": str(question.get("question_text_mermaid") or ""),
+        "choices": [
+            {"label": str(choice.get("label") or ""), "text": str(choice.get("text") or "")}
+            for choice in (question.get("choices") or [])
+            if isinstance(choice, dict)
+        ],
+        "answer": str(question.get("answer") or ""),
+        "explanation_text": _question_explanation_text(question),
+    }
+    return hashlib.sha256(
+        json.dumps(payload, ensure_ascii=False, sort_keys=True).encode("utf-8")
+    ).hexdigest()
+
+
+REORGANIZE_MD_MULTI_QUESTION_PATTERN = re.compile(r"設問|枝問")
+
+
+def _should_reorganize_question_text_md(question_text: str, question_text_md: str) -> bool:
+    """mdの再整理をAIに依頼すべきかを事前判定する。不要ならmdの再出力を求めず出力トークンを抑える。"""
+    md = (question_text_md or "").strip()
+    if not md:
+        return False
+    _, removed_count = _remove_duplicate_question_text_md(question_text or "", md)
+    if removed_count > 0:
+        return True
+    return len(REORGANIZE_MD_MULTI_QUESTION_PATTERN.findall(md)) >= 2
+
+
 def _build_review_later_reorganize_prompt(
     subject_name: str,
     problem_id: str,
     normalized: dict[str, Any],
+    include_question_text_md: bool,
 ) -> str:
     prompt_payload = {
         "problem_id": problem_id,
@@ -1326,6 +1364,13 @@ def _build_review_later_reorganize_prompt(
         "explanation": normalized.get("explanation"),
     }
 
+    if include_question_text_md:
+        question_text_md_rules = """- reorganized_question_text_md は、question_text_md の再整理が必要な場合だけMarkdownとして返す。既に読みやすく整理されている場合や question_text_md が空の場合は null を返す。
+- reorganized_question_text_md は、1問の中に複数の設問や枝問がある場合、各設問ごとに「問題文」「条件・資料」「選択肢」を対応が分かる順序で整理する。
+- reorganized_question_text_md では、元データにある数値、固有名詞、表、選択肢、制約条件を削除・改変しない。情報が不足する場合は補わず、見出しと改行だけで読みやすくする。"""
+    else:
+        question_text_md_rules = "- reorganized_question_text_md は必ず null を返す。question_text_md の再整理は不要。"
+
     return f"""
 あなたは中小企業診断士試験の問題データを点検する編集者です。
 以下の問題データだけを根拠に、正解・選択肢・解説の整合性を確認し、解説文とMarkdown問題文を読みやすく再整理してください。
@@ -1338,11 +1383,9 @@ def _build_review_later_reorganize_prompt(
 - 必ずJSONオブジェクトのみを返す。
 - reorganized_explanation は日本語で、見出し記号やMarkdown記号（#、*、-）を使わず、短い段落を改行で区切る。
 - reorganized_explanation の1行目は結論、2行目以降は根拠、他選択肢との差分、重要キーワードを必要最小限で整理する。
-- reorganized_question_text_md は、question_text_md が空でなければMarkdownとして返す。空なら null を返す。
-- reorganized_question_text_md は、1問の中に複数の設問や枝問がある場合、各設問ごとに「問題文」「条件・資料」「選択肢」を対応が分かる順序で整理する。
-- reorganized_question_text_md では、元データにある数値、固有名詞、表、選択肢、制約条件を削除・改変しない。情報が不足する場合は補わず、見出しと改行だけで読みやすくする。
+{question_text_md_rules}
 - 余計な前置きや励ましは入れない。
-- consistency_notes は、通常問題文、md、Mermaid、選択肢、正解、解説の整合している点または不整合の疑いを最大5件で返す。
+- consistency_notes は、通常問題文、md、Mermaid、選択肢、正解、解説の間で不整合の疑いがある点だけを最大3件で返す。不整合がなければ空配列 [] を返す。整合している点は書かない。
 - mdやMermaidが空の場合は、その項目は空として扱い、空であること自体を問題視しない。
 - 情報が足りない場合は、断定せず「確認が必要」と書く。
 
@@ -1370,7 +1413,11 @@ def _reorganize_question_with_ai_or_fallback(
     if gemini_unavailable_reason:
         return _fallback_reorganized_explanation(normalized)
 
-    prompt = _build_review_later_reorganize_prompt(subject_name, problem_id, normalized)
+    include_question_text_md = _should_reorganize_question_text_md(
+        str(normalized.get("question_text") or ""),
+        str(normalized.get("question_text_md") or ""),
+    )
+    prompt = _build_review_later_reorganize_prompt(subject_name, problem_id, normalized, include_question_text_md)
     try:
         model = create_generative_model()
         response = model.generate_content(prompt)
@@ -1381,14 +1428,16 @@ def _reorganize_question_with_ai_or_fallback(
         raw_question_text_md = payload.get("reorganized_question_text_md")
         reorganized_question_text_md = (
             raw_question_text_md.strip()
-            if isinstance(raw_question_text_md, str) and raw_question_text_md.strip()
+            if include_question_text_md
+            and isinstance(raw_question_text_md, str)
+            and raw_question_text_md.strip()
             else None
         )
         notes = [str(item).strip() for item in (payload.get("consistency_notes") or []) if str(item).strip()]
         return ReviewLaterExplanationReviewResponse(
             reorganized_explanation=reorganized,
             reorganized_question_text_md=reorganized_question_text_md,
-            consistency_notes=notes[:5],
+            consistency_notes=notes[:3],
             used_ai=True,
         )
     except Exception as e:
@@ -5223,6 +5272,7 @@ def _reorganize_subject_questions(
     results: list[ReviewLaterBulkReorganizeItem] = []
     updated_count = 0
     failed_count = 0
+    skipped_count = 0
 
     if progress_callback:
         progress_callback({
@@ -5259,6 +5309,36 @@ def _reorganize_subject_questions(
                     "processed": len(results),
                     "updated": updated_count,
                     "failed": failed_count,
+                    "skipped": skipped_count,
+                })
+            continue
+
+        # 前回のAI整理から内容が変わっていない問題はAI呼び出し自体をスキップする
+        existing_meta = original_question.get("reorganize_meta")
+        if (
+            isinstance(existing_meta, dict)
+            and existing_meta.get("content_hash") == _reorganize_content_hash(normalized)
+        ):
+            next_questions.append(original_question)
+            skipped_count += 1
+            result_item = ReviewLaterBulkReorganizeItem(
+                subject=subject_name,
+                problem_id=problem_id,
+                updated=False,
+                used_ai=False,
+                skipped=True,
+                consistency_notes=["前回のAI整理から内容が変わっていないため、AI呼び出しをスキップしました。"],
+            )
+            results.append(result_item)
+            if progress_callback:
+                progress_callback({
+                    "event": "problem_finished",
+                    "subject": subject_name,
+                    "item": result_item,
+                    "processed": len(results),
+                    "updated": updated_count,
+                    "failed": failed_count,
+                    "skipped": skipped_count,
                 })
             continue
 
@@ -5267,6 +5347,18 @@ def _reorganize_subject_questions(
         try:
             review = _reorganize_question_with_ai_or_fallback(subject_name, problem_id, question_for_review)
             next_question, changed = _apply_reorganized_question_fields(original_question, review)
+            if review.used_ai:
+                normalized_next = normalize_question(next_question.copy())
+                if normalized_next:
+                    content_hash = _reorganize_content_hash(normalized_next)
+                    current_meta = next_question.get("reorganize_meta")
+                    if not (isinstance(current_meta, dict) and current_meta.get("content_hash") == content_hash):
+                        next_question = dict(next_question)
+                        next_question["reorganize_meta"] = {
+                            "content_hash": content_hash,
+                            "reorganized_at": _now_utc_iso(),
+                        }
+                        changed = True
             next_questions.append(next_question)
             if changed:
                 updated_count += 1
@@ -5298,6 +5390,7 @@ def _reorganize_subject_questions(
                 "processed": len(results),
                 "updated": updated_count,
                 "failed": failed_count,
+                "skipped": skipped_count,
             })
 
     if updated_count > 0:
@@ -5308,6 +5401,7 @@ def _reorganize_subject_questions(
         total=len(original_questions),
         updated=updated_count,
         failed=failed_count,
+        skipped=skipped_count,
         items=results,
     )
 
@@ -5395,6 +5489,7 @@ def _serialize_reorganize_job_payload(job_id: str, job: dict[str, Any]) -> Revie
     processed_problems = sum(subject.processed for subject in subjects)
     updated = sum(subject.updated for subject in subjects)
     failed = sum(subject.failed for subject in subjects)
+    skipped = sum(subject.skipped for subject in subjects)
     completed_subjects = sum(1 for subject in subjects if subject.status in {"completed", "failed"})
     return ReviewLaterBulkReorganizeJobStatus(
         job_id=job_id,
@@ -5405,6 +5500,7 @@ def _serialize_reorganize_job_payload(job_id: str, job: dict[str, Any]) -> Revie
         processed_problems=processed_problems,
         updated=updated,
         failed=failed,
+        skipped=skipped,
         max_parallel_subjects=int(job.get("max_parallel_subjects") or 1),
         started_at=str(job.get("started_at") or _now_utc_iso()),
         completed_at=job.get("completed_at"),
@@ -5449,6 +5545,7 @@ def _update_reorganize_subject_progress(job_id: str, event: dict[str, Any]) -> N
             progress["processed"] = int(event.get("processed") or progress.get("processed") or 0)
             progress["updated"] = int(event.get("updated") or progress.get("updated") or 0)
             progress["failed"] = int(event.get("failed") or progress.get("failed") or 0)
+            progress["skipped"] = int(event.get("skipped") or progress.get("skipped") or 0)
 
     _mutate_reorganize_job(job_id, mutate)
 
@@ -5473,6 +5570,7 @@ def _run_reorganize_job_subject(job_id: str, subject_name: str) -> None:
             progress["processed"] = response.total
             progress["updated"] = response.updated
             progress["failed"] = response.failed
+            progress["skipped"] = response.skipped
             progress["current_problem_id"] = None
             progress["completed_at"] = _now_utc_iso()
             progress["items"] = [item.model_dump() for item in response.items]
@@ -5562,6 +5660,7 @@ def start_review_later_reorganize_job(request: ReviewLaterBulkReorganizeJobReque
                 "processed": 0,
                 "updated": 0,
                 "failed": 0,
+                "skipped": 0,
                 "current_problem_id": None,
                 "error": None,
                 "started_at": None,
@@ -5653,14 +5752,29 @@ def generate_worry_practice(request: WorryPracticeGenerateRequest):
 # 作成数
 {request.count}
 
+# 参照する公的情報
+- 出題と解説は、中小企業診断士試験の出題範囲に対応する公的ドキュメント・公的情報の内容に整合させる。
+  - 中小企業経営・中小企業政策: 中小企業白書・小規模企業白書、中小企業庁の施策資料
+  - 経営法務: 会社法・民法・知的財産関連法など、e-Gov法令検索で確認できる現行法令
+  - 経営情報システム: IPA（情報処理推進機構）の公開資料、総務省の情報通信白書
+  - 経済学・経済政策: 内閣府・日本銀行・総務省統計局などの公表統計
+- 制度・法令・統計を根拠とする問題では、explanation.text の【出典】行に根拠となる公的ドキュメント名を1つ書く。
+- 記憶が不確かな統計数値・年度・法改正の内容は出題しない。確実に正しいと言える論点に置き換える。
+
 # 出力ルール
 - 必ずJSONオブジェクトのみを返す。
 - questions は指定数ちょうど返す。
 - 各問題は4択。choices の label は ア, イ, ウ, エ を使う。
 - answer は choices の label のいずれか。
-- question_text は単体で解ける文章にする。
-- question_text_md と question_text_mermaid は必要な場合だけ文字列を入れ、不要なら空文字。
-- explanation.text は、結論、根拠、他選択肢との差分、重要キーワードを短い改行で整理する。
+- question_text は単体で解ける文章にし、問題文の本文はすべてここに入れる。
+- question_text_md は、表・計算資料・与件の箇条書きなど、プレーンテキストで表現しにくい補足資料がある場合だけ入れる。question_text と同じ文章や言い換えの繰り返しは禁止。不要なら空文字。
+- question_text_mermaid は図解が必要な場合だけ入れ、不要なら空文字。
+- explanation.text は全体で400字以内とし、次の構成で各行を短くまとめる。
+  【結論】正解の選択肢と理由の要点（1行）
+  【根拠】正解となる理由（2行以内）
+  【他の選択肢】誤りの選択肢ごとの誤りポイント（各1行）
+  【キーワード】重要用語を読点区切りで列挙（1行）
+  【出典】根拠にした公的ドキュメント名（該当する場合のみ1行）
 - 既存問題の丸写しではなく、同じ論点を問う新作問題にする。
 
 # JSONスキーマ
@@ -5699,6 +5813,11 @@ def generate_worry_practice(request: WorryPracticeGenerateRequest):
             question = normalize_question(raw_question.copy())
             if not question:
                 continue
+            cleaned_md, _ = _remove_duplicate_question_text_md(
+                str(question.get("question_text") or ""),
+                str(question.get("question_text_md") or ""),
+            )
+            question["question_text_md"] = cleaned_md
             question["id"] = f"worry-{now_token}-{uuid.uuid4().hex[:10]}-{index}"
             question["subject"] = WORRY_PRACTICE_SUBJECT_NAME
             question["category"] = str(question.get("category") or "心配事演習")

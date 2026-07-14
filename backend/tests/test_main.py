@@ -183,7 +183,10 @@ def mock_fastapi_app():
                     mock_blob_client_instance.exists.return_value = True
                     mock_blob_client_instance.download_blob.return_value = MockBlobDownload(json.dumps(payload))
                 elif blob_name.endswith(".json") and "/" not in blob_name:
-                    subject_payloads[blob_name] = json.loads(payload_text)
+                    payload = json.loads(payload_text)
+                    subject_payloads[blob_name] = payload
+                    mock_blob_client_instance.exists.return_value = True
+                    mock_blob_client_instance.download_blob.return_value = MockBlobDownload(json.dumps(payload))
 
             mock_blob_client_instance.upload_blob.side_effect = upload_blob_side_effect
             def delete_blob_side_effect():
@@ -599,6 +602,62 @@ def test_worry_practice_generate_without_reference_subjects_omits_reference_bloc
 
     assert response.status_code == 200
     assert "参考問題" not in captured["prompt"]
+
+
+def test_worry_practice_generate_strips_duplicated_question_text_md(client: TestClient):
+    captured = {}
+    duplicated_question_text = "NPVとIRRの関係として最も適切なものはどれか。"
+
+    class FakeWorryPracticeModel:
+        def generate_content(self, prompt):
+            captured["prompt"] = prompt
+            return type(
+                "FakeResponse",
+                (),
+                {
+                    "text": json.dumps(
+                        {
+                            "questions": [
+                                {
+                                    "question_text": duplicated_question_text,
+                                    "question_text_md": f"## 問題\n{duplicated_question_text}\n\n| 投資案 | NPV |\n| --- | --- |\n| A | 100 |",
+                                    "question_text_mermaid": "",
+                                    "choices": [
+                                        {"label": "ア", "text": "選択肢ア"},
+                                        {"label": "イ", "text": "選択肢イ"},
+                                        {"label": "ウ", "text": "選択肢ウ"},
+                                        {"label": "エ", "text": "選択肢エ"},
+                                    ],
+                                    "answer": "ア",
+                                    "category": "財務・会計",
+                                    "explanation": {"text": "【結論】アが正解。"},
+                                }
+                            ]
+                        },
+                        ensure_ascii=False,
+                    )
+                },
+            )()
+
+    with patch("backend.main.get_gemini_unavailable_reason", return_value=None), patch(
+        "backend.main.create_generative_model",
+        return_value=FakeWorryPracticeModel(),
+    ):
+        response = client.post(
+            "/api/quiz/worry-practice/generate",
+            json={"concern_text": "NPVとIRRの違いが心配", "count": 1},
+        )
+
+    assert response.status_code == 200
+    question = response.json()["quiz_set"][0]
+    # question_text と重複する文は question_text_md から除去され、表などの補足資料だけが残る
+    assert duplicated_question_text not in question["question_text_md"]
+    assert "| 投資案 | NPV |" in question["question_text_md"]
+    # プロンプトには解説の構造化ルールと公的情報の参照指示が含まれる
+    prompt = captured["prompt"]
+    assert "【結論】" in prompt
+    assert "【出典】" in prompt
+    assert "公的ドキュメント" in prompt
 
 
 def test_start_quiz_orders_questions_by_text_volume(client: TestClient):
@@ -1790,6 +1849,142 @@ def test_reorganize_subject_problems_updates_all_question_json_with_fallback(cli
     assert q2["explanation"]["text"].startswith("結論: 正解はB")
 
 
+def test_reorganize_subject_stores_fingerprint_and_skips_unchanged_on_rerun(client: TestClient):
+    from backend import main
+
+    call_count = {"count": 0}
+
+    class FakeReorganizeModel:
+        def generate_content(self, prompt):
+            call_count["count"] += 1
+            return type(
+                "FakeResponse",
+                (),
+                {
+                    "text": json.dumps(
+                        {
+                            "reorganized_explanation": "結論はCです。\n根拠はCCCの定義に一致するためです。",
+                            "reorganized_question_text_md": None,
+                            "consistency_notes": [],
+                        },
+                        ensure_ascii=False,
+                    )
+                },
+            )()
+
+    with patch("backend.main.get_gemini_unavailable_reason", return_value=None), patch(
+        "backend.main.create_generative_model",
+        return_value=FakeReorganizeModel(),
+    ):
+        first_response = client.post("/api/subjects/subject2.json/problems/reorganize")
+
+        assert first_response.status_code == 200
+        first_payload = first_response.json()
+        assert call_count["count"] == 1
+        assert first_payload["updated"] == 1
+        assert first_payload["skipped"] == 0
+
+        # AI整理後の問題にはフィンガープリントが保存される
+        q3 = next(question for question in main._test_subject_payloads["subject2.json"] if question["id"] == "q3")
+        assert q3["reorganize_meta"]["content_hash"]
+
+        # 内容が変わっていない再実行では、AI呼び出しをスキップする
+        second_response = client.post("/api/subjects/subject2.json/problems/reorganize")
+
+    assert second_response.status_code == 200
+    second_payload = second_response.json()
+    assert call_count["count"] == 1
+    assert second_payload["skipped"] == 1
+    assert second_payload["updated"] == 0
+    assert all(item["skipped"] is True for item in second_payload["items"])
+
+
+def test_should_reorganize_question_text_md_pre_check():
+    from backend import main
+
+    # mdが空なら再整理不要
+    assert main._should_reorganize_question_text_md("設問テキスト", "") is False
+    # 問題文と重複しないきれいな表だけのmdは再整理を依頼しない
+    assert main._should_reorganize_question_text_md(
+        "投資案に関する問題文です。",
+        "| 投資案 | NPV |\n| --- | --- |\n| A | 100 |",
+    ) is False
+    # 問題文の重複を含むmdは再整理を依頼する
+    assert main._should_reorganize_question_text_md(
+        "投資案の評価として最も適切なものはどれか。",
+        "投資案の評価として最も適切なものはどれか。\n\n| 投資案 | NPV |\n| --- | --- |",
+    ) is True
+    # 複数の設問を含むmdは再整理を依頼する
+    assert main._should_reorganize_question_text_md(
+        "次の設問に答えよ。",
+        "設問1: 第一の問い\n設問2: 第二の問い",
+    ) is True
+
+
+def test_reorganize_prompt_controls_md_output_and_limits_notes():
+    from backend import main
+
+    normalized = {
+        "question_text": "投資案に関する問題文です。",
+        "question_text_md": "| 投資案 | NPV |\n| --- | --- |",
+        "question_text_mermaid": "",
+        "choices": [{"label": "ア", "text": "選択肢ア"}],
+        "answer": "ア",
+        "category": "財務・会計",
+        "explanation": {"text": "解説", "images": []},
+    }
+
+    prompt_without_md = main._build_review_later_reorganize_prompt("subject1.json", "q1", normalized, False)
+    assert "必ず null を返す" in prompt_without_md
+    assert "最大3件" in prompt_without_md
+    assert "空配列" in prompt_without_md
+
+    prompt_with_md = main._build_review_later_reorganize_prompt("subject1.json", "q1", normalized, True)
+    assert "再整理が必要な場合だけ" in prompt_with_md
+    assert "最大3件" in prompt_with_md
+
+
+def test_reorganize_response_ignores_unrequested_md_and_caps_notes(client: TestClient):
+    from backend import main
+
+    class FakeReorganizeModel:
+        def generate_content(self, prompt):
+            assert "必ず null を返す" in prompt
+            return type(
+                "FakeResponse",
+                (),
+                {
+                    "text": json.dumps(
+                        {
+                            "reorganized_explanation": "結論はAです。\n根拠は説明文と一致します。",
+                            "reorganized_question_text_md": "AIが余計に返したMarkdown",
+                            "consistency_notes": ["n1", "n2", "n3", "n4", "n5"],
+                        },
+                        ensure_ascii=False,
+                    )
+                },
+            )()
+
+    question = {
+        "id": "note-cap",
+        "question_text": "投資案に関する問題文です。",
+        "question_text_md": "| 投資案 | NPV |\n| --- | --- |\n| A | 100 |",
+        "choices": [{"label": "A", "text": "選択肢A"}],
+        "answer": "A",
+        "explanation": {"text": "説明", "images": []},
+    }
+
+    with patch("backend.main.get_gemini_unavailable_reason", return_value=None), patch(
+        "backend.main.create_generative_model",
+        return_value=FakeReorganizeModel(),
+    ):
+        response = main._reorganize_question_with_ai_or_fallback("subject1.json", "note-cap", question)
+
+    assert response.used_ai is True
+    assert response.reorganized_question_text_md is None
+    assert response.consistency_notes == ["n1", "n2", "n3"]
+
+
 def test_review_later_reorganize_job_tracks_parallel_subject_progress(client: TestClient):
     from backend import main
 
@@ -1821,8 +2016,10 @@ def test_review_later_reorganize_job_tracks_parallel_subject_progress(client: Te
     assert payload["total_problems"] == 6
     assert payload["processed_problems"] == payload["total_problems"]
     assert payload["updated"] >= 1
+    assert payload["skipped"] == 0
     assert {subject["subject"] for subject in payload["subjects"]} == {"subject1.json", "subject2.json"}
     assert all(subject["status"] == "completed" for subject in payload["subjects"])
+    assert all("skipped" in subject for subject in payload["subjects"])
     assert any(name.startswith("review-later/reorganize-jobs/") for name in main._test_review_later_reorganize_jobs)
 
 

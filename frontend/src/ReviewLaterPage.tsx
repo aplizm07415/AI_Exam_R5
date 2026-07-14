@@ -73,11 +73,13 @@ interface BulkReorganizeResult {
   total: number;
   updated: number;
   failed: number;
+  skipped: number;
   items: Array<{
     subject: string;
     problem_id: string;
     updated: boolean;
     used_ai: boolean;
+    skipped?: boolean;
     consistency_notes?: string[];
     error?: string | null;
   }>;
@@ -92,6 +94,7 @@ interface BulkReorganizeSubjectProgress {
   processed: number;
   updated: number;
   failed: number;
+  skipped: number;
   current_problem_id?: string | null;
   error?: string | null;
   items: BulkReorganizeResult['items'];
@@ -106,6 +109,7 @@ interface BulkReorganizeJobStatus {
   processed_problems: number;
   updated: number;
   failed: number;
+  skipped: number;
   max_parallel_subjects: number;
   started_at: string;
   completed_at?: string | null;
@@ -1901,7 +1905,7 @@ export default function ReviewLaterPage() {
                   AI整理ジョブ: {bulkReorganizeJob.status === 'completed' ? '完了' : bulkReorganizeJob.status === 'failed' ? '失敗' : '実行中'}
                 </div>
                 <div className="text-xs font-semibold text-emerald-800">
-                  科目 {bulkReorganizeJob.completed_subjects}/{bulkReorganizeJob.total_subjects} / 問題 {bulkReorganizeJob.processed_problems}/{bulkReorganizeJob.total_problems || '-'} / 更新 {bulkReorganizeJob.updated} / 失敗 {bulkReorganizeJob.failed}
+                  科目 {bulkReorganizeJob.completed_subjects}/{bulkReorganizeJob.total_subjects} / 問題 {bulkReorganizeJob.processed_problems}/{bulkReorganizeJob.total_problems || '-'} / 更新 {bulkReorganizeJob.updated} / スキップ {bulkReorganizeJob.skipped} / 失敗 {bulkReorganizeJob.failed}
                 </div>
               </div>
               <div className="mt-3 h-2 overflow-hidden rounded-full bg-emerald-100">
@@ -1920,7 +1924,7 @@ export default function ReviewLaterPage() {
                       </div>
                     </div>
                     <div className="mt-1 text-xs text-emerald-800">
-                      {subject.processed}/{subject.total || '-'}問 / 更新 {subject.updated} / 失敗 {subject.failed}
+                      {subject.processed}/{subject.total || '-'}問 / 更新 {subject.updated} / スキップ {subject.skipped} / 失敗 {subject.failed}
                       {subject.current_problem_id ? ` / 処理中 ${subject.current_problem_id}` : ''}
                       {subject.error ? ` / ${subject.error}` : ''}
                     </div>
