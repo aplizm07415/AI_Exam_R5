@@ -33,13 +33,37 @@ function gradeQuestion(question, submitted) {
 
   return {
     questionId: question.id,
+    subject: question.subject,
+    topic: question.topic,
+    topicId: question.topicId,
+    difficulty: question.difficulty,
+    minimumCourse: question.minimumCourse,
     correct,
     score: correct ? Number(question.points) : 0,
     maxScore: Number(question.points),
     normalizedAnswer,
     correctAnswer: question.answer,
+    correctAnswerText: question.options?.find((option) => String(option.id) === String(question.answer))?.label || String(question.answer),
     explanation: question.explanation || ""
   };
 }
 
-module.exports = { gradeQuestion, normalizeNumber, normalizeText };
+function gradeOfficialExam(officialExam, subjectId, submitted = {}) {
+  const subject = officialExam.subjects[subjectId];
+  if (!subject) return null;
+  const details = subject.answers.map((item) => {
+    const answer = String(submitted[item.id] || "");
+    const correct = answer === item.answer;
+    return { ...item, submitted: answer, correct, earned: correct ? item.points : 0 };
+  });
+  return {
+    subjectId,
+    score: details.reduce((sum, item) => sum + item.earned, 0),
+    maxScore: subject.totalPoints,
+    correct: details.filter((item) => item.correct).length,
+    total: details.length,
+    details
+  };
+}
+
+module.exports = { gradeQuestion, gradeOfficialExam, normalizeNumber, normalizeText };

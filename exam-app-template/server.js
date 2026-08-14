@@ -3,8 +3,8 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { URL } = require("node:url");
 
-const { content, publicContent } = require("./src/content");
-const { gradeQuestion } = require("./src/grading");
+const { content, officialExam, publicContent, queryQuestions, questionsById } = require("./src/content");
+const { gradeQuestion, gradeOfficialExam } = require("./src/grading");
 const { databaseConfigured, getState, saveState } = require("./src/database");
 
 const HOST = process.env.HOST || "127.0.0.1";
@@ -46,7 +46,7 @@ function readJson(request, maximumBytes = 1_000_000) {
 
 function validState(state) {
   if (!state || typeof state !== "object" || Array.isArray(state)) return false;
-  const allowed = new Set(["schemaVersion", "answers", "results", "flags", "notes", "startedAt", "savedAt"]);
+  const allowed = new Set(["schemaVersion", "answers", "results", "flags", "notes", "attempts", "recent", "mockResults", "plan", "startedAt", "savedAt"]);
   return Object.keys(state).every((key) => allowed.has(key));
 }
 
@@ -70,11 +70,23 @@ async function handler(request, response) {
   if (request.method === "GET" && url.pathname === "/api/content") {
     return sendJson(response, 200, publicContent());
   }
+  if (request.method === "GET" && url.pathname === "/api/questions") {
+    return sendJson(response, 200, queryQuestions(Object.fromEntries(url.searchParams)));
+  }
   if (request.method === "POST" && url.pathname === "/api/grade") {
     try {
       const body = await readJson(request, 100_000);
-      const question = content.questions.find((item) => item.id === body.questionId);
+      const question = questionsById.get(body.questionId);
       return question ? sendJson(response, 200, gradeQuestion(question, body.answer)) : sendJson(response, 404, { error: "question_not_found" });
+    } catch (error) {
+      return sendJson(response, error.message === "request_too_large" ? 413 : 400, { error: error.message });
+    }
+  }
+  if (request.method === "POST" && url.pathname === "/api/mock/grade") {
+    try {
+      const body = await readJson(request, 200_000);
+      const result = gradeOfficialExam(officialExam, body.subjectId, body.answers);
+      return result ? sendJson(response, 200, result) : sendJson(response, 404, { error: "subject_not_found" });
     } catch (error) {
       return sendJson(response, error.message === "request_too_large" ? 413 : 400, { error: error.message });
     }

@@ -3,24 +3,37 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="カスタマイズ可能な試験演習アプリ" />
-    <title>試験演習</title>
+    <meta name="description" content="中小企業診断士一次試験4科目を80点まで段階的に仕上げる個人学習アプリ R4" />
+    <meta name="theme-color" content="#152d32" />
+    <title>R4</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
     <div class="app-shell">
       <aside class="sidebar">
-        <button class="brand" data-view="home"><span class="brand-mark">✓</span><span><strong id="brandName">試験演習</strong><small id="brandShort">EXAM KIT</small></span></button>
-        <nav>
-          <button class="nav-item is-active" data-view="home"><span>⌂</span>ホーム</button>
-          <button class="nav-item" data-view="practice"><span>✎</span>問題演習</button>
-          <button class="nav-item" data-view="progress"><span>▥</span>学習記録</button>
+        <button class="brand" data-view="home" aria-label="R4 ホーム">
+          <span class="brand-mark">R4</span>
+          <span><strong id="brandName">R4</strong><small id="brandShort">ROAD TO 80</small></span>
+        </button>
+        <nav aria-label="メインメニュー">
+          <button class="nav-item is-active" data-view="home"><span>01</span>ホーム</button>
+          <button class="nav-item" data-view="practice"><span>02</span>問題演習</button>
+          <button class="nav-item" data-view="plan"><span>03</span>学習計画</button>
+          <button class="nav-item" data-view="mock"><span>04</span>公式模試</button>
+          <button class="nav-item" data-view="progress"><span>05</span>学習記録</button>
         </nav>
-        <div class="sidebar-note"><span class="eyebrow">EXAM TEMPLATE</span><strong>内容差し替え型キット</strong><p>試験設定と問題は content/exam.json にまとめています。</p></div>
+        <div class="sidebar-note">
+          <span class="eyebrow">TARGET</span>
+          <strong>4科目 × 80点</strong>
+          <p>60 → 70 → 80点の順に、論点を段階開放。誤答と見直しを毎回の起点にします。</p>
+        </div>
       </aside>
       <main>
-        <header class="topbar"><div><span class="eyebrow" id="todayLabel"></span><h1 id="pageTitle">読み込み中</h1></div><span class="save-status"><i></i><span id="saveStatus">保存先を確認中</span></span></header>
-        <div id="app"><div class="panel">試験データを読み込んでいます…</div></div>
+        <header class="topbar">
+          <div><span class="eyebrow" id="todayLabel"></span><h1 id="pageTitle">読み込み中</h1></div>
+          <span class="save-status"><i></i><span id="saveStatus">保存先を確認中</span></span>
+        </header>
+        <div id="app"><div class="panel loading">試験データを読み込んでいます…</div></div>
       </main>
     </div>
     <script src="/app.js" defer></script>

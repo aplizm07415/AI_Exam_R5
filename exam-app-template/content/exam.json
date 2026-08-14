@@ -1,83 +1,115 @@
 {
   "exam": {
-    "id": "sample-exam",
-    "name": "サンプル資格試験",
-    "shortName": "SAMPLE",
-    "description": "試験名、科目、問題を content/exam.json で差し替えて利用できます。",
-    "passingRate": 70,
-    "timeLimitMinutes": 60,
+    "id": "r4",
+    "name": "R4",
+    "fullName": "中小企業診断士 一次試験 4科目80点プログラム",
+    "shortName": "R4 / ROAD TO 80",
+    "description": "財務・会計、運営管理、経営法務、中小企業経営・中小企業政策を、60点・70点・80点の順に積み上げる個人学習環境です。",
+    "targetScore": 80,
+    "targetYear": 2027,
+    "targetExamDate": "2027-08-07",
+    "targetExamDateIsTentative": true,
     "theme": {
-      "primary": "#4d6fa9",
-      "accent": "#cf8c68",
-      "ink": "#1e304a"
+      "primary": "#315f5b",
+      "accent": "#d08a4b",
+      "ink": "#152d32"
     }
   },
   "subjects": [
-    { "id": "basics", "label": "基礎科目", "description": "基本事項を確認する科目" },
-    { "id": "practice", "label": "実践科目", "description": "応用力を確認する科目" }
+    {
+      "id": "finance",
+      "label": "財務・会計",
+      "shortLabel": "財務",
+      "description": "会計・原価計算・管理会計・ファイナンス",
+      "sourceFile": "S-財務_会計-493.json",
+      "taxonomyFile": "taxonomy_財務_会計.json",
+      "studyPlanFile": "study_plan_財務_会計.md",
+      "officialCode": "B",
+      "examMinutes": 60,
+      "weeklyWeight": 20
+    },
+    {
+      "id": "operations",
+      "label": "運営管理",
+      "shortLabel": "運営",
+      "description": "生産管理・店舗販売管理・物流",
+      "sourceFile": "運営管理-564.json",
+      "taxonomyFile": "taxonomy_運営管理.json",
+      "studyPlanFile": "study_plan_運営管理.md",
+      "officialCode": "D",
+      "examMinutes": 90,
+      "weeklyWeight": 30
+    },
+    {
+      "id": "law",
+      "label": "経営法務",
+      "shortLabel": "法務",
+      "description": "会社法・知的財産・民法・関連法規",
+      "sourceFile": "経営法務-500.json",
+      "taxonomyFile": "taxonomy_経営法務.json",
+      "studyPlanFile": "study_plan_経営法務.md",
+      "officialCode": "E",
+      "examMinutes": 60,
+      "weeklyWeight": 15
+    },
+    {
+      "id": "sme",
+      "label": "中小企業経営・中小企業政策",
+      "shortLabel": "中小",
+      "description": "白書・統計・中小企業施策",
+      "sourceFile": "中小企業経営_中小企業政策-917.json",
+      "taxonomyFile": "taxonomy_中小企業経営_中小企業政策.json",
+      "studyPlanFile": "study_plan_中小企業経営_中小企業政策.md",
+      "officialCode": "G",
+      "examMinutes": 90,
+      "weeklyWeight": 35
+    }
   ],
-  "questions": [
+  "learningPhases": [
     {
-      "id": "basics-001",
-      "subject": "basics",
-      "topic": "用語",
-      "difficulty": "基礎",
-      "type": "single_choice",
-      "title": "選択式のサンプル",
-      "prompt": "正しい選択肢を選んでください。",
-      "options": [
-        { "id": "a", "label": "選択肢A" },
-        { "id": "b", "label": "選択肢B（正解）" },
-        { "id": "c", "label": "選択肢C" }
-      ],
-      "answer": "b",
-      "points": 2,
-      "explanation": "この欄に解説を記載します。"
+      "id": "foundation",
+      "label": "60点ラインを固める",
+      "targetScore": 60,
+      "start": "2026-08-17",
+      "end": "2026-11-15",
+      "goal": "弱点原因を分類し、core論点と中小企業の基幹指標で正答率75%以上",
+      "sessionSize": 15
     },
     {
-      "id": "basics-002",
-      "subject": "basics",
-      "topic": "計算",
-      "difficulty": "標準",
-      "type": "numeric",
-      "title": "数値入力のサンプル",
-      "prompt": "120の25%を入力してください。",
-      "suffix": "",
-      "answer": 30,
-      "tolerance": 0,
-      "points": 3,
-      "explanation": "120 × 0.25 = 30です。"
+      "id": "standard",
+      "label": "70点を安定させる",
+      "targetScore": 70,
+      "start": "2026-11-16",
+      "end": "2027-02-28",
+      "goal": "図表・時間制約を含むcore・standard論点で正答率80%以上",
+      "sessionSize": 20
     },
     {
-      "id": "practice-001",
-      "subject": "practice",
-      "topic": "記述",
-      "difficulty": "標準",
-      "type": "text",
-      "title": "短文入力のサンプル",
-      "prompt": "このテンプレートが保存に使うデータベースを答えてください。",
-      "placeholder": "回答を入力",
-      "answer": "Neon Postgres",
-      "aliases": ["Neon", "Postgres", "PostgreSQL"],
-      "points": 2,
-      "explanation": "DATABASE_URLを設定するとNeon Postgresへ保存します。"
+      "id": "advanced",
+      "label": "80点領域へ広げる",
+      "targetScore": 80,
+      "start": "2027-03-01",
+      "end": "2027-05-31",
+      "goal": "出典付き更新問題を含め、財務・法務70点、運営・政策65点以上",
+      "sessionSize": 25
     },
     {
-      "id": "practice-002",
-      "subject": "practice",
-      "topic": "複数選択",
-      "difficulty": "応用",
-      "type": "multiple_choice",
-      "title": "複数選択のサンプル",
-      "prompt": "テンプレートで編集する内容をすべて選んでください。",
-      "options": [
-        { "id": "name", "label": "試験名" },
-        { "id": "question", "label": "問題" },
-        { "id": "node", "label": "Node.js本体" }
-      ],
-      "answer": ["name", "question"],
-      "points": 3,
-      "explanation": "通常はcontent/exam.jsonだけを編集します。"
+      "id": "simulation",
+      "label": "本試験形式で仕上げる",
+      "targetScore": 80,
+      "start": "2027-06-01",
+      "end": "2027-07-18",
+      "goal": "令和3〜8年度と初見相当の図表・更新問題で全科目80点を目指す",
+      "sessionSize": 25
+    },
+    {
+      "id": "final",
+      "label": "直前総点検",
+      "targetScore": 80,
+      "start": "2027-07-19",
+      "end": "2027-08-06",
+      "goal": "初見相当80点を2回確認し、誤答・指標・制度改正だけに集中する",
+      "sessionSize": 15
     }
   ]
 }
