@@ -50,8 +50,31 @@ test("公開カタログは正答・解説・Azureファイル名を配信しな
 test("60・70・80点コースで問題範囲を段階開放する", () => {
   const sixty = queryQuestions({ course: 60, limit: 100, seed: "same" });
   const eighty = queryQuestions({ course: 80, limit: 100, seed: "same" });
+  const seventyTier = queryQuestions({ course: 70, tier: "exact", limit: 100, seed: "same" });
   assert.ok(sixty.questions.every((question) => question.minimumCourse <= 60));
   assert.ok(eighty.questions.some((question) => question.minimumCourse > 60));
+  assert.ok(seventyTier.questions.every((question) => question.minimumCourse === 70));
+});
+
+test("ダッシュボード用のフェーズ・配分・財務ルートを公開する", () => {
+  const result = publicContent();
+  assert.equal(result.learningPhases.length, 5);
+  assert.equal(result.baselineScores.finance, 59);
+  assert.equal(result.financeTrack.qualification, "日商簿記2級");
+  assert.ok(result.financeTrack.milestones.length >= 5);
+  assert.ok(result.courseCounts[60].total < result.courseCounts[70].total);
+  assert.ok(result.courseCounts[70].total < result.courseCounts[80].total);
+  assert.equal(result.courseCounts[80].total, 2463);
+  assert.equal([60, 70, 80].reduce((sum, score) => sum + result.courseCounts[score].addedAtCourse, 0), 2463);
+  for (const score of [60, 70, 80]) {
+    assert.equal(Object.values(result.courseCounts[score].addedSubjects).reduce((sum, value) => sum + value, 0), result.courseCounts[score].addedAtCourse);
+  }
+  assert.ok(result.studyPlans.subjects.finance.courses.some((course) => course.groups.some((group) => group.items.some((item) => "topicId" in item))));
+  for (const phase of result.learningPhases) {
+    assert.equal(Object.values(phase.subjectWeights).reduce((sum, value) => sum + value, 0), 100);
+    assert.equal(Object.values(phase.financeSplit).reduce((sum, value) => sum + value, 0), 100);
+    assert.ok(phase.milestones.length >= 4);
+  }
 });
 
 test("通常問題と令和8年度公式模試をサーバー採点する", () => {
@@ -91,6 +114,6 @@ test("APIがカタログ・問題・採点・公式模試を提供する", async
 });
 
 test("保存状態はR4の許可フィールドだけ受け付ける", () => {
-  assert.equal(validState({ schemaVersion: 2, answers: {}, results: {}, attempts: {}, mockResults: {}, plan: {} }), true);
+  assert.equal(validState({ schemaVersion: 4, answers: {}, results: {}, attempts: {}, mockResults: {}, activity: {}, sessions: [], plan: {} }), true);
   assert.equal(validState({ answers: {}, admin: true }), false);
 });

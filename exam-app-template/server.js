@@ -46,7 +46,7 @@ function readJson(request, maximumBytes = 1_000_000) {
 
 function validState(state) {
   if (!state || typeof state !== "object" || Array.isArray(state)) return false;
-  const allowed = new Set(["schemaVersion", "answers", "results", "flags", "notes", "attempts", "recent", "mockResults", "plan", "startedAt", "savedAt"]);
+  const allowed = new Set(["schemaVersion", "answers", "results", "flags", "notes", "attempts", "recent", "mockResults", "activity", "sessions", "plan", "startedAt", "savedAt"]);
   return Object.keys(state).every((key) => allowed.has(key));
 }
 

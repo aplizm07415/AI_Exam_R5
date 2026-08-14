@@ -188,9 +188,19 @@ for (const subject of config.subjects) {
     };
   }
 
+  const structuredPlan = parseStudyPlan(planMarkdown);
+  for (const course of structuredPlan.courses) {
+    for (const group of course.groups) {
+      for (const item of group.items) {
+        const match = classify(item.text, group.title);
+        item.topicId = match?.topic.topic_id || null;
+        item.topic = match?.topic.display_name || null;
+      }
+    }
+  }
   studyPlans.subjects[subject.id] = {
     subject: subject.label,
-    ...parseStudyPlan(planMarkdown)
+    ...structuredPlan
   };
 
   const pdfText = path.join(pdfTextRoot, `${subject.officialCode}1JC2026.txt`);

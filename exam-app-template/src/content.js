@@ -111,12 +111,13 @@ function queryQuestions(params = {}) {
     matches = requestedIds.map((id) => questionsById.get(id)).filter(Boolean);
   } else {
     const targetScore = [60, 70, 80].includes(Number(params.course)) ? Number(params.course) : 80;
+    const exactTier = params.tier === "exact";
     matches = content.questions.filter((question) => (
       (!params.subject || question.subject === params.subject)
       && (!params.topic || question.topicId === params.topic)
       && (!params.difficulty || question.difficulty === params.difficulty)
       && (!params.priority || question.priority === params.priority)
-      && question.minimumCourse <= targetScore
+      && (exactTier ? question.minimumCourse === targetScore : question.minimumCourse <= targetScore)
     ));
     matches = shuffled(matches, params.seed);
   }
@@ -143,6 +144,19 @@ function topicSummaries() {
   return [...counts.values()].sort((a, b) => a.subject.localeCompare(b.subject) || b.count - a.count || a.label.localeCompare(b.label, "ja"));
 }
 
+function courseSummaries() {
+  return Object.fromEntries([60, 70, 80].map((score) => {
+    const eligible = content.questions.filter((question) => question.minimumCourse <= score);
+    const exact = content.questions.filter((question) => question.minimumCourse === score);
+    return [score, {
+      total: eligible.length,
+      addedAtCourse: exact.length,
+      subjects: Object.fromEntries(content.subjects.map((subject) => [subject.id, eligible.filter((question) => question.subject === subject.id).length])),
+      addedSubjects: Object.fromEntries(content.subjects.map((subject) => [subject.id, exact.filter((question) => question.subject === subject.id).length]))
+    }];
+  }));
+}
+
 function publicOfficialExam() {
   return {
     ...officialExam,
@@ -157,6 +171,8 @@ function publicOfficialExam() {
 function publicContent() {
   return {
     exam: content.exam,
+    baselineScores: content.baselineScores,
+    financeTrack: content.financeTrack,
     subjects: content.subjects.map((subject) => ({
       ...subject,
       sourceFile: undefined,
@@ -165,6 +181,7 @@ function publicContent() {
       questionCount: content.questions.filter((question) => question.subject === subject.id).length
     })),
     learningPhases: content.learningPhases,
+    courseCounts: courseSummaries(),
     topics: topicSummaries(),
     studyPlans,
     officialExam: publicOfficialExam(),

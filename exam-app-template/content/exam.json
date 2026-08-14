@@ -15,6 +15,25 @@
       "ink": "#152d32"
     }
   },
+  "baselineScores": {
+    "finance": 59,
+    "operations": 44,
+    "law": 61,
+    "sme": 45
+  },
+  "financeTrack": {
+    "title": "簿記2級 → 一次財務 → 事例Ⅳ",
+    "qualification": "日商簿記2級",
+    "targetDate": "2027-02-28",
+    "description": "簿記2級を独立科目にせず、財務・会計の土台として年度内に完了し、一次財務と事例Ⅳへ接続します。",
+    "milestones": [
+      { "id": "scope", "date": "2026-11-15", "label": "商業簿記・工業簿記を一巡" },
+      { "id": "mock", "date": "2027-01-31", "label": "簿記2級の総合問題・模試へ移行" },
+      { "id": "first-exam", "date": "2027-02-15", "label": "簿記2級の初回受験" },
+      { "id": "pass", "date": "2027-02-28", "label": "簿記2級合格・学習を一次財務へ転換" },
+      { "id": "case4", "date": "2027-05-31", "label": "事例Ⅳ80分演習を週1回で定着" }
+    ]
+  },
   "subjects": [
     {
       "id": "finance",
@@ -73,7 +92,15 @@
       "start": "2026-08-17",
       "end": "2026-11-15",
       "goal": "弱点原因を分類し、core論点と中小企業の基幹指標で正答率75%以上",
-      "sessionSize": 15
+      "sessionSize": 15,
+      "subjectWeights": { "finance": 35, "operations": 20, "law": 15, "sme": 30 },
+      "financeSplit": { "bookkeeping": 70, "primary": 20, "case4": 10 },
+      "milestones": [
+        "簿記2級の商業簿記・工業簿記を一巡する",
+        "中小企業経営・政策の基幹指標25〜30個を選ぶ",
+        "運営管理の未実施年度を診断する",
+        "core論点で正答率75%以上を2セッション続ける"
+      ]
     },
     {
       "id": "standard",
@@ -82,7 +109,15 @@
       "start": "2026-11-16",
       "end": "2027-02-28",
       "goal": "図表・時間制約を含むcore・standard論点で正答率80%以上",
-      "sessionSize": 20
+      "sessionSize": 20,
+      "subjectWeights": { "finance": 30, "operations": 25, "law": 15, "sme": 30 },
+      "financeSplit": { "bookkeeping": 60, "primary": 25, "case4": 15 },
+      "milestones": [
+        "簿記2級の総合問題で合格水準を安定させる",
+        "2027年1〜2月に簿記2級を受験する",
+        "事例Ⅳを週1回30〜45分継続する",
+        "図表・時間制約付き標準問題で正答率80%以上にする"
+      ]
     },
     {
       "id": "advanced",
@@ -91,7 +126,15 @@
       "start": "2027-03-01",
       "end": "2027-05-31",
       "goal": "出典付き更新問題を含め、財務・法務70点、運営・政策65点以上",
-      "sessionSize": 25
+      "sessionSize": 25,
+      "subjectWeights": { "finance": 25, "operations": 25, "law": 15, "sme": 35 },
+      "financeSplit": { "bookkeeping": 0, "primary": 60, "case4": 40 },
+      "milestones": [
+        "簿記2級を合格済みにする（未達なら3月を再受験バッファにする）",
+        "事例Ⅳ80分演習を週1回実施する",
+        "財務・法務の初見相当セットで70点以上にする",
+        "運営・政策の初見相当セットで65点以上にする"
+      ]
     },
     {
       "id": "simulation",
@@ -100,7 +143,15 @@
       "start": "2027-06-01",
       "end": "2027-07-18",
       "goal": "令和3〜8年度と初見相当の図表・更新問題で全科目80点を目指す",
-      "sessionSize": 25
+      "sessionSize": 25,
+      "subjectWeights": { "finance": 20, "operations": 30, "law": 15, "sme": 35 },
+      "financeSplit": { "bookkeeping": 0, "primary": 85, "case4": 15 },
+      "milestones": [
+        "運営・政策は令和3〜8年度を本試験時間で完走する",
+        "財務・法務は条件変更類題で暗記得点を除く",
+        "毎週1回、図表を含む初見相当セットを実施する",
+        "80点未達の原因を知識・計算・図表・時間・更新に分類する"
+      ]
     },
     {
       "id": "final",
@@ -109,7 +160,15 @@
       "start": "2027-07-19",
       "end": "2027-08-06",
       "goal": "初見相当80点を2回確認し、誤答・指標・制度改正だけに集中する",
-      "sessionSize": 15
+      "sessionSize": 15,
+      "subjectWeights": { "finance": 20, "operations": 30, "law": 15, "sme": 35 },
+      "financeSplit": { "bookkeeping": 0, "primary": 90, "case4": 10 },
+      "milestones": [
+        "初見相当セットで各科目80点以上を2回確認する",
+        "誤答・時間超過・図表読解ミスだけを再演習する",
+        "最新施策・統計定義・法令基準日を最終確認する",
+        "最終2〜3日は新規問題を止める"
+      ]
     }
   ]
 }
