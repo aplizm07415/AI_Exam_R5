@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="カスタマイズ可能な試験演習アプリ" />
+    <title>試験演習</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <button class="brand" data-view="home"><span class="brand-mark">✓</span><span><strong id="brandName">試験演習</strong><small id="brandShort">EXAM KIT</small></span></button>
+        <nav>
+          <button class="nav-item is-active" data-view="home"><span>⌂</span>ホーム</button>
+          <button class="nav-item" data-view="practice"><span>✎</span>問題演習</button>
+          <button class="nav-item" data-view="progress"><span>▥</span>学習記録</button>
+        </nav>
+        <div class="sidebar-note"><span class="eyebrow">EXAM TEMPLATE</span><strong>内容差し替え型キット</strong><p>試験設定と問題は content/exam.json にまとめています。</p></div>
+      </aside>
+      <main>
+        <header class="topbar"><div><span class="eyebrow" id="todayLabel"></span><h1 id="pageTitle">読み込み中</h1></div><span class="save-status"><i></i><span id="saveStatus">保存先を確認中</span></span></header>
+        <div id="app"><div class="panel">試験データを読み込んでいます…</div></div>
+      </main>
+    </div>
+    <script src="/app.js" defer></script>
+  </body>
+</html>

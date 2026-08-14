@@ -1,0 +1,17 @@
+{
+  "name": "exam-practice-template",
+  "version": "1.0.0",
+  "private": true,
+  "description": "試験内容を差し替えて使える演習アプリテンプレート",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.1.0"
+  }
+}

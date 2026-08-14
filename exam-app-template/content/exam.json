@@ -1,0 +1,83 @@
+{
+  "exam": {
+    "id": "sample-exam",
+    "name": "サンプル資格試験",
+    "shortName": "SAMPLE",
+    "description": "試験名、科目、問題を content/exam.json で差し替えて利用できます。",
+    "passingRate": 70,
+    "timeLimitMinutes": 60,
+    "theme": {
+      "primary": "#4d6fa9",
+      "accent": "#cf8c68",
+      "ink": "#1e304a"
+    }
+  },
+  "subjects": [
+    { "id": "basics", "label": "基礎科目", "description": "基本事項を確認する科目" },
+    { "id": "practice", "label": "実践科目", "description": "応用力を確認する科目" }
+  ],
+  "questions": [
+    {
+      "id": "basics-001",
+      "subject": "basics",
+      "topic": "用語",
+      "difficulty": "基礎",
+      "type": "single_choice",
+      "title": "選択式のサンプル",
+      "prompt": "正しい選択肢を選んでください。",
+      "options": [
+        { "id": "a", "label": "選択肢A" },
+        { "id": "b", "label": "選択肢B（正解）" },
+        { "id": "c", "label": "選択肢C" }
+      ],
+      "answer": "b",
+      "points": 2,
+      "explanation": "この欄に解説を記載します。"
+    },
+    {
+      "id": "basics-002",
+      "subject": "basics",
+      "topic": "計算",
+      "difficulty": "標準",
+      "type": "numeric",
+      "title": "数値入力のサンプル",
+      "prompt": "120の25%を入力してください。",
+      "suffix": "",
+      "answer": 30,
+      "tolerance": 0,
+      "points": 3,
+      "explanation": "120 × 0.25 = 30です。"
+    },
+    {
+      "id": "practice-001",
+      "subject": "practice",
+      "topic": "記述",
+      "difficulty": "標準",
+      "type": "text",
+      "title": "短文入力のサンプル",
+      "prompt": "このテンプレートが保存に使うデータベースを答えてください。",
+      "placeholder": "回答を入力",
+      "answer": "Neon Postgres",
+      "aliases": ["Neon", "Postgres", "PostgreSQL"],
+      "points": 2,
+      "explanation": "DATABASE_URLを設定するとNeon Postgresへ保存します。"
+    },
+    {
+      "id": "practice-002",
+      "subject": "practice",
+      "topic": "複数選択",
+      "difficulty": "応用",
+      "type": "multiple_choice",
+      "title": "複数選択のサンプル",
+      "prompt": "テンプレートで編集する内容をすべて選んでください。",
+      "options": [
+        { "id": "name", "label": "試験名" },
+        { "id": "question", "label": "問題" },
+        { "id": "node", "label": "Node.js本体" }
+      ],
+      "answer": ["name", "question"],
+      "points": 3,
+      "explanation": "通常はcontent/exam.jsonだけを編集します。"
+    }
+  ]
+}
