@@ -7,6 +7,7 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "build:data": "node tools/build-r4-content.js",
+    "extract:explanations": "python3 tools/extract-serialized-explanations.py",
     "audit:data": "node tools/audit-questions.js --markdown",
     "test": "node --test"
   },

@@ -25,22 +25,22 @@ function dispatch(url, options = {}) {
   });
 }
 
-test("Azure由来の4科目2,463問を一意なIDで読み込む", () => {
+test("Azure由来の重複整理済み問題と公式補充問題を一意なIDで読み込む", () => {
   assert.equal(content.exam.id, "r4");
   assert.equal(content.subjects.length, 4);
-  assert.equal(content.questions.length, 2463);
-  assert.equal(new Set(content.questions.map((question) => question.id)).size, 2463);
+  assert.equal(content.questions.length, 2474);
+  assert.equal(new Set(content.questions.map((question) => question.id)).size, 2474);
   assert.deepEqual(Object.fromEntries(content.subjects.map((subject) => [subject.id, content.questions.filter((question) => question.subject === subject.id).length])), {
     finance: 493,
-    operations: 564,
+    operations: 563,
     law: 489,
-    sme: 917
+    sme: 929
   });
 });
 
 test("公開カタログは正答・解説・Azureファイル名を配信しない", () => {
   const result = publicContent();
-  assert.equal(result.totals.questions, 2463);
+  assert.equal(result.totals.questions, 2474);
   assert.equal(result.subjects[0].sourceFile, undefined);
   assert.equal(result.officialExam.subjects.finance.answers, undefined);
   const selected = queryQuestions({ subject: "finance", limit: 3, seed: "test" });
@@ -66,8 +66,8 @@ test("ダッシュボード用のフェーズ・配分・財務ルートを公�
   assert.ok(result.financeTrack.milestones.length >= 5);
   assert.ok(result.courseCounts[60].total < result.courseCounts[70].total);
   assert.ok(result.courseCounts[70].total < result.courseCounts[80].total);
-  assert.equal(result.courseCounts[80].total, 2463);
-  assert.equal([60, 70, 80].reduce((sum, score) => sum + result.courseCounts[score].addedAtCourse, 0), 2463);
+  assert.equal(result.courseCounts[80].total, 2474);
+  assert.equal([60, 70, 80].reduce((sum, score) => sum + result.courseCounts[score].addedAtCourse, 0), 2474);
   for (const score of [60, 70, 80]) {
     assert.equal(Object.values(result.courseCounts[score].addedSubjects).reduce((sum, value) => sum + value, 0), result.courseCounts[score].addedAtCourse);
   }
@@ -134,6 +134,7 @@ test("Phase 1は8月24日開始で、計算問題だけ電卓対象フラグを�
 
 test("選択肢の負号と小書きカナを正規化し、正答不能を防ぐ", () => {
   assert.equal(normalizeChoiceText({ label: "ア", text: "ア. -220" }), "-220");
+  assert.equal(normalizeChoiceText({ label: "イ", text: "インボイス枠" }), "インボイス枠");
   assert.equal(normalizeChoiceId("ィ"), "イ");
   const variance = content.questions.find((question) => question.id === "finance:S-5057");
   assert.deepEqual(variance.options.map((option) => option.label), ["-220", "-200", "200", "220"]);
@@ -151,8 +152,52 @@ test("難易度生成は解説の長さを使わず、知識と判断工程で�
 
 test("全問題の構造監査で正答不能・重複選択肢・文字化けを残さない", () => {
   const report = auditQuestions(content.questions);
-  assert.equal(report.total, 2463);
+  assert.equal(report.total, 2474);
   assert.equal(report.missingCorrectOptions.length, 0);
   assert.equal(report.duplicateOptionTexts.length, 0);
   assert.equal(report.replacementCharacters.length, 0);
+  assert.equal(report.emptyExplanations.length, 0);
+  assert.equal(report.serializedExplanationCandidates.length, 0);
+  assert.equal(report.missingThoughtFlow.length, 0);
+  assert.equal(report.directAnswerSummaries.length, 0);
+  assert.equal(report.answerConclusionRecaps.length, 0);
+  assert.equal(report.explicitOptionJudgments.length, 0);
+  assert.equal(report.explanationSectionLabels.length, 0);
+  assert.equal(report.standaloneCautions.length, 0);
+  assert.equal(report.unresolvedContentWarnings.length, 0);
+  assert.equal(report.exactDuplicateQuestions.length, 0);
+  assert.equal(report.samePromptGroups.length, 36);
+});
+
+test("完全重複を除外し、2026年版白書の出典付き補充問題を収録する", () => {
+  assert.equal(content.questions.some((question) => question.id === "operations:S-4540"), false);
+  const supplements = content.questions.filter((question) => question.source === "official-2026-whitepaper");
+  assert.equal(supplements.length, 12);
+  assert.ok(supplements.every((question) => question.sourceReference?.url && question.sourceReference?.checkedAt === "2026-08-16"));
+  assert.deepEqual([...new Set(supplements.map((question) => question.minimumCourse))].sort(), [60, 70, 80]);
+});
+
+test("判明した問題・正答不整合を計算結果と現行制度へ合わせる", () => {
+  const expected = {
+    "finance:S-5150": ["エ", "2.0"],
+    "finance:S-5199": ["ア", "売上高売上原価率:A 売上高営業利益率:A 総資本回転率:A"],
+    "operations:S-4831": ["ウ", "505"],
+    "operations:S-4993": ["ア", "10"],
+    "sme:Q932": ["ア", "A:創造的 B:個人"]
+  };
+  for (const [id, [answer, label]] of Object.entries(expected)) {
+    const question = content.questions.find((item) => item.id === id);
+    assert.equal(question.answer, answer);
+    assert.equal(question.options.find((option) => option.id === answer).label, label);
+    assert.equal(gradeQuestion(question, answer).correct, true);
+  }
+  assert.equal(content.questions.find((question) => question.id === "finance:S-5209").calculationRequired, true);
+  assert.equal(content.questions.find((question) => question.id === "operations:S-4827").calculationRequired, true);
+  const maruke = content.questions.find((question) => question.id === "sme:S-0352");
+  assert.match(maruke.options.find((option) => option.id === "A").label, /賃上げ貸付利率特例制度/);
+  assert.equal(maruke.answer, "D");
+  assert.equal(content.questions.find((question) => question.id === "sme:S-0127").options.find((option) => option.id === "イ").label, "インボイス枠");
+  assert.match(content.questions.find((question) => question.id === "sme:S-0444").options.find((option) => option.id === "A").label, /グローバル枠/);
+  assert.match(content.questions.find((question) => question.id === "sme:S-0543").options.find((option) => option.id === "ア").label, /16%/);
+  assert.match(content.questions.find((question) => question.id === "sme:S-0738").options.find((option) => option.id === "イ").label, /3\.5%/);
 });

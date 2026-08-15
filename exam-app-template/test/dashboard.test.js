@@ -75,6 +75,12 @@ test("ダッシュボード・全体確認・学習記録・実施履歴を描�
   assert.match(elements["#app"].innerHTML, /calculator is-minimized/);
   assert.doesNotMatch(elements["#app"].innerHTML, /type="radio"/);
 
+  vm.runInContext(`state.answers["finance:ui-test"] = "イ"; feedbackCache.set("finance:ui-test", { correct: false, correctAnswer: "ア", explanation: "まず、条件を確認します。\\n\\n次に、式へ代入します。\\n\\n最後に、結果を確認します。出典 https://example.com/source" }); renderQuestion()`, context);
+  assert.match(elements["#app"].innerHTML, /choice[^"']*is-correct/);
+  assert.match(elements["#app"].innerHTML, /choice[^"']*is-incorrect/);
+  assert.doesNotMatch(elements["#app"].innerHTML, /正答：/);
+  assert.match(elements["#app"].innerHTML, /<a href="https:\/\/example\.com\/source" target="_blank" rel="noopener noreferrer">/);
+
   const gates = vm.runInContext(`(() => {
     const originalSessions = state.sessions;
     const originalResults = state.results;

@@ -4,7 +4,9 @@
 
 ## 収録内容
 
-- Azure `example-resource` の4科目問題データ: 2,463問
+- Azure `example-resource` 由来の4科目問題データ: 2,463問（完全重複1問を除外）
+- 2026年版中小企業白書の公的出典付き補充問題: 12問
+- アプリ収録数: 2,474問
 - GitHub側のtaxonomy: 388論点
 - 60点・70点・80点別 study plan
 - 令和8年度（2026年度）公式問題PDFと公式正解・配点
@@ -19,8 +21,10 @@
 - 全フェーズの日程・項目達成・実施量・現在地をまとめる全体確認ページ
 - Phase 1開始前（2026年8月17〜23日）の事前学習を実績へ加算し、予定線との差を数値とグラフで表示
 - 正解済み問題のアーカイブと復元、選択肢の除外表示、計算問題用の初期最小化電卓
+- 全解説を「まず→次に→最後に」の思考順序へ統一し、正答再掲・難易度・注意点・区切り見出しを非表示
+- 現行制度・計算不整合など60問を修正し、公的出典URLを解説から直接開ける表示
 
-通常演習の正答と解説はブラウザへ一括配信せず、1問ごとにサーバーで採点します。問題一覧も必要なセッション分だけ取得するため、2,463問を一度にダウンロードしません。
+通常演習の正答と解説はブラウザへ一括配信せず、1問ごとにサーバーで採点します。問題一覧も必要なセッション分だけ取得するため、2,474問を一度にダウンロードしません。
 
 ## ローカル起動
 
@@ -43,7 +47,10 @@ content/
 ├── source/                   Azureからコピーした原本4ファイル
 ├── analysis/                 taxonomy、study plan、構造化済み計画
 ├── official/                 令和8年度の公式模試・正解・論点分析
-└── question-index.json       2,463問とtaxonomyの対応、難易度、コース
+├── supplemental/             公的資料に基づく補充問題
+├── corrections.json          原本を保持したまま適用する訂正
+├── exclusions.json           重複等の除外記録
+└── question-index.json       原本2,463問とtaxonomyの対応、難易度、コース
 ```
 
 `tools/build-r4-content.js` は、ルートのtaxonomy・study planとAzure原本から索引を再生成します。難易度は解説の長さではなく、判断数、条件分岐、計算工程、補完知識から判定します。`tools/audit-questions.js` は正答ID、選択肢重複、空解説、文字化け、更新対象などを全件検査します。`tools/extract-r8-answers.py` は公式正解PDFからマークシート定義を再生成する保守用ツールです。
@@ -55,7 +62,7 @@ content/
 3. Framework Presetは `Other`、Build Commandは空欄のままにします。
 4. Neonを接続し、Vercelの環境変数へ `DATABASE_URL` を設定します。
 5. 個人識別子として `APP_USER_ID` を設定します（例: `owner`）。
-6. デプロイ後に `/api/health` を開き、`questionCount: 2463` と `database: configured` を確認します。
+6. デプロイ後に `/api/health` を開き、`questionCount: 2474` と `database: configured` を確認します。
 
 Neonでは初回アクセス時に `exam_states` テーブルを自動作成します。スキーマは `database/001_exam_states.sql` と同じです。
 

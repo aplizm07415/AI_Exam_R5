@@ -4,23 +4,57 @@ const path = require("node:path");
 const rawConfig = require("../content/exam.json");
 const questionIndex = require("../content/question-index.json");
 const studyPlans = require("../content/analysis/study-plans.json");
+const explanationOverrides = require("../content/analysis/explanation-text-overrides.json");
 const officialExam = require("../content/official/r8.json");
 const officialAnalysis = require("../content/official/r8-analysis.json");
+const corrections = require("../content/corrections.json");
+const exclusions = require("../content/exclusions.json");
+const supplementalQuestions = require("../content/supplemental/whitepaper-2026.json");
 const { calculationRequired, normalizeChoiceId, normalizeChoiceText } = require("./question-quality");
+const { formatExplanation } = require("./explanation-format");
 
 const contentRoot = path.resolve(__dirname, "..", "content");
 const SUPPORTED_TYPES = new Set(["single_choice", "multiple_choice", "numeric", "text"]);
+const excludedQuestionIds = new Set(exclusions.map((item) => item.id));
 
 function stripComplexMarker(value) {
   return String(value || "").replace(/^\s*※複雑\s*/, "").trim();
+}
+
+function normalizeExplanationChoiceReferences(value, optionIds) {
+  const ids = new Set(optionIds);
+  const kana = ["ア", "イ", "ウ", "エ", "オ"];
+  const latin = ["A", "B", "C", "D", "E"];
+  const target = kana.every((id, index) => !ids.has(id) || !ids.has(latin[index])) ? (ids.has("ア") ? kana : latin) : null;
+  if (!target) return value;
+  return String(value).replace(/選択肢\s*([ア-オA-E])/gu, (match, id) => {
+    const index = kana.includes(id) ? kana.indexOf(id) : latin.indexOf(id);
+    return index >= 0 && ids.has(target[index]) ? `選択肢${target[index]}` : match;
+  });
 }
 
 function normalizeQuestion(subject, rawQuestion) {
   const id = `${subject.id}:${rawQuestion.id}`;
   const metadata = questionIndex.questions[id];
   if (!metadata) throw new Error(`問題インデックスがありません: ${id}`);
-  const prompt = stripComplexMarker(rawQuestion.question_text);
-  const needsCalculator = calculationRequired(rawQuestion);
+  const correction = corrections[id] || {};
+  const replaceText = (value) => Object.entries(correction.replacements || {}).reduce(
+    (current, [from, to]) => current.replaceAll(from, to),
+    String(value || "")
+  );
+  const prompt = stripComplexMarker(replaceText(correction.questionText || `${rawQuestion.question_text}${correction.appendQuestionText ? `\n${correction.appendQuestionText}` : ""}`));
+  const correctedQuestion = { ...rawQuestion, question_text: prompt };
+  const needsCalculator = calculationRequired(correctedQuestion);
+  const rawExplanation = typeof rawQuestion.explanation === "object" ? rawQuestion.explanation?.text || "" : rawQuestion.explanation || "";
+  const options = rawQuestion.choices.map((choice) => {
+    const choiceId = normalizeChoiceId(choice.label);
+    const correctedText = correction.choiceText?.[choiceId] || replaceText(choice.text);
+    return { id: choiceId, label: normalizeChoiceText({ ...choice, text: correctedText }) };
+  });
+  const explanation = normalizeExplanationChoiceReferences(
+    formatExplanation(correction.explanation || explanationOverrides[id] || rawExplanation),
+    options.map((option) => option.id)
+  );
   return {
     id,
     sourceId: rawQuestion.id,
@@ -36,20 +70,37 @@ function normalizeQuestion(subject, rawQuestion) {
     type: "single_choice",
     title: `${metadata.topic} / ${rawQuestion.id}`,
     prompt,
-    options: rawQuestion.choices.map((choice) => ({ id: normalizeChoiceId(choice.label), label: normalizeChoiceText(choice) })),
-    answer: normalizeChoiceId(rawQuestion.answer),
+    options,
+    answer: normalizeChoiceId(correction.answer || rawQuestion.answer),
     points: 1,
     calculationRequired: needsCalculator,
-    explanation: typeof rawQuestion.explanation === "object" ? rawQuestion.explanation?.text || "" : rawQuestion.explanation || ""
+    explanation
   };
 }
 
+function normalizeSupplementalQuestion(rawQuestion) {
+  const options = rawQuestion.options.map((option) => ({ id: normalizeChoiceId(option.id), label: String(option.label).trim() }));
+  const question = {
+    ...rawQuestion,
+    type: rawQuestion.type || "single_choice",
+    points: Number(rawQuestion.points || 1),
+    options,
+    answer: normalizeChoiceId(rawQuestion.answer),
+    calculationRequired: rawQuestion.calculationRequired ?? calculationRequired({ question_text: rawQuestion.prompt }),
+    explanation: normalizeExplanationChoiceReferences(formatExplanation(rawQuestion.explanation), options.map((option) => option.id))
+  };
+  return question;
+}
+
 function loadQuestions() {
-  return rawConfig.subjects.flatMap((subject) => {
+  const sourceQuestions = rawConfig.subjects.flatMap((subject) => {
     const sourcePath = path.join(contentRoot, "source", subject.sourceFile);
     const questions = JSON.parse(fs.readFileSync(sourcePath, "utf8"));
-    return questions.map((question) => normalizeQuestion(subject, question));
+    return questions
+      .filter((question) => !excludedQuestionIds.has(`${subject.id}:${question.id}`))
+      .map((question) => normalizeQuestion(subject, question));
   });
+  return [...sourceQuestions, ...supplementalQuestions.map(normalizeSupplementalQuestion)];
 }
 
 function validateContent(value) {
@@ -72,6 +123,12 @@ function validateContent(value) {
       const optionIds = question.options.map((option) => String(option.id));
       if (optionIds.length !== new Set(optionIds).size) throw new Error(`問題 ${question.id} の選択肢IDが重複しています`);
       if (!optionIds.includes(String(question.answer))) throw new Error(`問題 ${question.id} の正答 ${question.answer} が選択肢にありません`);
+    }
+    if (String(question.source || "").startsWith("official")) {
+      const reference = question.sourceReference;
+      if (!reference?.title || !/^https:\/\//.test(reference.url || "") || !/^\d{4}-\d{2}-\d{2}$/.test(reference.checkedAt || "")) {
+        throw new Error(`公式補充問題 ${question.id} の出典または確認日が不正です`);
+      }
     }
     questionIds.add(question.id);
   }

@@ -48,6 +48,8 @@ function escapeHtml(value) {
 
 function inlineMarkdown(value) {
   return escapeHtml(value)
+    .replace(/\[([^\]]+)\]\((https:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+    .replace(/(^|[\s（「『【、,:：」』】])(https:\/\/[^\s<>"）)]+)/gu, '$1<a href="$2" target="_blank" rel="noopener noreferrer">$2</a>')
     .replace(/`([^`]+)`/g, "<code>$1</code>")
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
 }
@@ -683,11 +685,16 @@ function subjectLabel(id) {
   return content.subjects.find((subject) => subject.id === id)?.label || id;
 }
 
-function answerMarkup(question) {
+function answerMarkup(question, feedback) {
   const saved = state.answers[question.id];
   const selected = new Set(Array.isArray(saved) ? saved : [saved]);
   const eliminated = eliminatedChoices.get(question.id) || new Set();
-  return `<p class="choice-help">左の縦チェックは「除外」、選択肢の本文は「回答」です。回答として選んだ行は薄い青で表示されます。</p><div class="choices">${question.options.map((option) => `<div class="choice ${selected.has(option.id) ? "is-selected" : ""} ${eliminated.has(option.id) ? "is-eliminated" : ""}" data-select-choice="${escapeHtml(option.id)}"><button type="button" role="checkbox" class="eliminate-toggle" data-eliminate-choice="${escapeHtml(option.id)}" aria-checked="${eliminated.has(option.id)}" aria-label="選択肢${escapeHtml(option.id)}を除外">${eliminated.has(option.id) ? "×" : ""}</button><span class="choice-key">${escapeHtml(option.id)}</span><span class="choice-text">${richText(option.label)}</span></div>`).join("")}</div>`;
+  const correctAnswers = new Set(Array.isArray(feedback?.correctAnswer) ? feedback.correctAnswer.map(String) : [feedback?.correctAnswer].filter((value) => value !== undefined).map(String));
+  return `<p class="choice-help">左の縦チェックは「除外」、選択肢の本文は「回答」です。採点前の回答は薄い青、採点後の正答は緑で表示されます。</p><div class="choices">${question.options.map((option) => {
+    const isSelected = selected.has(option.id);
+    const resultClass = feedback ? (correctAnswers.has(String(option.id)) ? "is-correct" : isSelected ? "is-incorrect" : "") : "";
+    return `<div class="choice ${isSelected ? "is-selected" : ""} ${eliminated.has(option.id) ? "is-eliminated" : ""} ${resultClass}" data-select-choice="${escapeHtml(option.id)}"><button type="button" role="checkbox" class="eliminate-toggle" data-eliminate-choice="${escapeHtml(option.id)}" aria-checked="${eliminated.has(option.id)}" aria-label="選択肢${escapeHtml(option.id)}を除外">${eliminated.has(option.id) ? "×" : ""}</button><span class="choice-key">${escapeHtml(option.id)}</span><span class="choice-text">${richText(option.label)}</span></div>`;
+  }).join("")}</div>`;
 }
 
 function calculatorMarkup() {
@@ -706,10 +713,6 @@ function useCalculator(action, value) {
   renderQuestion();
 }
 
-function displayAnswer(answer) {
-  return Array.isArray(answer) ? answer.join(" / ") : String(answer ?? "");
-}
-
 function renderQuestion() {
   clearInterval(mockTimer);
   currentView = "session";
@@ -720,7 +723,7 @@ function renderQuestion() {
   const feedback = feedbackCache.get(question.id);
   app.innerHTML = `<section class="practice-layout"><div>
     <div class="session-progress"><span>${currentIndex + 1} / ${session.length}</span><i><b style="width:${((currentIndex + 1) / session.length) * 100}%"></b></i><small>${escapeHtml(question.difficulty)}・${question.minimumCourse}点${question.minimumCourse === 60 ? "基礎" : "追加"}層</small></div>
-    <article class="question-card"><div class="question-meta"><span>${escapeHtml(subjectLabel(question.subject))}</span><span>${escapeHtml(question.topic)}</span><span>${escapeHtml(question.sourceId)}</span>${question.calculationRequired ? "<span>計算</span>" : ""}</div><h2>Q${currentIndex + 1}. ${escapeHtml(question.topic)}</h2><div class="prompt">${richText(question.prompt)}</div><div class="answer-area">${answerMarkup(question)}</div>
+    <article class="question-card"><div class="question-meta"><span>${escapeHtml(subjectLabel(question.subject))}</span><span>${escapeHtml(question.topic)}</span><span>${escapeHtml(question.sourceId)}</span>${question.calculationRequired ? "<span>計算</span>" : ""}</div><h2>Q${currentIndex + 1}. ${escapeHtml(question.topic)}</h2><div class="prompt">${richText(question.prompt)}</div><div class="answer-area">${answerMarkup(question, feedback)}</div>
       <div id="feedback">${feedback ? feedbackMarkup(feedback) : stored ? storedFeedbackMarkup(stored) : ""}</div>
       <label class="note-wrap"><span>自分用メモ</span><textarea class="note-input" id="questionNote" placeholder="間違えた理由、覚え方、再確認日など">${escapeHtml(state.notes[question.id] || "")}</textarea></label>
     </article>
@@ -729,7 +732,7 @@ function renderQuestion() {
 }
 
 function feedbackMarkup(result) {
-  return `<div class="feedback ${result.correct ? "correct" : "incorrect"}"><strong>${result.correct ? "正解です" : "不正解です"}</strong>${result.correct ? "" : `<p>正答：${escapeHtml(displayAnswer(result.correctAnswer))}　${escapeHtml(result.correctAnswerText || "")}</p>`}<div class="explanation">${richText(result.explanation || "解説はありません。")}</div></div>`;
+  return `<div class="feedback ${result.correct ? "correct" : "incorrect"}"><strong>${result.correct ? "正解です" : "不正解です"}</strong><div class="explanation">${richText(result.explanation || "解説はありません。")}</div></div>`;
 }
 
 function storedFeedbackMarkup(result) {

@@ -15,7 +15,9 @@ function normalizeChoiceText(choice) {
   if (!sourceLabel || !text) return text;
   const escapedLabel = sourceLabel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   // ハイフンは区切りではなく負号の可能性があるため、ここでは除去しない。
-  return text.replace(new RegExp(`^${escapedLabel}[\\s　:：.．、]*`), "").trim() || text;
+  // 選択肢ラベルの直後に区切りがある場合だけ除去する。「イ」で始まる
+  // 「インボイス」など、本文先頭の文字をラベルと誤認して削らない。
+  return text.replace(new RegExp(`^${escapedLabel}[\\s　:：.．、]+`), "").trim() || text;
 }
 
 function numericTokens(value) {
@@ -28,8 +30,8 @@ function calculationRequired(question) {
   const explicitlyCalculates = /(計算|算出|導出|求め(?!られ)|いくら)/.test(prompt);
   const asksForNumericAnswer = /(何(?:%|％|円|千円|万円|億円|個|台|時間|分|点|倍)|数値を選べ|金額として|率として)/.test(prompt);
   const suppliedData = /(【(?:資料|条件|データ)|次の資料|下記の資料|以下の資料)/.test(prompt);
-  const formulaTopic = /(NPV|現在価値|内部収益率|損益分岐|原価|差異|回転率|標準偏差|期待収益率|WACC|EOQ|経済的発注量|PERT|最短所要時間|稼働率)/i.test(prompt);
-  return numbers.length > 0 && (explicitlyCalculates || ((asksForNumericAnswer || formulaTopic) && suppliedData && numbers.length >= 2));
+  const formulaTopic = /(NPV|現在価値|内部収益率|損益分岐|原価|差異|回転率|標準偏差|期待収益率|WACC|ROE|ROA|EOQ|経済的発注量|PERT|最短所要時間|稼働率|サイクルタイム|作業工程数|生産計画量)/i.test(prompt);
+  return numbers.length > 0 && (explicitlyCalculates || ((asksForNumericAnswer || formulaTopic) && (suppliedData || numbers.length >= 3)));
 }
 
 function difficultyFor(question) {
