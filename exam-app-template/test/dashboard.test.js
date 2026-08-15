@@ -11,7 +11,7 @@ test("ダッシュボード・全体確認・学習記録・実施履歴を描�
   const storage = new Map();
   const answeredAt = new Date().toISOString();
   const savedResult = { questionId: "finance:test", subject: "finance", topic: "原価計算", topicId: "財務_会計:原価計算", minimumCourse: 60, difficulty: "基礎", correct: true, answeredAt };
-  storage.set("exam-kit:r4:progress", JSON.stringify({ schemaVersion: 4, answers: {}, results: { "finance:test": savedResult }, flags: {}, notes: {}, attempts: {}, recent: [], mockResults: {}, activity: {}, sessions: [{ id: "session-test", type: "practice", label: "削除確認セッション", subject: "finance", course: 60, startedAt: answeredAt, lastActivityAt: answeredAt, questionCount: 1, results: [savedResult] }], plan: { targetScore: 60, completed: {}, autoCompleted: {} } }));
+  storage.set("exam-kit:r4:progress", JSON.stringify({ schemaVersion: 5, answers: {}, results: { "finance:test": savedResult }, flags: {}, archived: { "finance:test": true }, notes: {}, attempts: {}, recent: [], mockResults: {}, activity: {}, sessions: [{ id: "session-test", type: "practice", label: "削除確認セッション", subject: "finance", course: 60, startedAt: answeredAt, lastActivityAt: answeredAt, questionCount: 1, results: [savedResult] }], plan: { targetScore: 60, completed: {}, autoCompleted: {} } }));
   const document = {
     documentElement: { style: { setProperty() {} } },
     querySelector(selector) { return elements[selector] || null; },
@@ -41,6 +41,8 @@ test("ダッシュボード・全体確認・学習記録・実施履歴を描�
     Set,
     Promise
   });
+  const calculatorSource = fs.readFileSync(path.join(__dirname, "..", "public", "calculator.js"), "utf8");
+  vm.runInContext(calculatorSource, context, { filename: "public/calculator.js" });
   const source = fs.readFileSync(path.join(__dirname, "..", "public", "app.js"), "utf8");
   vm.runInContext(source, context, { filename: "public/app.js" });
   await new Promise((resolve) => setTimeout(resolve, 30));
@@ -59,6 +61,19 @@ test("ダッシュボード・全体確認・学習記録・実施履歴を描�
   assert.match(elements["#app"].innerHTML, /70点追加層/);
   assert.match(elements["#app"].innerHTML, /ロック中/);
   assert.doesNotMatch(elements["#app"].innerHTML, /記録をリセット/);
+
+  context.setView("practice");
+  assert.match(elements["#app"].innerHTML, /除外問題を管理/);
+  context.setView("archive");
+  assert.match(elements["#app"].innerHTML, /今後の演習から除外した問題/);
+  assert.match(elements["#app"].innerHTML, /finance:test/);
+  assert.match(elements["#app"].innerHTML, /演習へ戻す/);
+
+  vm.runInContext(`begin([{ id: "finance:ui-test", sourceId: "ui-test", subject: "finance", topic: "UI確認", difficulty: "基礎", minimumCourse: 60, calculationRequired: true, options: [{ id: "ア", label: "選択肢A" }, { id: "イ", label: "選択肢B" }] }], { label: "UI確認" })`, context);
+  assert.match(elements["#app"].innerHTML, /role="checkbox"/);
+  assert.match(elements["#app"].innerHTML, /左の縦チェックは「除外」/);
+  assert.match(elements["#app"].innerHTML, /calculator is-minimized/);
+  assert.doesNotMatch(elements["#app"].innerHTML, /type="radio"/);
 
   const gates = vm.runInContext(`(() => {
     const originalSessions = state.sessions;

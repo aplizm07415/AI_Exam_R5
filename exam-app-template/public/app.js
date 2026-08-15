@@ -17,7 +17,7 @@ let mockTimer = null;
 let state = freshState();
 const feedbackCache = new Map();
 const eliminatedChoices = new Map();
-let calculatorState = { display: "0", accumulator: null, operator: null, waitingForOperand: false, expression: "", minimized: true };
+let calculatorState = CalculatorCore.initialState({ minimized: true });
 
 function freshState() {
   return {
@@ -47,7 +47,9 @@ function escapeHtml(value) {
 }
 
 function inlineMarkdown(value) {
-  return escapeHtml(value).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  return escapeHtml(value)
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
 }
 
 function richText(value) {
@@ -68,14 +70,42 @@ function richText(value) {
       continue;
     }
     if (!line.trim()) {
-      blocks.push("<br>");
       index += 1;
       continue;
     }
-    blocks.push(`<span>${inlineMarkdown(line)}</span>`);
+    const heading = line.match(/^#{2,4}\s+(.+)/);
+    if (heading) {
+      blocks.push(`<h4>${inlineMarkdown(heading[1])}</h4>`);
+      index += 1;
+      continue;
+    }
+    if (/^\s*\d+[.)]\s+/.test(line)) {
+      const items = [];
+      while (index < lines.length && /^\s*\d+[.)]\s+/.test(lines[index])) {
+        items.push(lines[index].replace(/^\s*\d+[.)]\s+/, ""));
+        index += 1;
+      }
+      blocks.push(`<ol>${items.map((item) => `<li>${inlineMarkdown(item)}</li>`).join("")}</ol>`);
+      continue;
+    }
+    if (/^\s*[-*・]\s+/.test(line)) {
+      const items = [];
+      while (index < lines.length && /^\s*[-*・]\s+/.test(lines[index])) {
+        items.push(lines[index].replace(/^\s*[-*・]\s+/, ""));
+        index += 1;
+      }
+      blocks.push(`<ul>${items.map((item) => `<li>${inlineMarkdown(item)}</li>`).join("")}</ul>`);
+      continue;
+    }
+    if (/^>\s?/.test(line)) {
+      blocks.push(`<blockquote>${inlineMarkdown(line.replace(/^>\s?/, ""))}</blockquote>`);
+      index += 1;
+      continue;
+    }
+    blocks.push(`<p>${inlineMarkdown(line)}</p>`);
     index += 1;
   }
-  return blocks.join("<br>").replace(/<br><br><br>/g, "<br><br>");
+  return blocks.join("");
 }
 
 function mergeState(value) {
@@ -175,6 +205,7 @@ function setView(view) {
   if (view === "progress") renderProgress();
   if (view === "overview") renderOverview();
   if (view === "history") renderHistory();
+  if (view === "archive") renderArchive();
 }
 
 function allResults() {
@@ -611,9 +642,10 @@ function renderLibrary() {
       <button class="primary" data-start-filtered>この条件で開始</button>
     </div>
     <div class="quick-grid">
-      <button class="quick-card" data-review="incorrect"><span>RETRY</span><strong>誤答だけ</strong><small>${allResults().filter((result) => !result.correct).length}問</small></button>
-      <button class="quick-card" data-review="flagged"><span>FLAGGED</span><strong>見直しだけ</strong><small>${Object.values(state.flags).filter(Boolean).length}問</small></button>
+      <button class="quick-card" data-review="incorrect"><span>RETRY</span><strong>誤答だけ</strong><small>${Object.entries(state.results).filter(([id, result]) => !result.correct && !state.archived[id]).length}問</small></button>
+      <button class="quick-card" data-review="flagged"><span>FLAGGED</span><strong>見直しだけ</strong><small>${Object.entries(state.flags).filter(([id, value]) => value && !state.archived[id]).length}問</small></button>
       <button class="quick-card" data-review="adaptive"><span>ADAPTIVE</span><strong>弱点優先</strong><small>誤答 → 見直し → 未着手</small></button>
+      <button class="quick-card" data-view="archive"><span>ARCHIVE</span><strong>除外問題を管理</strong><small>${Object.values(state.archived).filter(Boolean).length}問</small></button>
     </div>
     <div class="panel legend"><strong>段階開放のルール</strong><p><b>60点</b>：core論点中心　<b>70点</b>：standardまで拡張　<b>80点</b>：発展・新傾向を含む全範囲</p></div>
   </section>`;
@@ -629,8 +661,10 @@ async function fetchQuestions(params = {}) {
 async function beginRemote(params, meta = {}) {
   app.innerHTML = '<div class="panel loading">演習セッションを組み立てています…</div>';
   try {
-    const result = await fetchQuestions(params);
-    begin(result.questions.filter((question) => !state.archived[question.id]), { ...meta, filters: params });
+    const desired = Math.max(1, Math.min(100, Number(params.limit) || 20));
+    const result = await fetchQuestions({ ...params, limit: params.ids ? desired : 100 });
+    const available = result.questions.filter((question) => !state.archived[question.id]).slice(0, desired);
+    begin(available, { ...meta, filters: params });
   } catch {
     app.innerHTML = '<div class="panel empty">問題を読み込めませんでした。接続を確認してください。</div>';
   }
@@ -653,25 +687,22 @@ function answerMarkup(question) {
   const saved = state.answers[question.id];
   const selected = new Set(Array.isArray(saved) ? saved : [saved]);
   const eliminated = eliminatedChoices.get(question.id) || new Set();
-  return `<div class="choices">${question.options.map((option) => `<div class="choice ${selected.has(option.id) ? "is-selected" : ""} ${eliminated.has(option.id) ? "is-eliminated" : ""}" data-select-choice="${escapeHtml(option.id)}"><button type="button" class="eliminate-toggle" data-eliminate-choice="${escapeHtml(option.id)}" aria-pressed="${eliminated.has(option.id)}" aria-label="選択肢${escapeHtml(option.id)}を除外">${eliminated.has(option.id) ? "×" : ""}</button><span class="choice-key">${escapeHtml(option.id)}</span><span class="choice-text">${richText(option.label)}</span></div>`).join("")}</div>`;
+  return `<p class="choice-help">左の縦チェックは「除外」、選択肢の本文は「回答」です。回答として選んだ行は薄い青で表示されます。</p><div class="choices">${question.options.map((option) => `<div class="choice ${selected.has(option.id) ? "is-selected" : ""} ${eliminated.has(option.id) ? "is-eliminated" : ""}" data-select-choice="${escapeHtml(option.id)}"><button type="button" role="checkbox" class="eliminate-toggle" data-eliminate-choice="${escapeHtml(option.id)}" aria-checked="${eliminated.has(option.id)}" aria-label="選択肢${escapeHtml(option.id)}を除外">${eliminated.has(option.id) ? "×" : ""}</button><span class="choice-key">${escapeHtml(option.id)}</span><span class="choice-text">${richText(option.label)}</span></div>`).join("")}</div>`;
 }
 
 function calculatorMarkup() {
-  const keys = ["C","±","%","÷","7","8","9","×","4","5","6","−","1","2","3","+","0",".","⌫","＝"];
-  return `<div class="calculator ${calculatorState.minimized ? "is-minimized" : ""}"><div class="calculator-bar"><span class="calculator-title">CALCULATOR</span><button type="button" data-calc-minimize>−</button></div><div class="calculator-body"><div class="calculator-expression">${escapeHtml(calculatorState.expression)}</div><output class="calculator-display">${escapeHtml(calculatorState.display)}</output><div class="calculator-keys">${keys.map((key) => `<button type="button" class="${["÷","×","−","+"].includes(key) ? "calc-operator" : key === "＝" ? "calc-equals" : ["C","±","%","⌫"].includes(key) ? "calc-function" : ""}" data-calc-key="${key}">${key}</button>`).join("")}</div></div><button type="button" class="calculator-compact" data-calc-minimize><span>CALCULATOR</span><strong>${escapeHtml(calculatorState.display)}</strong></button></div>`;
+  const keys = [
+    ["AC", "clear", "", "calc-function"], ["⌫", "backspace", "", "calc-function"], ["%", "percent", "", "calc-function"], ["÷", "operator", "÷", "calc-operator"],
+    ["7", "digit", "7", ""], ["8", "digit", "8", ""], ["9", "digit", "9", ""], ["×", "operator", "×", "calc-operator"],
+    ["4", "digit", "4", ""], ["5", "digit", "5", ""], ["6", "digit", "6", ""], ["−", "operator", "−", "calc-operator"],
+    ["1", "digit", "1", ""], ["2", "digit", "2", ""], ["3", "digit", "3", ""], ["＋", "operator", "+", "calc-operator"],
+    ["±", "sign", "", ""], ["0", "digit", "0", ""], [".", "decimal", "", ""], ["＝", "equals", "", "calc-equals"]
+  ];
+  return `<div class="calculator ${calculatorState.minimized ? "is-minimized" : ""}"><div class="calculator-bar"><span class="calculator-title">⠿ 電卓</span><button type="button" data-calc-minimize aria-label="電卓を最小化">−</button></div><div class="calculator-body"><div class="calculator-expression">${escapeHtml(calculatorState.expression)}</div><output class="calculator-display">${escapeHtml(calculatorState.display)}</output><div class="calculator-keys">${keys.map(([label, action, value, className]) => `<button type="button" class="${className}" data-calc-action="${action}"${value ? ` data-calc-value="${value}"` : ""}>${label}</button>`).join("")}</div></div><button type="button" class="calculator-compact" data-calc-minimize aria-label="電卓を開く"><span>電卓</span><strong>${escapeHtml(calculatorState.display)}</strong></button></div>`;
 }
 
-function useCalculator(key) {
-  const tidy = (value) => Number.isFinite(value) ? String(Number.parseFloat(value.toPrecision(12))) : "エラー";
-  const calculate = (left, right, operator) => operator === "+" ? left + right : operator === "−" ? left - right : operator === "×" ? left * right : right === 0 ? Number.NaN : left / right;
-  if (/^\d$/.test(key)) calculatorState.display = calculatorState.waitingForOperand || calculatorState.display === "0" || calculatorState.display === "エラー" ? key : `${calculatorState.display}${key}`.slice(0, 15), calculatorState.waitingForOperand = false;
-  else if (key === "." && !calculatorState.display.includes(".")) calculatorState.display = calculatorState.waitingForOperand ? "0." : `${calculatorState.display}.`, calculatorState.waitingForOperand = false;
-  else if (key === "C") calculatorState = { ...calculatorState, display: "0", accumulator: null, operator: null, waitingForOperand: false, expression: "" };
-  else if (key === "±" && calculatorState.display !== "0") calculatorState.display = calculatorState.display.startsWith("-") ? calculatorState.display.slice(1) : `-${calculatorState.display}`;
-  else if (key === "%") calculatorState.display = tidy(Number(calculatorState.display) / 100);
-  else if (key === "⌫" && !calculatorState.waitingForOperand) calculatorState.display = calculatorState.display.length <= 1 ? "0" : calculatorState.display.slice(0, -1);
-  else if (["+","−","×","÷"].includes(key)) { const input = Number(calculatorState.display); if (calculatorState.accumulator !== null && calculatorState.operator && !calculatorState.waitingForOperand) calculatorState.display = tidy(calculate(calculatorState.accumulator, input, calculatorState.operator)); calculatorState.accumulator = Number(calculatorState.display); calculatorState.operator = key; calculatorState.waitingForOperand = true; calculatorState.expression = `${calculatorState.display} ${key}`; }
-  else if (key === "＝" && calculatorState.operator && calculatorState.accumulator !== null) { const right = Number(calculatorState.display); calculatorState.expression = `${calculatorState.accumulator} ${calculatorState.operator} ${right} ＝`; calculatorState.display = tidy(calculate(calculatorState.accumulator, right, calculatorState.operator)); calculatorState.accumulator = null; calculatorState.operator = null; calculatorState.waitingForOperand = true; }
+function useCalculator(action, value) {
+  calculatorState = CalculatorCore.reduceCalculator(calculatorState, action, value);
   renderQuestion();
 }
 
@@ -883,6 +914,21 @@ function renderProgress() {
   </section>`;
 }
 
+function archivedQuestionSummaries() {
+  return Object.entries(state.archived)
+    .filter(([, archived]) => archived)
+    .map(([id]) => ({ id, ...(state.results[id] || {}) }))
+    .sort((a, b) => new Date(b.answeredAt || 0) - new Date(a.answeredAt || 0));
+}
+
+function renderArchive() {
+  pageTitle.textContent = "ARCHIVE管理";
+  const archived = archivedQuestionSummaries();
+  app.innerHTML = `<section class="view-stack"><div class="section-heading"><div><span class="eyebrow">ARCHIVE</span><h2>今後の演習から除外した問題</h2><p>簡単すぎるなどの理由で除外した問題です。戻すと、通常演習・復習・自動割当の対象へ復帰します。</p></div><button class="secondary" data-view="practice">問題演習へ戻る</button></div>
+    <div class="archive-list">${archived.map((item) => `<article class="panel archive-row"><div><span>${escapeHtml(subjectLabel(item.subject || "unknown"))}</span><strong>${escapeHtml(item.topic || item.id)}</strong><small>${escapeHtml(item.id)}${item.answeredAt ? `・${escapeHtml(new Intl.DateTimeFormat("ja-JP", { dateStyle: "medium" }).format(new Date(item.answeredAt)))}` : ""}</small></div><button class="secondary" data-unarchive="${escapeHtml(item.id)}">演習へ戻す</button></article>`).join("") || '<div class="panel empty">ARCHIVEした問題はありません。</div>'}</div>
+  </section>`;
+}
+
 function sessionSummary(item) {
   if (item.summary) return { answered: Number(item.summary.answered) || item.questionCount || 0, correct: null, rate: Math.round(Number(item.summary.score) / Math.max(1, Number(item.summary.maxScore)) * 100), label: `${item.summary.score}/${item.summary.maxScore}点` };
   const results = item.results || [];
@@ -914,6 +960,7 @@ function phaseChart(phase) {
   const creditStart = new Date(`${phase.creditFrom || phase.start}T00:00:00`);
   const records = practiceRecords().filter((record) => { const date = new Date(record.answeredAt); return date >= creditStart && date <= end; });
   const maxY = Math.max(totalPlan, records.length, 1);
+  const yTicks = [100, 75, 50, 25, 0].map((ratio) => Math.round(maxY * ratio / 100));
   const points = [`0,${100 - workload.prelearning / maxY * 100}`];
   for (let day = 1; day <= elapsed; day += 7) {
     const sampleDay = Math.min(day + 6, elapsed);
@@ -922,7 +969,9 @@ function phaseChart(phase) {
     points.push(`${sampleDay / totalDays * 100},${100 - count / maxY * 100}`);
   }
   const status = workload.paceStatus === "ahead" ? "予定より進んでいます" : workload.paceStatus === "behind" ? "予定より遅れています" : "予定どおりです";
-  return `<article class="panel phase-chart"><div class="dashboard-card-head"><div><span class="eyebrow">PLAN / ACTUAL</span><h3>現在フェーズの予実</h3></div><strong class="pace-${workload.paceStatus}">${workload.variance >= 0 ? "+" : ""}${workload.variance}<small>問・${status}</small></strong></div><svg viewBox="0 0 100 105" preserveAspectRatio="none" role="img" aria-label="横軸が期間、縦軸が累計演習量の予実グラフ"><line x1="0" y1="100" x2="100" y2="100"/><line x1="0" y1="0" x2="0" y2="100"/><polyline class="planned" points="0,100 100,0"/><polyline class="actual" points="${points.join(" ")}"/></svg><div class="chart-legend"><span><i class="planned"></i>予定 ${workload.expected}問</span><span><i class="actual"></i>実績 ${workload.actual}問</span><span>${formatMonthDay(phase.start)}〜${formatMonthDay(phase.end)}</span></div>${phase.creditFrom ? `<p>8/17〜8/23の${workload.prelearning}問は先取り学習として実績へ加算します。</p>` : ""}</article>`;
+  const midpoint = new Date(start.getTime() + (end - start) / 2);
+  const endpoint = points.at(-1).split(",");
+  return `<article class="panel phase-chart"><div class="dashboard-card-head"><div><span class="eyebrow">PLAN / ACTUAL</span><h3>現在フェーズの予実</h3></div><strong class="pace-${workload.paceStatus}">${workload.variance >= 0 ? "+" : ""}${workload.variance}<small>問・${status}</small></strong></div><div class="phase-chart-frame"><div class="phase-chart-y" aria-hidden="true">${yTicks.map((tick) => `<span>${tick.toLocaleString()}</span>`).join("")}</div><svg viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="横軸が期間、縦軸が累計演習量の予実グラフ">${[0,25,50,75,100].map((y) => `<line class="gridline" x1="0" y1="${y}" x2="100" y2="${y}"/>`).join("")}<polyline class="planned" points="0,100 100,0"/><polyline class="actual" points="${points.join(" ")}"/><circle class="actual-point" cx="${endpoint[0]}" cy="${endpoint[1]}" r="1.4"/></svg></div><div class="phase-chart-x"><span>${formatMonthDay(phase.start)}</span><span>${new Intl.DateTimeFormat("ja-JP", { month: "numeric", day: "numeric" }).format(midpoint)}</span><span>${formatMonthDay(phase.end)}</span></div><div class="chart-axis-title">累計演習量（問）</div><div class="chart-legend"><span><i class="planned"></i>予定 ${workload.expected}問</span><span><i class="actual"></i>実績 ${workload.actual}問</span><span>${formatMonthDay(phase.start)}〜${formatMonthDay(phase.end)}</span></div>${phase.creditFrom ? `<p>8/17〜8/23の${workload.prelearning}問は先取り学習として実績へ加算します。</p>` : ""}</article>`;
 }
 
 function renderOverview() {
@@ -954,7 +1003,7 @@ async function beginDailyAllocation() {
   const requests = content.subjects.map((subject) => {
     const done = todayRecords.filter((record) => record.subject === subject.id).length;
     const remaining = Math.max(0, workload.allocation[subject.id] - done);
-    return remaining ? fetchQuestions({ subject: subject.id, limit: remaining, seed: `${todayKey}:${subject.id}` }) : Promise.resolve({ questions: [] });
+    return remaining ? fetchQuestions({ subject: subject.id, limit: Math.min(100, Math.max(remaining * 4, remaining)), seed: `${todayKey}:${subject.id}` }).then((result) => ({ questions: result.questions.filter((question) => !state.archived[question.id]).slice(0, remaining) })) : Promise.resolve({ questions: [] });
   });
   app.innerHTML = '<div class="panel loading">本日の遅延補正と科目配分からセッションを組み立てています…</div>';
   try {
@@ -968,6 +1017,12 @@ async function beginDailyAllocation() {
 }
 
 document.addEventListener("click", (event) => {
+  const unarchiveButton = event.target.closest("[data-unarchive]");
+  if (unarchiveButton) {
+    delete state.archived[unarchiveButton.dataset.unarchive];
+    queueSave();
+    return renderArchive();
+  }
   const eliminateButton = event.target.closest("[data-eliminate-choice]");
   if (eliminateButton && currentView === "session") {
     const question = session[currentIndex];
@@ -984,8 +1039,8 @@ document.addEventListener("click", (event) => {
     queueSave();
     return renderQuestion();
   }
-  const calcKey = event.target.closest("[data-calc-key]");
-  if (calcKey) return useCalculator(calcKey.dataset.calcKey);
+  const calcKey = event.target.closest("[data-calc-action]");
+  if (calcKey) return useCalculator(calcKey.dataset.calcAction, calcKey.dataset.calcValue);
   if (event.target.closest("[data-calc-minimize]")) { calculatorState.minimized = !calculatorState.minimized; return renderQuestion(); }
   const viewButton = event.target.closest("[data-view]");
   if (viewButton) return setView(viewButton.dataset.view);
@@ -1018,7 +1073,8 @@ document.addEventListener("click", (event) => {
   if (event.target.closest("[data-grade]")) return gradeCurrent();
   if (event.target.closest("[data-archive]")) {
     const id = session[currentIndex].id;
-    state.archived[id] = !state.archived[id];
+    if (state.archived[id]) delete state.archived[id];
+    else state.archived[id] = true;
     queueSave();
     return renderQuestion();
   }

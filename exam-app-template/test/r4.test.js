@@ -4,6 +4,8 @@ const { Readable } = require("node:stream");
 
 const { content, officialExam, publicContent, queryQuestions, validateContent } = require("../src/content");
 const { gradeQuestion, gradeOfficialExam } = require("../src/grading");
+const { calculationRequired, difficultyFor, normalizeChoiceId, normalizeChoiceText } = require("../src/question-quality");
+const { auditQuestions } = require("../tools/audit-questions");
 const { handler, validState } = require("../server");
 
 function dispatch(url, options = {}) {
@@ -126,4 +128,31 @@ test("Phase 1は8月24日開始で、計算問題だけ電卓対象フラグを�
   assert.ok(phase.sessionSize > 15);
   assert.equal(content.questions.find((question) => question.id === "finance:S-5026").calculationRequired, true);
   assert.equal(content.questions.find((question) => question.id === "finance:S-5401").calculationRequired, false);
+  assert.equal(content.questions.find((question) => question.id === "operations:S-4510").calculationRequired, true);
+  assert.equal(content.questions.find((question) => question.id === "operations:S-4526").calculationRequired, false);
+});
+
+test("選択肢の負号と小書きカナを正規化し、正答不能を防ぐ", () => {
+  assert.equal(normalizeChoiceText({ label: "ア", text: "ア. -220" }), "-220");
+  assert.equal(normalizeChoiceId("ィ"), "イ");
+  const variance = content.questions.find((question) => question.id === "finance:S-5057");
+  assert.deepEqual(variance.options.map((option) => option.label), ["-220", "-200", "200", "220"]);
+  const mm = content.questions.find((question) => question.id === "finance:S-5401");
+  assert.equal(mm.answer, "イ");
+  assert.equal(gradeQuestion(mm, "イ").correct, true);
+});
+
+test("難易度生成は解説の長さを使わず、知識と判断工程で判定する", () => {
+  const directKnowledge = { question_text: "用語Xの定義として最も適切なものはどれか。", choices: [{ text: "A" }, { text: "B" }] };
+  assert.equal(difficultyFor({ ...directKnowledge, explanation: "短い" }), "基礎");
+  assert.equal(difficultyFor({ ...directKnowledge, explanation: "長い".repeat(5000) }), "基礎");
+  assert.equal(calculationRequired({ question_text: "次の資料に基づきWACCを計算せよ。【資料】負債400万円、株主資本600万円" }), true);
+});
+
+test("全問題の構造監査で正答不能・重複選択肢・文字化けを残さない", () => {
+  const report = auditQuestions(content.questions);
+  assert.equal(report.total, 2463);
+  assert.equal(report.missingCorrectOptions.length, 0);
+  assert.equal(report.duplicateOptionTexts.length, 0);
+  assert.equal(report.replacementCharacters.length, 0);
 });

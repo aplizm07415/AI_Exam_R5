@@ -17,6 +17,8 @@
 - 日程遅延を残日数へ分散し、科目配分込みで本日の問題数を調整する自動割当
 - 通常演習・復習・公式模試の全セッション履歴と、セッション単位の削除・再集計
 - 全フェーズの日程・項目達成・実施量・現在地をまとめる全体確認ページ
+- Phase 1開始前（2026年8月17〜23日）の事前学習を実績へ加算し、予定線との差を数値とグラフで表示
+- 正解済み問題のアーカイブと復元、選択肢の除外表示、計算問題用の初期最小化電卓
 
 通常演習の正答と解説はブラウザへ一括配信せず、1問ごとにサーバーで採点します。問題一覧も必要なセッション分だけ取得するため、2,463問を一度にダウンロードしません。
 
@@ -27,6 +29,7 @@ Node.js 20以上を使用します。
 ```bash
 npm install
 npm test
+npm run audit:data
 npm start
 ```
 
@@ -43,7 +46,7 @@ content/
 └── question-index.json       2,463問とtaxonomyの対応、難易度、コース
 ```
 
-`tools/build-r4-content.js` は、ルートのtaxonomy・study planとAzure原本から索引を再生成します。`tools/extract-r8-answers.py` は公式正解PDFからマークシート定義を再生成する保守用ツールです。
+`tools/build-r4-content.js` は、ルートのtaxonomy・study planとAzure原本から索引を再生成します。難易度は解説の長さではなく、判断数、条件分岐、計算工程、補完知識から判定します。`tools/audit-questions.js` は正答ID、選択肢重複、空解説、文字化け、更新対象などを全件検査します。`tools/extract-r8-answers.py` は公式正解PDFからマークシート定義を再生成する保守用ツールです。
 
 ## Vercel + Neon
 

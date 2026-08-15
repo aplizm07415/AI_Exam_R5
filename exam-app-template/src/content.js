@@ -6,6 +6,7 @@ const questionIndex = require("../content/question-index.json");
 const studyPlans = require("../content/analysis/study-plans.json");
 const officialExam = require("../content/official/r8.json");
 const officialAnalysis = require("../content/official/r8-analysis.json");
+const { calculationRequired, normalizeChoiceId, normalizeChoiceText } = require("./question-quality");
 
 const contentRoot = path.resolve(__dirname, "..", "content");
 const SUPPORTED_TYPES = new Set(["single_choice", "multiple_choice", "numeric", "text"]);
@@ -14,18 +15,12 @@ function stripComplexMarker(value) {
   return String(value || "").replace(/^\s*※複雑\s*/, "").trim();
 }
 
-function normalizeChoiceText(choice) {
-  const label = String(choice.label || "").trim();
-  const text = String(choice.text || "").trim();
-  return text.replace(new RegExp(`^${label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}[\\s　:：.．、-]*`), "").trim() || text;
-}
-
 function normalizeQuestion(subject, rawQuestion) {
   const id = `${subject.id}:${rawQuestion.id}`;
   const metadata = questionIndex.questions[id];
   if (!metadata) throw new Error(`問題インデックスがありません: ${id}`);
   const prompt = stripComplexMarker(rawQuestion.question_text);
-  const calculationRequired = subject.id === "finance" && /(計算|算出|求め|金額|利益率|原価|NPV|現在価値|損益分岐|回転率|標準偏差|万円|円|%)/.test(prompt);
+  const needsCalculator = calculationRequired(rawQuestion);
   return {
     id,
     sourceId: rawQuestion.id,
@@ -41,10 +36,10 @@ function normalizeQuestion(subject, rawQuestion) {
     type: "single_choice",
     title: `${metadata.topic} / ${rawQuestion.id}`,
     prompt,
-    options: rawQuestion.choices.map((choice) => ({ id: String(choice.label), label: normalizeChoiceText(choice) })),
-    answer: String(rawQuestion.answer),
+    options: rawQuestion.choices.map((choice) => ({ id: normalizeChoiceId(choice.label), label: normalizeChoiceText(choice) })),
+    answer: normalizeChoiceId(rawQuestion.answer),
     points: 1,
-    calculationRequired,
+    calculationRequired: needsCalculator,
     explanation: typeof rawQuestion.explanation === "object" ? rawQuestion.explanation?.text || "" : rawQuestion.explanation || ""
   };
 }
@@ -72,6 +67,11 @@ function validateContent(value) {
     if (!SUPPORTED_TYPES.has(question.type)) throw new Error(`問題 ${question.id} のtypeは未対応です: ${question.type}`);
     if (question.answer === undefined || !Number.isFinite(Number(question.points)) || Number(question.points) <= 0) {
       throw new Error(`問題 ${question.id} のanswerまたはpointsが不正です`);
+    }
+    if (question.type === "single_choice") {
+      const optionIds = question.options.map((option) => String(option.id));
+      if (optionIds.length !== new Set(optionIds).size) throw new Error(`問題 ${question.id} の選択肢IDが重複しています`);
+      if (!optionIds.includes(String(question.answer))) throw new Error(`問題 ${question.id} の正答 ${question.answer} が選択肢にありません`);
     }
     questionIds.add(question.id);
   }

@@ -1,5 +1,6 @@
 const fs = require("node:fs");
 const path = require("node:path");
+const { difficultyFor } = require("../src/question-quality");
 
 const appRoot = path.resolve(__dirname, "..");
 const repoRoot = path.resolve(appRoot, "..");
@@ -47,30 +48,6 @@ function createClassifier(taxonomy) {
     }
     return best && best.score > 0 ? best : null;
   };
-}
-
-function percentile(values, ratio) {
-  const sorted = [...values].sort((a, b) => a - b);
-  return sorted[Math.round((sorted.length - 1) * ratio)] || 0;
-}
-
-function difficultyThresholds(questions) {
-  const prompts = questions.map((question) => String(question.question_text || "").length);
-  const explanations = questions.map((question) => String(typeof question.explanation === "object" ? question.explanation?.text || "" : question.explanation || "").length);
-  return {
-    promptStandard: percentile(prompts, 0.55),
-    promptAdvanced: percentile(prompts, 0.88),
-    explanationStandard: percentile(explanations, 0.62),
-    explanationAdvanced: percentile(explanations, 0.92)
-  };
-}
-
-function difficultyFor(question, thresholds) {
-  const prompt = String(question.question_text || "");
-  const explanation = typeof question.explanation === "object" ? question.explanation?.text || "" : question.explanation || "";
-  if (/^\s*※複雑/.test(prompt) || prompt.length > thresholds.promptAdvanced || explanation.length > thresholds.explanationAdvanced) return "発展";
-  if (prompt.length > thresholds.promptStandard || explanation.length > thresholds.explanationStandard || (question.choices || []).length >= 5) return "標準";
-  return "基礎";
 }
 
 function priorityFor(topic) {
@@ -166,13 +143,12 @@ for (const subject of config.subjects) {
   const planMarkdown = fs.readFileSync(planSource, "utf8");
   const questions = JSON.parse(fs.readFileSync(path.join(contentRoot, "source", subject.sourceFile), "utf8"));
   const classify = createClassifier(taxonomy);
-  const thresholds = difficultyThresholds(questions);
   const counts = { 基礎: 0, 標準: 0, 発展: 0, unmapped: 0 };
 
   for (const question of questions) {
     const id = `${subject.id}:${question.id}`;
     const match = classify(questionText(question), question.category);
-    const difficulty = difficultyFor(question, thresholds);
+    const difficulty = difficultyFor(question);
     const priority = priorityFor(match?.topic);
     counts[difficulty] += 1;
     if (!match) counts.unmapped += 1;
