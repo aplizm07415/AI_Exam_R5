@@ -10,9 +10,9 @@
     "targetExamDate": "2027-08-07",
     "targetExamDateIsTentative": true,
     "theme": {
-      "primary": "#315f5b",
-      "accent": "#d08a4b",
-      "ink": "#152d32"
+      "primary": "#2e5c99",
+      "accent": "#3d7cce",
+      "ink": "#1e304a"
     }
   },
   "baselineScores": {
@@ -89,10 +89,11 @@
       "id": "foundation",
       "label": "60点ラインを固める",
       "targetScore": 60,
-      "start": "2026-08-17",
+      "start": "2026-08-24",
+      "creditFrom": "2026-08-17",
       "end": "2026-11-15",
       "goal": "弱点原因を分類し、core論点と中小企業の基幹指標で正答率75%以上",
-      "sessionSize": 15,
+      "sessionSize": 17,
       "subjectWeights": { "finance": 35, "operations": 20, "law": 15, "sme": 30 },
       "financeSplit": { "bookkeeping": 70, "primary": 20, "case4": 10 },
       "milestones": [

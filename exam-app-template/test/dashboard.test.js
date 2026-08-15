@@ -51,6 +51,7 @@ test("ダッシュボード・全体確認・学習記録・実施履歴を描�
   context.setView("overview");
   assert.match(elements["#app"].innerHTML, /試験までの全体像と現在地/);
   assert.match(elements["#app"].innerHTML, /本日の自動割当/);
+  assert.match(elements["#app"].innerHTML, /現在フェーズの予実/);
 
   context.setView("progress");
   assert.match(elements["#app"].innerHTML, /層別進捗とコース到達度/);

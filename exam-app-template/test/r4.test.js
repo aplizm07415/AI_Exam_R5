@@ -114,6 +114,16 @@ test("APIがカタログ・問題・採点・公式模試を提供する", async
 });
 
 test("保存状態はR4の許可フィールドだけ受け付ける", () => {
-  assert.equal(validState({ schemaVersion: 4, answers: {}, results: {}, attempts: {}, mockResults: {}, activity: {}, sessions: [], plan: {} }), true);
+  assert.equal(validState({ schemaVersion: 5, answers: {}, results: {}, archived: {}, attempts: {}, mockResults: {}, activity: {}, sessions: [], plan: {} }), true);
   assert.equal(validState({ answers: {}, admin: true }), false);
+});
+
+test("Phase 1は8月24日開始で、計算問題だけ電卓対象フラグを持つ", () => {
+  const phase = content.learningPhases[0];
+  assert.equal(phase.start, "2026-08-24");
+  assert.equal(phase.creditFrom, "2026-08-17");
+  assert.equal(phase.end, "2026-11-15");
+  assert.ok(phase.sessionSize > 15);
+  assert.equal(content.questions.find((question) => question.id === "finance:S-5026").calculationRequired, true);
+  assert.equal(content.questions.find((question) => question.id === "finance:S-5401").calculationRequired, false);
 });

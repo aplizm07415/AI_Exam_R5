@@ -25,6 +25,7 @@ function normalizeQuestion(subject, rawQuestion) {
   const metadata = questionIndex.questions[id];
   if (!metadata) throw new Error(`問題インデックスがありません: ${id}`);
   const prompt = stripComplexMarker(rawQuestion.question_text);
+  const calculationRequired = subject.id === "finance" && /(計算|算出|求め|金額|利益率|原価|NPV|現在価値|損益分岐|回転率|標準偏差|万円|円|%)/.test(prompt);
   return {
     id,
     sourceId: rawQuestion.id,
@@ -43,6 +44,7 @@ function normalizeQuestion(subject, rawQuestion) {
     options: rawQuestion.choices.map((choice) => ({ id: String(choice.label), label: normalizeChoiceText(choice) })),
     answer: String(rawQuestion.answer),
     points: 1,
+    calculationRequired,
     explanation: typeof rawQuestion.explanation === "object" ? rawQuestion.explanation?.text || "" : rawQuestion.explanation || ""
   };
 }

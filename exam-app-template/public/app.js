@@ -16,13 +16,16 @@ let mockStartedAt = null;
 let mockTimer = null;
 let state = freshState();
 const feedbackCache = new Map();
+const eliminatedChoices = new Map();
+let calculatorState = { display: "0", accumulator: null, operator: null, waitingForOperand: false, expression: "", minimized: true };
 
 function freshState() {
   return {
-    schemaVersion: 4,
+    schemaVersion: 5,
     answers: {},
     results: {},
     flags: {},
+    archived: {},
     notes: {},
     attempts: {},
     recent: [],
@@ -83,6 +86,7 @@ function mergeState(value) {
     answers: { ...(value?.answers || {}) },
     results: { ...(value?.results || {}) },
     flags: { ...(value?.flags || {}) },
+    archived: { ...(value?.archived || {}) },
     notes: { ...(value?.notes || {}) },
     attempts: { ...(value?.attempts || {}) },
     recent: Array.isArray(value?.recent) ? value.recent.slice(0, 100) : [],
@@ -96,7 +100,7 @@ function mergeState(value) {
     }])),
     plan: { ...base.plan, ...(value?.plan || {}), completed: { ...(value?.plan?.completed || {}) }, autoCompleted: { ...(value?.plan?.autoCompleted || {}) } }
   };
-  merged.schemaVersion = 4;
+  merged.schemaVersion = 5;
   if (!Object.keys(merged.activity).length) {
     for (const result of Object.values(merged.results)) {
       if (!result.answeredAt) continue;
@@ -440,17 +444,21 @@ function phaseWorkload(phase = currentPhase()) {
   const end = new Date(`${phase.end}T23:59:59`);
   const elapsedDays = now < start ? 0 : Math.max(0, Math.floor((Math.min(now, end) - start) / 86400000) + 1);
   const expected = Math.round(elapsedDays * phase.sessionSize * 6 / 7);
+  const creditStart = new Date(`${phase.creditFrom || phase.start}T00:00:00`);
   const actual = practiceRecords().filter((record) => {
     const date = new Date(record.answeredAt);
-    return date >= start && date <= end;
+    return date >= creditStart && date <= end;
   }).length;
-  const backlog = Math.max(0, expected - actual);
+  const variance = actual - expected;
+  const backlog = Math.max(0, -variance);
   const remainingDays = Math.max(1, Math.ceil((end - Math.max(now, start)) / 86400000));
   const recoveryDays = Math.max(1, Math.round(remainingDays * 6 / 7));
   const extra = Math.min(Math.ceil(phase.sessionSize * .5), Math.ceil(backlog / recoveryDays));
   const adjustedTarget = phase.sessionSize + extra;
   const allocation = Object.fromEntries(content.subjects.map((subject) => [subject.id, Math.max(1, Math.round(adjustedTarget * subjectWeight(subject.id, phase) / 100))]));
-  return { expected, actual, backlog, extra, adjustedTarget, allocation, delayed: backlog > phase.sessionSize };
+  const paceStatus = variance > phase.sessionSize ? "ahead" : variance < -phase.sessionSize ? "behind" : "on-track";
+  const prelearning = phase.creditFrom ? practiceRecords().filter((record) => { const date = new Date(record.answeredAt); return date >= creditStart && date < start; }).length : 0;
+  return { expected, actual, variance, backlog, extra, adjustedTarget, allocation, delayed: paceStatus === "behind", paceStatus, prelearning };
 }
 
 function rebuildAggregatesFromSessions() {
@@ -622,7 +630,7 @@ async function beginRemote(params, meta = {}) {
   app.innerHTML = '<div class="panel loading">演習セッションを組み立てています…</div>';
   try {
     const result = await fetchQuestions(params);
-    begin(result.questions, { ...meta, filters: params });
+    begin(result.questions.filter((question) => !state.archived[question.id]), { ...meta, filters: params });
   } catch {
     app.innerHTML = '<div class="panel empty">問題を読み込めませんでした。接続を確認してください。</div>';
   }
@@ -644,7 +652,27 @@ function subjectLabel(id) {
 function answerMarkup(question) {
   const saved = state.answers[question.id];
   const selected = new Set(Array.isArray(saved) ? saved : [saved]);
-  return `<div class="choices">${question.options.map((option) => `<label class="choice"><input type="radio" name="answer" value="${escapeHtml(option.id)}" ${selected.has(option.id) ? "checked" : ""}><span class="choice-key">${escapeHtml(option.id)}</span><span class="choice-text">${richText(option.label)}</span></label>`).join("")}</div>`;
+  const eliminated = eliminatedChoices.get(question.id) || new Set();
+  return `<div class="choices">${question.options.map((option) => `<div class="choice ${selected.has(option.id) ? "is-selected" : ""} ${eliminated.has(option.id) ? "is-eliminated" : ""}" data-select-choice="${escapeHtml(option.id)}"><button type="button" class="eliminate-toggle" data-eliminate-choice="${escapeHtml(option.id)}" aria-pressed="${eliminated.has(option.id)}" aria-label="選択肢${escapeHtml(option.id)}を除外">${eliminated.has(option.id) ? "×" : ""}</button><span class="choice-key">${escapeHtml(option.id)}</span><span class="choice-text">${richText(option.label)}</span></div>`).join("")}</div>`;
+}
+
+function calculatorMarkup() {
+  const keys = ["C","±","%","÷","7","8","9","×","4","5","6","−","1","2","3","+","0",".","⌫","＝"];
+  return `<div class="calculator ${calculatorState.minimized ? "is-minimized" : ""}"><div class="calculator-bar"><span class="calculator-title">CALCULATOR</span><button type="button" data-calc-minimize>−</button></div><div class="calculator-body"><div class="calculator-expression">${escapeHtml(calculatorState.expression)}</div><output class="calculator-display">${escapeHtml(calculatorState.display)}</output><div class="calculator-keys">${keys.map((key) => `<button type="button" class="${["÷","×","−","+"].includes(key) ? "calc-operator" : key === "＝" ? "calc-equals" : ["C","±","%","⌫"].includes(key) ? "calc-function" : ""}" data-calc-key="${key}">${key}</button>`).join("")}</div></div><button type="button" class="calculator-compact" data-calc-minimize><span>CALCULATOR</span><strong>${escapeHtml(calculatorState.display)}</strong></button></div>`;
+}
+
+function useCalculator(key) {
+  const tidy = (value) => Number.isFinite(value) ? String(Number.parseFloat(value.toPrecision(12))) : "エラー";
+  const calculate = (left, right, operator) => operator === "+" ? left + right : operator === "−" ? left - right : operator === "×" ? left * right : right === 0 ? Number.NaN : left / right;
+  if (/^\d$/.test(key)) calculatorState.display = calculatorState.waitingForOperand || calculatorState.display === "0" || calculatorState.display === "エラー" ? key : `${calculatorState.display}${key}`.slice(0, 15), calculatorState.waitingForOperand = false;
+  else if (key === "." && !calculatorState.display.includes(".")) calculatorState.display = calculatorState.waitingForOperand ? "0." : `${calculatorState.display}.`, calculatorState.waitingForOperand = false;
+  else if (key === "C") calculatorState = { ...calculatorState, display: "0", accumulator: null, operator: null, waitingForOperand: false, expression: "" };
+  else if (key === "±" && calculatorState.display !== "0") calculatorState.display = calculatorState.display.startsWith("-") ? calculatorState.display.slice(1) : `-${calculatorState.display}`;
+  else if (key === "%") calculatorState.display = tidy(Number(calculatorState.display) / 100);
+  else if (key === "⌫" && !calculatorState.waitingForOperand) calculatorState.display = calculatorState.display.length <= 1 ? "0" : calculatorState.display.slice(0, -1);
+  else if (["+","−","×","÷"].includes(key)) { const input = Number(calculatorState.display); if (calculatorState.accumulator !== null && calculatorState.operator && !calculatorState.waitingForOperand) calculatorState.display = tidy(calculate(calculatorState.accumulator, input, calculatorState.operator)); calculatorState.accumulator = Number(calculatorState.display); calculatorState.operator = key; calculatorState.waitingForOperand = true; calculatorState.expression = `${calculatorState.display} ${key}`; }
+  else if (key === "＝" && calculatorState.operator && calculatorState.accumulator !== null) { const right = Number(calculatorState.display); calculatorState.expression = `${calculatorState.accumulator} ${calculatorState.operator} ${right} ＝`; calculatorState.display = tidy(calculate(calculatorState.accumulator, right, calculatorState.operator)); calculatorState.accumulator = null; calculatorState.operator = null; calculatorState.waitingForOperand = true; }
+  renderQuestion();
 }
 
 function displayAnswer(answer) {
@@ -661,12 +689,12 @@ function renderQuestion() {
   const feedback = feedbackCache.get(question.id);
   app.innerHTML = `<section class="practice-layout"><div>
     <div class="session-progress"><span>${currentIndex + 1} / ${session.length}</span><i><b style="width:${((currentIndex + 1) / session.length) * 100}%"></b></i><small>${escapeHtml(question.difficulty)}・${question.minimumCourse}点${question.minimumCourse === 60 ? "基礎" : "追加"}層</small></div>
-    <article class="question-card"><div class="question-meta"><span>${escapeHtml(subjectLabel(question.subject))}</span><span>${escapeHtml(question.topic)}</span><span>${escapeHtml(question.sourceId)}</span></div><h2>Q${currentIndex + 1}. ${escapeHtml(question.topic)}</h2><div class="prompt">${richText(question.prompt)}</div><div class="answer-area">${answerMarkup(question)}</div>
+    <article class="question-card"><div class="question-meta"><span>${escapeHtml(subjectLabel(question.subject))}</span><span>${escapeHtml(question.topic)}</span><span>${escapeHtml(question.sourceId)}</span>${question.calculationRequired ? "<span>計算</span>" : ""}</div><h2>Q${currentIndex + 1}. ${escapeHtml(question.topic)}</h2><div class="prompt">${richText(question.prompt)}</div><div class="answer-area">${answerMarkup(question)}</div>
       <div id="feedback">${feedback ? feedbackMarkup(feedback) : stored ? storedFeedbackMarkup(stored) : ""}</div>
       <label class="note-wrap"><span>自分用メモ</span><textarea class="note-input" id="questionNote" placeholder="間違えた理由、覚え方、再確認日など">${escapeHtml(state.notes[question.id] || "")}</textarea></label>
     </article>
-    <div class="actions"><button class="secondary" data-prev ${currentIndex === 0 ? "disabled" : ""}>← 前へ</button><button class="secondary" data-flag>${state.flags[question.id] ? "★ 見直し中" : "☆ 見直す"}</button><button class="primary" data-grade>採点・解説</button><button class="secondary" data-next ${currentIndex === session.length - 1 ? "disabled" : ""}>次へ →</button></div>
-  </div><aside class="panel navigator"><span class="eyebrow">QUESTION MAP</span><h3>${escapeHtml(subjectLabel(question.subject))}</h3><div class="question-map">${session.map((item, index) => `<button class="map-button ${index === currentIndex ? "current" : ""} ${state.results[item.id] ? "done" : ""} ${state.flags[item.id] ? "flagged" : ""}" data-jump="${index}">${index + 1}</button>`).join("")}</div><button class="text-button" data-view="progress">学習記録を見る →</button></aside></section>`;
+    <div class="actions"><button class="secondary" data-prev ${currentIndex === 0 ? "disabled" : ""}>← 前へ</button><button class="secondary" data-flag>${state.flags[question.id] ? "★ 見直し中" : "☆ 見直す"}</button>${stored || feedback ? `<button class="secondary" data-archive>${state.archived[question.id] ? "ARCHIVED" : "ARCHIVE"}</button>` : ""}<button class="primary" data-grade>採点・解説</button><button class="secondary" data-next ${currentIndex === session.length - 1 ? "disabled" : ""}>次へ →</button></div>
+  </div><aside class="panel navigator"><span class="eyebrow">QUESTION MAP</span><h3>${escapeHtml(subjectLabel(question.subject))}</h3><div class="question-map">${session.map((item, index) => `<button class="map-button ${index === currentIndex ? "current" : ""} ${state.results[item.id] ? "done" : ""} ${state.flags[item.id] ? "flagged" : ""}" data-jump="${index}">${index + 1}</button>`).join("")}</div><button class="text-button" data-view="progress">学習記録を見る →</button></aside>${question.calculationRequired ? calculatorMarkup() : ""}</section>`;
 }
 
 function feedbackMarkup(result) {
@@ -678,7 +706,7 @@ function storedFeedbackMarkup(result) {
 }
 
 function collectAnswer() {
-  return document.querySelector('input[name="answer"]:checked')?.value || "";
+  return state.answers[session[currentIndex].id] || "";
 }
 
 async function gradeCurrent() {
@@ -876,21 +904,43 @@ function renderHistory() {
   </section>`;
 }
 
+function phaseChart(phase) {
+  const workload = phaseWorkload(phase);
+  const start = new Date(`${phase.start}T00:00:00`);
+  const end = new Date(`${phase.end}T23:59:59`);
+  const totalDays = Math.max(1, Math.ceil((end - start) / 86400000));
+  const elapsed = clamp(Math.ceil((Math.min(new Date(), end) - start) / 86400000), 0, totalDays);
+  const totalPlan = Math.round((totalDays + 1) * phase.sessionSize * 6 / 7);
+  const creditStart = new Date(`${phase.creditFrom || phase.start}T00:00:00`);
+  const records = practiceRecords().filter((record) => { const date = new Date(record.answeredAt); return date >= creditStart && date <= end; });
+  const maxY = Math.max(totalPlan, records.length, 1);
+  const points = [`0,${100 - workload.prelearning / maxY * 100}`];
+  for (let day = 1; day <= elapsed; day += 7) {
+    const sampleDay = Math.min(day + 6, elapsed);
+    const boundary = new Date(start.getTime() + sampleDay * 86400000);
+    const count = records.filter((record) => new Date(record.answeredAt) < boundary).length;
+    points.push(`${sampleDay / totalDays * 100},${100 - count / maxY * 100}`);
+  }
+  const status = workload.paceStatus === "ahead" ? "予定より進んでいます" : workload.paceStatus === "behind" ? "予定より遅れています" : "予定どおりです";
+  return `<article class="panel phase-chart"><div class="dashboard-card-head"><div><span class="eyebrow">PLAN / ACTUAL</span><h3>現在フェーズの予実</h3></div><strong class="pace-${workload.paceStatus}">${workload.variance >= 0 ? "+" : ""}${workload.variance}<small>問・${status}</small></strong></div><svg viewBox="0 0 100 105" preserveAspectRatio="none" role="img" aria-label="横軸が期間、縦軸が累計演習量の予実グラフ"><line x1="0" y1="100" x2="100" y2="100"/><line x1="0" y1="0" x2="0" y2="100"/><polyline class="planned" points="0,100 100,0"/><polyline class="actual" points="${points.join(" ")}"/></svg><div class="chart-legend"><span><i class="planned"></i>予定 ${workload.expected}問</span><span><i class="actual"></i>実績 ${workload.actual}問</span><span>${formatMonthDay(phase.start)}〜${formatMonthDay(phase.end)}</span></div>${phase.creditFrom ? `<p>8/17〜8/23の${workload.prelearning}問は先取り学習として実績へ加算します。</p>` : ""}</article>`;
+}
+
 function renderOverview() {
   pageTitle.textContent = "全体確認";
   const phase = currentPhase();
   const workload = phaseWorkload(phase);
   const phaseIndex = content.learningPhases.indexOf(phase);
   app.innerHTML = `<section class="view-stack"><div class="section-heading"><div><span class="eyebrow">MASTER OVERVIEW</span><h2>試験までの全体像と現在地</h2><p>日程、達成項目、演習量、コース進捗、財務ルートを一画面で確認します。</p></div><div class="overview-position"><strong>${overallTiming()}%</strong><span>全期間の経過</span></div></div>
-    <div class="overview-now"><article class="panel"><span class="phase-number">NOW / PHASE ${phaseIndex + 1}</span><h3>${escapeHtml(phase.label)}</h3><p>${escapeHtml(phase.goal)}</p><div class="overview-big-facts"><div><strong>${phaseTiming(phase).daysLeft}</strong><small>フェーズ残日数</small></div><div><strong>${phaseMilestoneProgress(phase).percent}%</strong><small>達成項目</small></div><div><strong>${workload.actual}</strong><small>期間内実施問数</small></div><div class="${workload.delayed ? "delay" : ""}"><strong>${workload.backlog}</strong><small>未消化問題</small></div></div></article><article class="panel load-adjust"><span class="eyebrow">AUTO LOAD</span><h3>本日の自動割当</h3><strong>${workload.adjustedTarget}<small>問</small></strong><p>基準${phase.sessionSize}問${workload.extra ? `に遅延補正${workload.extra}問を追加` : "。遅延補正はありません"}。</p><div class="allocation-list">${content.subjects.map((subject) => `<span>${escapeHtml(subject.shortLabel)} <b>${workload.allocation[subject.id]}問</b></span>`).join("")}</div><button class="primary" data-adaptive>自動割当で始める</button></article></div>
+    <div class="overview-now"><article class="panel"><span class="phase-number">NOW / PHASE ${phaseIndex + 1}</span><h3>${escapeHtml(phase.label)}</h3><p>${escapeHtml(phase.goal)}</p><div class="overview-big-facts"><div><strong>${phaseTiming(phase).daysLeft}</strong><small>フェーズ残日数</small></div><div><strong>${phaseMilestoneProgress(phase).percent}%</strong><small>達成項目</small></div><div><strong>${workload.actual}</strong><small>期間内実施問数</small></div><div class="${workload.delayed ? "delay" : ""}"><strong>${workload.variance >= 0 ? `+${workload.variance}` : workload.variance}</strong><small>${workload.paceStatus === "ahead" ? "予定より進行" : workload.paceStatus === "behind" ? "予定より遅延" : "予定どおり"}</small></div></div></article><article class="panel load-adjust"><span class="eyebrow">AUTO LOAD</span><h3>本日の自動割当</h3><strong>${workload.adjustedTarget}<small>問</small></strong><p>基準${phase.sessionSize}問${workload.extra ? `に遅延補正${workload.extra}問を追加` : "。遅延補正はありません"}。</p><div class="allocation-list">${content.subjects.map((subject) => `<span>${escapeHtml(subject.shortLabel)} <b>${workload.allocation[subject.id]}問</b></span>`).join("")}</div><button class="primary" data-adaptive>自動割当で始める</button></article></div>
+    ${phaseChart(phase)}
     <div class="overview-phases">${content.learningPhases.map((item, index) => { const timing = phaseTiming(item); const progress = phaseMilestoneProgress(item); const records = practiceRecords().filter((record) => { const date = new Date(record.answeredAt); return date >= new Date(`${item.start}T00:00:00`) && date <= new Date(`${item.end}T23:59:59`); }); return `<article class="overview-phase ${timing.status}"><header><span>PHASE ${index + 1}</span><small>${formatMonthDay(item.start)}〜${formatMonthDay(item.end)}</small></header><h3>${escapeHtml(item.label)}</h3><p>${escapeHtml(item.goal)}</p><div class="overview-phase-bars"><label>日程 <i><b style="width:${timing.percent}%"></b></i><span>${timing.percent}%</span></label><label>項目 <i><b style="width:${progress.percent}%"></b></i><span>${progress.percent}%</span></label></div><footer>${records.length}問実施・1日${item.sessionSize}問基準</footer></article>`; }).join("")}</div>
     <div class="dashboard-secondary"><article class="panel"><div class="dashboard-card-head"><div><span class="eyebrow">COURSE READINESS</span><h3>累積の到達判定</h3></div></div><div class="overview-courses">${[60,70,80].map((score) => { const value = courseReadiness(score); const unlocked = isCourseUnlocked(score); return `<div class="${unlocked ? "" : "is-locked"}"><span>${score}</span><i><b style="width:${value.progress}%"></b></i><strong>${value.passed ? "合格" : unlocked ? "判定中" : "🔒"}</strong><small>累積 ${value.answered}/${value.total}問${value.failedLayers.length ? `・未合格 ${value.failedLayers.join("・")}点層` : ""}</small></div>`; }).join("")}</div></article><article class="panel"><div class="dashboard-card-head"><div><span class="eyebrow">FINANCE ROUTE</span><h3>${escapeHtml(content.financeTrack.title)}</h3></div><strong>${financeMilestoneProgress().percent}<small>%</small></strong></div><div class="milestone-list finance-milestones">${content.financeTrack.milestones.map((item) => `<label><input type="checkbox" disabled ${state.plan.completed[financeMilestoneKey(item.id)] ? "checked" : ""}><span><small>${formatMonthDay(item.date)}</small>${escapeHtml(item.label)}</span></label>`).join("")}</div></article></div>
   </section>`;
 }
 
 async function startReview(mode) {
-  const incorrect = Object.entries(state.results).filter(([, result]) => !result.correct).map(([id]) => id);
-  const flagged = Object.entries(state.flags).filter(([, value]) => value).map(([id]) => id);
+  const incorrect = Object.entries(state.results).filter(([id, result]) => !result.correct && !state.archived[id]).map(([id]) => id);
+  const flagged = Object.entries(state.flags).filter(([id, value]) => value && !state.archived[id]).map(([id]) => id);
   let ids = mode === "incorrect" ? incorrect : mode === "flagged" ? flagged : [...new Set([...incorrect, ...flagged])];
   if (ids.length) return beginRemote({ ids: ids.slice(0, 50).join(","), limit: Math.min(50, ids.length) }, { type: "review", label: mode === "incorrect" ? "誤答復習" : mode === "flagged" ? "見直し復習" : "弱点優先復習" });
   const subject = recommendedSubject();
@@ -918,6 +968,25 @@ async function beginDailyAllocation() {
 }
 
 document.addEventListener("click", (event) => {
+  const eliminateButton = event.target.closest("[data-eliminate-choice]");
+  if (eliminateButton && currentView === "session") {
+    const question = session[currentIndex];
+    const eliminated = eliminatedChoices.get(question.id) || new Set();
+    const choiceId = eliminateButton.dataset.eliminateChoice;
+    eliminated.has(choiceId) ? eliminated.delete(choiceId) : eliminated.add(choiceId);
+    eliminatedChoices.set(question.id, eliminated);
+    if (state.answers[question.id] === choiceId) delete state.answers[question.id];
+    return renderQuestion();
+  }
+  const choice = event.target.closest("[data-select-choice]");
+  if (choice && currentView === "session" && !choice.classList.contains("is-eliminated")) {
+    state.answers[session[currentIndex].id] = choice.dataset.selectChoice;
+    queueSave();
+    return renderQuestion();
+  }
+  const calcKey = event.target.closest("[data-calc-key]");
+  if (calcKey) return useCalculator(calcKey.dataset.calcKey);
+  if (event.target.closest("[data-calc-minimize]")) { calculatorState.minimized = !calculatorState.minimized; return renderQuestion(); }
   const viewButton = event.target.closest("[data-view]");
   if (viewButton) return setView(viewButton.dataset.view);
   const courseButton = event.target.closest("[data-set-course]");
@@ -947,6 +1016,12 @@ document.addEventListener("click", (event) => {
   if (event.target.closest("[data-prev]")) { currentIndex -= 1; return renderQuestion(); }
   if (event.target.closest("[data-next]")) { currentIndex += 1; return renderQuestion(); }
   if (event.target.closest("[data-grade]")) return gradeCurrent();
+  if (event.target.closest("[data-archive]")) {
+    const id = session[currentIndex].id;
+    state.archived[id] = !state.archived[id];
+    queueSave();
+    return renderQuestion();
+  }
   if (event.target.closest("[data-flag]")) { const id = session[currentIndex].id; state.flags[id] = !state.flags[id]; queueSave(); return renderQuestion(); }
   const planSubjectButton = event.target.closest("[data-plan-subject]");
   if (planSubjectButton) { studySubject = planSubjectButton.dataset.planSubject; return renderPlan(); }
