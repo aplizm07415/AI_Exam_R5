@@ -958,23 +958,33 @@ function phaseChart(phase) {
   const start = new Date(`${phase.start}T00:00:00`);
   const end = new Date(`${phase.end}T23:59:59`);
   const totalDays = Math.max(1, Math.ceil((end - start) / 86400000));
-  const elapsed = clamp(Math.ceil((Math.min(new Date(), end) - start) / 86400000), 0, totalDays);
-  const totalPlan = Math.round((totalDays + 1) * phase.sessionSize * 6 / 7);
+  const elapsed = clamp(Math.floor((Math.min(new Date(), end) - start) / 86400000) + 1, 0, totalDays);
+  const totalPlan = Math.round(totalDays * phase.sessionSize * 6 / 7);
   const creditStart = new Date(`${phase.creditFrom || phase.start}T00:00:00`);
   const records = practiceRecords().filter((record) => { const date = new Date(record.answeredAt); return date >= creditStart && date <= end; });
   const maxY = Math.max(totalPlan, records.length, 1);
   const yTicks = [100, 75, 50, 25, 0].map((ratio) => Math.round(maxY * ratio / 100));
-  const points = [`0,${100 - workload.prelearning / maxY * 100}`];
-  for (let day = 1; day <= elapsed; day += 7) {
-    const sampleDay = Math.min(day + 6, elapsed);
+  const plot = { left: 5, right: 98, top: 5, bottom: 60 };
+  const x = (day) => plot.left + day / totalDays * (plot.right - plot.left);
+  const y = (count) => plot.bottom - count / maxY * (plot.bottom - plot.top);
+  const points = [`${x(0)},${y(workload.prelearning)}`];
+  for (let day = Math.min(7, elapsed); day <= elapsed && day > 0; day += 7) {
+    const sampleDay = Math.min(day, elapsed);
     const boundary = new Date(start.getTime() + sampleDay * 86400000);
     const count = records.filter((record) => new Date(record.answeredAt) < boundary).length;
-    points.push(`${sampleDay / totalDays * 100},${100 - count / maxY * 100}`);
+    points.push(`${x(sampleDay)},${y(count)}`);
+    if (sampleDay === elapsed) break;
   }
+  if (elapsed > 0 && elapsed % 7) {
+    const boundary = new Date(start.getTime() + elapsed * 86400000);
+    const count = records.filter((record) => new Date(record.answeredAt) < boundary).length;
+    points.push(`${x(elapsed)},${y(count)}`);
+  }
+  const actualEnd = points.at(-1).split(",");
   const status = workload.paceStatus === "ahead" ? "予定より進んでいます" : workload.paceStatus === "behind" ? "予定より遅れています" : "予定どおりです";
   const midpoint = new Date(start.getTime() + (end - start) / 2);
-  const endpoint = points.at(-1).split(",");
-  return `<article class="panel phase-chart"><div class="dashboard-card-head"><div><span class="eyebrow">PLAN / ACTUAL</span><h3>現在フェーズの予実</h3></div><strong class="pace-${workload.paceStatus}">${workload.variance >= 0 ? "+" : ""}${workload.variance}<small>問・${status}</small></strong></div><div class="phase-chart-frame"><div class="phase-chart-y" aria-hidden="true">${yTicks.map((tick) => `<span>${tick.toLocaleString()}</span>`).join("")}</div><svg viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="横軸が期間、縦軸が累計演習量の予実グラフ">${[0,25,50,75,100].map((y) => `<line class="gridline" x1="0" y1="${y}" x2="100" y2="${y}"/>`).join("")}<polyline class="planned" points="0,100 100,0"/><polyline class="actual" points="${points.join(" ")}"/><circle class="actual-point" cx="${endpoint[0]}" cy="${endpoint[1]}" r="1.4"/></svg></div><div class="phase-chart-x"><span>${formatMonthDay(phase.start)}</span><span>${new Intl.DateTimeFormat("ja-JP", { month: "numeric", day: "numeric" }).format(midpoint)}</span><span>${formatMonthDay(phase.end)}</span></div><div class="chart-axis-title">累計演習量（問）</div><div class="chart-legend"><span><i class="planned"></i>予定 ${workload.expected}問</span><span><i class="actual"></i>実績 ${workload.actual}問</span><span>${formatMonthDay(phase.start)}〜${formatMonthDay(phase.end)}</span></div>${phase.creditFrom ? `<p>8/17〜8/23の${workload.prelearning}問は先取り学習として実績へ加算します。</p>` : ""}</article>`;
+  const gridLines = [0, 25, 50, 75, 100].map((ratio) => plot.top + ratio / 100 * (plot.bottom - plot.top));
+  return `<article class="panel phase-chart"><div class="dashboard-card-head"><div><span class="eyebrow">PLAN / ACTUAL</span><h3>現在フェーズの予実</h3></div><strong class="pace-${workload.paceStatus}">${workload.variance >= 0 ? "+" : ""}${workload.variance}<small>問・${status}</small></strong></div><div class="phase-chart-frame"><div class="phase-chart-y" aria-hidden="true">${yTicks.map((tick) => `<span>${tick.toLocaleString()}</span>`).join("")}</div><svg viewBox="0 0 100 65" preserveAspectRatio="none" role="img" aria-label="横軸が期間、縦軸が累計演習量の予実グラフ">${gridLines.map((lineY) => `<line class="gridline" x1="${plot.left}" y1="${lineY}" x2="${plot.right}" y2="${lineY}"/>`).join("")}<polyline class="planned" points="${plot.left},${plot.bottom} ${plot.right},${y(totalPlan)}"/><polyline class="actual" points="${points.join(" ")}"/><circle class="actual-point" cx="${actualEnd[0]}" cy="${actualEnd[1]}" r="1.5"/></svg></div><div class="phase-chart-x"><span>${formatMonthDay(phase.start)}</span><span>${new Intl.DateTimeFormat("ja-JP", { month: "numeric", day: "numeric" }).format(midpoint)}</span><span>${formatMonthDay(phase.end)}</span></div><div class="chart-axis-title">累計演習量（問）</div><div class="chart-legend"><span><i class="planned"></i>予定 ${workload.expected}問</span><span><i class="actual"></i>実績 ${workload.actual}問</span><span>${formatMonthDay(phase.start)}〜${formatMonthDay(phase.end)}</span></div>${phase.creditFrom ? `<p>8/17〜8/23の${workload.prelearning}問は先取り学習として実績へ加算します。</p>` : ""}</article>`;
 }
 
 function renderOverview() {
