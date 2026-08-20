@@ -724,19 +724,151 @@ function renderQuestion() {
   app.innerHTML = `<section class="practice-layout"><div>
     <div class="session-progress"><span>${currentIndex + 1} / ${session.length}</span><i><b style="width:${((currentIndex + 1) / session.length) * 100}%"></b></i><small>${escapeHtml(question.difficulty)}・${question.minimumCourse}点${question.minimumCourse === 60 ? "基礎" : "追加"}層</small></div>
     <article class="question-card"><div class="question-meta"><span>${escapeHtml(subjectLabel(question.subject))}</span><span>${escapeHtml(question.topic)}</span><span>${escapeHtml(question.sourceId)}</span>${question.calculationRequired ? "<span>計算</span>" : ""}</div><h2>Q${currentIndex + 1}. ${escapeHtml(question.topic)}</h2><div class="prompt">${richText(question.prompt)}</div><div class="answer-area">${answerMarkup(question, feedback)}</div>
-      <div id="feedback">${feedback ? feedbackMarkup(feedback) : stored ? storedFeedbackMarkup(stored) : ""}</div>
+      <div id="feedback">${feedback ? feedbackMarkup(feedback, question) : stored ? storedFeedbackMarkup(stored) : ""}</div>
       <label class="note-wrap"><span>自分用メモ</span><textarea class="note-input" id="questionNote" placeholder="間違えた理由、覚え方、再確認日など">${escapeHtml(state.notes[question.id] || "")}</textarea></label>
     </article>
     <div class="actions"><button class="secondary" data-prev ${currentIndex === 0 ? "disabled" : ""}>← 前へ</button><button class="secondary" data-flag>${state.flags[question.id] ? "★ 見直し中" : "☆ 見直す"}</button>${stored || feedback ? `<button class="secondary" data-archive>${state.archived[question.id] ? "ARCHIVED" : "ARCHIVE"}</button>` : ""}<button class="primary" data-grade>採点・解説</button><button class="secondary" data-next ${currentIndex === session.length - 1 ? "disabled" : ""}>次へ →</button></div>
   </div><aside class="panel navigator"><span class="eyebrow">QUESTION MAP</span><h3>${escapeHtml(subjectLabel(question.subject))}</h3><div class="question-map">${session.map((item, index) => `<button class="map-button ${index === currentIndex ? "current" : ""} ${state.results[item.id] ? "done" : ""} ${state.flags[item.id] ? "flagged" : ""}" data-jump="${index}">${index + 1}</button>`).join("")}</div><button class="text-button" data-view="progress">学習記録を見る →</button></aside>${question.calculationRequired ? calculatorMarkup() : ""}</section>`;
 }
 
-function feedbackMarkup(result) {
-  return `<div class="feedback ${result.correct ? "correct" : "incorrect"}"><strong>${result.correct ? "正解です" : "不正解です"}</strong><div class="explanation">${richText(result.explanation || "解説はありません。")}</div></div>`;
+function feedbackMarkup(result, question = session[currentIndex]) {
+  return `<div class="feedback visual-feedback ${result.correct ? "correct" : "incorrect"}"><div class="feedback-result-banner"><span>${result.correct ? "CORRECT" : "REVIEW"}</span><strong>${result.correct ? "正解です" : "不正解です"}</strong><p>${result.correct ? "判断の流れを確認して、次も再現できる形にします。" : "正答との差を、条件と判断順序から確認します。"}</p></div>${guidedFeedbackExplanationMarkup(question, result)}</div>`;
 }
 
 function storedFeedbackMarkup(result) {
   return `<div class="feedback ${result.correct ? "correct" : "incorrect"}"><strong>前回：${result.correct ? "正解" : "不正解"}</strong><p>「採点・解説」を押すと解説を再表示します。</p></div>`;
+}
+
+const sampleVisualConfig = {
+  finance: {
+    eyebrow: "FINANCE MAP",
+    title: "数値と会計上の行き先をつなぐ",
+    route: ["条件・数値", "計算／会計ルール", "財務諸表への影響", "正答"]
+  },
+  operations: {
+    eyebrow: "OPERATION FLOW",
+    title: "現場の流れと評価軸で捉える",
+    route: ["投入・前提", "工程／管理手法", "QCD・効率への効果", "正答"]
+  },
+  law: {
+    eyebrow: "LEGAL FRAME",
+    title: "主体・原則・例外を分けて照合する",
+    route: ["誰が・何を", "原則の手続", "要件・例外", "法的効果と正答"]
+  },
+  sme: {
+    eyebrow: "POLICY & DATA",
+    title: "対象・基準・年度を固定して読む",
+    route: ["制度／統計の対象", "人数・金額・年度", "支援内容／傾向", "正答"]
+  }
+};
+
+const sampleKeywords = {
+  finance: ["資産", "負債", "純資産", "利益", "キャッシュフロー", "原価", "ROA", "NPV", "資本コスト", "税効果", "仕訳", "リスク"],
+  operations: ["4M", "QCD", "PQCDSME", "ECRS", "SLP", "在庫", "発注", "物流", "レイアウト", "品質", "生産性", "工程", "店舗"],
+  law: ["会社法", "民法", "株主", "取締役", "特許", "商標", "著作権", "契約", "対抗要件", "決議", "期間", "例外"],
+  sme: ["中小企業", "小規模事業者", "白書", "補助金", "融資", "共済", "従業員", "開業率", "倒産", "支援", "認定", "年度"]
+};
+
+function compactSampleText(value, maximum = 190) {
+  const text = String(value || "")
+    .replace(/[#*_`]/g, "")
+    .replace(/^\s*[-・]\s*/gmu, "")
+    .replace(/^(?:まず|次に|続いて|最後に)[、,]\s*/u, "")
+    .replace(/\s+/gu, " ")
+    .trim();
+  return text.length > maximum ? `${text.slice(0, maximum).trim()}…` : text;
+}
+
+function sampleExplanationSteps(sample) {
+  let blocks = String(sample.explanation || "").split(/\n{2,}/u).map((block) => compactSampleText(block)).filter(Boolean);
+  if (blocks.length < 3) {
+    blocks = (String(sample.explanation || "").match(/[^。！？\n]+[。！？]?/gu) || []).map((block) => compactSampleText(block)).filter(Boolean);
+  }
+  const fallback = [
+    "問題文から主体・数値・時点などの条件を拾います。",
+    "科目固有のルールや計算式に当てはめます。",
+    "各選択肢との差分を確認して答案へ落とし込みます。"
+  ];
+  return [0, 1, 2].map((index) => blocks[index] || fallback[index]);
+}
+
+function sampleConditionTokens(sample) {
+  const text = `${sample.prompt || ""}\n${sample.originalExplanation || sample.explanation || ""}`;
+  const tokens = [sample.topic];
+  for (const match of text.matchAll(/[「【]([^」】]{2,28})[」】]/gu)) tokens.push(match[1]);
+  for (const keyword of sampleKeywords[sample.subject] || []) if (text.includes(keyword)) tokens.push(keyword);
+  for (const match of text.matchAll(/(?:19|20)\d{2}年度?|\d+(?:[,.]\d+)*(?:万円|千円|百万円|億円|人|社|年|か月|%|％|倍)/gu)) tokens.push(match[0]);
+  return [...new Set(tokens.map((token) => compactSampleText(token, 30)).filter(Boolean))].slice(0, 9);
+}
+
+function financeSampleVisual(sample, tokens) {
+  const text = `${sample.prompt || ""}\n${sample.originalExplanation || sample.explanation || ""}`;
+  const formulaCandidates = (text.match(/[^。！？\n]{0,70}(?:＝|=|÷|×)[^。！？\n]{0,90}/gu) || [])
+    .map((item) => compactSampleText(item, 140)).filter((item, index, values) => item && values.indexOf(item) === index).slice(0, 2);
+  const destinations = [
+    ["B/S", "貸借対照表", /資産|負債|純資産|貸借対照表/u],
+    ["P/L", "損益計算書", /利益|収益|費用|売上|損益計算書/u],
+    ["C/F", "資金の流れ", /キャッシュ|CF|現金|資金/u],
+    ["COST", "原価の集計", /原価|仕掛品|材料|賃金/u]
+  ].filter(([, , pattern]) => pattern.test(text));
+  return `<div class="finance-visual">
+    <div class="formula-stack">${formulaCandidates.length ? formulaCandidates.map((formula) => `<div><small>式・関係</small><strong>${escapeHtml(formula)}</strong></div>`).join("") : `<div><small>拾った条件</small><strong>${tokens.slice(1, 5).map(escapeHtml).join(" ／ ") || "会計ルールを確認"}</strong></div>`}</div>
+    <span class="visual-arrow" aria-hidden="true">→</span>
+    <div class="statement-destinations">${(destinations.length ? destinations : [["RULE", "会計上の分類"]]).map(([code, label]) => `<div><b>${code}</b><span>${label}</span></div>`).join("")}</div>
+  </div>`;
+}
+
+function operationsSampleVisual(sample, tokens) {
+  const route = [tokens.slice(1, 3).join("・") || "現場条件", sample.topic, tokens.find((token) => /QCD|品質|生産性|効率|在庫/u.test(token)) || "品質・コスト・納期", `選択肢 ${sample.answer}`];
+  return `<div class="process-visual">${route.map((item, index) => `<div><small>${index + 1}</small><strong>${escapeHtml(item)}</strong></div>${index < route.length - 1 ? '<span aria-hidden="true">→</span>' : ""}`).join("")}</div>`;
+}
+
+function lawSampleVisual(sample, tokens) {
+  const labels = ["主体", "原則", "要件・例外", "効果"];
+  const values = [tokens.find((token) => /会社|株主|取締役|権利者|当事者/u.test(token)) || "誰に適用されるか", "どの手続・決議が原則か", "期間・対抗要件・例外は何か", `選択肢 ${sample.answer} と一致`];
+  return `<div class="legal-visual">${labels.map((label, index) => `<div><small>${label}</small><strong>${escapeHtml(values[index])}</strong></div>`).join("")}</div>`;
+}
+
+function smeSampleVisual(sample, tokens) {
+  const period = tokens.find((token) => /年度|年$|%|％/u.test(token)) || "基準時点を確認";
+  const target = tokens.find((token) => /企業|事業者|従業員/u.test(token)) || "対象企業を確認";
+  return `<div class="policy-visual"><div><span>TARGET</span><strong>${escapeHtml(target)}</strong><small>対象者・業種</small></div><div><span>WHEN / VALUE</span><strong>${escapeHtml(period)}</strong><small>年度・人数・金額</small></div><div><span>OUTCOME</span><strong>選択肢 ${escapeHtml(sample.answer)}</strong><small>支援内容・統計傾向</small></div></div>`;
+}
+
+function subjectSampleVisual(sample, tokens) {
+  const config = sampleVisualConfig[sample.subject] || sampleVisualConfig.operations;
+  const diagram = sample.subject === "finance" ? financeSampleVisual(sample, tokens)
+    : sample.subject === "law" ? lawSampleVisual(sample, tokens)
+      : sample.subject === "sme" ? smeSampleVisual(sample, tokens)
+        : operationsSampleVisual(sample, tokens);
+  return `<section class="sample-section subject-visual-card subject-${sample.subject}"><header><div><span class="eyebrow">${config.eyebrow}</span><h3>${config.title}</h3></div><span class="visual-kind">科目別ビュー</span></header>${diagram}<div class="visual-route-legend">${config.route.map((item, index) => `<span><b>${index + 1}</b>${item}</span>`).join("")}</div></section>`;
+}
+
+function originalExplanationMarkup(sample) {
+  return `<details class="original-explanation"><summary><span><small>ORIGINAL</small>元教材の解説</span><em>クリックして表示</em></summary><div class="original-explanation-body">${richText(sample.originalExplanation || sample.explanation || "解説はありません。")}</div></details>`;
+}
+
+function guidedFeedbackExplanationMarkup(question = {}, result = {}) {
+  const answer = Array.isArray(result.correctAnswer) ? result.correctAnswer.join("・") : String(result.correctAnswer ?? "—");
+  const answerText = result.correctAnswerText || question.options?.find((option) => String(option.id) === answer)?.label || answer;
+  const explanation = {
+    ...question,
+    subject: result.subject || question.subject,
+    topic: result.topic || question.topic,
+    answer,
+    correctAnswerText: answerText,
+    explanation: result.explanation || "解説はありません。",
+    originalExplanation: result.originalExplanation || result.explanation || "解説はありません。"
+  };
+  const tokens = sampleConditionTokens(explanation);
+  const steps = sampleExplanationSteps(explanation);
+  return `<div class="guided-feedback-explanation">
+    <section class="sample-section feedback-stage feedback-conditions"><div class="sample-section-label"><span>01</span><div><small>READ</small><strong>条件を整理する</strong></div></div><p class="feedback-stage-lead">${escapeHtml(steps[0])}</p><div class="condition-tokens" aria-label="注目する条件">${tokens.map((token) => `<span>${escapeHtml(token)}</span>`).join("")}</div></section>
+    <section class="sample-section feedback-stage"><div class="sample-section-label"><span>02</span><div><small>THINK</small><strong>判断の順序</strong></div></div><div class="reasoning-steps">${steps.map((step, stepIndex) => `<div><span>STEP ${stepIndex + 1}</span><strong>${["条件を固定", "ルールを適用", "答案と照合"][stepIndex]}</strong><p>${escapeHtml(step)}</p></div>`).join("")}</div></section>
+    ${subjectSampleVisual(explanation, tokens)}
+    <section class="sample-section feedback-stage"><div class="sample-section-label"><span>03</span><div><small>ANSWER</small><strong>正答へ落とし込む</strong></div></div><div class="sample-answer-callout"><span>正答</span><strong>${escapeHtml(answer)}</strong><p>${escapeHtml(answerText)}</p></div></section>
+    ${originalExplanationMarkup(explanation)}
+  </div>`;
 }
 
 function collectAnswer() {
@@ -769,7 +901,7 @@ async function gradeCurrent() {
     recordSessionResult(state.results[question.id]);
     recordActivity("answer", fullResult.correct);
     refreshAutoPlanCompletion();
-    document.querySelector("#feedback").innerHTML = feedbackMarkup(fullResult);
+    document.querySelector("#feedback").innerHTML = feedbackMarkup(fullResult, question);
     document.querySelector(`.map-button[data-jump="${currentIndex}"]`)?.classList.add("done");
     queueSave();
   } catch { alert("採点できませんでした。接続を確認してください。"); }

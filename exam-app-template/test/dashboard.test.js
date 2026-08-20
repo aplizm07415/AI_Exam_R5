@@ -80,6 +80,9 @@ test("ダッシュボード・全体確認・学習記録・実施履歴を描�
   assert.match(elements["#app"].innerHTML, /choice[^"']*is-incorrect/);
   assert.doesNotMatch(elements["#app"].innerHTML, /正答：/);
   assert.match(elements["#app"].innerHTML, /<a href="https:\/\/example\.com\/source" target="_blank" rel="noopener noreferrer">/);
+  assert.match(elements["#app"].innerHTML, /guided-feedback-explanation/);
+  assert.match(elements["#app"].innerHTML, /FINANCE MAP/);
+  assert.match(elements["#app"].innerHTML, /元教材の解説/);
 
   const gates = vm.runInContext(`(() => {
     const originalSessions = state.sessions;

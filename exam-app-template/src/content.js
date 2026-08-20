@@ -74,7 +74,8 @@ function normalizeQuestion(subject, rawQuestion) {
     answer: normalizeChoiceId(correction.answer || rawQuestion.answer),
     points: 1,
     calculationRequired: needsCalculator,
-    explanation
+    explanation,
+    originalExplanation: correction.explanation || explanationOverrides[id] || rawExplanation
   };
 }
 
@@ -87,7 +88,8 @@ function normalizeSupplementalQuestion(rawQuestion) {
     options,
     answer: normalizeChoiceId(rawQuestion.answer),
     calculationRequired: rawQuestion.calculationRequired ?? calculationRequired({ question_text: rawQuestion.prompt }),
-    explanation: normalizeExplanationChoiceReferences(formatExplanation(rawQuestion.explanation), options.map((option) => option.id))
+    explanation: normalizeExplanationChoiceReferences(formatExplanation(rawQuestion.explanation), options.map((option) => option.id)),
+    originalExplanation: rawQuestion.explanation
   };
   return question;
 }
@@ -139,7 +141,7 @@ const content = validateContent({ ...rawConfig, questions: loadQuestions() });
 const questionsById = new Map(content.questions.map((question) => [question.id, question]));
 
 function publicQuestion(question) {
-  const { answer, aliases, tolerance, explanation, ...visible } = question;
+  const { answer, aliases, tolerance, explanation, originalExplanation, ...visible } = question;
   return visible;
 }
 

@@ -44,7 +44,8 @@ function gradeQuestion(question, submitted) {
     normalizedAnswer,
     correctAnswer: question.answer,
     correctAnswerText: question.options?.find((option) => String(option.id) === String(question.answer))?.label || String(question.answer),
-    explanation: question.explanation || ""
+    explanation: question.explanation || "",
+    originalExplanation: question.originalExplanation || question.explanation || ""
   };
 }
 

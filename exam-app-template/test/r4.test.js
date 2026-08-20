@@ -47,6 +47,7 @@ test("公開カタログは正答・解説・Azureファイル名を配信しな
   assert.equal(selected.questions.length, 3);
   assert.equal("answer" in selected.questions[0], false);
   assert.equal("explanation" in selected.questions[0], false);
+  assert.equal("originalExplanation" in selected.questions[0], false);
 });
 
 test("60・70・80点コースで問題範囲を段階開放する", () => {
@@ -84,10 +85,19 @@ test("通常問題と令和8年度公式模試をサーバー採点する", () =
   const graded = gradeQuestion(question, question.answer);
   assert.equal(graded.correct, true);
   assert.ok(graded.correctAnswerText);
+  assert.equal(graded.originalExplanation, question.originalExplanation);
   const officialAnswers = Object.fromEntries(officialExam.subjects.finance.answers.map((item) => [item.id, item.answer]));
   const mock = gradeOfficialExam(officialExam, "finance", officialAnswers);
   assert.equal(mock.score, 100);
   assert.equal(mock.maxScore, 100);
+});
+
+test("全問題が採点後の順序型解説に必要な元解説を持つ", () => {
+  for (const question of content.questions) {
+    const result = gradeQuestion(question, question.answer);
+    assert.ok(result.explanation, `${question.id}: 整形済み解説`);
+    assert.ok(result.originalExplanation, `${question.id}: 元解説`);
+  }
 });
 
 test("教材設定の不整合を起動前に検出する", () => {
@@ -113,6 +123,9 @@ test("APIがカタログ・問題・採点・公式模試を提供する", async
   const mock = await dispatch("/api/mock/grade", { method: "POST", body: JSON.stringify({ subjectId: "finance", answers: {} }) });
   assert.equal(mock.status, 200);
   assert.equal((await mock.json()).score, 0);
+
+  const removedSamples = await dispatch("/api/explanation-samples");
+  assert.equal(removedSamples.status, 404);
 });
 
 test("保存状態はR4の許可フィールドだけ受け付ける", () => {
