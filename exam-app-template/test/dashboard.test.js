@@ -65,15 +65,18 @@ test("ダッシュボード・全体確認・学習記録・実施履歴を描�
   context.setView("practice");
   assert.match(elements["#app"].innerHTML, /除外問題を管理/);
   context.setView("archive");
-  assert.match(elements["#app"].innerHTML, /今後の演習から除外した問題/);
+  assert.match(elements["#app"].innerHTML, /演習対象から外した問題/);
   assert.match(elements["#app"].innerHTML, /finance:test/);
-  assert.match(elements["#app"].innerHTML, /演習へ戻す/);
+  assert.match(elements["#app"].innerHTML, /財務・会計/);
+  assert.match(elements["#app"].innerHTML, /運営管理/);
+  assert.match(elements["#app"].innerHTML, /演習対象に戻す/);
 
   vm.runInContext(`begin([{ id: "finance:ui-test", sourceId: "ui-test", subject: "finance", topic: "UI確認", difficulty: "基礎", minimumCourse: 60, calculationRequired: true, options: [{ id: "ア", label: "選択肢A" }, { id: "イ", label: "選択肢B" }] }], { label: "UI確認" })`, context);
   assert.match(elements["#app"].innerHTML, /role="checkbox"/);
   assert.match(elements["#app"].innerHTML, /左の縦チェックは「除外」/);
   assert.match(elements["#app"].innerHTML, /calculator is-minimized/);
   assert.doesNotMatch(elements["#app"].innerHTML, /type="radio"/);
+  assert.doesNotMatch(elements["#app"].innerHTML, /data-archive/);
 
   vm.runInContext(`state.answers["finance:ui-test"] = "イ"; feedbackCache.set("finance:ui-test", { correct: false, correctAnswer: "ア", explanation: "まず、条件を確認します。\\n\\n次に、式へ代入します。\\n\\n最後に、結果を確認します。出典 https://example.com/source" }); renderQuestion()`, context);
   assert.match(elements["#app"].innerHTML, /choice[^"']*is-correct/);
@@ -83,6 +86,27 @@ test("ダッシュボード・全体確認・学習記録・実施履歴を描�
   assert.match(elements["#app"].innerHTML, /guided-feedback-explanation/);
   assert.match(elements["#app"].innerHTML, /FINANCE MAP/);
   assert.match(elements["#app"].innerHTML, /元教材の解説/);
+  assert.match(elements["#app"].innerHTML, /アーカイブにする/);
+
+  const archiveRule = vm.runInContext(`(() => {
+    const originalSessions = state.sessions;
+    const originalArchived = state.archived;
+    const originalResets = state.archiveResets;
+    const record = (day, correct = true) => ({ questionId: "finance:auto-test", subject: "finance", topic: "自動判定", correct, answeredAt: new Date(2026, 7, day, 12).toISOString() });
+    state.sessions = [{ id: "auto-days", results: [record(20), record(20), record(21), record(22)] }];
+    state.archived = {};
+    state.archiveResets = {};
+    const distinctDayStreak = consecutiveCorrectDayCount("finance:auto-test");
+    const archived = autoArchiveMasteredQuestion("finance:auto-test");
+    const reason = state.archived["finance:auto-test"].reason;
+    restoreArchivedQuestion("finance:auto-test");
+    const resetStreak = consecutiveCorrectDayCount("finance:auto-test");
+    state.sessions = originalSessions;
+    state.archived = originalArchived;
+    state.archiveResets = originalResets;
+    return { distinctDayStreak, archived, reason, resetStreak };
+  })()`, context);
+  assert.deepEqual(JSON.parse(JSON.stringify(archiveRule)), { distinctDayStreak: 3, archived: true, reason: "auto", resetStreak: 0 });
 
   const gates = vm.runInContext(`(() => {
     const originalSessions = state.sessions;
@@ -106,4 +130,9 @@ test("ダッシュボード・全体確認・学習記録・実施履歴を描�
   context.removeSession("session-test");
   context.renderHistory();
   assert.doesNotMatch(elements["#app"].innerHTML, /削除確認セッション/);
+});
+
+test("サイドバーにアーカイブタブがある", () => {
+  const html = fs.readFileSync(path.join(__dirname, "..", "public", "index.html"), "utf8");
+  assert.match(html, /data-view="archive"[^>]*><span>08<\/span>アーカイブ/);
 });

@@ -26,6 +26,7 @@ function freshState() {
     results: {},
     flags: {},
     archived: {},
+    archiveResets: {},
     notes: {},
     attempts: {},
     recent: [],
@@ -119,6 +120,7 @@ function mergeState(value) {
     results: { ...(value?.results || {}) },
     flags: { ...(value?.flags || {}) },
     archived: { ...(value?.archived || {}) },
+    archiveResets: { ...(value?.archiveResets || {}) },
     notes: { ...(value?.notes || {}) },
     attempts: { ...(value?.attempts || {}) },
     recent: Array.isArray(value?.recent) ? value.recent.slice(0, 100) : [],
@@ -212,6 +214,28 @@ function setView(view) {
 
 function allResults() {
   return Object.values(state.results);
+}
+
+function isArchived(questionId) {
+  const entry = state.archived[questionId];
+  return entry === true || Boolean(entry?.archivedAt);
+}
+
+function archiveCount() {
+  return Object.keys(state.archived).filter(isArchived).length;
+}
+
+function archiveQuestion(questionId, reason = "manual", correctDayStreak = 0) {
+  state.archived[questionId] = {
+    archivedAt: new Date().toISOString(),
+    reason,
+    correctDayStreak
+  };
+}
+
+function restoreArchivedQuestion(questionId) {
+  delete state.archived[questionId];
+  state.archiveResets[questionId] = new Date().toISOString();
 }
 
 function stats(results = allResults()) {
@@ -370,6 +394,29 @@ function recordSessionResult(result) {
   };
   activeSession.results.push(record);
   activeSession.lastActivityAt = record.answeredAt;
+}
+
+function consecutiveCorrectDayCount(questionId) {
+  const resetAt = state.archiveResets[questionId] ? new Date(state.archiveResets[questionId]) : null;
+  const dailyResults = new Map();
+  const records = practiceRecords()
+    .filter((record) => record.questionId === questionId && (!resetAt || new Date(record.answeredAt) > resetAt))
+    .sort((a, b) => new Date(a.answeredAt) - new Date(b.answeredAt));
+  for (const record of records) dailyResults.set(localDateKey(record.answeredAt), record.correct);
+  let streak = 0;
+  for (const correct of [...dailyResults.values()].reverse()) {
+    if (!correct) break;
+    streak += 1;
+  }
+  return streak;
+}
+
+function autoArchiveMasteredQuestion(questionId) {
+  if (isArchived(questionId)) return false;
+  const streak = consecutiveCorrectDayCount(questionId);
+  if (streak < 3) return false;
+  archiveQuestion(questionId, "auto", streak);
+  return true;
 }
 
 function strictCriteria(score) {
@@ -644,10 +691,10 @@ function renderLibrary() {
       <button class="primary" data-start-filtered>この条件で開始</button>
     </div>
     <div class="quick-grid">
-      <button class="quick-card" data-review="incorrect"><span>RETRY</span><strong>誤答だけ</strong><small>${Object.entries(state.results).filter(([id, result]) => !result.correct && !state.archived[id]).length}問</small></button>
-      <button class="quick-card" data-review="flagged"><span>FLAGGED</span><strong>見直しだけ</strong><small>${Object.entries(state.flags).filter(([id, value]) => value && !state.archived[id]).length}問</small></button>
+      <button class="quick-card" data-review="incorrect"><span>RETRY</span><strong>誤答だけ</strong><small>${Object.entries(state.results).filter(([id, result]) => !result.correct && !isArchived(id)).length}問</small></button>
+      <button class="quick-card" data-review="flagged"><span>FLAGGED</span><strong>見直しだけ</strong><small>${Object.entries(state.flags).filter(([id, value]) => value && !isArchived(id)).length}問</small></button>
       <button class="quick-card" data-review="adaptive"><span>ADAPTIVE</span><strong>弱点優先</strong><small>誤答 → 見直し → 未着手</small></button>
-      <button class="quick-card" data-view="archive"><span>ARCHIVE</span><strong>除外問題を管理</strong><small>${Object.values(state.archived).filter(Boolean).length}問</small></button>
+      <button class="quick-card" data-view="archive"><span>ARCHIVE</span><strong>除外問題を管理</strong><small>${archiveCount()}問</small></button>
     </div>
     <div class="panel legend"><strong>段階開放のルール</strong><p><b>60点</b>：core論点中心　<b>70点</b>：standardまで拡張　<b>80点</b>：発展・新傾向を含む全範囲</p></div>
   </section>`;
@@ -665,7 +712,7 @@ async function beginRemote(params, meta = {}) {
   try {
     const desired = Math.max(1, Math.min(100, Number(params.limit) || 20));
     const result = await fetchQuestions({ ...params, limit: params.ids ? desired : 100 });
-    const available = result.questions.filter((question) => !state.archived[question.id]).slice(0, desired);
+    const available = result.questions.filter((question) => !isArchived(question.id)).slice(0, desired);
     begin(available, { ...meta, filters: params });
   } catch {
     app.innerHTML = '<div class="panel empty">問題を読み込めませんでした。接続を確認してください。</div>';
@@ -727,7 +774,7 @@ function renderQuestion() {
       <div id="feedback">${feedback ? feedbackMarkup(feedback, question) : stored ? storedFeedbackMarkup(stored) : ""}</div>
       <label class="note-wrap"><span>自分用メモ</span><textarea class="note-input" id="questionNote" placeholder="間違えた理由、覚え方、再確認日など">${escapeHtml(state.notes[question.id] || "")}</textarea></label>
     </article>
-    <div class="actions"><button class="secondary" data-prev ${currentIndex === 0 ? "disabled" : ""}>← 前へ</button><button class="secondary" data-flag>${state.flags[question.id] ? "★ 見直し中" : "☆ 見直す"}</button>${stored || feedback ? `<button class="secondary" data-archive>${state.archived[question.id] ? "ARCHIVED" : "ARCHIVE"}</button>` : ""}<button class="primary" data-grade>採点・解説</button><button class="secondary" data-next ${currentIndex === session.length - 1 ? "disabled" : ""}>次へ →</button></div>
+    <div class="actions"><button class="secondary" data-prev ${currentIndex === 0 ? "disabled" : ""}>← 前へ</button><button class="secondary" data-flag>${state.flags[question.id] ? "★ 見直し中" : "☆ 見直す"}</button>${feedback ? `<button class="secondary archive-action" data-archive>${isArchived(question.id) ? "アーカイブを解除" : "アーカイブにする"}</button>` : ""}<button class="primary" data-grade>採点・解説</button><button class="secondary" data-next ${currentIndex === session.length - 1 ? "disabled" : ""}>次へ →</button></div>
   </div><aside class="panel navigator"><span class="eyebrow">QUESTION MAP</span><h3>${escapeHtml(subjectLabel(question.subject))}</h3><div class="question-map">${session.map((item, index) => `<button class="map-button ${index === currentIndex ? "current" : ""} ${state.results[item.id] ? "done" : ""} ${state.flags[item.id] ? "flagged" : ""}" data-jump="${index}">${index + 1}</button>`).join("")}</div><button class="text-button" data-view="progress">学習記録を見る →</button></aside>${question.calculationRequired ? calculatorMarkup() : ""}</section>`;
 }
 
@@ -899,11 +946,11 @@ async function gradeCurrent() {
     state.attempts[question.id] = { count: previous.count + 1, correct: previous.correct + (fullResult.correct ? 1 : 0), lastAt: new Date().toISOString() };
     state.recent = [question.id, ...state.recent.filter((id) => id !== question.id)].slice(0, 100);
     recordSessionResult(state.results[question.id]);
+    autoArchiveMasteredQuestion(question.id);
     recordActivity("answer", fullResult.correct);
     refreshAutoPlanCompletion();
-    document.querySelector("#feedback").innerHTML = feedbackMarkup(fullResult, question);
-    document.querySelector(`.map-button[data-jump="${currentIndex}"]`)?.classList.add("done");
     queueSave();
+    renderQuestion();
   } catch { alert("採点できませんでした。接続を確認してください。"); }
 }
 
@@ -1051,16 +1098,25 @@ function renderProgress() {
 
 function archivedQuestionSummaries() {
   return Object.entries(state.archived)
-    .filter(([, archived]) => archived)
-    .map(([id]) => ({ id, ...(state.results[id] || {}) }))
-    .sort((a, b) => new Date(b.answeredAt || 0) - new Date(a.answeredAt || 0));
+    .filter(([id]) => isArchived(id))
+    .map(([id, archive]) => ({
+      id,
+      ...(state.results[id] || {}),
+      archivedAt: archive === true ? state.results[id]?.answeredAt : archive.archivedAt,
+      archiveReason: archive === true ? "manual" : archive.reason,
+      correctDayStreak: archive === true ? 0 : Number(archive.correctDayStreak) || 0
+    }))
+    .sort((a, b) => new Date(b.archivedAt || b.answeredAt || 0) - new Date(a.archivedAt || a.answeredAt || 0));
 }
 
 function renderArchive() {
-  pageTitle.textContent = "ARCHIVE管理";
+  pageTitle.textContent = "アーカイブ";
   const archived = archivedQuestionSummaries();
-  app.innerHTML = `<section class="view-stack"><div class="section-heading"><div><span class="eyebrow">ARCHIVE</span><h2>今後の演習から除外した問題</h2><p>簡単すぎるなどの理由で除外した問題です。戻すと、通常演習・復習・自動割当の対象へ復帰します。</p></div><button class="secondary" data-view="practice">問題演習へ戻る</button></div>
-    <div class="archive-list">${archived.map((item) => `<article class="panel archive-row"><div><span>${escapeHtml(subjectLabel(item.subject || "unknown"))}</span><strong>${escapeHtml(item.topic || item.id)}</strong><small>${escapeHtml(item.id)}${item.answeredAt ? `・${escapeHtml(new Intl.DateTimeFormat("ja-JP", { dateStyle: "medium" }).format(new Date(item.answeredAt)))}` : ""}</small></div><button class="secondary" data-unarchive="${escapeHtml(item.id)}">演習へ戻す</button></article>`).join("") || '<div class="panel empty">ARCHIVEした問題はありません。</div>'}</div>
+  app.innerHTML = `<section class="view-stack"><div class="section-heading"><div><span class="eyebrow">ARCHIVE</span><h2>演習対象から外した問題</h2><p>異なる3日で連続正解した問題は自動で追加されます。戻すと通常演習・復習・自動割当の対象へ復帰します。</p></div><span class="archive-total">${archived.length}問</span></div>
+    <div class="archive-subjects">${content.subjects.map((subject) => {
+      const items = archived.filter((item) => item.subject === subject.id);
+      return `<section class="archive-subject panel"><header><div><span class="eyebrow">${escapeHtml(subject.shortLabel)}</span><h3>${escapeHtml(subject.label)}</h3></div><strong>${items.length}<small>問</small></strong></header><div class="archive-list">${items.map((item) => `<article class="archive-row"><div><span>${item.archiveReason === "auto" ? `自動・${item.correctDayStreak}日連続正解` : "手動で追加"}</span><strong>${escapeHtml(item.topic || item.id)}</strong><small>${escapeHtml(item.id)}${item.archivedAt ? `・${escapeHtml(new Intl.DateTimeFormat("ja-JP", { dateStyle: "medium" }).format(new Date(item.archivedAt)))}に追加` : ""}</small></div><button class="secondary" data-unarchive="${escapeHtml(item.id)}">演習対象に戻す</button></article>`).join("") || '<div class="archive-empty">この科目のアーカイブはありません。</div>'}</div></section>`;
+    }).join("")}</div>
   </section>`;
 }
 
@@ -1133,8 +1189,8 @@ function renderOverview() {
 }
 
 async function startReview(mode) {
-  const incorrect = Object.entries(state.results).filter(([id, result]) => !result.correct && !state.archived[id]).map(([id]) => id);
-  const flagged = Object.entries(state.flags).filter(([id, value]) => value && !state.archived[id]).map(([id]) => id);
+  const incorrect = Object.entries(state.results).filter(([id, result]) => !result.correct && !isArchived(id)).map(([id]) => id);
+  const flagged = Object.entries(state.flags).filter(([id, value]) => value && !isArchived(id)).map(([id]) => id);
   let ids = mode === "incorrect" ? incorrect : mode === "flagged" ? flagged : [...new Set([...incorrect, ...flagged])];
   if (ids.length) return beginRemote({ ids: ids.slice(0, 50).join(","), limit: Math.min(50, ids.length) }, { type: "review", label: mode === "incorrect" ? "誤答復習" : mode === "flagged" ? "見直し復習" : "弱点優先復習" });
   const subject = recommendedSubject();
@@ -1148,7 +1204,7 @@ async function beginDailyAllocation() {
   const requests = content.subjects.map((subject) => {
     const done = todayRecords.filter((record) => record.subject === subject.id).length;
     const remaining = Math.max(0, workload.allocation[subject.id] - done);
-    return remaining ? fetchQuestions({ subject: subject.id, limit: Math.min(100, Math.max(remaining * 4, remaining)), seed: `${todayKey}:${subject.id}` }).then((result) => ({ questions: result.questions.filter((question) => !state.archived[question.id]).slice(0, remaining) })) : Promise.resolve({ questions: [] });
+    return remaining ? fetchQuestions({ subject: subject.id, limit: Math.min(100, Math.max(remaining * 4, remaining)), seed: `${todayKey}:${subject.id}` }).then((result) => ({ questions: result.questions.filter((question) => !isArchived(question.id)).slice(0, remaining) })) : Promise.resolve({ questions: [] });
   });
   app.innerHTML = '<div class="panel loading">本日の遅延補正と科目配分からセッションを組み立てています…</div>';
   try {
@@ -1164,7 +1220,7 @@ async function beginDailyAllocation() {
 document.addEventListener("click", (event) => {
   const unarchiveButton = event.target.closest("[data-unarchive]");
   if (unarchiveButton) {
-    delete state.archived[unarchiveButton.dataset.unarchive];
+    restoreArchivedQuestion(unarchiveButton.dataset.unarchive);
     queueSave();
     return renderArchive();
   }
@@ -1218,8 +1274,8 @@ document.addEventListener("click", (event) => {
   if (event.target.closest("[data-grade]")) return gradeCurrent();
   if (event.target.closest("[data-archive]")) {
     const id = session[currentIndex].id;
-    if (state.archived[id]) delete state.archived[id];
-    else state.archived[id] = true;
+    if (isArchived(id)) restoreArchivedQuestion(id);
+    else archiveQuestion(id, "manual");
     queueSave();
     return renderQuestion();
   }
