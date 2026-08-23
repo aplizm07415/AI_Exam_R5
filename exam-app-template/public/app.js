@@ -9,6 +9,9 @@ let activeSession = null;
 let currentIndex = 0;
 let databaseEnabled = false;
 let saveTimer = null;
+let saveInFlight = false;
+let savePending = false;
+let remoteVersion = 0;
 let studySubject = "finance";
 let mockSubject = null;
 let mockEndAt = null;
@@ -17,6 +20,8 @@ let mockTimer = null;
 let state = freshState();
 const feedbackCache = new Map();
 const eliminatedChoices = new Map();
+const dirtySessionRevisions = new Map();
+const deletedSessionIds = new Set();
 let calculatorState = CalculatorCore.initialState({ minimized: true });
 
 function freshState() {
@@ -33,7 +38,7 @@ function freshState() {
     mockResults: {},
     activity: {},
     sessions: [],
-    plan: { targetScore: 60, completed: {}, autoCompleted: {} },
+    plan: { targetScore: 60, foundationCheckpoint: 1, completed: {}, autoCompleted: {} },
     startedAt: null,
     savedAt: null
   };
@@ -161,6 +166,7 @@ function mergeState(value) {
     merged.sessions.push({ id: `legacy-mock-${subjectId}-${localDateKey(finishedAt)}`, type: "official-mock", label: `令和8年度 ${subjectLabel(subjectId)} 公式模試`, subject: subjectId, course: 80, startedAt: finishedAt, finishedAt, lastActivityAt: finishedAt, questionCount: content.officialExam.subjects[subjectId]?.answerSlots.length || 0, mockMinutes: 0, summary: { score: result.score || 0, maxScore: result.maxScore || 100, answered: 0 }, results: [] });
   }
   if (![60, 70, 80].includes(Number(merged.plan.targetScore))) merged.plan.targetScore = 60;
+  if (![1, 2, 3].includes(Number(merged.plan.foundationCheckpoint))) merged.plan.foundationCheckpoint = 1;
   return merged;
 }
 
@@ -171,31 +177,109 @@ async function initializePersistence() {
     const response = await fetch("/api/progress");
     const saved = await response.json();
     databaseEnabled = Boolean(saved.configured);
-    state = mergeState(saved.exists ? saved.state : local);
+    remoteVersion = Math.max(0, Number(saved.version) || 0);
+    const localIsNewer = local?.savedAt && (!saved.updatedAt || new Date(local.savedAt) > new Date(saved.updatedAt));
+    const selected = saved.exists && !localIsNewer ? saved.state : local;
+    state = mergeState(selected);
+    rebuildAggregatesFromSessions();
     saveStatus.textContent = databaseEnabled ? "Neonへ自動保存" : "この端末に自動保存";
-    if (databaseEnabled && !saved.exists && local) await persistNow();
+    if (databaseEnabled && local && (!saved.exists || localIsNewer)) {
+      for (const item of state.sessions) markSessionDirty(item.id);
+      await persistNow();
+    }
   } catch {
     state = mergeState(local);
+    rebuildAggregatesFromSessions();
     saveStatus.textContent = "この端末に自動保存";
   }
 }
 
+function compactStateForRemote() {
+  const { sessions, results, attempts, recent, mockResults, ...snapshot } = state;
+  const plan = { ...(snapshot.plan || {}) };
+  delete plan.autoCompleted;
+  return { ...snapshot, plan };
+}
+
+function markSessionDirty(sessionId) {
+  if (!sessionId) return;
+  dirtySessionRevisions.set(sessionId, (dirtySessionRevisions.get(sessionId) || 0) + 1);
+  deletedSessionIds.delete(sessionId);
+}
+
+function storeLocally() {
+  try {
+    localStorage.setItem(storageKey(), JSON.stringify(state));
+    return true;
+  } catch {
+    saveStatus.textContent = "端末の保存容量を確認してください";
+    return false;
+  }
+}
+
+function dirtySessionBatch(maximumCount = 20, maximumCharacters = 200_000) {
+  const batch = new Map();
+  let characters = 0;
+  for (const [id, revision] of dirtySessionRevisions) {
+    const sessionItem = state.sessions.find((item) => item.id === id);
+    if (!sessionItem) continue;
+    const size = JSON.stringify(sessionItem).length;
+    if (batch.size && (batch.size >= maximumCount || characters + size > maximumCharacters)) break;
+    batch.set(id, revision);
+    characters += size;
+  }
+  return batch;
+}
+
 function queueSave() {
   state.savedAt = new Date().toISOString();
-  localStorage.setItem(storageKey(), JSON.stringify(state));
-  saveStatus.textContent = "保存中…";
+  if (storeLocally()) saveStatus.textContent = "保存中…";
   clearTimeout(saveTimer);
   saveTimer = setTimeout(persistNow, 450);
 }
 
 async function persistNow() {
-  localStorage.setItem(storageKey(), JSON.stringify(state));
-  if (!databaseEnabled) { saveStatus.textContent = "この端末に保存済み"; return; }
+  const storedLocally = storeLocally();
+  if (!databaseEnabled) { if (storedLocally) saveStatus.textContent = "この端末に保存済み"; return; }
+  if (saveInFlight) { savePending = true; return; }
+  saveInFlight = true;
+  const sentSessions = dirtySessionBatch();
+  const sentDeleted = [...deletedSessionIds].slice(0, 50);
   try {
-    const response = await fetch("/api/progress", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ state }) });
+    const response = await fetch("/api/progress", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        state: compactStateForRemote(),
+        sessions: state.sessions.filter((item) => sentSessions.has(item.id)),
+        deletedSessionIds: sentDeleted,
+        expectedVersion: remoteVersion
+      })
+    });
+    if (response.status === 409) {
+      savePending = false;
+      clearTimeout(saveTimer);
+      saveStatus.textContent = "別端末の更新あり・再読込してください";
+      return;
+    }
     if (!response.ok) throw new Error("save_failed");
+    const saved = await response.json();
+    remoteVersion = Math.max(remoteVersion, Number(saved.version) || 0);
+    for (const [id, revision] of sentSessions) {
+      if (dirtySessionRevisions.get(id) === revision) dirtySessionRevisions.delete(id);
+    }
+    for (const id of sentDeleted) deletedSessionIds.delete(id);
+    if (dirtySessionRevisions.size || deletedSessionIds.size) savePending = true;
     saveStatus.textContent = "Neonへ保存済み";
   } catch { saveStatus.textContent = "端末へ一時保存"; }
+  finally {
+    saveInFlight = false;
+    if (savePending) {
+      savePending = false;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(persistNow, 0);
+    }
+  }
 }
 
 function setView(view) {
@@ -388,12 +472,14 @@ function recordSessionResult(result) {
     topic: result.topic,
     topicId: result.topicId,
     minimumCourse: result.minimumCourse,
+    foundationCheckpoint: result.foundationCheckpoint || null,
     difficulty: result.difficulty,
     correct: result.correct,
     answeredAt: new Date().toISOString()
   };
   activeSession.results.push(record);
   activeSession.lastActivityAt = record.answeredAt;
+  markSessionDirty(activeSession.id);
 }
 
 function consecutiveCorrectDayCount(questionId) {
@@ -427,10 +513,12 @@ function strictCriteria(score) {
 
 function autoItemStatus(subjectId, score, item) {
   const criteria = strictCriteria(score);
-  let records = practiceRecords().filter((record) => record.subject === subjectId && Number(record.minimumCourse || 60) === score);
-  if (item.topicId) records = records.filter((record) => record.topicId === item.topicId);
   const topic = item.topicId ? content.topics.find((value) => value.id === item.topicId) : null;
-  const requiredQuestions = Math.max(1, Math.min(criteria.questions, Number(topic?.count) || criteria.questions));
+  const eligibleTopicCount = Number(topic?.courseCounts?.[score] || 0);
+  const mapped = Boolean(item.topicId && eligibleTopicCount);
+  let records = practiceRecords().filter((record) => record.subject === subjectId && Number(record.minimumCourse || 60) <= score);
+  if (mapped) records = records.filter((record) => record.topicId === item.topicId);
+  const requiredQuestions = Math.max(1, Math.min(criteria.questions, mapped ? eligibleTopicCount : criteria.questions));
   const uniqueQuestions = new Set(records.map((record) => record.questionId)).size;
   const sessions = new Set(records.map((record) => record.sessionId)).size;
   const correct = records.filter((record) => record.correct).length;
@@ -438,7 +526,7 @@ function autoItemStatus(subjectId, score, item) {
   const recent = [...records].sort((a, b) => new Date(b.answeredAt) - new Date(a.answeredAt)).slice(0, Math.max(requiredQuestions, 10));
   const recentRate = recent.length ? Math.round(recent.filter((record) => record.correct).length / recent.length * 100) : 0;
   const passed = uniqueQuestions >= requiredQuestions && sessions >= criteria.sessions && rate >= criteria.rate && recentRate >= criteria.recentRate;
-  return { passed, uniqueQuestions, requiredQuestions, sessions, requiredSessions: criteria.sessions, rate, requiredRate: criteria.rate, recentRate, requiredRecentRate: criteria.recentRate, mapped: Boolean(item.topicId) };
+  return { passed, uniqueQuestions, requiredQuestions, sessions, requiredSessions: criteria.sessions, rate, requiredRate: criteria.rate, recentRate, requiredRecentRate: criteria.recentRate, mapped, topic: topic?.label || null };
 }
 
 function planItemKey(subjectId, score, groupIndex, itemIndex) {
@@ -484,6 +572,65 @@ function layerCriteria(score) {
   return { questions: 60, sessions: 4, rate: 85, recentRate: 80 };
 }
 
+function foundationCheckpointForResult(result) {
+  return Number(result.foundationCheckpoint || content.foundationQuestionCheckpoints?.[result.questionId] || 0);
+}
+
+function foundationCheckpointProgress(checkpointId, subjectId = null) {
+  const checkpoint = content.foundationCheckpoints.find((item) => Number(item.id) === Number(checkpointId));
+  if (!checkpoint) return { passed: false, answered: 0, total: 0, rate: 0, recentRate: 0, sessions: 0, requiredQuestions: 0 };
+  const matches = (result) => (
+    (!subjectId || result.subject === subjectId)
+    && Number(result.minimumCourse || 60) === 60
+    && foundationCheckpointForResult(result) === Number(checkpointId)
+  );
+  const results = Object.values(state.results).filter(matches);
+  const records = practiceRecords().filter(matches);
+  const total = subjectId
+    ? Number(content.foundationCheckpointCounts[checkpointId]?.subjects?.[subjectId] || 0)
+    : Number(content.foundationCheckpointCounts[checkpointId]?.total || 0);
+  const answered = new Set(results.map((result) => result.questionId)).size;
+  const sessions = new Set(records.map((record) => record.sessionId)).size;
+  const rate = records.length ? Math.round(records.filter((record) => record.correct).length / records.length * 100) : 0;
+  const recent = [...records].sort((left, right) => new Date(right.answeredAt) - new Date(left.answeredAt)).slice(0, 20);
+  const recentRate = recent.length ? Math.round(recent.filter((record) => record.correct).length / recent.length * 100) : 0;
+  const requiredQuestions = subjectId
+    ? Math.min(total, Number(checkpoint.requiredQuestionsPerSubject) || 15)
+    : (Number(checkpoint.requiredQuestionsPerSubject) || 15) * content.subjects.length;
+  const requiredSessions = subjectId ? Number(checkpoint.requiredSessionsPerSubject) || 2 : 0;
+  const ownPassed = answered >= requiredQuestions
+    && (!subjectId || sessions >= requiredSessions)
+    && rate >= Number(checkpoint.requiredRate)
+    && recentRate >= Number(checkpoint.requiredRecentRate);
+  const subjects = subjectId ? [] : content.subjects.map((subject) => foundationCheckpointProgress(checkpointId, subject.id));
+  const passed = subjectId ? ownPassed : subjects.every((value) => value.passed);
+  return { checkpoint, total, answered, progress: total ? Math.round(answered / total * 100) : 0, rate, sessions, recentRate, requiredQuestions, requiredSessions, subjects, passed };
+}
+
+function foundationReadiness() {
+  const checkpoints = content.foundationCheckpoints.map((item) => foundationCheckpointProgress(item.id));
+  return { checkpoints, passed: checkpoints.every((item) => item.passed), failed: checkpoints.filter((item) => !item.passed).map((item) => item.checkpoint.id) };
+}
+
+function isFoundationCheckpointUnlocked(checkpointId) {
+  if (Number(checkpointId) === 1) return true;
+  return content.foundationCheckpoints
+    .filter((item) => Number(item.id) < Number(checkpointId))
+    .every((item) => foundationCheckpointProgress(item.id).passed);
+}
+
+function highestUnlockedFoundationCheckpoint() {
+  return [3, 2, 1].find((checkpointId) => isFoundationCheckpointUnlocked(checkpointId)) || 1;
+}
+
+function refreshFoundationCheckpoint(autoAdvance = false) {
+  const highest = highestUnlockedFoundationCheckpoint();
+  const current = Number(state.plan.foundationCheckpoint);
+  if (!isFoundationCheckpointUnlocked(current) || (autoAdvance && foundationCheckpointProgress(current).passed && highest > current)) {
+    state.plan.foundationCheckpoint = highest;
+  }
+}
+
 function tierProgress(score, subjectId = null) {
   const matches = (result) => (!subjectId || result.subject === subjectId) && Number(result.minimumCourse || 60) === score;
   const results = Object.values(state.results).filter(matches);
@@ -497,25 +644,40 @@ function tierProgress(score, subjectId = null) {
   const recentRate = recent.length ? Math.round(recent.filter((record) => record.correct).length / recent.length * 100) : 0;
   const criteria = layerCriteria(score);
   const requiredQuestions = Math.min(total, subjectId ? Math.ceil(criteria.questions / content.subjects.length) : criteria.questions);
-  const passed = answered >= requiredQuestions && sessions >= criteria.sessions && rate >= criteria.rate && recentRate >= criteria.recentRate;
-  return { score, total, answered, progress: total ? Math.round(answered / total * 100) : 0, rate, sessions, recentRate, criteria, requiredQuestions, passed };
+  const ownPassed = answered >= requiredQuestions && sessions >= criteria.sessions && rate >= criteria.rate && recentRate >= criteria.recentRate;
+  const subjectLayers = subjectId ? [] : content.subjects.map((subject) => tierProgress(score, subject.id));
+  const passed = ownPassed && (subjectId || subjectLayers.every((layer) => layer.passed));
+  return { score, total, answered, progress: total ? Math.round(answered / total * 100) : 0, rate, sessions, recentRate, criteria, requiredQuestions, subjectLayers, passed };
 }
 
 function courseReadiness(score) {
-  const requiredScores = [60, 70, 80].filter((value) => value <= score);
+  const requiredScores = [70, 80].filter((value) => value <= score);
   const layers = requiredScores.map((value) => tierProgress(value));
   const cumulative = courseProgress(score);
-  const failedLayers = layers.filter((layer) => !layer.passed).map((layer) => layer.score);
-  return { ...cumulative, layers, passed: failedLayers.length === 0, failedLayers };
+  const foundation = foundationReadiness();
+  const failedLayers = [...(!foundation.passed ? [60] : []), ...layers.filter((layer) => !layer.passed).map((layer) => layer.score)];
+  return { ...cumulative, foundation, layers, passed: failedLayers.length === 0, failedLayers };
 }
 
 function isCourseUnlocked(score) {
   if (score === 60) return true;
-  return [60, 70, 80].filter((value) => value < score).every((value) => tierProgress(value).passed);
+  if (!foundationReadiness().passed) return false;
+  return [70, 80].filter((value) => value < score).every((value) => tierProgress(value).passed);
 }
 
 function highestUnlockedCourse() {
   return [80, 70, 60].find((score) => isCourseUnlocked(score)) || 60;
+}
+
+function weightedAllocation(total, weights) {
+  const entries = Object.entries(weights || {});
+  const floors = Object.fromEntries(entries.map(([id, weight]) => [id, Math.floor(total * Number(weight) / 100)]));
+  let remainder = total - Object.values(floors).reduce((sum, value) => sum + value, 0);
+  const order = entries
+    .map(([id, weight]) => ({ id, fraction: total * Number(weight) / 100 - floors[id] }))
+    .sort((left, right) => right.fraction - left.fraction || left.id.localeCompare(right.id));
+  for (let index = 0; index < order.length && remainder > 0; index += 1, remainder -= 1) floors[order[index].id] += 1;
+  return floors;
 }
 
 function phaseWorkload(phase = currentPhase()) {
@@ -535,7 +697,7 @@ function phaseWorkload(phase = currentPhase()) {
   const recoveryDays = Math.max(1, Math.round(remainingDays * 6 / 7));
   const extra = Math.min(Math.ceil(phase.sessionSize * .5), Math.ceil(backlog / recoveryDays));
   const adjustedTarget = phase.sessionSize + extra;
-  const allocation = Object.fromEntries(content.subjects.map((subject) => [subject.id, Math.max(1, Math.round(adjustedTarget * subjectWeight(subject.id, phase) / 100))]));
+  const allocation = weightedAllocation(adjustedTarget, Object.fromEntries(content.subjects.map((subject) => [subject.id, subjectWeight(subject.id, phase)])));
   const paceStatus = variance > phase.sessionSize ? "ahead" : variance < -phase.sessionSize ? "behind" : "on-track";
   const prelearning = phase.creditFrom ? practiceRecords().filter((record) => { const date = new Date(record.answeredAt); return date >= creditStart && date < start; }).length : 0;
   return { expected, actual, variance, backlog, extra, adjustedTarget, allocation, delayed: paceStatus === "behind", paceStatus, prelearning };
@@ -566,6 +728,7 @@ function rebuildAggregatesFromSessions() {
   state.mockResults = mockResults;
   for (const id of Object.keys(state.answers)) if (!results[id]) delete state.answers[id];
   refreshAutoPlanCompletion();
+  refreshFoundationCheckpoint();
 }
 
 function removeSession(sessionId) {
@@ -582,6 +745,8 @@ function removeSession(sessionId) {
     if (state.activity[key]) state.activity[key].mockMinutes = Math.max(0, state.activity[key].mockMinutes - target.mockMinutes);
   }
   state.sessions = state.sessions.filter((item) => item.id !== sessionId);
+  dirtySessionRevisions.delete(sessionId);
+  deletedSessionIds.add(sessionId);
   if (activeSession?.id === sessionId) activeSession = null;
   rebuildAggregatesFromSessions();
 }
@@ -627,6 +792,15 @@ function courseSelector() {
   }).join("")}</div>`;
 }
 
+function foundationCheckpointSelector() {
+  if (Number(state.plan.targetScore) !== 60) return "";
+  return `<div class="foundation-selector" aria-label="60点コースのチェックポイント">${content.foundationCheckpoints.map((checkpoint) => {
+    const unlocked = isFoundationCheckpointUnlocked(checkpoint.id);
+    const progress = foundationCheckpointProgress(checkpoint.id);
+    return `<button class="foundation-chip ${Number(state.plan.foundationCheckpoint) === Number(checkpoint.id) ? "is-active" : ""} ${unlocked ? "" : "is-locked"}" data-set-foundation="${checkpoint.id}" ${unlocked ? "" : "disabled"}><span>${checkpoint.id}</span><strong>${escapeHtml(checkpoint.shortLabel)}</strong><small>${progress.passed ? "達成" : `${progress.answered}/${progress.requiredQuestions}問`}</small></button>`;
+  }).join("")}</div>`;
+}
+
 function renderHome() {
   pageTitle.textContent = "ダッシュボード";
   const phase = currentPhase();
@@ -654,7 +828,7 @@ function renderHome() {
     </div>
     <div class="dashboard-lead">
       <article class="panel daily-mission"><div class="dashboard-card-head"><div><span class="eyebrow">TODAY'S MISSION</span><h3>${remaining ? `あと${remaining}問で今日の目安` : "今日の目安を達成しました"}</h3></div><b>${effectiveDone}<small> / ${dailyTarget}問</small></b></div><p>推奨科目は <strong>${escapeHtml(recommendation.label)}</strong>。${today.answered ? `今日の正答率は${todayRate}%です。` : "まず1セッション始めましょう。"}</p><div class="mission-meter"><i style="width:${clamp(effectiveDone / dailyTarget * 100)}%"></i></div><div class="mission-facts"><span>基準 ${phase.sessionSize}問${workload.extra ? ` + 遅延補正 ${workload.extra}問` : ""}</span><span>未消化 ${workload.backlog}問</span><span>連続 ${studyStreak()}日</span><span>見直し ${Object.values(state.flags).filter(Boolean).length}問</span></div><button class="primary" data-start-subject="${recommendation.id}" data-limit="${Math.min(remaining || dailyTarget, dailyTarget)}">${escapeHtml(recommendation.shortLabel)}を${Math.min(remaining || dailyTarget, dailyTarget)}問始める</button></article>
-      <article class="panel phase-focus"><div class="phase-ring" style="--progress:${timing.percent * 3.6}deg"><div><strong>${timing.percent}%</strong><small>日程消化</small></div></div><div class="phase-focus-copy"><span class="phase-number">PHASE ${phaseIndex + 1}</span><h3>${escapeHtml(phase.label)}</h3><p>${escapeHtml(phase.goal)}</p><div class="phase-facts"><span>残り${timing.daysLeft}日</span><span>達成項目 ${milestoneProgress.done}/${milestoneProgress.total}</span><span>全期間 ${overallTiming()}%</span></div>${courseSelector()}</div></article>
+      <article class="panel phase-focus"><div class="phase-ring" style="--progress:${timing.percent * 3.6}deg"><div><strong>${timing.percent}%</strong><small>日程消化</small></div></div><div class="phase-focus-copy"><span class="phase-number">PHASE ${phaseIndex + 1}</span><h3>${escapeHtml(phase.label)}</h3><p>${escapeHtml(phase.goal)}</p><div class="phase-facts"><span>残り${timing.daysLeft}日</span><span>達成項目 ${milestoneProgress.done}/${milestoneProgress.total}</span><span>全期間 ${overallTiming()}%</span></div>${courseSelector()}${foundationCheckpointSelector()}</div></article>
     </div>
     <div class="roadmap-dashboard">${content.learningPhases.map((item, index) => { const itemTiming = phaseTiming(item); const itemProgress = phaseMilestoneProgress(item); return `<article class="roadmap-step ${itemTiming.status}"><div><span>0${index + 1}</span><small>${formatMonthDay(item.start)}〜${formatMonthDay(item.end)}</small></div><strong>${escapeHtml(item.label)}</strong><i><b style="width:${itemTiming.percent}%"></b></i><p>日程 ${itemTiming.percent}%・項目 ${itemProgress.done}/${itemProgress.total}</p></article>`; }).join("")}</div>
     <div class="dashboard-secondary">
@@ -682,7 +856,7 @@ function topicOptions(subjectId = "") {
 function renderLibrary() {
   pageTitle.textContent = "問題演習";
   app.innerHTML = `<section class="view-stack">
-    <div class="section-heading"><div><span class="eyebrow">QUESTION LAB</span><h2>演習セッションを組む</h2><p>${content.totals.questions.toLocaleString()}問を、科目・論点・難易度・目標点で絞り込みます。</p></div>${courseSelector()}</div>
+    <div class="section-heading"><div><span class="eyebrow">QUESTION LAB</span><h2>演習セッションを組む</h2><p>${content.totals.questions.toLocaleString()}問を、科目・論点・難易度・目標点で絞り込みます。</p></div><div class="library-stage-selectors">${courseSelector()}${foundationCheckpointSelector()}</div></div>
     <div class="panel filter-panel">
       <label><span>科目</span><select id="subjectFilter">${subjectOptions()}</select></label>
       <label><span>論点</span><select id="topicFilter"><option value="">すべて</option>${topicOptions()}</select></label>
@@ -701,7 +875,9 @@ function renderLibrary() {
 }
 
 async function fetchQuestions(params = {}) {
-  const query = new URLSearchParams({ ...params, course: state.plan.targetScore, tier: "exact", seed: params.seed || `${Date.now()}` });
+  const queryParams = { ...params, course: state.plan.targetScore, tier: "exact", seed: params.seed || `${Date.now()}` };
+  if (Number(state.plan.targetScore) === 60 && !params.ids) queryParams.checkpoint = state.plan.foundationCheckpoint;
+  const query = new URLSearchParams(queryParams);
   const response = await fetch(`/api/questions?${query}`);
   if (!response.ok) throw new Error("questions_failed");
   return response.json();
@@ -737,10 +913,10 @@ function answerMarkup(question, feedback) {
   const selected = new Set(Array.isArray(saved) ? saved : [saved]);
   const eliminated = eliminatedChoices.get(question.id) || new Set();
   const correctAnswers = new Set(Array.isArray(feedback?.correctAnswer) ? feedback.correctAnswer.map(String) : [feedback?.correctAnswer].filter((value) => value !== undefined).map(String));
-  return `<p class="choice-help">左の縦チェックは「除外」、選択肢の本文は「回答」です。採点前の回答は薄い青、採点後の正答は緑で表示されます。</p><div class="choices">${question.options.map((option) => {
+  return `<p class="choice-help">左の縦チェックは「除外」、選択肢の本文は「回答」です。採点前の回答は薄い青、採点後の正答は緑で表示されます。</p><div class="choices" role="radiogroup" aria-label="回答の選択肢">${question.options.map((option) => {
     const isSelected = selected.has(option.id);
     const resultClass = feedback ? (correctAnswers.has(String(option.id)) ? "is-correct" : isSelected ? "is-incorrect" : "") : "";
-    return `<div class="choice ${isSelected ? "is-selected" : ""} ${eliminated.has(option.id) ? "is-eliminated" : ""} ${resultClass}" data-select-choice="${escapeHtml(option.id)}"><button type="button" role="checkbox" class="eliminate-toggle" data-eliminate-choice="${escapeHtml(option.id)}" aria-checked="${eliminated.has(option.id)}" aria-label="選択肢${escapeHtml(option.id)}を除外">${eliminated.has(option.id) ? "×" : ""}</button><span class="choice-key">${escapeHtml(option.id)}</span><span class="choice-text">${richText(option.label)}</span></div>`;
+    return `<div role="radio" tabindex="${eliminated.has(option.id) ? -1 : 0}" aria-checked="${isSelected}" aria-disabled="${eliminated.has(option.id)}" class="choice ${isSelected ? "is-selected" : ""} ${eliminated.has(option.id) ? "is-eliminated" : ""} ${resultClass}" data-select-choice="${escapeHtml(option.id)}"><button type="button" role="checkbox" class="eliminate-toggle" data-eliminate-choice="${escapeHtml(option.id)}" aria-checked="${eliminated.has(option.id)}" aria-label="選択肢${escapeHtml(option.id)}を除外">${eliminated.has(option.id) ? "×" : ""}</button><span class="choice-key">${escapeHtml(option.id)}</span><span class="choice-text">${richText(option.label)}</span></div>`;
   }).join("")}</div>`;
 }
 
@@ -769,12 +945,12 @@ function renderQuestion() {
   const stored = state.results[question.id];
   const feedback = feedbackCache.get(question.id);
   app.innerHTML = `<section class="practice-layout"><div>
-    <div class="session-progress"><span>${currentIndex + 1} / ${session.length}</span><i><b style="width:${((currentIndex + 1) / session.length) * 100}%"></b></i><small>${escapeHtml(question.difficulty)}・${question.minimumCourse}点${question.minimumCourse === 60 ? "基礎" : "追加"}層</small></div>
+    <div class="session-progress"><span>${currentIndex + 1} / ${session.length}</span><i><b style="width:${((currentIndex + 1) / session.length) * 100}%"></b></i><small>${escapeHtml(question.difficulty)}・${question.minimumCourse === 60 ? `60点 ${escapeHtml(content.foundationCheckpoints.find((item) => item.id === question.foundationCheckpoint)?.shortLabel || "基礎")}` : `${question.minimumCourse}点追加層`}</small></div>
     <article class="question-card"><div class="question-meta"><span>${escapeHtml(subjectLabel(question.subject))}</span><span>${escapeHtml(question.topic)}</span><span>${escapeHtml(question.sourceId)}</span>${question.calculationRequired ? "<span>計算</span>" : ""}</div><h2>Q${currentIndex + 1}. ${escapeHtml(question.topic)}</h2><div class="prompt">${richText(question.prompt)}</div><div class="answer-area">${answerMarkup(question, feedback)}</div>
-      <div id="feedback">${feedback ? feedbackMarkup(feedback, question) : stored ? storedFeedbackMarkup(stored) : ""}</div>
+      <div id="feedback" aria-live="polite">${feedback ? feedbackMarkup(feedback, question) : stored ? storedFeedbackMarkup(stored) : ""}</div>
       <label class="note-wrap"><span>自分用メモ</span><textarea class="note-input" id="questionNote" placeholder="間違えた理由、覚え方、再確認日など">${escapeHtml(state.notes[question.id] || "")}</textarea></label>
     </article>
-    <div class="actions"><button class="secondary" data-prev ${currentIndex === 0 ? "disabled" : ""}>← 前へ</button><button class="secondary" data-flag>${state.flags[question.id] ? "★ 見直し中" : "☆ 見直す"}</button>${feedback ? `<button class="secondary archive-action" data-archive>${isArchived(question.id) ? "アーカイブを解除" : "アーカイブにする"}</button>` : ""}<button class="primary" data-grade>採点・解説</button><button class="secondary" data-next ${currentIndex === session.length - 1 ? "disabled" : ""}>次へ →</button></div>
+    <div class="actions"><button class="secondary" data-prev ${currentIndex === 0 ? "disabled" : ""}>← 前へ</button><button class="secondary" data-flag>${state.flags[question.id] ? "★ 見直し中" : "☆ 見直す"}</button>${feedback ? `<button class="secondary archive-action" data-archive>${isArchived(question.id) ? "アーカイブを解除" : "アーカイブにする"}</button>` : ""}<button class="primary" data-grade ${feedback ? "disabled" : ""}>${feedback ? "採点済み" : "採点・解説"}</button><button class="secondary" data-next ${currentIndex === session.length - 1 ? "disabled" : ""}>次へ →</button></div>
   </div><aside class="panel navigator"><span class="eyebrow">QUESTION MAP</span><h3>${escapeHtml(subjectLabel(question.subject))}</h3><div class="question-map">${session.map((item, index) => `<button class="map-button ${index === currentIndex ? "current" : ""} ${state.results[item.id] ? "done" : ""} ${state.flags[item.id] ? "flagged" : ""}" data-jump="${index}">${index + 1}</button>`).join("")}</div><button class="text-button" data-view="progress">学習記録を見る →</button></aside>${question.calculationRequired ? calculatorMarkup() : ""}</section>`;
 }
 
@@ -924,6 +1100,7 @@ function collectAnswer() {
 
 async function gradeCurrent() {
   const question = session[currentIndex];
+  if (feedbackCache.has(question.id)) return;
   const answer = collectAnswer();
   if (!answer) { alert("選択肢を選んでください。"); return; }
   state.answers[question.id] = answer;
@@ -939,6 +1116,7 @@ async function gradeCurrent() {
       topicId: fullResult.topicId,
       difficulty: fullResult.difficulty,
       minimumCourse: fullResult.minimumCourse,
+      foundationCheckpoint: fullResult.foundationCheckpoint || question.foundationCheckpoint || null,
       correct: fullResult.correct,
       answeredAt: new Date().toISOString()
     };
@@ -949,6 +1127,7 @@ async function gradeCurrent() {
     autoArchiveMasteredQuestion(question.id);
     recordActivity("answer", fullResult.correct);
     refreshAutoPlanCompletion();
+    refreshFoundationCheckpoint(true);
     queueSave();
     renderQuestion();
   } catch { alert("採点できませんでした。接続を確認してください。"); }
@@ -1062,6 +1241,7 @@ async function gradeMock() {
       summary: { score: result.score, maxScore: result.maxScore, answered: result.details.filter((item) => item.submitted).length },
       results: []
     });
+    markSessionDirty(state.sessions.at(-1).id);
     recordActivity("mock", elapsedMinutes);
     queueSave();
     renderMockSession(result);
@@ -1071,7 +1251,7 @@ async function gradeMock() {
 
 function topicPerformance() {
   const groups = new Map();
-  for (const result of allResults()) {
+  for (const result of practiceRecords()) {
     const key = result.topicId || `${result.subject}:${result.topic}`;
     const current = groups.get(key) || { subject: result.subject, topic: result.topic, answered: 0, correct: 0 };
     current.answered += 1;
@@ -1085,8 +1265,10 @@ function renderProgress() {
   pageTitle.textContent = "学習記録";
   const weak = topicPerformance().filter((item) => item.rate < 80).sort((a, b) => a.rate - b.rate || b.answered - a.answered).slice(0, 12);
   app.innerHTML = `<section class="view-stack"><div class="section-heading"><div><span class="eyebrow">LEARNING LOG</span><h2>層別進捗とコース到達度</h2><p>問題は60点基礎層・70点追加層・80点追加層に分離し、到達度だけを下位層込みで判定します。</p></div><button class="secondary" data-view="history">すべての実施記録 →</button></div>
+    <div class="section-subhead"><div><span class="eyebrow">FOUNDATION / 3 STEPS</span><h3>60点コースのチェックポイント</h3></div><p>全${Number(content.courseCounts[60].addedAtCourse).toLocaleString()}問は補強プール。解除判定は4科目を均等に確認します。</p></div>
+    <div class="foundation-progress-grid">${content.foundationCheckpoints.map((checkpoint) => { const value = foundationCheckpointProgress(checkpoint.id); const unlocked = isFoundationCheckpointUnlocked(checkpoint.id); return `<article class="foundation-progress-card ${unlocked ? "" : "is-locked"}"><header><span>${unlocked ? `0${checkpoint.id}` : "🔒"}</span><div><small>${formatMonthDay(checkpoint.start)}〜${formatMonthDay(checkpoint.end)}</small><h3>${escapeHtml(checkpoint.label)}</h3></div></header><p>${escapeHtml(checkpoint.goal)}</p><strong>${value.answered}<small> / 判定${value.requiredQuestions}問</small></strong><i><b style="width:${clamp(value.answered / Math.max(1, value.requiredQuestions) * 100)}%"></b></i><footer>${value.passed ? "達成・次の区分を開放" : unlocked ? `正答${checkpoint.requiredRate}%・各科目${checkpoint.requiredQuestionsPerSubject}問` : "前の区分を達成すると開放"}</footer></article>`; }).join("")}</div>
     <div class="section-subhead"><div><span class="eyebrow">EXCLUSIVE LAYERS</span><h3>層別進捗</h3></div><p>各問題は1つの層だけに集計されます。</p></div>
-    <div class="course-progress-grid">${[60, 70, 80].map((score) => { const value = tierProgress(score); const unlocked = isCourseUnlocked(score); const label = score === 60 ? "基礎層" : "追加層"; return `<article class="course-progress-card course-${score} ${unlocked ? "" : "is-locked"}"><div><span>${unlocked ? score : "🔒"}</span><small>${score}点${label}</small></div><strong>${value.answered.toLocaleString()}<small> / ${value.total.toLocaleString()}問</small></strong><p>進捗 ${value.progress}%・正答率 ${value.rate}%・直近 ${value.recentRate}%</p><i><b style="width:${value.progress}%"></b></i><footer>${unlocked ? `判定条件 ${value.requiredQuestions}問 / ${value.criteria.sessions}回 / 正答${value.criteria.rate}%` : `${score - 10}点層の合格後に開放`}</footer></article>`; }).join("")}</div>
+    <div class="course-progress-grid">${[60, 70, 80].map((score) => { const value = tierProgress(score); const unlocked = isCourseUnlocked(score); const label = score === 60 ? "基礎層" : "追加層"; return `<article class="course-progress-card course-${score} ${unlocked ? "" : "is-locked"}"><div><span>${unlocked ? score : "🔒"}</span><small>${score}点${label}</small></div><strong>${value.answered.toLocaleString()}<small> / ${value.total.toLocaleString()}問</small></strong><p>進捗 ${value.progress}%・正答率 ${value.rate}%・直近 ${value.recentRate}%</p><i><b style="width:${value.progress}%"></b></i><footer>${score === 60 ? "補強プールの消化率・解除判定は上の3区分" : unlocked ? `科目ごとに${Math.ceil(value.criteria.questions / content.subjects.length)}問 / ${value.criteria.sessions}回 / 正答${value.criteria.rate}%` : `${score - 10}点層の合格後に開放`}</footer></article>`; }).join("")}</div>
     <div class="section-subhead"><div><span class="eyebrow">CUMULATIVE READINESS</span><h3>コース到達度</h3></div><p>下位層をすべて合格していることが条件です。</p></div>
     <div class="course-progress-grid readiness-grid">${[60, 70, 80].map((score) => { const value = courseReadiness(score); const unlocked = isCourseUnlocked(score); const status = value.passed ? "合格" : unlocked ? "判定中" : "ロック中"; return `<article class="course-progress-card course-${score} ${unlocked ? "" : "is-locked"}"><div><span>${score}</span><small>点到達</small></div><strong class="readiness-status">${status}</strong><p>累積 ${value.answered.toLocaleString()} / ${value.total.toLocaleString()}問・正答率 ${value.rate}%</p><i><b style="width:${value.progress}%"></b></i><footer>${value.passed ? "全必要層の判定に合格" : `未合格層：${value.failedLayers.join("・")}点`}</footer></article>`; }).join("")}</div>
     <div class="panel course-matrix"><div class="dashboard-card-head"><div><span class="eyebrow">LAYER × SUBJECT</span><h3>科目別の層別進捗</h3></div></div><div class="table-scroll"><table><thead><tr><th>科目</th>${[60,70,80].map((score) => `<th>${score}点${score === 60 ? "基礎" : "追加"}層</th>`).join("")}</tr></thead><tbody>${content.subjects.map((subject) => `<tr><th>${escapeHtml(subject.label)}</th>${[60,70,80].map((score) => { const value = tierProgress(score, subject.id); return `<td><strong>${value.answered}/${value.total}問</strong><small>進捗${value.progress}%・正答${value.rate}%<br>直近${value.recentRate}%</small></td>`; }).join("")}</tr>`).join("")}</tbody></table></div></div>
@@ -1218,6 +1400,10 @@ async function beginDailyAllocation() {
 }
 
 document.addEventListener("click", (event) => {
+  if (event.target.closest("[data-skip-main]")) {
+    document.querySelector("#app")?.focus();
+    return;
+  }
   const unarchiveButton = event.target.closest("[data-unarchive]");
   if (unarchiveButton) {
     restoreArchivedQuestion(unarchiveButton.dataset.unarchive);
@@ -1232,10 +1418,12 @@ document.addEventListener("click", (event) => {
     eliminated.has(choiceId) ? eliminated.delete(choiceId) : eliminated.add(choiceId);
     eliminatedChoices.set(question.id, eliminated);
     if (state.answers[question.id] === choiceId) delete state.answers[question.id];
+    feedbackCache.delete(question.id);
     return renderQuestion();
   }
   const choice = event.target.closest("[data-select-choice]");
   if (choice && currentView === "session" && !choice.classList.contains("is-eliminated")) {
+    feedbackCache.delete(session[currentIndex].id);
     state.answers[session[currentIndex].id] = choice.dataset.selectChoice;
     queueSave();
     return renderQuestion();
@@ -1250,6 +1438,14 @@ document.addEventListener("click", (event) => {
     const nextScore = Number(courseButton.dataset.setCourse);
     if (!isCourseUnlocked(nextScore)) return;
     state.plan.targetScore = nextScore;
+    queueSave();
+    return setView(currentView === "session" ? "practice" : currentView);
+  }
+  const foundationButton = event.target.closest("[data-set-foundation]");
+  if (foundationButton) {
+    const checkpointId = Number(foundationButton.dataset.setFoundation);
+    if (!isFoundationCheckpointUnlocked(checkpointId)) return;
+    state.plan.foundationCheckpoint = checkpointId;
     queueSave();
     return setView(currentView === "session" ? "practice" : currentView);
   }
@@ -1324,6 +1520,16 @@ document.addEventListener("input", (event) => {
   queueSave();
 });
 
+document.addEventListener("keydown", (event) => {
+  const choice = event.target.closest?.("[data-select-choice]");
+  if (!choice || !["Enter", " "].includes(event.key) || choice.classList.contains("is-eliminated")) return;
+  event.preventDefault();
+  feedbackCache.delete(session[currentIndex].id);
+  state.answers[session[currentIndex].id] = choice.dataset.selectChoice;
+  queueSave();
+  renderQuestion();
+});
+
 async function boot() {
   try {
     const response = await fetch("/api/content");
@@ -1338,9 +1544,11 @@ async function boot() {
     if (theme.accent) document.documentElement.style.setProperty("--accent", theme.accent);
     if (theme.ink) document.documentElement.style.setProperty("--ink", theme.ink);
     await initializePersistence();
+    const targetBeforeValidation = Number(state.plan.targetScore);
     refreshAutoPlanCompletion();
     if (!isCourseUnlocked(Number(state.plan.targetScore))) state.plan.targetScore = highestUnlockedCourse();
-    queueSave();
+    if (Number(state.plan.targetScore) !== targetBeforeValidation) queueSave();
+    else storeLocally();
     renderHome();
   } catch (error) {
     console.error(error);

@@ -21,6 +21,44 @@
     "law": 61,
     "sme": 45
   },
+  "foundationCheckpoints": [
+    {
+      "id": 1,
+      "label": "基礎をつなぐ",
+      "shortLabel": "基礎",
+      "start": "2026-08-24",
+      "end": "2026-09-20",
+      "goal": "4科目の必須論点を一巡し、知識の全体像をつくる",
+      "requiredQuestionsPerSubject": 20,
+      "requiredSessionsPerSubject": 2,
+      "requiredRate": 80,
+      "requiredRecentRate": 80
+    },
+    {
+      "id": 2,
+      "label": "標準へつなぐ",
+      "shortLabel": "定着",
+      "start": "2026-09-21",
+      "end": "2026-10-18",
+      "goal": "基礎の取りこぼしを埋め、標準問題の判断手順を定着させる",
+      "requiredQuestionsPerSubject": 20,
+      "requiredSessionsPerSubject": 3,
+      "requiredRate": 85,
+      "requiredRecentRate": 85
+    },
+    {
+      "id": 3,
+      "label": "60点を判定する",
+      "shortLabel": "判定",
+      "start": "2026-10-19",
+      "end": "2026-11-15",
+      "goal": "未出題中心の横断演習で、4科目すべての60点基盤を確認する",
+      "requiredQuestionsPerSubject": 20,
+      "requiredSessionsPerSubject": 3,
+      "requiredRate": 88,
+      "requiredRecentRate": 85
+    }
+  ],
   "financeTrack": {
     "title": "簿記2級 → 一次財務 → 事例Ⅳ",
     "qualification": "日商簿記2級",

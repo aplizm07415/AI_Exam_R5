@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
+    <button class="skip-link" data-skip-main>学習内容へ移動</button>
     <div class="app-shell">
       <aside class="sidebar">
         <button class="brand" data-view="home" aria-label="R4 ホーム">
@@ -35,9 +36,9 @@
       <main>
         <header class="topbar">
           <div><span class="eyebrow" id="todayLabel"></span><h1 id="pageTitle">読み込み中</h1></div>
-          <span class="save-status"><i></i><span id="saveStatus">保存先を確認中</span></span>
+          <span class="save-status"><i></i><span id="saveStatus" aria-live="polite">保存先を確認中</span></span>
         </header>
-        <div id="app"><div class="panel loading">試験データを読み込んでいます…</div></div>
+        <div id="app" tabindex="-1"><div class="panel loading">試験データを読み込んでいます…</div></div>
       </main>
     </div>
     <script src="/calculator.js" defer></script>

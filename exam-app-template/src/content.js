@@ -94,6 +94,39 @@ function normalizeSupplementalQuestion(rawQuestion) {
   return question;
 }
 
+const DIFFICULTY_ORDER = { "基礎": 0, "標準": 1, "発展": 2 };
+
+function assignFoundationCheckpoints(questions) {
+  for (const subject of rawConfig.subjects) {
+    const foundation = questions.filter((question) => question.subject === subject.id && question.minimumCourse === 60);
+    const groups = new Map();
+    for (const question of foundation) {
+      const current = groups.get(question.topicId) || [];
+      current.push(question);
+      groups.set(question.topicId, current);
+    }
+    const leaders = [];
+    const remaining = [];
+    for (const [, values] of [...groups.entries()].sort(([left], [right]) => left.localeCompare(right, "ja"))) {
+      values.sort((left, right) => (DIFFICULTY_ORDER[left.difficulty] - DIFFICULTY_ORDER[right.difficulty]) || left.id.localeCompare(right.id));
+      leaders.push(values[0]);
+      remaining.push(...values.slice(1));
+    }
+    remaining.sort((left, right) => (
+      (DIFFICULTY_ORDER[left.difficulty] - DIFFICULTY_ORDER[right.difficulty])
+      || left.topicId.localeCompare(right.topicId, "ja")
+      || left.id.localeCompare(right.id)
+    ));
+    const ordered = [...leaders, ...remaining];
+    const firstSize = Math.ceil(ordered.length / 3);
+    const secondSize = Math.ceil((ordered.length - firstSize) / 2);
+    ordered.forEach((question, index) => {
+      question.foundationCheckpoint = index < firstSize ? 1 : index < firstSize + secondSize ? 2 : 3;
+    });
+  }
+  return questions;
+}
+
 function loadQuestions() {
   const sourceQuestions = rawConfig.subjects.flatMap((subject) => {
     const sourcePath = path.join(contentRoot, "source", subject.sourceFile);
@@ -102,7 +135,7 @@ function loadQuestions() {
       .filter((question) => !excludedQuestionIds.has(`${subject.id}:${question.id}`))
       .map((question) => normalizeQuestion(subject, question));
   });
-  return [...sourceQuestions, ...supplementalQuestions.map(normalizeSupplementalQuestion)];
+  return assignFoundationCheckpoints([...sourceQuestions, ...supplementalQuestions.map(normalizeSupplementalQuestion)]);
 }
 
 function validateContent(value) {
@@ -111,6 +144,9 @@ function validateContent(value) {
   }
   if (!value.exam.name || !Array.isArray(value.subjects) || !Array.isArray(value.questions)) {
     throw new Error("exam.name、subjects、questions は必須です");
+  }
+  if (!Array.isArray(value.foundationCheckpoints) || value.foundationCheckpoints.length !== 3 || new Set(value.foundationCheckpoints.map((item) => Number(item.id))).size !== 3) {
+    throw new Error("foundationCheckpoints は重複しない3区分で指定してください");
   }
   const subjectIds = new Set(value.subjects.map((subject) => subject.id));
   const questionIds = new Set();
@@ -131,6 +167,9 @@ function validateContent(value) {
       if (!reference?.title || !/^https:\/\//.test(reference.url || "") || !/^\d{4}-\d{2}-\d{2}$/.test(reference.checkedAt || "")) {
         throw new Error(`公式補充問題 ${question.id} の出典または確認日が不正です`);
       }
+    }
+    if (question.minimumCourse === 60 && ![1, 2, 3].includes(Number(question.foundationCheckpoint))) {
+      throw new Error(`60点問題 ${question.id} のfoundationCheckpointが不正です`);
     }
     questionIds.add(question.id);
   }
@@ -179,6 +218,7 @@ function queryQuestions(params = {}) {
       && (!params.difficulty || question.difficulty === params.difficulty)
       && (!params.priority || question.priority === params.priority)
       && (exactTier ? question.minimumCourse === targetScore : question.minimumCourse <= targetScore)
+      && (!params.checkpoint || targetScore !== 60 || question.foundationCheckpoint === Number(params.checkpoint))
     ));
     matches = shuffled(matches, params.seed);
   }
@@ -196,10 +236,12 @@ function topicSummaries() {
       parent: question.parent,
       tags: question.tags,
       count: 0,
-      minimumCourse: question.minimumCourse
+      minimumCourse: question.minimumCourse,
+      courseCounts: { 60: 0, 70: 0, 80: 0 }
     };
     current.count += 1;
     current.minimumCourse = Math.min(current.minimumCourse, question.minimumCourse);
+    for (const score of [60, 70, 80]) if (question.minimumCourse <= score) current.courseCounts[score] += 1;
     counts.set(question.topicId, current);
   }
   return [...counts.values()].sort((a, b) => a.subject.localeCompare(b.subject) || b.count - a.count || a.label.localeCompare(b.label, "ja"));
@@ -230,9 +272,19 @@ function publicOfficialExam() {
 }
 
 function publicContent() {
+  const foundationQuestions = content.questions.filter((question) => question.minimumCourse === 60);
   return {
     exam: content.exam,
     baselineScores: content.baselineScores,
+    foundationCheckpoints: content.foundationCheckpoints,
+    foundationQuestionCheckpoints: Object.fromEntries(foundationQuestions.map((question) => [question.id, question.foundationCheckpoint])),
+    foundationCheckpointCounts: Object.fromEntries(content.foundationCheckpoints.map((checkpoint) => {
+      const matches = foundationQuestions.filter((question) => question.foundationCheckpoint === checkpoint.id);
+      return [checkpoint.id, {
+        total: matches.length,
+        subjects: Object.fromEntries(content.subjects.map((subject) => [subject.id, matches.filter((question) => question.subject === subject.id).length]))
+      }];
+    })),
     financeTrack: content.financeTrack,
     subjects: content.subjects.map((subject) => ({
       ...subject,

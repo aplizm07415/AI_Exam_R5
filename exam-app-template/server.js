@@ -50,6 +50,28 @@ function validState(state) {
   return Object.keys(state).every((key) => allowed.has(key));
 }
 
+function validSession(session) {
+  if (!session || typeof session !== "object" || Array.isArray(session)) return false;
+  if (!/^[a-z0-9][a-z0-9_-]{0,127}$/i.test(String(session.id || ""))) return false;
+  if (!new Set(["practice", "adaptive", "review", "official-mock", "legacy"]).has(session.type || "practice")) return false;
+  if (session.label !== undefined && (typeof session.label !== "string" || session.label.length > 300)) return false;
+  if (session.subject && !content.subjects.some((subject) => subject.id === session.subject)) return false;
+  if (session.course !== undefined && ![60, 70, 80].includes(Number(session.course))) return false;
+  if (session.questionCount !== undefined && (!Number.isInteger(Number(session.questionCount)) || Number(session.questionCount) < 0 || Number(session.questionCount) > 1000)) return false;
+  if (session.mockMinutes !== undefined && (!Number.isFinite(Number(session.mockMinutes)) || Number(session.mockMinutes) < 0 || Number(session.mockMinutes) > 1000)) return false;
+  if (!Array.isArray(session.results) || session.results.length > 1000) return false;
+  return session.results.every((item) => item && typeof item === "object" && typeof item.questionId === "string" && item.questionId.length <= 200);
+}
+
+function validProgressBundle(body) {
+  if (!validState(body?.state)) return false;
+  if (["sessions", "results", "attempts", "recent", "mockResults"].some((key) => key in body.state)) return false;
+  if (!Array.isArray(body.sessions) || body.sessions.length > 100 || !body.sessions.every(validSession)) return false;
+  if (!Array.isArray(body.deletedSessionIds) || body.deletedSessionIds.length > 100) return false;
+  if (!body.deletedSessionIds.every((id) => /^[a-z0-9][a-z0-9_-]{0,127}$/i.test(String(id)))) return false;
+  return Number.isInteger(Number(body.expectedVersion)) && Number(body.expectedVersion) >= 0;
+}
+
 function serveStatic(response, pathname) {
   const requested = pathname === "/" ? "index.html" : pathname.replace(/^\/+/, "");
   const filePath = path.resolve(publicRoot, requested);
@@ -98,8 +120,13 @@ async function handler(request, response) {
   if (request.method === "PUT" && url.pathname === "/api/progress") {
     try {
       const body = await readJson(request);
-      if (!validState(body.state)) return sendJson(response, 400, { error: "invalid_state" });
-      const saved = await saveState(body.state);
+      if (!validProgressBundle(body)) return sendJson(response, 400, { error: "invalid_state" });
+      const saved = await saveState(body.state, {
+        sessions: body.sessions,
+        deletedSessionIds: body.deletedSessionIds,
+        expectedVersion: body.expectedVersion
+      });
+      if (saved.conflict) return sendJson(response, 409, { error: "version_conflict" });
       return sendJson(response, 200, saved);
     } catch (error) {
       return sendJson(response, error.message === "request_too_large" ? 413 : 400, { error: error.message });
@@ -114,4 +141,4 @@ if (require.main === module) {
   server.listen(PORT, HOST, () => console.log(`${content.exam.name} を http://${HOST}:${PORT} で起動しました`));
 }
 
-module.exports = { handler, server, validState };
+module.exports = { handler, server, validProgressBundle, validSession, validState };

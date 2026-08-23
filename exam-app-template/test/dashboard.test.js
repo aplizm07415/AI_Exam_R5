@@ -57,6 +57,8 @@ test("ダッシュボード・全体確認・学習記録・実施履歴を描�
 
   context.setView("progress");
   assert.match(elements["#app"].innerHTML, /層別進捗とコース到達度/);
+  assert.match(elements["#app"].innerHTML, /60点コースのチェックポイント/);
+  assert.match(elements["#app"].innerHTML, /基礎をつなぐ/);
   assert.match(elements["#app"].innerHTML, /60点基礎層/);
   assert.match(elements["#app"].innerHTML, /70点追加層/);
   assert.match(elements["#app"].innerHTML, /ロック中/);
@@ -73,6 +75,7 @@ test("ダッシュボード・全体確認・学習記録・実施履歴を描�
 
   vm.runInContext(`begin([{ id: "finance:ui-test", sourceId: "ui-test", subject: "finance", topic: "UI確認", difficulty: "基礎", minimumCourse: 60, calculationRequired: true, options: [{ id: "ア", label: "選択肢A" }, { id: "イ", label: "選択肢B" }] }], { label: "UI確認" })`, context);
   assert.match(elements["#app"].innerHTML, /role="checkbox"/);
+  assert.match(elements["#app"].innerHTML, /role="radio" tabindex="0"/);
   assert.match(elements["#app"].innerHTML, /左の縦チェックは「除外」/);
   assert.match(elements["#app"].innerHTML, /calculator is-minimized/);
   assert.doesNotMatch(elements["#app"].innerHTML, /type="radio"/);
@@ -87,6 +90,21 @@ test("ダッシュボード・全体確認・学習記録・実施履歴を描�
   assert.match(elements["#app"].innerHTML, /FINANCE MAP/);
   assert.match(elements["#app"].innerHTML, /元教材の解説/);
   assert.match(elements["#app"].innerHTML, /アーカイブにする/);
+  assert.match(elements["#app"].innerHTML, /data-grade disabled>採点済み/);
+
+  const allocationSums = vm.runInContext(`content.learningPhases.every((phase) => Array.from({ length: Math.ceil(phase.sessionSize * .5) + 1 }, (_, extra) => phase.sessionSize + extra).every((total) => Object.values(weightedAllocation(total, phase.subjectWeights)).reduce((sum, value) => sum + value, 0) === total))`, context);
+  assert.equal(allocationSums, true);
+
+  const cumulativePlan = vm.runInContext(`(() => {
+    const originalSessions = state.sessions;
+    const item = content.studyPlans.subjects.finance.courses.find((course) => course.targetScore === 70).groups[0].items[0];
+    const records = Array.from({ length: 7 }, (_, index) => ({ questionId: "finance:cumulative-" + index, subject: "finance", topic: item.topic, topicId: item.topicId, minimumCourse: 60, foundationCheckpoint: 1, difficulty: "基礎", correct: true, answeredAt: new Date(Date.now() - index * 1000).toISOString() }));
+    state.sessions = [0, 1].map((part) => ({ id: "cumulative-" + part, type: "practice", course: 60, startedAt: new Date().toISOString(), results: records.filter((_, index) => index % 2 === part) }));
+    const status = autoItemStatus("finance", 70, item);
+    state.sessions = originalSessions;
+    return status;
+  })()`, context);
+  assert.equal(cumulativePlan.passed, true);
 
   const archiveRule = vm.runInContext(`(() => {
     const originalSessions = state.sessions;
@@ -111,15 +129,27 @@ test("ダッシュボード・全体確認・学習記録・実施履歴を描�
   const gates = vm.runInContext(`(() => {
     const originalSessions = state.sessions;
     const originalResults = state.results;
-    const records = Array.from({ length: 60 }, (_, index) => ({ questionId: "finance:gate-" + index, subject: "finance", topic: "gate", topicId: "finance:gate", minimumCourse: 60, difficulty: "基礎", correct: true, answeredAt: new Date(Date.now() - index * 1000).toISOString() }));
-    state.sessions = Array.from({ length: 4 }, (_, sessionIndex) => ({ id: "gate-session-" + sessionIndex, type: "practice", course: 60, startedAt: new Date().toISOString(), results: records.filter((_, index) => index % 4 === sessionIndex) }));
+    const subjects = ["finance", "operations", "law", "sme"];
+    const financeOnly = Array.from({ length: 60 }, (_, index) => ({ questionId: "finance:only-" + index, subject: "finance", topic: "gate", topicId: "finance:gate", minimumCourse: 60, foundationCheckpoint: 1, difficulty: "基礎", correct: true, answeredAt: new Date(Date.now() - index * 1000).toISOString() }));
+    state.sessions = Array.from({ length: 4 }, (_, sessionIndex) => ({ id: "finance-only-" + sessionIndex, type: "practice", course: 60, startedAt: new Date().toISOString(), results: financeOnly.filter((_, index) => index % 4 === sessionIndex) }));
+    state.results = Object.fromEntries(financeOnly.map((record) => [record.questionId, record]));
+    const oneSubjectUnlocks = isCourseUnlocked(70);
+    const records = [];
+    const sessions = [];
+    for (const checkpoint of [1, 2, 3]) for (const subject of subjects) {
+      const subjectRecords = Array.from({ length: 20 }, (_, index) => ({ questionId: subject + ":gate-" + checkpoint + "-" + index, subject, topic: "gate", topicId: subject + ":gate", minimumCourse: 60, foundationCheckpoint: checkpoint, difficulty: "基礎", correct: true, answeredAt: new Date(Date.now() - (checkpoint * 100 + index) * 1000).toISOString() }));
+      records.push(...subjectRecords);
+      sessions.push(...[0, 1, 2].map((part) => ({ id: "gate-" + checkpoint + "-" + subject + "-" + part, type: "practice", course: 60, startedAt: new Date().toISOString(), results: subjectRecords.filter((_, index) => index % 3 === part) })));
+    }
+    state.sessions = sessions;
     state.results = Object.fromEntries(records.map((record) => [record.questionId, record]));
-    const result = { sixty: tierProgress(60).passed, seventyUnlocked: isCourseUnlocked(70), eightyUnlocked: isCourseUnlocked(80), selector: courseSelector() };
+    const result = { oneSubjectUnlocks, foundation: foundationReadiness().passed, seventyUnlocked: isCourseUnlocked(70), eightyUnlocked: isCourseUnlocked(80), selector: courseSelector() };
     state.sessions = originalSessions;
     state.results = originalResults;
     return result;
   })()`, context);
-  assert.equal(gates.sixty, true);
+  assert.equal(gates.oneSubjectUnlocks, false);
+  assert.equal(gates.foundation, true);
   assert.equal(gates.seventyUnlocked, true);
   assert.equal(gates.eightyUnlocked, false);
   assert.match(gates.selector, /data-set-course="80" disabled/);

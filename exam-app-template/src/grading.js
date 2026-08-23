@@ -38,6 +38,7 @@ function gradeQuestion(question, submitted) {
     topicId: question.topicId,
     difficulty: question.difficulty,
     minimumCourse: question.minimumCourse,
+    foundationCheckpoint: question.foundationCheckpoint || null,
     correct,
     score: correct ? Number(question.points) : 0,
     maxScore: Number(question.points),

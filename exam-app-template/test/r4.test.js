@@ -6,7 +6,8 @@ const { content, officialExam, publicContent, queryQuestions, validateContent } 
 const { gradeQuestion, gradeOfficialExam } = require("../src/grading");
 const { calculationRequired, difficultyFor, normalizeChoiceId, normalizeChoiceText } = require("../src/question-quality");
 const { auditQuestions } = require("../tools/audit-questions");
-const { handler, validState } = require("../server");
+const { handler, validProgressBundle, validState } = require("../server");
+const { compactState } = require("../src/database");
 
 function dispatch(url, options = {}) {
   return new Promise((resolve, reject) => {
@@ -57,6 +58,8 @@ test("60・70・80点コースで問題範囲を段階開放する", () => {
   assert.ok(sixty.questions.every((question) => question.minimumCourse <= 60));
   assert.ok(eighty.questions.some((question) => question.minimumCourse > 60));
   assert.ok(seventyTier.questions.every((question) => question.minimumCourse === 70));
+  const checkpointOne = queryQuestions({ course: 60, tier: "exact", checkpoint: 1, limit: 100, seed: "same" });
+  assert.ok(checkpointOne.questions.every((question) => question.foundationCheckpoint === 1));
 });
 
 test("ダッシュボード用のフェーズ・配分・財務ルートを公開する", () => {
@@ -68,6 +71,18 @@ test("ダッシュボード用のフェーズ・配分・財務ルートを公�
   assert.ok(result.courseCounts[60].total < result.courseCounts[70].total);
   assert.ok(result.courseCounts[70].total < result.courseCounts[80].total);
   assert.equal(result.courseCounts[80].total, 2474);
+  assert.deepEqual(Object.fromEntries(Object.entries(result.foundationCheckpointCounts).map(([id, value]) => [id, value.total])), { 1: 495, 2: 495, 3: 493 });
+  assert.deepEqual(result.foundationCheckpoints.map((checkpoint) => ({
+    questions: checkpoint.requiredQuestionsPerSubject,
+    sessions: checkpoint.requiredSessionsPerSubject,
+    rate: checkpoint.requiredRate,
+    recentRate: checkpoint.requiredRecentRate
+  })), [
+    { questions: 20, sessions: 2, rate: 80, recentRate: 80 },
+    { questions: 20, sessions: 3, rate: 85, recentRate: 85 },
+    { questions: 20, sessions: 3, rate: 88, recentRate: 85 }
+  ]);
+  assert.equal(Object.keys(result.foundationQuestionCheckpoints).length, result.courseCounts[60].addedAtCourse);
   assert.equal([60, 70, 80].reduce((sum, score) => sum + result.courseCounts[score].addedAtCourse, 0), 2474);
   for (const score of [60, 70, 80]) {
     assert.equal(Object.values(result.courseCounts[score].addedSubjects).reduce((sum, value) => sum + value, 0), result.courseCounts[score].addedAtCourse);
@@ -131,6 +146,10 @@ test("APIがカタログ・問題・採点・公式模試を提供する", async
 test("保存状態はR4の許可フィールドだけ受け付ける", () => {
   assert.equal(validState({ schemaVersion: 5, answers: {}, results: {}, archived: {}, attempts: {}, mockResults: {}, activity: {}, sessions: [], plan: {} }), true);
   assert.equal(validState({ answers: {}, admin: true }), false);
+  const session = { id: "session-test", type: "practice", results: [{ questionId: "finance:test" }] };
+  assert.equal(validProgressBundle({ state: { schemaVersion: 5, answers: {}, plan: {} }, sessions: [session], deletedSessionIds: [], expectedVersion: 0 }), true);
+  assert.equal(validProgressBundle({ state: { schemaVersion: 5 }, sessions: [{ ...session, type: "<script>" }], deletedSessionIds: [], expectedVersion: 0 }), false);
+  assert.deepEqual(compactState({ answers: {}, sessions: [session], results: { x: 1 }, attempts: { x: 1 }, recent: ["x"], mockResults: { x: 1 } }), { answers: {} });
 });
 
 test("Phase 1は8月24日開始で、計算問題だけ電卓対象フラグを持つ", () => {
