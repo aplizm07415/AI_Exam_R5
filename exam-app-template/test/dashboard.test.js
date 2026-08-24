@@ -193,4 +193,6 @@ test("スマホ表示は本文16px・補助14pxと44px以上の操作領域を�
   assert.match(css, /\.eliminate-toggle \{ width: 44px; height: 44px;/);
   assert.match(css, /\.quit-session \{ min-height: 44px; \}/);
   assert.match(css, /\.calculator\.is-minimized \{ width: 76px; \}/);
+  assert.doesNotMatch(css, /(?:html|body) \{[^}]*overflow-x: hidden/);
+  assert.match(css, /\.table-scroll \{ width: 100%; max-width: 100%;[^}]*overflow-x: auto;/);
 });
