@@ -11,6 +11,7 @@ let databaseEnabled = false;
 let saveTimer = null;
 let saveInFlight = false;
 let savePending = false;
+let gradingQuestionId = null;
 let remoteVersion = 0;
 let studySubject = "finance";
 let mockSubject = null;
@@ -231,10 +232,13 @@ function dirtySessionBatch(maximumCount = 20, maximumCharacters = 200_000) {
   return batch;
 }
 
-function queueSave() {
+function queueSave({ immediate = false } = {}) {
   state.savedAt = new Date().toISOString();
   if (storeLocally()) saveStatus.textContent = "保存中…";
   clearTimeout(saveTimer);
+  if (immediate) {
+    return persistNow();
+  }
   saveTimer = setTimeout(persistNow, 450);
 }
 
@@ -913,10 +917,11 @@ function answerMarkup(question, feedback) {
   const selected = new Set(Array.isArray(saved) ? saved : [saved]);
   const eliminated = eliminatedChoices.get(question.id) || new Set();
   const correctAnswers = new Set(Array.isArray(feedback?.correctAnswer) ? feedback.correctAnswer.map(String) : [feedback?.correctAnswer].filter((value) => value !== undefined).map(String));
-  return `<p class="choice-help">左の縦チェックは「除外」、選択肢の本文は「回答」です。採点前の回答は薄い青、採点後の正答は緑で表示されます。</p><div class="choices" role="radiogroup" aria-label="回答の選択肢">${question.options.map((option) => {
+  const isGrading = gradingQuestionId === question.id;
+  return `<div class="choices ${isGrading ? "is-grading" : ""}" role="radiogroup" aria-label="回答の選択肢" aria-busy="${isGrading}">${question.options.map((option) => {
     const isSelected = selected.has(option.id);
     const resultClass = feedback ? (correctAnswers.has(String(option.id)) ? "is-correct" : isSelected ? "is-incorrect" : "") : "";
-    return `<div role="radio" tabindex="${eliminated.has(option.id) ? -1 : 0}" aria-checked="${isSelected}" aria-disabled="${eliminated.has(option.id)}" class="choice ${isSelected ? "is-selected" : ""} ${eliminated.has(option.id) ? "is-eliminated" : ""} ${resultClass}" data-select-choice="${escapeHtml(option.id)}"><button type="button" role="checkbox" class="eliminate-toggle" data-eliminate-choice="${escapeHtml(option.id)}" aria-checked="${eliminated.has(option.id)}" aria-label="選択肢${escapeHtml(option.id)}を除外">${eliminated.has(option.id) ? "×" : ""}</button><span class="choice-key">${escapeHtml(option.id)}</span><span class="choice-text">${richText(option.label)}</span></div>`;
+    return `<div role="radio" tabindex="${eliminated.has(option.id) || isGrading ? -1 : 0}" aria-checked="${isSelected}" aria-disabled="${eliminated.has(option.id) || isGrading}" class="choice ${isSelected ? "is-selected" : ""} ${eliminated.has(option.id) ? "is-eliminated" : ""} ${resultClass}" data-select-choice="${escapeHtml(option.id)}"><button type="button" role="checkbox" class="eliminate-toggle" data-eliminate-choice="${escapeHtml(option.id)}" aria-checked="${eliminated.has(option.id)}" aria-label="選択肢${escapeHtml(option.id)}を除外" ${isGrading ? "disabled" : ""}>×</button><span class="choice-key">${escapeHtml(option.id)}</span><span class="choice-text">${richText(option.label)}</span></div>`;
   }).join("")}</div>`;
 }
 
@@ -936,6 +941,12 @@ function useCalculator(action, value) {
   renderQuestion();
 }
 
+function nextSessionActionMarkup(className = "secondary") {
+  return currentIndex === session.length - 1
+    ? `<button class="${className} finish-session" data-finish-session>演習を完了してトップへ</button>`
+    : `<button class="${className}" data-next>次へ →</button>`;
+}
+
 function renderQuestion() {
   clearInterval(mockTimer);
   currentView = "session";
@@ -944,18 +955,21 @@ function renderQuestion() {
   const question = session[currentIndex];
   const stored = state.results[question.id];
   const feedback = feedbackCache.get(question.id);
+  const isGrading = gradingQuestionId === question.id;
   app.innerHTML = `<section class="practice-layout"><div>
-    <div class="session-progress"><span>${currentIndex + 1} / ${session.length}</span><i><b style="width:${((currentIndex + 1) / session.length) * 100}%"></b></i><small>${escapeHtml(question.difficulty)}・${question.minimumCourse === 60 ? `60点 ${escapeHtml(content.foundationCheckpoints.find((item) => item.id === question.foundationCheckpoint)?.shortLabel || "基礎")}` : `${question.minimumCourse}点追加層`}</small></div>
+    <div class="session-progress"><span>${currentIndex + 1} / ${session.length}</span><i><b style="width:${((currentIndex + 1) / session.length) * 100}%"></b></i><small>${escapeHtml(question.difficulty)}・${question.minimumCourse === 60 ? `60点 ${escapeHtml(content.foundationCheckpoints.find((item) => item.id === question.foundationCheckpoint)?.shortLabel || "基礎")}` : `${question.minimumCourse}点追加層`}</small><button class="danger quit-session" data-quit-session>一旦やめる</button></div>
     <article class="question-card"><div class="question-meta"><span>${escapeHtml(subjectLabel(question.subject))}</span><span>${escapeHtml(question.topic)}</span><span>${escapeHtml(question.sourceId)}</span>${question.calculationRequired ? "<span>計算</span>" : ""}</div><h2>Q${currentIndex + 1}. ${escapeHtml(question.topic)}</h2><div class="prompt">${richText(question.prompt)}</div><div class="answer-area">${answerMarkup(question, feedback)}</div>
       <div id="feedback" aria-live="polite">${feedback ? feedbackMarkup(feedback, question) : stored ? storedFeedbackMarkup(stored) : ""}</div>
       <label class="note-wrap"><span>自分用メモ</span><textarea class="note-input" id="questionNote" placeholder="間違えた理由、覚え方、再確認日など">${escapeHtml(state.notes[question.id] || "")}</textarea></label>
     </article>
-    <div class="actions"><button class="secondary" data-prev ${currentIndex === 0 ? "disabled" : ""}>← 前へ</button><button class="secondary" data-flag>${state.flags[question.id] ? "★ 見直し中" : "☆ 見直す"}</button>${feedback ? `<button class="secondary archive-action" data-archive>${isArchived(question.id) ? "アーカイブを解除" : "アーカイブにする"}</button>` : ""}<button class="primary" data-grade ${feedback ? "disabled" : ""}>${feedback ? "採点済み" : "採点・解説"}</button><button class="secondary" data-next ${currentIndex === session.length - 1 ? "disabled" : ""}>次へ →</button></div>
-  </div><aside class="panel navigator"><span class="eyebrow">QUESTION MAP</span><h3>${escapeHtml(subjectLabel(question.subject))}</h3><div class="question-map">${session.map((item, index) => `<button class="map-button ${index === currentIndex ? "current" : ""} ${state.results[item.id] ? "done" : ""} ${state.flags[item.id] ? "flagged" : ""}" data-jump="${index}">${index + 1}</button>`).join("")}</div><button class="text-button" data-view="progress">学習記録を見る →</button></aside>${question.calculationRequired ? calculatorMarkup() : ""}</section>`;
+    <div class="actions"><button class="secondary" data-prev ${currentIndex === 0 ? "disabled" : ""}>← 前へ</button><button class="secondary" data-flag>${state.flags[question.id] ? "★ 見直し中" : "☆ 見直す"}</button>${feedback ? `<button class="secondary archive-action" data-archive>${isArchived(question.id) ? "アーカイブを解除" : "アーカイブにする"}</button>` : ""}<button class="primary" data-grade ${feedback || isGrading ? "disabled" : ""} aria-busy="${isGrading}">${feedback ? "採点済み" : isGrading ? "採点・保存中…" : "採点・解説"}</button>${nextSessionActionMarkup()}</div>
+  </div><aside class="panel navigator"><h3>問題一覧・${escapeHtml(subjectLabel(question.subject))}</h3><div class="question-map">${session.map((item, index) => `<button class="map-button ${index === currentIndex ? "current" : ""} ${state.results[item.id] ? "done" : ""} ${state.flags[item.id] ? "flagged" : ""}" data-jump="${index}">${index + 1}</button>`).join("")}</div><button class="text-button" data-view="progress">学習記録を見る →</button></aside>${question.calculationRequired ? calculatorMarkup() : ""}</section>`;
 }
 
 function feedbackMarkup(result, question = session[currentIndex]) {
-  return `<div class="feedback visual-feedback ${result.correct ? "correct" : "incorrect"}"><div class="feedback-result-banner"><span>${result.correct ? "CORRECT" : "REVIEW"}</span><strong>${result.correct ? "正解です" : "不正解です"}</strong><p>${result.correct ? "判断の流れを確認して、次も再現できる形にします。" : "正答との差を、条件と判断順序から確認します。"}</p></div>${guidedFeedbackExplanationMarkup(question, result)}</div>`;
+  const questionId = question.id;
+  const resultBanner = result.correct ? "<strong>正解</strong>" : "<strong>不正解</strong><p>正答との差を、条件と判断順序から確認します。</p>";
+  return `<div class="feedback visual-feedback ${result.correct ? "correct" : "incorrect"}"><div class="feedback-result-banner">${resultBanner}</div><div class="feedback-quick-actions"><button class="secondary archive-action" data-archive>${isArchived(questionId) ? "アーカイブを解除" : "アーカイブにする"}</button>${nextSessionActionMarkup()}</div>${guidedFeedbackExplanationMarkup(question, result)}</div>`;
 }
 
 function storedFeedbackMarkup(result) {
@@ -964,22 +978,18 @@ function storedFeedbackMarkup(result) {
 
 const sampleVisualConfig = {
   finance: {
-    eyebrow: "FINANCE MAP",
     title: "数値と会計上の行き先をつなぐ",
     route: ["条件・数値", "計算／会計ルール", "財務諸表への影響", "正答"]
   },
   operations: {
-    eyebrow: "OPERATION FLOW",
     title: "現場の流れと評価軸で捉える",
     route: ["投入・前提", "工程／管理手法", "QCD・効率への効果", "正答"]
   },
   law: {
-    eyebrow: "LEGAL FRAME",
     title: "主体・原則・例外を分けて照合する",
     route: ["誰が・何を", "原則の手続", "要件・例外", "法的効果と正答"]
   },
   sme: {
-    eyebrow: "POLICY & DATA",
     title: "対象・基準・年度を固定して読む",
     route: ["制度／統計の対象", "人数・金額・年度", "支援内容／傾向", "正答"]
   }
@@ -1055,7 +1065,7 @@ function lawSampleVisual(sample, tokens) {
 function smeSampleVisual(sample, tokens) {
   const period = tokens.find((token) => /年度|年$|%|％/u.test(token)) || "基準時点を確認";
   const target = tokens.find((token) => /企業|事業者|従業員/u.test(token)) || "対象企業を確認";
-  return `<div class="policy-visual"><div><span>TARGET</span><strong>${escapeHtml(target)}</strong><small>対象者・業種</small></div><div><span>WHEN / VALUE</span><strong>${escapeHtml(period)}</strong><small>年度・人数・金額</small></div><div><span>OUTCOME</span><strong>選択肢 ${escapeHtml(sample.answer)}</strong><small>支援内容・統計傾向</small></div></div>`;
+  return `<div class="policy-visual"><div><span>対象</span><strong>${escapeHtml(target)}</strong><small>対象者・業種</small></div><div><span>時点・数値</span><strong>${escapeHtml(period)}</strong><small>年度・人数・金額</small></div><div><span>結論</span><strong>選択肢 ${escapeHtml(sample.answer)}</strong><small>支援内容・統計傾向</small></div></div>`;
 }
 
 function subjectSampleVisual(sample, tokens) {
@@ -1064,11 +1074,11 @@ function subjectSampleVisual(sample, tokens) {
     : sample.subject === "law" ? lawSampleVisual(sample, tokens)
       : sample.subject === "sme" ? smeSampleVisual(sample, tokens)
         : operationsSampleVisual(sample, tokens);
-  return `<section class="sample-section subject-visual-card subject-${sample.subject}"><header><div><span class="eyebrow">${config.eyebrow}</span><h3>${config.title}</h3></div><span class="visual-kind">科目別ビュー</span></header>${diagram}<div class="visual-route-legend">${config.route.map((item, index) => `<span><b>${index + 1}</b>${item}</span>`).join("")}</div></section>`;
+  return `<section class="sample-section subject-visual-card subject-${sample.subject}"><header><h3>${config.title}</h3></header>${diagram}<div class="visual-route-legend">${config.route.map((item, index) => `<span><b>${index + 1}</b>${item}</span>`).join("")}</div></section>`;
 }
 
 function originalExplanationMarkup(sample) {
-  return `<details class="original-explanation"><summary><span><small>ORIGINAL</small>元教材の解説</span><em>クリックして表示</em></summary><div class="original-explanation-body">${richText(sample.originalExplanation || sample.explanation || "解説はありません。")}</div></details>`;
+  return `<details class="original-explanation" open><summary><span>元教材の解説</span></summary><div class="original-explanation-body">${richText(sample.originalExplanation || sample.explanation || "解説はありません。")}</div></details>`;
 }
 
 function guidedFeedbackExplanationMarkup(question = {}, result = {}) {
@@ -1086,10 +1096,9 @@ function guidedFeedbackExplanationMarkup(question = {}, result = {}) {
   const tokens = sampleConditionTokens(explanation);
   const steps = sampleExplanationSteps(explanation);
   return `<div class="guided-feedback-explanation">
-    <section class="sample-section feedback-stage feedback-conditions"><div class="sample-section-label"><span>01</span><div><small>READ</small><strong>条件を整理する</strong></div></div><p class="feedback-stage-lead">${escapeHtml(steps[0])}</p><div class="condition-tokens" aria-label="注目する条件">${tokens.map((token) => `<span>${escapeHtml(token)}</span>`).join("")}</div></section>
-    <section class="sample-section feedback-stage"><div class="sample-section-label"><span>02</span><div><small>THINK</small><strong>判断の順序</strong></div></div><div class="reasoning-steps">${steps.map((step, stepIndex) => `<div><span>STEP ${stepIndex + 1}</span><strong>${["条件を固定", "ルールを適用", "答案と照合"][stepIndex]}</strong><p>${escapeHtml(step)}</p></div>`).join("")}</div></section>
+    <section class="sample-section feedback-stage feedback-conditions"><div class="sample-section-label"><span>01</span><strong>条件を整理する</strong></div><p class="feedback-stage-lead">${escapeHtml(steps[0])}</p><div class="condition-tokens" aria-label="注目する条件">${tokens.map((token) => `<span>${escapeHtml(token)}</span>`).join("")}</div></section>
+    <section class="sample-section feedback-stage"><div class="sample-section-label"><span>02</span><strong>判断の順序</strong></div><div class="reasoning-steps">${steps.map((step, stepIndex) => `<div><span>${stepIndex + 1}</span><strong>${["条件を固定", "ルールを適用", "答案と照合"][stepIndex]}</strong><p>${escapeHtml(step)}</p></div>`).join("")}</div></section>
     ${subjectSampleVisual(explanation, tokens)}
-    <section class="sample-section feedback-stage"><div class="sample-section-label"><span>03</span><div><small>ANSWER</small><strong>正答へ落とし込む</strong></div></div><div class="sample-answer-callout"><span>正答</span><strong>${escapeHtml(answer)}</strong><p>${escapeHtml(answerText)}</p></div></section>
     ${originalExplanationMarkup(explanation)}
   </div>`;
 }
@@ -1100,10 +1109,12 @@ function collectAnswer() {
 
 async function gradeCurrent() {
   const question = session[currentIndex];
-  if (feedbackCache.has(question.id)) return;
+  if (feedbackCache.has(question.id) || gradingQuestionId === question.id) return;
   const answer = collectAnswer();
   if (!answer) { alert("選択肢を選んでください。"); return; }
   state.answers[question.id] = answer;
+  gradingQuestionId = question.id;
+  renderQuestion();
   try {
     const response = await fetch("/api/grade", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ questionId: question.id, answer }) });
     if (!response.ok) throw new Error("grade_failed");
@@ -1128,9 +1139,14 @@ async function gradeCurrent() {
     recordActivity("answer", fullResult.correct);
     refreshAutoPlanCompletion();
     refreshFoundationCheckpoint(true);
-    queueSave();
-    renderQuestion();
-  } catch { alert("採点できませんでした。接続を確認してください。"); }
+    await queueSave({ immediate: true });
+    gradingQuestionId = null;
+    if (currentView === "session" && session[currentIndex]?.id === question.id) renderQuestion();
+  } catch {
+    gradingQuestionId = null;
+    if (currentView === "session" && session[currentIndex]?.id === question.id) renderQuestion();
+    alert("採点できませんでした。接続を確認してください。");
+  }
 }
 
 function renderPlanCourse(course, plan, autoCompleted) {
@@ -1413,6 +1429,7 @@ document.addEventListener("click", (event) => {
   const eliminateButton = event.target.closest("[data-eliminate-choice]");
   if (eliminateButton && currentView === "session") {
     const question = session[currentIndex];
+    if (gradingQuestionId === question.id) return;
     const eliminated = eliminatedChoices.get(question.id) || new Set();
     const choiceId = eliminateButton.dataset.eliminateChoice;
     eliminated.has(choiceId) ? eliminated.delete(choiceId) : eliminated.add(choiceId);
@@ -1423,6 +1440,7 @@ document.addEventListener("click", (event) => {
   }
   const choice = event.target.closest("[data-select-choice]");
   if (choice && currentView === "session" && !choice.classList.contains("is-eliminated")) {
+    if (gradingQuestionId === session[currentIndex].id) return;
     feedbackCache.delete(session[currentIndex].id);
     state.answers[session[currentIndex].id] = choice.dataset.selectChoice;
     queueSave();
@@ -1466,7 +1484,20 @@ document.addEventListener("click", (event) => {
   const jump = event.target.closest("[data-jump]");
   if (jump) { currentIndex = Number(jump.dataset.jump); return renderQuestion(); }
   if (event.target.closest("[data-prev]")) { currentIndex -= 1; return renderQuestion(); }
-  if (event.target.closest("[data-next]")) { currentIndex += 1; return renderQuestion(); }
+  if (event.target.closest("[data-next]")) {
+    currentIndex += 1;
+    renderQuestion();
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    return;
+  }
+  if (event.target.closest("[data-quit-session], [data-finish-session]")) {
+    session = [];
+    activeSession = null;
+    currentIndex = 0;
+    setView("home");
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    return;
+  }
   if (event.target.closest("[data-grade]")) return gradeCurrent();
   if (event.target.closest("[data-archive]")) {
     const id = session[currentIndex].id;
@@ -1522,7 +1553,7 @@ document.addEventListener("input", (event) => {
 
 document.addEventListener("keydown", (event) => {
   const choice = event.target.closest?.("[data-select-choice]");
-  if (!choice || !["Enter", " "].includes(event.key) || choice.classList.contains("is-eliminated")) return;
+  if (!choice || !["Enter", " "].includes(event.key) || choice.classList.contains("is-eliminated") || gradingQuestionId === session[currentIndex]?.id) return;
   event.preventDefault();
   feedbackCache.delete(session[currentIndex].id);
   state.answers[session[currentIndex].id] = choice.dataset.selectChoice;

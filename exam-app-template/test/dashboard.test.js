@@ -75,9 +75,13 @@ test("ダッシュボード・全体確認・学習記録・実施履歴を描�
 
   vm.runInContext(`begin([{ id: "finance:ui-test", sourceId: "ui-test", subject: "finance", topic: "UI確認", difficulty: "基礎", minimumCourse: 60, calculationRequired: true, options: [{ id: "ア", label: "選択肢A" }, { id: "イ", label: "選択肢B" }] }], { label: "UI確認" })`, context);
   assert.match(elements["#app"].innerHTML, /role="checkbox"/);
+  assert.match(elements["#app"].innerHTML, /aria-label="選択肢アを除外"[^>]*>×<\/button>/);
   assert.match(elements["#app"].innerHTML, /role="radio" tabindex="0"/);
-  assert.match(elements["#app"].innerHTML, /左の縦チェックは「除外」/);
+  assert.doesNotMatch(elements["#app"].innerHTML, /左の縦チェックは「除外」/);
+  assert.match(elements["#app"].innerHTML, /data-quit-session>一旦やめる/);
   assert.match(elements["#app"].innerHTML, /calculator is-minimized/);
+  assert.match(elements["#app"].innerHTML, /data-finish-session>演習を完了してトップへ/);
+  assert.doesNotMatch(elements["#app"].innerHTML, /QUESTION MAP/);
   assert.doesNotMatch(elements["#app"].innerHTML, /type="radio"/);
   assert.doesNotMatch(elements["#app"].innerHTML, /data-archive/);
 
@@ -87,10 +91,25 @@ test("ダッシュボード・全体確認・学習記録・実施履歴を描�
   assert.doesNotMatch(elements["#app"].innerHTML, /正答：/);
   assert.match(elements["#app"].innerHTML, /<a href="https:\/\/example\.com\/source" target="_blank" rel="noopener noreferrer">/);
   assert.match(elements["#app"].innerHTML, /guided-feedback-explanation/);
-  assert.match(elements["#app"].innerHTML, /FINANCE MAP/);
+  assert.doesNotMatch(elements["#app"].innerHTML, /FINANCE MAP|READ|THINK|STEP|ORIGINAL|科目別ビュー|REVIEW/);
   assert.match(elements["#app"].innerHTML, /元教材の解説/);
+  assert.match(elements["#app"].innerHTML, /<details class="original-explanation" open>/);
+  assert.doesNotMatch(elements["#app"].innerHTML, /クリックして表示|正答へ落とし込む/);
+  assert.match(elements["#app"].innerHTML, /feedback-quick-actions/);
   assert.match(elements["#app"].innerHTML, /アーカイブにする/);
-  assert.match(elements["#app"].innerHTML, /data-grade disabled>採点済み/);
+  assert.match(elements["#app"].innerHTML, /data-grade disabled aria-busy="false">採点済み/);
+
+  const correctBanner = vm.runInContext(`feedbackMarkup({ correct: true, correctAnswer: "ア", explanation: "解説" }, { id: "finance:ui-test", subject: "finance", topic: "UI確認", options: [] })`, context);
+  assert.match(correctBanner, /feedback-result-banner"><strong>正解<\/strong><\/div>/);
+  assert.doesNotMatch(correctBanner, /正解です|判断の流れを確認して|CORRECT/);
+
+  const immediateSave = vm.runInContext(`(() => {
+    let calls = 0;
+    persistNow = async () => { calls += 1; };
+    queueSave({ immediate: true });
+    return calls;
+  })()`, context);
+  assert.equal(immediateSave, 1);
 
   const allocationSums = vm.runInContext(`content.learningPhases.every((phase) => Array.from({ length: Math.ceil(phase.sessionSize * .5) + 1 }, (_, extra) => phase.sessionSize + extra).every((total) => Object.values(weightedAllocation(total, phase.subjectWeights)).reduce((sum, value) => sum + value, 0) === total))`, context);
   assert.equal(allocationSums, true);
@@ -165,4 +184,13 @@ test("ダッシュボード・全体確認・学習記録・実施履歴を描�
 test("サイドバーにアーカイブタブがある", () => {
   const html = fs.readFileSync(path.join(__dirname, "..", "public", "index.html"), "utf8");
   assert.match(html, /data-view="archive"[^>]*><span>08<\/span>アーカイブ/);
+});
+
+test("スマホ表示は本文16px・補助14pxと44px以上の操作領域を使う", () => {
+  const css = fs.readFileSync(path.join(__dirname, "..", "public", "styles.css"), "utf8");
+  assert.match(css, /#app :where\(p, li, td, th, label, button, input, select, textarea\) \{ font-size: 16px; \}/);
+  assert.match(css, /#app :where\(small, span, \.eyebrow\) \{ font-size: 14px; \}/);
+  assert.match(css, /\.eliminate-toggle \{ width: 44px; height: 44px;/);
+  assert.match(css, /\.quit-session \{ min-height: 44px; \}/);
+  assert.match(css, /\.calculator\.is-minimized \{ width: 76px; \}/);
 });
