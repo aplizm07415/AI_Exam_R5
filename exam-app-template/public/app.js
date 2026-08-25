@@ -1449,8 +1449,20 @@ document.addEventListener("click", (event) => {
   const calcKey = event.target.closest("[data-calc-action]");
   if (calcKey) return useCalculator(calcKey.dataset.calcAction, calcKey.dataset.calcValue);
   if (event.target.closest("[data-calc-minimize]")) { calculatorState.minimized = !calculatorState.minimized; return renderQuestion(); }
+  const mobileNavToggle = event.target.closest("[data-mobile-nav-toggle]");
+  if (mobileNavToggle) {
+    const sidebar = mobileNavToggle.closest(".sidebar");
+    const expanded = !sidebar.classList.contains("is-menu-open");
+    sidebar.classList.toggle("is-menu-open", expanded);
+    mobileNavToggle.setAttribute("aria-expanded", String(expanded));
+    return;
+  }
   const viewButton = event.target.closest("[data-view]");
-  if (viewButton) return setView(viewButton.dataset.view);
+  if (viewButton) {
+    document.querySelector(".sidebar")?.classList.remove("is-menu-open");
+    document.querySelector("[data-mobile-nav-toggle]")?.setAttribute("aria-expanded", "false");
+    return setView(viewButton.dataset.view);
+  }
   const courseButton = event.target.closest("[data-set-course]");
   if (courseButton) {
     const nextScore = Number(courseButton.dataset.setCourse);

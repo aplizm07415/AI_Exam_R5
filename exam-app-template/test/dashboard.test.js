@@ -184,15 +184,25 @@ test("ダッシュボード・全体確認・学習記録・実施履歴を描�
 test("サイドバーにアーカイブタブがある", () => {
   const html = fs.readFileSync(path.join(__dirname, "..", "public", "index.html"), "utf8");
   assert.match(html, /data-view="archive"[^>]*><span>08<\/span>アーカイブ/);
+  assert.match(html, /data-mobile-nav-toggle[^>]*aria-expanded="false"/);
+  assert.equal((html.match(/id="brandName">R4</g) || []).length, 1);
 });
 
 test("スマホ表示は本文16px・補助14pxと44px以上の操作領域を使う", () => {
   const css = fs.readFileSync(path.join(__dirname, "..", "public", "styles.css"), "utf8");
+  const html = fs.readFileSync(path.join(__dirname, "..", "public", "index.html"), "utf8");
   assert.match(css, /#app :where\(p, li, td, th, label, button, input, select, textarea\) \{ font-size: 16px; \}/);
   assert.match(css, /#app :where\(small, span, \.eyebrow\) \{ font-size: 14px; \}/);
   assert.match(css, /\.eliminate-toggle \{ width: 44px; height: 44px;/);
   assert.match(css, /\.quit-session \{ min-height: 44px; \}/);
   assert.match(css, /\.calculator\.is-minimized \{ width: 76px; \}/);
   assert.doesNotMatch(css, /(?:html|body) \{[^}]*overflow-x: hidden/);
+  assert.match(css, /html \{[^}]*min-width: 0;[^}]*overflow-x: clip;/);
+  assert.match(css, /body \{[^}]*min-width: 0;[^}]*overflow-x: clip;/);
+  assert.doesNotMatch(css, /body \{[^}]*min-width: 320px/);
+  assert.match(css, /env\(safe-area-inset-left\)/);
   assert.match(css, /\.table-scroll \{ width: 100%; max-width: 100%;[^}]*overflow-x: auto;/);
+  assert.match(css, /\.sidebar\.is-menu-open nav \{ display: grid; \}/);
+  assert.doesNotMatch(css, /\.sidebar nav \{[^}]*overflow-x: auto/);
+  assert.match(html, /styles\.css\?v=20260825-mobile-fit/);
 });

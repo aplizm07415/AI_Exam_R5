@@ -6,18 +6,19 @@
     <meta name="description" content="中小企業診断士一次試験4科目を80点まで段階的に仕上げる個人学習アプリ R4" />
     <meta name="theme-color" content="#1e304a" />
     <title>R4</title>
-    <link rel="stylesheet" href="/color-palette.css" />
-    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/color-palette.css?v=20260825" />
+    <link rel="stylesheet" href="/styles.css?v=20260825-mobile-fit" />
   </head>
   <body>
     <button class="skip-link" data-skip-main>学習内容へ移動</button>
     <div class="app-shell">
       <aside class="sidebar">
         <button class="brand" data-view="home" aria-label="R4 ホーム">
-          <span class="brand-mark">R4</span>
-          <span><strong id="brandName">R4</strong><small id="brandShort">ROAD TO 80</small></span>
+          <span class="brand-mark" id="brandName">R4</span>
+          <small id="brandShort">ROAD TO 80</small>
         </button>
-        <nav aria-label="メインメニュー">
+        <button class="mobile-nav-toggle" data-mobile-nav-toggle aria-expanded="false" aria-controls="mainNav"><span>メニュー</span><b aria-hidden="true">☰</b></button>
+        <nav id="mainNav" aria-label="メインメニュー">
           <button class="nav-item is-active" data-view="home"><span>01</span>ダッシュボード</button>
           <button class="nav-item" data-view="overview"><span>02</span>全体確認</button>
           <button class="nav-item" data-view="practice"><span>03</span>問題演習</button>
@@ -41,7 +42,7 @@
         <div id="app" tabindex="-1"><div class="panel loading">試験データを読み込んでいます…</div></div>
       </main>
     </div>
-    <script src="/calculator.js" defer></script>
-    <script src="/app.js" defer></script>
+    <script src="/calculator.js?v=20260825" defer></script>
+    <script src="/app.js?v=20260825-mobile-fit" defer></script>
   </body>
 </html>
