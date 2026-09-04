@@ -54,6 +54,27 @@ test("ダッシュボード・全体確認・学習記録・実施履歴を描�
   assert.match(elements["#app"].innerHTML, /試験までの全体像と現在地/);
   assert.match(elements["#app"].innerHTML, /本日の自動割当/);
   assert.match(elements["#app"].innerHTML, /現在フェーズの予実/);
+  assert.match(elements["#app"].innerHTML, /学習スケジュール設定/);
+  assert.match(elements["#app"].innerHTML, /学習除外日/);
+
+  const scheduleAdjustment = vm.runInContext(`(() => {
+    const original = state.plan.schedule;
+    const phase = learningPhases()[0];
+    const baseline = phaseWorkload(phase).expected;
+    state.plan.schedule = normalizeSchedule({ phases: { [phase.id]: { start: "2026-08-25", end: phase.end } }, excludedDates: ["2026-09-08"] });
+    const adjustedPhase = learningPhases()[0];
+    const adjusted = phaseWorkload(adjustedPhase);
+    const chartReflectsExclusion = phaseChart(adjustedPhase).includes("除外 1日");
+    state.plan.schedule = normalizeSchedule({ ...state.plan.schedule, excludedDates: [localDateKey()] });
+    const today = phaseWorkload(currentPhase());
+    state.plan.schedule = original;
+    return { baseline, adjustedExpected: adjusted.expected, start: adjustedPhase.start, chartReflectsExclusion, todayTarget: today.adjustedTarget, todayExcluded: today.excludedToday };
+  })()`, context);
+  assert.equal(scheduleAdjustment.start, "2026-08-25");
+  assert.ok(scheduleAdjustment.adjustedExpected < scheduleAdjustment.baseline);
+  assert.equal(scheduleAdjustment.chartReflectsExclusion, true);
+  assert.equal(scheduleAdjustment.todayTarget, 0);
+  assert.equal(scheduleAdjustment.todayExcluded, true);
 
   context.setView("progress");
   assert.match(elements["#app"].innerHTML, /層別進捗とコース到達度/);

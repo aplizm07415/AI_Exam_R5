@@ -39,7 +39,7 @@ function freshState() {
     mockResults: {},
     activity: {},
     sessions: [],
-    plan: { targetScore: 60, foundationCheckpoint: 1, completed: {}, autoCompleted: {} },
+    plan: { targetScore: 60, foundationCheckpoint: 1, completed: {}, autoCompleted: {}, schedule: { phases: {}, excludedDates: [] } },
     startedAt: null,
     savedAt: null
   };
@@ -138,7 +138,13 @@ function mergeState(value) {
       mockMinutes: Math.max(0, Number(item?.mockMinutes) || 0),
       planChecks: Math.max(0, Number(item?.planChecks) || 0)
     }])),
-    plan: { ...base.plan, ...(value?.plan || {}), completed: { ...(value?.plan?.completed || {}) }, autoCompleted: { ...(value?.plan?.autoCompleted || {}) } }
+    plan: {
+      ...base.plan,
+      ...(value?.plan || {}),
+      completed: { ...(value?.plan?.completed || {}) },
+      autoCompleted: { ...(value?.plan?.autoCompleted || {}) },
+      schedule: normalizeSchedule(value?.plan?.schedule)
+    }
   };
   merged.schemaVersion = 5;
   if (!Object.keys(merged.activity).length) {
@@ -344,6 +350,85 @@ function localDateKey(value = new Date()) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
+function validDateKey(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(value || ""))) return false;
+  const date = new Date(`${value}T12:00:00`);
+  return !Number.isNaN(date.getTime()) && localDateKey(date) === value;
+}
+
+function defaultSchedule() {
+  return { phases: {}, excludedDates: [] };
+}
+
+function schedulePhasesFor(overrides = {}) {
+  if (!content?.learningPhases) return [];
+  return content.learningPhases.map((phase) => {
+    const override = overrides[phase.id] || {};
+    return {
+      ...phase,
+      start: validDateKey(override.start) ? override.start : phase.start,
+      end: validDateKey(override.end) ? override.end : phase.end
+    };
+  });
+}
+
+function scheduleValidation(phases) {
+  for (let index = 0; index < phases.length; index += 1) {
+    const phase = phases[index];
+    if (!validDateKey(phase.start) || !validDateKey(phase.end) || phase.start > phase.end) return "各フェーズの開始日は終了日以前にしてください。";
+    if (index && phases[index - 1].end >= phase.start) return "フェーズの日程が重ならないようにしてください。";
+  }
+  if (phases.at(-1)?.end > content.exam.targetExamDate) return "最終フェーズの終了日は試験日以前にしてください。";
+  return "";
+}
+
+function normalizeSchedule(value) {
+  const candidate = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  const allowedIds = new Set((content?.learningPhases || []).map((phase) => phase.id));
+  const phases = Object.fromEntries(Object.entries(candidate.phases || {})
+    .filter(([id, phase]) => allowedIds.has(id) && phase && typeof phase === "object")
+    .map(([id, phase]) => [id, {
+      ...(validDateKey(phase.start) ? { start: phase.start } : {}),
+      ...(validDateKey(phase.end) ? { end: phase.end } : {})
+    }]));
+  const excludedDates = [...new Set((Array.isArray(candidate.excludedDates) ? candidate.excludedDates : []).filter(validDateKey))].sort();
+  return scheduleValidation(schedulePhasesFor(phases)) ? defaultSchedule() : { phases, excludedDates };
+}
+
+function learningPhases() {
+  return schedulePhasesFor(state.plan.schedule?.phases);
+}
+
+function excludedStudyDates() {
+  return new Set(state.plan.schedule?.excludedDates || []);
+}
+
+function dateKeysBetween(startKey, endKey) {
+  const keys = [];
+  const date = new Date(`${startKey}T12:00:00`);
+  const end = new Date(`${endKey}T12:00:00`);
+  while (date <= end) {
+    keys.push(localDateKey(date));
+    date.setDate(date.getDate() + 1);
+  }
+  return keys;
+}
+
+function phaseCalendar(phase, through = phase.end) {
+  const end = through < phase.start ? null : through > phase.end ? phase.end : through;
+  if (!end) return [];
+  const excluded = excludedStudyDates();
+  return dateKeysBetween(phase.start, end).filter((key) => !excluded.has(key));
+}
+
+function isExcludedStudyDate(value = new Date()) {
+  return excludedStudyDates().has(localDateKey(value));
+}
+
+function phaseCreditStart(phase) {
+  return phase.creditFrom && phase.creditFrom < phase.start ? phase.creditFrom : phase.start;
+}
+
 function inferredActivity(dateKey) {
   const results = allResults().filter((result) => localDateKey(result.answeredAt) === dateKey);
   return {
@@ -374,17 +459,24 @@ function phaseTiming(phase) {
   const start = new Date(`${phase.start}T00:00:00`);
   const end = new Date(`${phase.end}T23:59:59`);
   const now = new Date();
-  const total = Math.max(1, end - start);
-  const percent = clamp(Math.round((now - start) / total * 100));
-  const daysLeft = Math.max(0, Math.ceil((end - now) / 86400000));
+  const todayKey = localDateKey(now);
+  const total = Math.max(1, phaseCalendar(phase).length);
+  const elapsed = now < start ? 0 : phaseCalendar(phase, todayKey).length;
+  const percent = clamp(Math.round(elapsed / total * 100));
+  const daysLeft = now > end ? 0 : phaseCalendar(phase).filter((key) => key > todayKey).length;
   const status = now < start ? "upcoming" : now > end ? "past" : "current";
   return { percent, daysLeft, status };
 }
 
 function overallTiming() {
-  const start = new Date(`${content.learningPhases[0].start}T00:00:00`);
-  const end = new Date(`${content.exam.targetExamDate}T00:00:00`);
-  return clamp(Math.round((new Date() - start) / Math.max(1, end - start) * 100));
+  const phases = learningPhases();
+  const startKey = phases[0].start;
+  const endKey = content.exam.targetExamDate;
+  const excluded = excludedStudyDates();
+  const available = dateKeysBetween(startKey, endKey).filter((key) => !excluded.has(key));
+  const todayKey = localDateKey();
+  const elapsed = available.filter((key) => key <= todayKey).length;
+  return clamp(Math.round(elapsed / Math.max(1, available.length) * 100));
 }
 
 function milestoneKey(phaseId, index) {
@@ -688,23 +780,26 @@ function phaseWorkload(phase = currentPhase()) {
   const now = new Date();
   const start = new Date(`${phase.start}T00:00:00`);
   const end = new Date(`${phase.end}T23:59:59`);
-  const elapsedDays = now < start ? 0 : Math.max(0, Math.floor((Math.min(now, end) - start) / 86400000) + 1);
+  const todayKey = localDateKey(now);
+  const elapsedDays = now < start ? 0 : phaseCalendar(phase, todayKey).length;
   const expected = Math.round(elapsedDays * phase.sessionSize * 6 / 7);
-  const creditStart = new Date(`${phase.creditFrom || phase.start}T00:00:00`);
+  const creditStartKey = phaseCreditStart(phase);
+  const creditStart = new Date(`${creditStartKey}T00:00:00`);
   const actual = practiceRecords().filter((record) => {
     const date = new Date(record.answeredAt);
     return date >= creditStart && date <= end;
   }).length;
   const variance = actual - expected;
   const backlog = Math.max(0, -variance);
-  const remainingDays = Math.max(1, Math.ceil((end - Math.max(now, start)) / 86400000));
+  const remainingDays = now > end ? 0 : phaseCalendar(phase).filter((key) => key > todayKey).length;
   const recoveryDays = Math.max(1, Math.round(remainingDays * 6 / 7));
   const extra = Math.min(Math.ceil(phase.sessionSize * .5), Math.ceil(backlog / recoveryDays));
-  const adjustedTarget = phase.sessionSize + extra;
+  const excludedToday = isExcludedStudyDate(now) && todayKey >= phase.start && todayKey <= phase.end;
+  const adjustedTarget = excludedToday ? 0 : phase.sessionSize + extra;
   const allocation = weightedAllocation(adjustedTarget, Object.fromEntries(content.subjects.map((subject) => [subject.id, subjectWeight(subject.id, phase)])));
   const paceStatus = variance > phase.sessionSize ? "ahead" : variance < -phase.sessionSize ? "behind" : "on-track";
-  const prelearning = phase.creditFrom ? practiceRecords().filter((record) => { const date = new Date(record.answeredAt); return date >= creditStart && date < start; }).length : 0;
-  return { expected, actual, variance, backlog, extra, adjustedTarget, allocation, delayed: paceStatus === "behind", paceStatus, prelearning };
+  const prelearning = creditStartKey < phase.start ? practiceRecords().filter((record) => { const date = new Date(record.answeredAt); return date >= creditStart && date < start; }).length : 0;
+  return { expected, actual, variance, backlog, extra: excludedToday ? 0 : extra, adjustedTarget, allocation, delayed: paceStatus === "behind", paceStatus, prelearning, creditStartKey, excludedToday, elapsedDays, remainingDays };
 }
 
 function rebuildAggregatesFromSessions() {
@@ -767,9 +862,10 @@ function statCards() {
 
 function currentPhase() {
   const today = new Date();
-  return content.learningPhases.find((phase) => today >= new Date(`${phase.start}T00:00:00`) && today <= new Date(`${phase.end}T23:59:59`))
-    || content.learningPhases.find((phase) => today < new Date(`${phase.start}T00:00:00`))
-    || content.learningPhases.at(-1);
+  const phases = learningPhases();
+  return phases.find((phase) => today >= new Date(`${phase.start}T00:00:00`) && today <= new Date(`${phase.end}T23:59:59`))
+    || phases.find((phase) => today < new Date(`${phase.start}T00:00:00`))
+    || phases.at(-1);
 }
 
 function daysUntilTarget() {
@@ -808,7 +904,7 @@ function foundationCheckpointSelector() {
 function renderHome() {
   pageTitle.textContent = "ダッシュボード";
   const phase = currentPhase();
-  const phaseIndex = content.learningPhases.indexOf(phase);
+  const phaseIndex = learningPhases().findIndex((item) => item.id === phase.id);
   const timing = phaseTiming(phase);
   const milestoneProgress = phaseMilestoneProgress(phase);
   const recommendation = recommendedSubject();
@@ -819,22 +915,22 @@ function renderHome() {
   const remaining = Math.max(0, dailyTarget - effectiveDone);
   const todayRate = today.answered ? Math.round(today.correct / today.answered * 100) : 0;
   const week = recentActivity();
-  const weekMaximum = Math.max(dailyTarget, ...week.map((item) => item.total));
+  const weekMaximum = Math.max(1, dailyTarget, ...week.map((item) => item.total));
   const financeProgress = financeMilestoneProgress();
   const nextFinance = content.financeTrack?.milestones.find((item) => !state.plan.completed[financeMilestoneKey(item.id)]);
   const financeDays = Math.max(0, Math.ceil((new Date(`${content.financeTrack.targetDate}T00:00:00`) - new Date()) / 86400000));
   app.innerHTML = `<section class="view-stack">
     <div class="hero dashboard-hero">
       <div class="hero-copy"><span class="eyebrow">${escapeHtml(content.exam.shortName)}</span><h2>${escapeHtml(content.exam.fullName)}</h2><p>${escapeHtml(content.exam.description)}</p>
-        <div class="hero-actions"><button class="primary warm" data-adaptive>今日のおすすめを始める</button><button class="ghost" data-view="plan">学習計画を見る</button></div>
+        <div class="hero-actions">${workload.excludedToday ? '<button class="primary warm" data-view="overview">除外日設定を確認する</button>' : '<button class="primary warm" data-adaptive>今日のおすすめを始める</button>'}<button class="ghost" data-view="plan">学習計画を見る</button></div>
       </div>
-      <div class="hero-metrics"><div class="target-dial"><small>本試験まで</small><strong>${daysUntilTarget()}</strong><span>days</span><i>目標 各80点</i></div><div class="today-badge ${remaining ? "" : "complete"}"><small>TODAY</small><strong>${remaining ? `あと${remaining}問` : "今日分完了"}</strong><span>${today.answered}問実施${today.mockMinutes ? `・模試${today.mockMinutes}分` : ""}</span></div></div>
+      <div class="hero-metrics"><div class="target-dial"><small>本試験まで</small><strong>${daysUntilTarget()}</strong><span>days</span><i>目標 各80点</i></div><div class="today-badge ${remaining ? "" : "complete"}"><small>TODAY</small><strong>${workload.excludedToday ? "学習除外日" : remaining ? `あと${remaining}問` : "今日分完了"}</strong><span>${today.answered}問実施${today.mockMinutes ? `・模試${today.mockMinutes}分` : ""}</span></div></div>
     </div>
     <div class="dashboard-lead">
-      <article class="panel daily-mission"><div class="dashboard-card-head"><div><span class="eyebrow">TODAY'S MISSION</span><h3>${remaining ? `あと${remaining}問で今日の目安` : "今日の目安を達成しました"}</h3></div><b>${effectiveDone}<small> / ${dailyTarget}問</small></b></div><p>推奨科目は <strong>${escapeHtml(recommendation.label)}</strong>。${today.answered ? `今日の正答率は${todayRate}%です。` : "まず1セッション始めましょう。"}</p><div class="mission-meter"><i style="width:${clamp(effectiveDone / dailyTarget * 100)}%"></i></div><div class="mission-facts"><span>基準 ${phase.sessionSize}問${workload.extra ? ` + 遅延補正 ${workload.extra}問` : ""}</span><span>未消化 ${workload.backlog}問</span><span>連続 ${studyStreak()}日</span><span>見直し ${Object.values(state.flags).filter(Boolean).length}問</span></div><button class="primary" data-start-subject="${recommendation.id}" data-limit="${Math.min(remaining || dailyTarget, dailyTarget)}">${escapeHtml(recommendation.shortLabel)}を${Math.min(remaining || dailyTarget, dailyTarget)}問始める</button></article>
+      <article class="panel daily-mission"><div class="dashboard-card-head"><div><span class="eyebrow">TODAY'S MISSION</span><h3>${workload.excludedToday ? "今日は学習除外日です" : remaining ? `あと${remaining}問で今日の目安` : "今日の目安を達成しました"}</h3></div>${workload.excludedToday ? "<b>OFF</b>" : `<b>${effectiveDone}<small> / ${dailyTarget}問</small></b>`}</div><p>${workload.excludedToday ? "今日の予定量と遅延補正は進みません。任意の学習実績はそのまま加算されます。" : `推奨科目は <strong>${escapeHtml(recommendation.label)}</strong>。${today.answered ? `今日の正答率は${todayRate}%です。` : "まず1セッション始めましょう。"}`}</p><div class="mission-meter"><i style="width:${clamp(effectiveDone / Math.max(1, dailyTarget) * 100)}%"></i></div><div class="mission-facts"><span>基準 ${phase.sessionSize}問${workload.extra ? ` + 遅延補正 ${workload.extra}問` : ""}</span><span>未消化 ${workload.backlog}問</span><span>連続 ${studyStreak()}日</span><span>見直し ${Object.values(state.flags).filter(Boolean).length}問</span></div>${workload.excludedToday ? '<button class="secondary" data-view="overview">スケジュール設定を開く</button>' : `<button class="primary" data-start-subject="${recommendation.id}" data-limit="${Math.min(remaining || dailyTarget, dailyTarget)}">${escapeHtml(recommendation.shortLabel)}を${Math.min(remaining || dailyTarget, dailyTarget)}問始める</button>`}</article>
       <article class="panel phase-focus"><div class="phase-ring" style="--progress:${timing.percent * 3.6}deg"><div><strong>${timing.percent}%</strong><small>日程消化</small></div></div><div class="phase-focus-copy"><span class="phase-number">PHASE ${phaseIndex + 1}</span><h3>${escapeHtml(phase.label)}</h3><p>${escapeHtml(phase.goal)}</p><div class="phase-facts"><span>残り${timing.daysLeft}日</span><span>達成項目 ${milestoneProgress.done}/${milestoneProgress.total}</span><span>全期間 ${overallTiming()}%</span></div>${courseSelector()}${foundationCheckpointSelector()}</div></article>
     </div>
-    <div class="roadmap-dashboard">${content.learningPhases.map((item, index) => { const itemTiming = phaseTiming(item); const itemProgress = phaseMilestoneProgress(item); return `<article class="roadmap-step ${itemTiming.status}"><div><span>0${index + 1}</span><small>${formatMonthDay(item.start)}〜${formatMonthDay(item.end)}</small></div><strong>${escapeHtml(item.label)}</strong><i><b style="width:${itemTiming.percent}%"></b></i><p>日程 ${itemTiming.percent}%・項目 ${itemProgress.done}/${itemProgress.total}</p></article>`; }).join("")}</div>
+    <div class="roadmap-dashboard">${learningPhases().map((item, index) => { const itemTiming = phaseTiming(item); const itemProgress = phaseMilestoneProgress(item); return `<article class="roadmap-step ${itemTiming.status}"><div><span>0${index + 1}</span><small>${formatMonthDay(item.start)}〜${formatMonthDay(item.end)}</small></div><strong>${escapeHtml(item.label)}</strong><i><b style="width:${itemTiming.percent}%"></b></i><p>日程 ${itemTiming.percent}%・項目 ${itemProgress.done}/${itemProgress.total}</p></article>`; }).join("")}</div>
     <div class="dashboard-secondary">
       <article class="panel weekly-pulse"><div class="dashboard-card-head"><div><span class="eyebrow">LAST 7 DAYS</span><h3>毎日の学習リズム</h3></div><strong>${week.reduce((sum, item) => sum + item.answered, 0)}<small>問 / 7日</small></strong></div><div class="week-chart">${week.map((item) => `<div><span>${item.total || ""}</span><i><b style="height:${clamp(item.total / weekMaximum * 100)}%"></b></i><small>${escapeHtml(item.label)}</small></div>`).join("")}</div><p>問題演習に加え、公式模試4分を1問相当として高さに反映します。</p></article>
       <article class="panel finance-track"><div class="dashboard-card-head"><div><span class="eyebrow">FINANCE ROUTE</span><h3>${escapeHtml(content.financeTrack.title)}</h3></div><strong>${financeProgress.percent}<small>%</small></strong></div><p>${escapeHtml(content.financeTrack.description)}</p><div class="finance-route"><span style="--share:${phase.financeSplit.bookkeeping}%">簿記2級 <b>${phase.financeSplit.bookkeeping}%</b></span><span style="--share:${phase.financeSplit.primary}%">一次財務 <b>${phase.financeSplit.primary}%</b></span><span style="--share:${phase.financeSplit.case4}%">事例Ⅳ <b>${phase.financeSplit.case4}%</b></span></div><div class="next-milestone"><small>簿記2級目標まで ${financeDays}日</small><strong>${nextFinance ? `${formatMonthDay(nextFinance.date)} ${escapeHtml(nextFinance.label)}` : "財務ルートの節目を完了"}</strong></div><button class="secondary" data-view="plan">財務ルートを確認する</button></article>
@@ -1170,7 +1266,7 @@ function renderPlan() {
   const completedCount = Object.keys(autoCompleted).filter((key) => key.startsWith(`${studySubject}:`) && autoCompleted[key]).length;
   app.innerHTML = `<section class="view-stack">
     <div class="section-heading"><div><span class="eyebrow">ROADMAP TO 80</span><h2>長期目標を、今日の行動へつなぐ</h2><p>試験日は未発表のため、2027年8月7日を仮置きしています。</p></div>${courseSelector()}</div>
-    <div class="timeline">${content.learningPhases.map((item, index) => { const timing = phaseTiming(item); const progress = phaseMilestoneProgress(item); return `<article class="timeline-item ${item.id === phase.id ? "current" : ""} ${timing.status}"><span>${index + 1}</span><div><small>${item.start.replaceAll("-", ".")} — ${item.end.replaceAll("-", ".")}</small><strong>${escapeHtml(item.label)}</strong><p>${escapeHtml(item.goal)}</p><div class="timeline-progress"><i><b style="width:${timing.percent}%"></b></i><small>日程 ${timing.percent}%・達成 ${progress.done}/${progress.total}</small></div></div></article>`; }).join("")}</div>
+    <div class="timeline">${learningPhases().map((item, index) => { const timing = phaseTiming(item); const progress = phaseMilestoneProgress(item); return `<article class="timeline-item ${item.id === phase.id ? "current" : ""} ${timing.status}"><span>${index + 1}</span><div><small>${item.start.replaceAll("-", ".")} — ${item.end.replaceAll("-", ".")}</small><strong>${escapeHtml(item.label)}</strong><p>${escapeHtml(item.goal)}</p><div class="timeline-progress"><i><b style="width:${timing.percent}%"></b></i><small>日程 ${timing.percent}%・達成 ${progress.done}/${progress.total}</small></div></div></article>`; }).join("")}</div>
     <div class="plan-overview-grid"><article class="panel phase-milestones"><div class="dashboard-card-head"><div><span class="eyebrow">CURRENT PHASE</span><h3>${escapeHtml(phase.label)}の達成項目</h3></div><strong>${phaseMilestoneProgress(phase).percent}<small>%</small></strong></div><div class="milestone-list">${(phase.milestones || []).map((item, index) => { const key = milestoneKey(phase.id, index); return `<label><input type="checkbox" data-milestone-check="${key}" ${completed[key] ? "checked" : ""}><span>${escapeHtml(item)}</span></label>`; }).join("")}</div></article>
       <article class="panel finance-plan"><div class="dashboard-card-head"><div><span class="eyebrow">BOOKKEEPING / CASE IV</span><h3>${escapeHtml(content.financeTrack.title)}</h3></div><strong>${financeMilestoneProgress().done}<small> / ${financeMilestoneProgress().total}</small></strong></div><div class="milestone-list finance-milestones">${content.financeTrack.milestones.map((item) => { const key = financeMilestoneKey(item.id); return `<label><input type="checkbox" data-finance-milestone="${key}" ${completed[key] ? "checked" : ""}><span><small>${formatMonthDay(item.date)}</small>${escapeHtml(item.label)}</span></label>`; }).join("")}</div></article></div>
     <div class="plan-tabs">${content.subjects.map((subject) => `<button class="${studySubject === subject.id ? "is-active" : ""}" data-plan-subject="${subject.id}">${escapeHtml(subject.shortLabel)}</button>`).join("")}<span>${completedCount} / ${totalItems} 完了</span></div>
@@ -1343,16 +1439,24 @@ function phaseChart(phase) {
   const workload = phaseWorkload(phase);
   const start = new Date(`${phase.start}T00:00:00`);
   const end = new Date(`${phase.end}T23:59:59`);
-  const totalDays = Math.max(1, Math.ceil((end - start) / 86400000));
-  const elapsed = clamp(Math.floor((Math.min(new Date(), end) - start) / 86400000) + 1, 0, totalDays);
-  const totalPlan = Math.round(totalDays * phase.sessionSize * 6 / 7);
-  const creditStart = new Date(`${phase.creditFrom || phase.start}T00:00:00`);
+  const calendarDays = dateKeysBetween(phase.start, phase.end);
+  const totalDays = Math.max(1, calendarDays.length);
+  const todayKey = localDateKey();
+  const elapsed = new Date() < start ? 0 : calendarDays.filter((key) => key <= todayKey).length;
+  const included = new Set(phaseCalendar(phase));
+  const totalPlan = Math.round(included.size * phase.sessionSize * 6 / 7);
+  const creditStart = new Date(`${workload.creditStartKey}T00:00:00`);
   const records = practiceRecords().filter((record) => { const date = new Date(record.answeredAt); return date >= creditStart && date <= end; });
   const maxY = Math.max(totalPlan, records.length, 1);
   const yTicks = [100, 75, 50, 25, 0].map((ratio) => Math.round(maxY * ratio / 100));
   const plot = { left: 5, right: 98, top: 5, bottom: 60 };
   const x = (day) => plot.left + day / totalDays * (plot.right - plot.left);
   const y = (count) => plot.bottom - count / maxY * (plot.bottom - plot.top);
+  let plannedDays = 0;
+  const plannedPoints = [`${x(0)},${y(0)}`, ...calendarDays.map((key, index) => {
+    if (included.has(key)) plannedDays += 1;
+    return `${x(index + 1)},${y(Math.round(plannedDays * phase.sessionSize * 6 / 7))}`;
+  })];
   const points = [`${x(0)},${y(workload.prelearning)}`];
   for (let day = Math.min(7, elapsed); day <= elapsed && day > 0; day += 7) {
     const sampleDay = Math.min(day, elapsed);
@@ -1370,18 +1474,26 @@ function phaseChart(phase) {
   const status = workload.paceStatus === "ahead" ? "予定より進んでいます" : workload.paceStatus === "behind" ? "予定より遅れています" : "予定どおりです";
   const midpoint = new Date(start.getTime() + (end - start) / 2);
   const gridLines = [0, 25, 50, 75, 100].map((ratio) => plot.top + ratio / 100 * (plot.bottom - plot.top));
-  return `<article class="panel phase-chart"><div class="dashboard-card-head"><div><span class="eyebrow">PLAN / ACTUAL</span><h3>現在フェーズの予実</h3></div><strong class="pace-${workload.paceStatus}">${workload.variance >= 0 ? "+" : ""}${workload.variance}<small>問・${status}</small></strong></div><div class="phase-chart-frame"><div class="phase-chart-y" aria-hidden="true">${yTicks.map((tick) => `<span>${tick.toLocaleString()}</span>`).join("")}</div><svg viewBox="0 0 100 65" preserveAspectRatio="none" role="img" aria-label="横軸が期間、縦軸が累計演習量の予実グラフ">${gridLines.map((lineY) => `<line class="gridline" x1="${plot.left}" y1="${lineY}" x2="${plot.right}" y2="${lineY}"/>`).join("")}<polyline class="planned" points="${plot.left},${plot.bottom} ${plot.right},${y(totalPlan)}"/><polyline class="actual" points="${points.join(" ")}"/><circle class="actual-point" cx="${actualEnd[0]}" cy="${actualEnd[1]}" r="1.5"/></svg></div><div class="phase-chart-x"><span>${formatMonthDay(phase.start)}</span><span>${new Intl.DateTimeFormat("ja-JP", { month: "numeric", day: "numeric" }).format(midpoint)}</span><span>${formatMonthDay(phase.end)}</span></div><div class="chart-axis-title">累計演習量（問）</div><div class="chart-legend"><span><i class="planned"></i>予定 ${workload.expected}問</span><span><i class="actual"></i>実績 ${workload.actual}問</span><span>${formatMonthDay(phase.start)}〜${formatMonthDay(phase.end)}</span></div>${phase.creditFrom ? `<p>8/17〜8/23の${workload.prelearning}問は先取り学習として実績へ加算します。</p>` : ""}</article>`;
+  const excludedCount = calendarDays.length - included.size;
+  return `<article class="panel phase-chart"><div class="dashboard-card-head"><div><span class="eyebrow">PLAN / ACTUAL</span><h3>現在フェーズの予実</h3></div><strong class="pace-${workload.paceStatus}">${workload.variance >= 0 ? "+" : ""}${workload.variance}<small>問・${status}</small></strong></div><div class="phase-chart-frame"><div class="phase-chart-y" aria-hidden="true">${yTicks.map((tick) => `<span>${tick.toLocaleString()}</span>`).join("")}</div><svg viewBox="0 0 100 65" preserveAspectRatio="none" role="img" aria-label="横軸が期間、縦軸が累計演習量の予実グラフ。学習除外日は予定線が増加しません">${gridLines.map((lineY) => `<line class="gridline" x1="${plot.left}" y1="${lineY}" x2="${plot.right}" y2="${lineY}"/>`).join("")}<polyline class="planned" points="${plannedPoints.join(" ")}"/><polyline class="actual" points="${points.join(" ")}"/><circle class="actual-point" cx="${actualEnd[0]}" cy="${actualEnd[1]}" r="1.5"/></svg></div><div class="phase-chart-x"><span>${formatMonthDay(phase.start)}</span><span>${new Intl.DateTimeFormat("ja-JP", { month: "numeric", day: "numeric" }).format(midpoint)}</span><span>${formatMonthDay(phase.end)}</span></div><div class="chart-axis-title">累計演習量（問）</div><div class="chart-legend"><span><i class="planned"></i>予定 ${workload.expected}問</span><span><i class="actual"></i>実績 ${workload.actual}問</span><span>${formatMonthDay(phase.start)}〜${formatMonthDay(phase.end)}</span>${excludedCount ? `<span>除外 ${excludedCount}日</span>` : ""}</div>${workload.creditStartKey < phase.start ? `<p>${formatMonthDay(workload.creditStartKey)}〜${formatMonthDay(phase.start)}開始前の${workload.prelearning}問は先取り学習として実績へ加算します。</p>` : ""}</article>`;
+}
+
+function scheduleManager() {
+  const phases = learningPhases();
+  const excludedDates = [...excludedStudyDates()].sort();
+  return `<article class="panel schedule-master"><div class="dashboard-card-head"><div><span class="eyebrow">SCHEDULE MASTER</span><h3>学習スケジュール設定</h3></div><button class="secondary" data-reset-schedule ${Object.keys(state.plan.schedule?.phases || {}).length || excludedDates.length ? "" : "disabled"}>初期設定に戻す</button></div><p>ここで変更したフェーズ日程と学習除外日を、ダッシュボード・学習計画・予実・自動割当に共通で反映します。</p><div class="schedule-phase-list">${phases.map((phase, index) => `<div class="schedule-phase-row" data-schedule-phase="${escapeHtml(phase.id)}"><span><b>PHASE ${index + 1}</b>${escapeHtml(phase.label)}</span><label>開始<input type="date" data-schedule-start value="${phase.start}" required></label><label>終了<input type="date" data-schedule-end value="${phase.end}" required></label></div>`).join("")}</div><div class="schedule-actions"><button class="secondary" data-save-schedule>フェーズ日程を保存</button></div><div class="excluded-date-editor"><div><strong>学習除外日</strong><p>不可抗力などで学習できない日は、予定量・遅延補正・グラフの予定線を進めません。</p></div><div class="excluded-date-add"><input id="scheduleExclusionDate" type="date" aria-label="追加する学習除外日"><button class="secondary" data-add-excluded-date>除外日に追加</button></div></div><div class="excluded-date-list">${excludedDates.map((date) => `<span><b>${formatMonthDay(date)}</b><button data-remove-excluded-date="${date}" aria-label="${formatMonthDay(date)}を学習除外日から削除">×</button></span>`).join("") || "<small>学習除外日はありません。</small>"}</div></article>`;
 }
 
 function renderOverview() {
   pageTitle.textContent = "全体確認";
   const phase = currentPhase();
   const workload = phaseWorkload(phase);
-  const phaseIndex = content.learningPhases.indexOf(phase);
+  const phaseIndex = learningPhases().findIndex((item) => item.id === phase.id);
   app.innerHTML = `<section class="view-stack"><div class="section-heading"><div><span class="eyebrow">MASTER OVERVIEW</span><h2>試験までの全体像と現在地</h2><p>日程、達成項目、演習量、コース進捗、財務ルートを一画面で確認します。</p></div><div class="overview-position"><strong>${overallTiming()}%</strong><span>全期間の経過</span></div></div>
-    <div class="overview-now"><article class="panel"><span class="phase-number">NOW / PHASE ${phaseIndex + 1}</span><h3>${escapeHtml(phase.label)}</h3><p>${escapeHtml(phase.goal)}</p><div class="overview-big-facts"><div><strong>${phaseTiming(phase).daysLeft}</strong><small>フェーズ残日数</small></div><div><strong>${phaseMilestoneProgress(phase).percent}%</strong><small>達成項目</small></div><div><strong>${workload.actual}</strong><small>期間内実施問数</small></div><div class="${workload.delayed ? "delay" : ""}"><strong>${workload.variance >= 0 ? `+${workload.variance}` : workload.variance}</strong><small>${workload.paceStatus === "ahead" ? "予定より進行" : workload.paceStatus === "behind" ? "予定より遅延" : "予定どおり"}</small></div></div></article><article class="panel load-adjust"><span class="eyebrow">AUTO LOAD</span><h3>本日の自動割当</h3><strong>${workload.adjustedTarget}<small>問</small></strong><p>基準${phase.sessionSize}問${workload.extra ? `に遅延補正${workload.extra}問を追加` : "。遅延補正はありません"}。</p><div class="allocation-list">${content.subjects.map((subject) => `<span>${escapeHtml(subject.shortLabel)} <b>${workload.allocation[subject.id]}問</b></span>`).join("")}</div><button class="primary" data-adaptive>自動割当で始める</button></article></div>
+    ${scheduleManager()}
+    <div class="overview-now"><article class="panel"><span class="phase-number">NOW / PHASE ${phaseIndex + 1}</span><h3>${escapeHtml(phase.label)}</h3><p>${escapeHtml(phase.goal)}</p><div class="overview-big-facts"><div><strong>${phaseTiming(phase).daysLeft}</strong><small>残り学習日数</small></div><div><strong>${phaseMilestoneProgress(phase).percent}%</strong><small>達成項目</small></div><div><strong>${workload.actual}</strong><small>期間内実施問数</small></div><div class="${workload.delayed ? "delay" : ""}"><strong>${workload.variance >= 0 ? `+${workload.variance}` : workload.variance}</strong><small>${workload.paceStatus === "ahead" ? "予定より進行" : workload.paceStatus === "behind" ? "予定より遅延" : "予定どおり"}</small></div></div></article><article class="panel load-adjust"><span class="eyebrow">AUTO LOAD</span><h3>本日の自動割当</h3><strong>${workload.adjustedTarget}<small>問</small></strong><p>${workload.excludedToday ? "今日は学習除外日のため、予定量と遅延補正を0問にしています。" : `基準${phase.sessionSize}問${workload.extra ? `に遅延補正${workload.extra}問を追加` : "。遅延補正はありません"}。`}</p><div class="allocation-list">${content.subjects.map((subject) => `<span>${escapeHtml(subject.shortLabel)} <b>${workload.allocation[subject.id]}問</b></span>`).join("")}</div><button class="primary" data-adaptive ${workload.excludedToday ? "disabled" : ""}>自動割当で始める</button></article></div>
     ${phaseChart(phase)}
-    <div class="overview-phases">${content.learningPhases.map((item, index) => { const timing = phaseTiming(item); const progress = phaseMilestoneProgress(item); const records = practiceRecords().filter((record) => { const date = new Date(record.answeredAt); return date >= new Date(`${item.start}T00:00:00`) && date <= new Date(`${item.end}T23:59:59`); }); return `<article class="overview-phase ${timing.status}"><header><span>PHASE ${index + 1}</span><small>${formatMonthDay(item.start)}〜${formatMonthDay(item.end)}</small></header><h3>${escapeHtml(item.label)}</h3><p>${escapeHtml(item.goal)}</p><div class="overview-phase-bars"><label>日程 <i><b style="width:${timing.percent}%"></b></i><span>${timing.percent}%</span></label><label>項目 <i><b style="width:${progress.percent}%"></b></i><span>${progress.percent}%</span></label></div><footer>${records.length}問実施・1日${item.sessionSize}問基準</footer></article>`; }).join("")}</div>
+    <div class="overview-phases">${learningPhases().map((item, index) => { const timing = phaseTiming(item); const progress = phaseMilestoneProgress(item); const records = practiceRecords().filter((record) => { const date = new Date(record.answeredAt); return date >= new Date(`${item.start}T00:00:00`) && date <= new Date(`${item.end}T23:59:59`); }); return `<article class="overview-phase ${timing.status}"><header><span>PHASE ${index + 1}</span><small>${formatMonthDay(item.start)}〜${formatMonthDay(item.end)}</small></header><h3>${escapeHtml(item.label)}</h3><p>${escapeHtml(item.goal)}</p><div class="overview-phase-bars"><label>日程 <i><b style="width:${timing.percent}%"></b></i><span>${timing.percent}%</span></label><label>項目 <i><b style="width:${progress.percent}%"></b></i><span>${progress.percent}%</span></label></div><footer>${records.length}問実施・1日${item.sessionSize}問基準</footer></article>`; }).join("")}</div>
     <div class="dashboard-secondary"><article class="panel"><div class="dashboard-card-head"><div><span class="eyebrow">COURSE READINESS</span><h3>累積の到達判定</h3></div></div><div class="overview-courses">${[60,70,80].map((score) => { const value = courseReadiness(score); const unlocked = isCourseUnlocked(score); return `<div class="${unlocked ? "" : "is-locked"}"><span>${score}</span><i><b style="width:${value.progress}%"></b></i><strong>${value.passed ? "合格" : unlocked ? "判定中" : "🔒"}</strong><small>累積 ${value.answered}/${value.total}問${value.failedLayers.length ? `・未合格 ${value.failedLayers.join("・")}点層` : ""}</small></div>`; }).join("")}</div></article><article class="panel"><div class="dashboard-card-head"><div><span class="eyebrow">FINANCE ROUTE</span><h3>${escapeHtml(content.financeTrack.title)}</h3></div><strong>${financeMilestoneProgress().percent}<small>%</small></strong></div><div class="milestone-list finance-milestones">${content.financeTrack.milestones.map((item) => `<label><input type="checkbox" disabled ${state.plan.completed[financeMilestoneKey(item.id)] ? "checked" : ""}><span><small>${formatMonthDay(item.date)}</small>${escapeHtml(item.label)}</span></label>`).join("")}</div></article></div>
   </section>`;
 }
@@ -1397,6 +1509,10 @@ async function startReview(mode) {
 
 async function beginDailyAllocation() {
   const workload = phaseWorkload();
+  if (workload.excludedToday) {
+    alert("今日は学習除外日です。必要な場合は通常演習から任意に学習できます。");
+    return setView("overview");
+  }
   const todayKey = localDateKey();
   const todayRecords = practiceRecords().filter((record) => localDateKey(record.answeredAt) === todayKey);
   const requests = content.subjects.map((subject) => {
@@ -1462,6 +1578,46 @@ document.addEventListener("click", (event) => {
     document.querySelector(".sidebar")?.classList.remove("is-menu-open");
     document.querySelector("[data-mobile-nav-toggle]")?.setAttribute("aria-expanded", "false");
     return setView(viewButton.dataset.view);
+  }
+  if (event.target.closest("[data-save-schedule]")) {
+    const rows = [...document.querySelectorAll("[data-schedule-phase]")];
+    const phaseValues = Object.fromEntries(rows.map((row) => [row.dataset.schedulePhase, {
+      start: row.querySelector("[data-schedule-start]").value,
+      end: row.querySelector("[data-schedule-end]").value
+    }]));
+    if (Object.values(phaseValues).some((phase) => !validDateKey(phase.start) || !validDateKey(phase.end))) return alert("すべての開始日と終了日を入力してください。");
+    const phases = schedulePhasesFor(phaseValues);
+    const error = scheduleValidation(phases);
+    if (error) return alert(error);
+    state.plan.schedule = { ...normalizeSchedule(state.plan.schedule), phases: phaseValues };
+    queueSave();
+    return renderOverview();
+  }
+  if (event.target.closest("[data-add-excluded-date]")) {
+    const date = document.querySelector("#scheduleExclusionDate")?.value;
+    if (!validDateKey(date)) return alert("追加する日付を選択してください。");
+    if (!learningPhases().some((phase) => date >= phase.start && date <= phase.end)) return alert("学習除外日はフェーズ期間内の日付を指定してください。");
+    state.plan.schedule = normalizeSchedule({
+      ...state.plan.schedule,
+      excludedDates: [...(state.plan.schedule?.excludedDates || []), date]
+    });
+    queueSave();
+    return renderOverview();
+  }
+  const removeExcluded = event.target.closest("[data-remove-excluded-date]");
+  if (removeExcluded) {
+    state.plan.schedule = normalizeSchedule({
+      ...state.plan.schedule,
+      excludedDates: (state.plan.schedule?.excludedDates || []).filter((date) => date !== removeExcluded.dataset.removeExcludedDate)
+    });
+    queueSave();
+    return renderOverview();
+  }
+  if (event.target.closest("[data-reset-schedule]")) {
+    if (!confirm("フェーズ日程と学習除外日を初期設定に戻しますか？")) return;
+    state.plan.schedule = defaultSchedule();
+    queueSave();
+    return renderOverview();
   }
   const courseButton = event.target.closest("[data-set-course]");
   if (courseButton) {
