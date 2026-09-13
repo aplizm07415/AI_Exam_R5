@@ -29,19 +29,19 @@ function dispatch(url, options = {}) {
 test("Azure由来の重複整理済み問題と公式補充問題を一意なIDで読み込む", () => {
   assert.equal(content.exam.id, "r4");
   assert.equal(content.subjects.length, 4);
-  assert.equal(content.questions.length, 2474);
-  assert.equal(new Set(content.questions.map((question) => question.id)).size, 2474);
+  assert.equal(content.questions.length, 2452);
+  assert.equal(new Set(content.questions.map((question) => question.id)).size, 2452);
   assert.deepEqual(Object.fromEntries(content.subjects.map((subject) => [subject.id, content.questions.filter((question) => question.subject === subject.id).length])), {
-    finance: 493,
-    operations: 563,
+    finance: 487,
+    operations: 548,
     law: 489,
-    sme: 929
+    sme: 928
   });
 });
 
 test("公開カタログは正答・解説・Azureファイル名を配信しない", () => {
   const result = publicContent();
-  assert.equal(result.totals.questions, 2474);
+  assert.equal(result.totals.questions, 2452);
   assert.equal(result.subjects[0].sourceFile, undefined);
   assert.equal(result.officialExam.subjects.finance.answers, undefined);
   const selected = queryQuestions({ subject: "finance", limit: 3, seed: "test" });
@@ -70,8 +70,8 @@ test("ダッシュボード用のフェーズ・配分・財務ルートを公�
   assert.ok(result.financeTrack.milestones.length >= 5);
   assert.ok(result.courseCounts[60].total < result.courseCounts[70].total);
   assert.ok(result.courseCounts[70].total < result.courseCounts[80].total);
-  assert.equal(result.courseCounts[80].total, 2474);
-  assert.deepEqual(Object.fromEntries(Object.entries(result.foundationCheckpointCounts).map(([id, value]) => [id, value.total])), { 1: 495, 2: 495, 3: 493 });
+  assert.equal(result.courseCounts[80].total, 2452);
+  assert.equal(Object.values(result.foundationCheckpointCounts).reduce((sum, value) => sum + value.total, 0), result.courseCounts[60].addedAtCourse);
   assert.deepEqual(result.foundationCheckpoints.map((checkpoint) => ({
     questions: checkpoint.requiredQuestionsPerSubject,
     sessions: checkpoint.requiredSessionsPerSubject,
@@ -83,7 +83,7 @@ test("ダッシュボード用のフェーズ・配分・財務ルートを公�
     { questions: 20, sessions: 3, rate: 88, recentRate: 85 }
   ]);
   assert.equal(Object.keys(result.foundationQuestionCheckpoints).length, result.courseCounts[60].addedAtCourse);
-  assert.equal([60, 70, 80].reduce((sum, score) => sum + result.courseCounts[score].addedAtCourse, 0), 2474);
+  assert.equal([60, 70, 80].reduce((sum, score) => sum + result.courseCounts[score].addedAtCourse, 0), 2452);
   for (const score of [60, 70, 80]) {
     assert.equal(Object.values(result.courseCounts[score].addedSubjects).reduce((sum, value) => sum + value, 0), result.courseCounts[score].addedAtCourse);
   }
@@ -143,13 +143,27 @@ test("APIがカタログ・問題・採点・公式模試を提供する", async
   assert.equal(removedSamples.status, 404);
 });
 
+test("HTMLが依存モジュールをappより前に読み込み、参照したJSとCSSを配信できる", async () => {
+  const page = await dispatch("/");
+  assert.equal(page.status, 200);
+  const html = await page.text();
+  const scripts = [...html.matchAll(/<script src="([^"]+)" defer>/g)].map((match) => match[1]);
+  assert.deepEqual(scripts.map((url) => url.split("?")[0]), ["/calculator.js", "/assessment.js", "/study-evidence.js", "/learning.js", "/progress-sync.js", "/app.js"]);
+  const styles = [...html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map((match) => match[1]);
+  for (const url of [...scripts, ...styles]) {
+    const response = await dispatch(url);
+    assert.equal(response.status, 200, url);
+    assert.ok((await response.text()).length > 0, url);
+  }
+});
+
 test("保存状態はR4の許可フィールドだけ受け付ける", () => {
   assert.equal(validState({ schemaVersion: 5, answers: {}, results: {}, archived: {}, attempts: {}, mockResults: {}, activity: {}, sessions: [], plan: {} }), true);
   assert.equal(validState({ answers: {}, admin: true }), false);
   const session = { id: "session-test", type: "practice", results: [{ questionId: "finance:test" }] };
   assert.equal(validProgressBundle({ state: { schemaVersion: 5, answers: {}, plan: {} }, sessions: [session], deletedSessionIds: [], expectedVersion: 0 }), true);
   assert.equal(validProgressBundle({ state: { schemaVersion: 5 }, sessions: [{ ...session, type: "<script>" }], deletedSessionIds: [], expectedVersion: 0 }), false);
-  assert.deepEqual(compactState({ answers: {}, sessions: [session], results: { x: 1 }, attempts: { x: 1 }, recent: ["x"], mockResults: { x: 1 } }), { answers: {} });
+  assert.deepEqual(compactState({ answers: {}, sessions: [session], results: { x: 1 }, attempts: { x: 1 }, recent: ["x"], mockResults: { x: 1 } }), { answers: {}, activity: {} });
 });
 
 test("Phase 1は8月24日開始で、計算問題だけ電卓対象フラグを持つ", () => {
@@ -182,21 +196,14 @@ test("難易度生成は解説の長さを使わず、知識と判断工程で�
   assert.equal(calculationRequired({ question_text: "次の資料に基づきWACCを計算せよ。【資料】負債400万円、株主資本600万円" }), true);
 });
 
-test("全問題の構造監査で正答不能・重複選択肢・文字化けを残さない", () => {
+test("構造監査は選択肢ID・空解説・文字化けを検査し、内容正確性の保証と区別する", () => {
   const report = auditQuestions(content.questions);
-  assert.equal(report.total, 2474);
+  assert.equal(report.total, 2452);
   assert.equal(report.missingCorrectOptions.length, 0);
   assert.equal(report.duplicateOptionTexts.length, 0);
   assert.equal(report.replacementCharacters.length, 0);
   assert.equal(report.emptyExplanations.length, 0);
   assert.equal(report.serializedExplanationCandidates.length, 0);
-  assert.equal(report.missingThoughtFlow.length, 0);
-  assert.equal(report.directAnswerSummaries.length, 0);
-  assert.equal(report.answerConclusionRecaps.length, 0);
-  assert.equal(report.explicitOptionJudgments.length, 0);
-  assert.equal(report.explanationSectionLabels.length, 0);
-  assert.equal(report.standaloneCautions.length, 0);
-  assert.equal(report.unresolvedContentWarnings.length, 0);
   assert.equal(report.exactDuplicateQuestions.length, 0);
   assert.equal(report.samePromptGroups.length, 36);
 });

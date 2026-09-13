@@ -332,6 +332,7 @@ th { background: var(--soft); }
 .session-main { min-width: 0; }.session-main small, .session-main strong, .session-main span { display: block; }.session-main small, .session-main span { color: var(--muted); font-size: 9px; }.session-main strong { margin: 5px 0; overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
 .session-score { text-align: right; }.session-score strong, .session-score small { display: block; }.session-score strong { font-size: 23px; }.session-score small { color: var(--muted); font-size: 8px; }
 .session-delete { padding: 8px 10px; border: 0; border-radius: 8px; color: #963f32; background: var(--bad); font-size: 9px; }
+.session-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .archive-total { padding: 9px 13px; border-radius: 99px; color: var(--primary); background: var(--soft); font-size: 12px; font-weight: 800; }
 .archive-subjects { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; }
 .archive-subject { padding: 0; overflow: hidden; }.archive-subject > header { padding: 20px 22px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }.archive-subject h3 { margin: 5px 0 0; font-size: 17px; }.archive-subject > header > strong { color: var(--primary); font-size: 25px; }.archive-subject > header small { margin-left: 3px; color: var(--muted); font-size: 9px; }
@@ -420,7 +421,7 @@ th { background: var(--soft); }
   .phase-strip, .section-heading { align-items: flex-start; flex-direction: column; }.course-selector { width: 100%; }.course-chip { flex: 1; }
   .library-stage-selectors { width: 100%; min-width: 0; }.foundation-chip { grid-template-columns: 21px 1fr; padding: 7px; }.foundation-chip > span { width: 21px; height: 21px; }
   .stats, .subject-grid, .quick-grid, .two-column, .mock-grid, .subject-progress, .mock-history, .course-progress-grid, .overview-phases { grid-template-columns: 1fr; }
-  .overview-big-facts { grid-template-columns: repeat(2, 1fr); }.session-row { grid-template-columns: 44px 1fr auto; }.session-kind { width: 42px; height: 42px; }.session-score { grid-column: 2; text-align: left; }.session-delete { grid-column: 3; grid-row: 1 / span 2; }
+  .overview-big-facts { grid-template-columns: repeat(2, 1fr); }.session-row { grid-template-columns: 44px 1fr auto; }.session-kind { width: 42px; height: 42px; }.session-score { grid-column: 2; text-align: left; }.session-actions { grid-column: 3; grid-row: 1 / span 2; flex-direction: column; }
   .schedule-phase-row { grid-template-columns: 1fr; }.schedule-phase-row > span { grid-column: auto; }.schedule-phase-row label { grid-template-columns: 44px minmax(0, 1fr); }.schedule-actions button, .excluded-date-add, .excluded-date-add button { width: 100%; }.excluded-date-add { flex-direction: column; }
   .filter-panel { grid-template-columns: 1fr; }.filter-panel .primary { grid-column: auto; }
   #app :where(p, li, td, th, label, button, input, select, textarea) { font-size: 16px; }
@@ -450,3 +451,16 @@ th { background: var(--soft); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
 }
+
+/* Review fixes: keep every explanation step visible, including long formulas. */
+.reasoning-steps .reasoning-body { min-width: 0; overflow-wrap: anywhere; }
+.reasoning-steps .reasoning-body p { white-space: normal; }
+.study-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 16px; margin-block: 20px; }
+.study-form label { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.study-form input:not([type="checkbox"]), .study-form select, .study-form textarea { width: 100%; min-height: 44px; font: inherit; padding: 9px; border: 1px solid var(--border, #cbd5e1); border-radius: 8px; background: white; color: var(--ink, #1e304a); }
+.study-form .check-line { flex-direction: row; align-items: center; min-height: 44px; }
+.study-form .check-line input { width: 20px; height: 20px; flex: none; }
+.study-form button { align-self: end; min-height: 44px; }
+.evidence-history article { display: flex; align-items: start; justify-content: space-between; gap: 12px; padding-block: 14px; border-top: 1px solid var(--border, #cbd5e1); }
+.evidence-history p { margin-block: 5px; }
+.evidence-history small { white-space: pre-wrap; overflow-wrap: anywhere; }

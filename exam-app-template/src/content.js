@@ -8,6 +8,7 @@ const explanationOverrides = require("../content/analysis/explanation-text-overr
 const officialExam = require("../content/official/r8.json");
 const officialAnalysis = require("../content/official/r8-analysis.json");
 const corrections = require("../content/corrections.json");
+const qualityReview = require("../content/quality-review.json");
 const exclusions = require("../content/exclusions.json");
 const supplementalQuestions = require("../content/supplemental/whitepaper-2026.json");
 const { calculationRequired, normalizeChoiceId, normalizeChoiceText } = require("./question-quality");
@@ -16,6 +17,21 @@ const { formatExplanation } = require("./explanation-format");
 const contentRoot = path.resolve(__dirname, "..", "content");
 const SUPPORTED_TYPES = new Set(["single_choice", "multiple_choice", "numeric", "text"]);
 const excludedQuestionIds = new Set(exclusions.map((item) => item.id));
+
+function questionQuality(id) {
+  return {
+    status: "unreviewed",
+    contentVersion: 1,
+    minimumScoringVersion: 1,
+    reviewedAt: null,
+    ...qualityReview.questions[id]
+  };
+}
+
+function withQuestionQuality(question) {
+  const quality = questionQuality(question.id);
+  return { ...question, contentVersion: quality.contentVersion, qualityStatus: quality.status, reviewedAt: quality.reviewedAt };
+}
 
 function stripComplexMarker(value) {
   return String(value || "").replace(/^\s*※複雑\s*/, "").trim();
@@ -44,7 +60,10 @@ function normalizeQuestion(subject, rawQuestion) {
   );
   const prompt = stripComplexMarker(replaceText(correction.questionText || `${rawQuestion.question_text}${correction.appendQuestionText ? `\n${correction.appendQuestionText}` : ""}`));
   const correctedQuestion = { ...rawQuestion, question_text: prompt };
-  const needsCalculator = calculationRequired(correctedQuestion);
+  if (correction.calculationRequired !== undefined && typeof correction.calculationRequired !== "boolean") {
+    throw new Error(`計算フラグの訂正値が不正です: ${id}`);
+  }
+  const needsCalculator = correction.calculationRequired ?? calculationRequired(correctedQuestion);
   const rawExplanation = typeof rawQuestion.explanation === "object" ? rawQuestion.explanation?.text || "" : rawQuestion.explanation || "";
   const options = rawQuestion.choices.map((choice) => {
     const choiceId = normalizeChoiceId(choice.label);
@@ -55,7 +74,7 @@ function normalizeQuestion(subject, rawQuestion) {
     formatExplanation(correction.explanation || explanationOverrides[id] || rawExplanation),
     options.map((option) => option.id)
   );
-  return {
+  return withQuestionQuality({
     id,
     sourceId: rawQuestion.id,
     source: "azure",
@@ -75,8 +94,9 @@ function normalizeQuestion(subject, rawQuestion) {
     points: 1,
     calculationRequired: needsCalculator,
     explanation,
-    originalExplanation: correction.explanation || explanationOverrides[id] || rawExplanation
-  };
+    originalExplanation: correction.explanation || explanationOverrides[id] || rawExplanation,
+    ...(correction.sourceReference ? { sourceReference: correction.sourceReference } : {})
+  });
 }
 
 function normalizeSupplementalQuestion(rawQuestion) {
@@ -91,7 +111,7 @@ function normalizeSupplementalQuestion(rawQuestion) {
     explanation: normalizeExplanationChoiceReferences(formatExplanation(rawQuestion.explanation), options.map((option) => option.id)),
     originalExplanation: rawQuestion.explanation
   };
-  return question;
+  return withQuestionQuality(question);
 }
 
 const DIFFICULTY_ORDER = { "基礎": 0, "標準": 1, "発展": 2 };
@@ -176,7 +196,21 @@ function validateContent(value) {
   return value;
 }
 
-const content = validateContent({ ...rawConfig, questions: loadQuestions() });
+// Checkpoints are assigned before quarantine so removing a broken question does
+// not move every later question between existing learning checkpoints.
+const questionBank = loadQuestions();
+const bankIds = new Set(questionBank.map((question) => question.id));
+for (const [id, review] of Object.entries(qualityReview.questions)) {
+  if (!bankIds.has(id)) throw new Error(`品質レビューの問題IDが教材にありません: ${id}`);
+  if (!["corrected", "verified", "quarantined"].includes(review.status)
+    || !Number.isInteger(review.contentVersion) || review.contentVersion < 1
+    || !Number.isInteger(review.minimumScoringVersion) || review.minimumScoringVersion < 1
+    || (review.status !== "quarantined" && review.minimumScoringVersion > review.contentVersion)
+    || !/^\d{4}-\d{2}-\d{2}$/.test(review.reviewedAt || "")) {
+    throw new Error(`品質レビューの状態または教材版が不正です: ${id}`);
+  }
+}
+const content = validateContent({ ...rawConfig, questions: questionBank.filter((question) => question.qualityStatus !== "quarantined") });
 const questionsById = new Map(content.questions.map((question) => [question.id, question]));
 
 function publicQuestion(question) {
@@ -206,6 +240,7 @@ function shuffled(values, seed) {
 
 function queryQuestions(params = {}) {
   const requestedIds = String(params.ids || "").split(",").filter(Boolean).slice(0, 100);
+  const excludedIds = new Set(String(params.excludeIds || "").slice(0, 640000).split(",").filter((id) => id && id.length <= 128).slice(0, 5000));
   let matches;
   if (requestedIds.length) {
     matches = requestedIds.map((id) => questionsById.get(id)).filter(Boolean);
@@ -222,8 +257,10 @@ function queryQuestions(params = {}) {
     ));
     matches = shuffled(matches, params.seed);
   }
+  matches = matches.filter((question) => !excludedIds.has(question.id));
   const limit = Math.max(1, Math.min(100, Number(params.limit) || 20));
-  return { total: matches.length, questions: matches.slice(0, limit).map(publicQuestion) };
+  const offset = Math.max(0, Math.min(5000, Math.floor(Number(params.offset) || 0)));
+  return { total: matches.length, questions: matches.slice(offset, offset + limit).map(publicQuestion) };
 }
 
 function topicSummaries() {
@@ -299,6 +336,22 @@ function publicContent() {
     studyPlans,
     officialExam: publicOfficialExam(),
     officialAnalysis,
+    questionQuality: {
+      reviewedAt: qualityReview.reviewedAt,
+      scope: qualityReview.scope,
+      bankTotal: questionBank.length,
+      availableTotal: content.questions.length,
+      quarantinedQuestionIds: questionBank.filter((question) => question.qualityStatus === "quarantined").map((question) => question.id),
+      questions: Object.fromEntries(questionBank.map((question) => [question.id, {
+        ...questionQuality(question.id),
+        subject: question.subject,
+        topicId: question.topicId,
+        topic: question.topic,
+        minimumCourse: question.minimumCourse,
+        foundationCheckpoint: question.foundationCheckpoint || null,
+        difficulty: question.difficulty
+      }]))
+    },
     totals: {
       questions: content.questions.length,
       subjects: content.subjects.length,
@@ -309,6 +362,7 @@ function publicContent() {
 
 module.exports = {
   content,
+  questionBank,
   officialExam,
   publicContent,
   publicQuestion,

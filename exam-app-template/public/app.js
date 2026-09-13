@@ -18,11 +18,21 @@ let mockSubject = null;
 let mockEndAt = null;
 let mockStartedAt = null;
 let mockTimer = null;
+let activeMockId = null;
+let mockGrading = false;
 let state = freshState();
 const feedbackCache = new Map();
 const eliminatedChoices = new Map();
 const dirtySessionRevisions = new Map();
 const deletedSessionIds = new Set();
+const knownDeletedSessionIds = new Set();
+const pendingStateChanges = new Map();
+let observedSnapshot = null;
+let syncRevision = 0;
+let databaseAvailabilityKnown = false;
+let localSaveFailed = false;
+let assessmentCache = null;
+const pendingContentReviewIds = new Set();
 let calculatorState = CalculatorCore.initialState({ minimized: true });
 
 function freshState() {
@@ -131,7 +141,7 @@ function mergeState(value) {
     attempts: { ...(value?.attempts || {}) },
     recent: Array.isArray(value?.recent) ? value.recent.slice(0, 100) : [],
     mockResults: { ...(value?.mockResults || {}) },
-    sessions: Array.isArray(value?.sessions) ? value.sessions.filter((item) => item && item.id).slice(-2000) : [],
+    sessions: Array.isArray(value?.sessions) ? value.sessions.filter((item) => item && item.id) : [],
     activity: Object.fromEntries(Object.entries(value?.activity || {}).map(([date, item]) => [date, {
       answered: Math.max(0, Number(item?.answered) || 0),
       correct: Math.max(0, Number(item?.correct) || 0),
@@ -146,6 +156,7 @@ function mergeState(value) {
       schedule: normalizeSchedule(value?.plan?.schedule)
     }
   };
+  delete merged._sync;
   merged.schemaVersion = 5;
   if (!Object.keys(merged.activity).length) {
     for (const result of Object.values(merged.results)) {
@@ -177,49 +188,119 @@ function mergeState(value) {
   return merged;
 }
 
+function capturePendingChanges() {
+  const current = ProgressSync.snapshot(state);
+  if (observedSnapshot) {
+    for (const change of ProgressSync.changes(observedSnapshot, current)) {
+      pendingStateChanges.delete(ProgressSync.changeKey(change));
+      pendingStateChanges.set(ProgressSync.changeKey(change), { ...change, revision: ++syncRevision });
+    }
+  }
+  observedSnapshot = current;
+  for (const id of deletedSessionIds) knownDeletedSessionIds.add(id);
+}
+
+function restoreSyncQueue(local) {
+  dirtySessionRevisions.clear();
+  deletedSessionIds.clear();
+  knownDeletedSessionIds.clear();
+  pendingStateChanges.clear();
+  const queue = local?._sync;
+  syncRevision = Number(queue?.revision) || 0;
+  remoteVersion = Number(queue?.remoteVersion) || 0;
+  if (queue?.schemaVersion === 1) {
+    for (const [id, revision] of queue.dirtySessions || []) dirtySessionRevisions.set(id, revision);
+    for (const id of queue.deletedSessionIds || []) deletedSessionIds.add(id);
+    for (const id of queue.knownDeletedSessionIds || []) knownDeletedSessionIds.add(id);
+    for (const change of queue.changes || []) pendingStateChanges.set(ProgressSync.changeKey(change), change);
+  } else if (local) {
+    // Pre-queue installs have no edit baseline: preserve their populated values.
+    for (const change of ProgressSync.changes(ProgressSync.snapshot(freshState()), ProgressSync.snapshot(state))) {
+      pendingStateChanges.set(ProgressSync.changeKey(change), { ...change, revision: ++syncRevision });
+    }
+    for (const item of state.sessions) markSessionDirty(item.id);
+  }
+  state.sessions = ProgressSync.mergeSessions([], state.sessions, knownDeletedSessionIds);
+  observedSnapshot = ProgressSync.snapshot(state);
+}
+
+function acceptRemoteProgress(saved) {
+  databaseEnabled = Boolean(saved.configured);
+  databaseAvailabilityKnown = true;
+  if (!databaseEnabled) return;
+  capturePendingChanges();
+  remoteVersion = Math.max(0, Number(saved.version) || 0);
+  for (const id of saved.deletedSessionIds || []) knownDeletedSessionIds.add(id);
+  const remote = mergeState(saved.exists ? saved.state : null);
+  const queuedSessions = state.sessions.filter((item) => dirtySessionRevisions.has(item.id));
+  const merged = ProgressSync.applyChanges(remote, [...pendingStateChanges.values()]);
+  merged.sessions = ProgressSync.mergeSessions(remote.sessions, queuedSessions, knownDeletedSessionIds);
+  state = mergeState(merged);
+  // A concurrently removed session must not be revived by its old draft.
+  for (const id of knownDeletedSessionIds) dirtySessionRevisions.delete(id);
+  if (activeSession) activeSession = state.sessions.find((item) => item.id === activeSession.id) || null;
+  // The question text on screen can be older than a synced draft. Stop using
+  // that text before any selection or navigation can replace the newer draft.
+  if (currentView === "session" && hasNewerPracticeAttempt(activeSession, session)) activeSession = null;
+  rebuildAggregatesFromSessions();
+  observedSnapshot = ProgressSync.snapshot(state);
+  if (currentView === "session" && !activeSession && !gradingQuestionId) { session = []; setView("practice"); }
+  if (currentView === "mock-session" && !currentMock() && !mockGrading) setView("mock");
+}
+
+async function readRemoteProgress() {
+  const response = await fetch("/api/progress", { cache: "no-store" });
+  if (!response.ok) throw new Error("progress_read_failed");
+  const saved = await response.json();
+  acceptRemoteProgress(saved);
+  return saved;
+}
+
 async function initializePersistence() {
   let local = null;
-  try { local = JSON.parse(localStorage.getItem(storageKey()) || "null"); } catch { local = null; }
+  try { local = JSON.parse(localStorage.getItem(storageKey()) || "null"); }
+  catch { saveStatus.textContent = "端末の保存データを読み込めませんでした"; }
+  state = mergeState(local);
+  restoreSyncQueue(local);
+  rebuildAggregatesFromSessions();
+  observedSnapshot = ProgressSync.snapshot(state);
   try {
-    const response = await fetch("/api/progress");
-    const saved = await response.json();
-    databaseEnabled = Boolean(saved.configured);
-    remoteVersion = Math.max(0, Number(saved.version) || 0);
-    const localIsNewer = local?.savedAt && (!saved.updatedAt || new Date(local.savedAt) > new Date(saved.updatedAt));
-    const selected = saved.exists && !localIsNewer ? saved.state : local;
-    state = mergeState(selected);
-    rebuildAggregatesFromSessions();
-    saveStatus.textContent = databaseEnabled ? "Neonへ自動保存" : "この端末に自動保存";
-    if (databaseEnabled && local && (!saved.exists || localIsNewer)) {
-      for (const item of state.sessions) markSessionDirty(item.id);
-      await persistNow();
-    }
+    await readRemoteProgress();
+    if (storeLocally()) saveStatus.textContent = databaseEnabled ? "Neonへ自動保存" : "この端末に自動保存";
+    if (databaseEnabled && (pendingStateChanges.size || dirtySessionRevisions.size || deletedSessionIds.size)) await persistNow();
   } catch {
-    state = mergeState(local);
-    rebuildAggregatesFromSessions();
-    saveStatus.textContent = "この端末に自動保存";
+    databaseAvailabilityKnown = false;
+    if (storeLocally()) saveStatus.textContent = "端末へ保存済み・接続回復後に同期";
   }
 }
 
 function compactStateForRemote() {
-  const { sessions, results, attempts, recent, mockResults, ...snapshot } = state;
-  const plan = { ...(snapshot.plan || {}) };
-  delete plan.autoCompleted;
-  return { ...snapshot, plan };
+  return { ...ProgressSync.snapshot(state), savedAt: state.savedAt };
 }
 
 function markSessionDirty(sessionId) {
-  if (!sessionId) return;
-  dirtySessionRevisions.set(sessionId, (dirtySessionRevisions.get(sessionId) || 0) + 1);
+  if (!sessionId || knownDeletedSessionIds.has(sessionId)) return;
+  dirtySessionRevisions.set(sessionId, ++syncRevision);
   deletedSessionIds.delete(sessionId);
 }
 
 function storeLocally() {
+  capturePendingChanges();
   try {
-    localStorage.setItem(storageKey(), JSON.stringify(state));
+    localStorage.setItem(storageKey(), JSON.stringify({ ...state, _sync: {
+      schemaVersion: 1,
+      revision: syncRevision,
+      remoteVersion,
+      changes: [...pendingStateChanges.values()],
+      dirtySessions: [...dirtySessionRevisions],
+      deletedSessionIds: [...deletedSessionIds],
+      knownDeletedSessionIds: [...knownDeletedSessionIds]
+    } }));
+    localSaveFailed = false;
     return true;
   } catch {
-    saveStatus.textContent = "端末の保存容量を確認してください";
+    localSaveFailed = true;
+    saveStatus.textContent = "端末に保存できません。同期完了まで画面を閉じず、端末の空き容量を確認してください";
     return false;
   }
 }
@@ -227,9 +308,10 @@ function storeLocally() {
 function dirtySessionBatch(maximumCount = 20, maximumCharacters = 200_000) {
   const batch = new Map();
   let characters = 0;
+  const byId = new Map(state.sessions.map((item) => [item.id, item]));
   for (const [id, revision] of dirtySessionRevisions) {
-    const sessionItem = state.sessions.find((item) => item.id === id);
-    if (!sessionItem) continue;
+    const sessionItem = byId.get(id);
+    if (!sessionItem || knownDeletedSessionIds.has(id)) { dirtySessionRevisions.delete(id); continue; }
     const size = JSON.stringify(sessionItem).length;
     if (batch.size && (batch.size >= maximumCount || characters + size > maximumCharacters)) break;
     batch.set(id, revision);
@@ -242,57 +324,105 @@ function queueSave({ immediate = false } = {}) {
   state.savedAt = new Date().toISOString();
   if (storeLocally()) saveStatus.textContent = "保存中…";
   clearTimeout(saveTimer);
-  if (immediate) {
-    return persistNow();
-  }
+  if (immediate) return persistNow();
   saveTimer = setTimeout(persistNow, 450);
 }
 
 async function persistNow() {
   const storedLocally = storeLocally();
-  if (!databaseEnabled) { if (storedLocally) saveStatus.textContent = "この端末に保存済み"; return; }
   if (saveInFlight) { savePending = true; return; }
+  if (!databaseEnabled && databaseAvailabilityKnown) {
+    if (storedLocally) saveStatus.textContent = "この端末に保存済み";
+    return;
+  }
   saveInFlight = true;
-  const sentSessions = dirtySessionBatch();
-  const sentDeleted = [...deletedSessionIds].slice(0, 50);
+  let succeeded = false;
   try {
-    const response = await fetch("/api/progress", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        state: compactStateForRemote(),
-        sessions: state.sessions.filter((item) => sentSessions.has(item.id)),
-        deletedSessionIds: sentDeleted,
-        expectedVersion: remoteVersion
-      })
-    });
-    if (response.status === 409) {
-      savePending = false;
-      clearTimeout(saveTimer);
-      saveStatus.textContent = "別端末の更新あり・再読込してください";
+    if (!databaseAvailabilityKnown) await readRemoteProgress();
+    if (!databaseEnabled) {
+      if (!localSaveFailed) saveStatus.textContent = "この端末に保存済み";
       return;
     }
-    if (!response.ok) throw new Error("save_failed");
-    const saved = await response.json();
-    remoteVersion = Math.max(remoteVersion, Number(saved.version) || 0);
-    for (const [id, revision] of sentSessions) {
-      if (dirtySessionRevisions.get(id) === revision) dirtySessionRevisions.delete(id);
+    for (let conflictCount = 0; conflictCount < 3; conflictCount += 1) {
+      storeLocally();
+      const sentSessions = dirtySessionBatch();
+      const sentDeleted = [...deletedSessionIds].slice(0, 50);
+      const sentChanges = new Map([...pendingStateChanges].map(([key, change]) => [key, change.revision]));
+      const response = await fetch("/api/progress", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          state: compactStateForRemote(),
+          sessions: state.sessions.filter((item) => sentSessions.has(item.id)),
+          deletedSessionIds: sentDeleted,
+          expectedVersion: remoteVersion
+        })
+      });
+      if (response.status === 409) {
+        await readRemoteProgress();
+        storeLocally();
+        continue;
+      }
+      if (!response.ok) throw new Error("save_failed");
+      const saved = await response.json();
+      if (!saved.configured) throw new Error("database_unavailable");
+      remoteVersion = Math.max(remoteVersion, Number(saved.version) || 0);
+      // Capture edits made during the request before acknowledging its revisions.
+      capturePendingChanges();
+      for (const [key, revision] of sentChanges) {
+        if (pendingStateChanges.get(key)?.revision === revision) pendingStateChanges.delete(key);
+      }
+      for (const [id, revision] of sentSessions) {
+        if (dirtySessionRevisions.get(id) === revision) dirtySessionRevisions.delete(id);
+      }
+      for (const id of sentDeleted) deletedSessionIds.delete(id);
+      succeeded = true;
+      if (storeLocally()) saveStatus.textContent = "Neonへ保存済み";
+      else saveStatus.textContent = "Neonへ保存済み・端末保存容量を確認してください";
+      break;
     }
-    for (const id of sentDeleted) deletedSessionIds.delete(id);
-    if (dirtySessionRevisions.size || deletedSessionIds.size) savePending = true;
-    saveStatus.textContent = "Neonへ保存済み";
-  } catch { saveStatus.textContent = "端末へ一時保存"; }
-  finally {
+    if (!succeeded && !localSaveFailed) saveStatus.textContent = "別端末と更新が重なっています。端末に保存済み・次の保存時に再同期";
+  } catch {
+    if (!localSaveFailed) saveStatus.textContent = "端末へ保存済み・接続回復後に同期";
+  } finally {
     saveInFlight = false;
-    if (savePending) {
-      savePending = false;
+    const remaining = savePending || pendingStateChanges.size || dirtySessionRevisions.size || deletedSessionIds.size;
+    savePending = false;
+    if (succeeded && remaining) {
       clearTimeout(saveTimer);
       saveTimer = setTimeout(persistNow, 0);
     }
   }
 }
 
+window.addEventListener?.("online", () => {
+  databaseAvailabilityKnown = false;
+  void persistNow();
+});
+window.addEventListener?.("beforeunload", (event) => {
+  pausePracticeAttempt();
+  if (!storeLocally()) {
+    event.preventDefault();
+    event.returnValue = "";
+  }
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    pausePracticeAttempt();
+    storeLocally();
+  } else if (currentView === "session" && activeSession) {
+    renderQuestion();
+  }
+});
+
 function setView(view) {
+  if (gradingQuestionId || mockGrading) return;
+  if (currentView === "session" && activeSession) {
+    pausePracticeAttempt();
+    if (activeSession.status !== "completed") activeSession.status = "paused";
+    markSessionDirty(activeSession.id);
+    queueSave();
+  }
   clearInterval(mockTimer);
   currentView = view;
   document.querySelectorAll(".nav-item").forEach((button) => button.classList.toggle("is-active", button.dataset.view === view));
@@ -307,7 +437,7 @@ function setView(view) {
 }
 
 function allResults() {
-  return Object.values(state.results);
+  return [...new Map(assessmentRecords().map((record) => [record.questionId, record])).values()];
 }
 
 function isArchived(questionId) {
@@ -540,7 +670,7 @@ function newSessionId(prefix = "session") {
 }
 
 function practiceRecords() {
-  return state.sessions.flatMap((item) => (item.results || []).map((result) => ({ ...result, sessionId: item.id, sessionStartedAt: item.startedAt })));
+  return state.sessions.filter((item) => item.type !== "official-mock").flatMap((item) => (item.results || []).map((result) => ({ ...result, sessionId: item.id, sessionStartedAt: item.startedAt })));
 }
 
 function beginTrackedSession(questions, meta = {}) {
@@ -552,17 +682,28 @@ function beginTrackedSession(questions, meta = {}) {
     subject: subjects.length === 1 ? subjects[0] : null,
     course: Number(state.plan.targetScore),
     startedAt: new Date().toISOString(),
-    lastActivityAt: null,
+    lastActivityAt: new Date().toISOString(),
     questionCount: questions.length,
+    questionIds: questions.map((question) => question.id),
+    currentIndex: 0,
+    status: "in-progress",
+    attempts: {},
     filters: meta.filters || {},
     results: []
   };
+  state.sessions.push(activeSession);
+  markSessionDirty(activeSession.id);
 }
 
-function recordSessionResult(result) {
+function recordSessionResult(result, trackedSession = activeSession) {
   if (!activeSession) beginTrackedSession(session);
-  if (!state.sessions.some((item) => item.id === activeSession.id)) state.sessions.push(activeSession);
+  trackedSession ||= activeSession;
+  if (!state.sessions.some((item) => item.id === trackedSession.id)) state.sessions.push(trackedSession);
+  const attemptId = result.attemptId || LearningCore.attemptId(trackedSession.id, result.questionId);
+  if (trackedSession.results.some((item) => item.attemptId === attemptId)) return false;
   const record = {
+    ...result,
+    attemptId,
     questionId: result.questionId,
     subject: result.subject,
     topic: result.topic,
@@ -571,34 +712,91 @@ function recordSessionResult(result) {
     foundationCheckpoint: result.foundationCheckpoint || null,
     difficulty: result.difficulty,
     correct: result.correct,
-    answeredAt: new Date().toISOString()
+    answeredAt: result.answeredAt || new Date().toISOString()
   };
-  activeSession.results.push(record);
-  activeSession.lastActivityAt = record.answeredAt;
-  markSessionDirty(activeSession.id);
+  trackedSession.results.push(record);
+  trackedSession.lastActivityAt = record.answeredAt;
+  markSessionDirty(trackedSession.id);
+  return true;
 }
 
 function consecutiveCorrectDayCount(questionId) {
   const resetAt = state.archiveResets[questionId] ? new Date(state.archiveResets[questionId]) : null;
-  const dailyResults = new Map();
   const records = practiceRecords()
-    .filter((record) => record.questionId === questionId && (!resetAt || new Date(record.answeredAt) > resetAt))
-    .sort((a, b) => new Date(a.answeredAt) - new Date(b.answeredAt));
-  for (const record of records) dailyResults.set(localDateKey(record.answeredAt), record.correct);
+    .filter((record) => record.questionId === questionId && (!resetAt || new Date(record.answeredAt) > resetAt));
   let streak = 0;
-  for (const correct of [...dailyResults.values()].reverse()) {
-    if (!correct) break;
+  for (const record of LearningCore.firstDailyAssessments(records, questionId).reverse()) {
+    if (!record.correct) break;
     streak += 1;
   }
   return streak;
 }
 
 function autoArchiveMasteredQuestion(questionId) {
-  if (isArchived(questionId)) return false;
-  const streak = consecutiveCorrectDayCount(questionId);
-  if (streak < 3) return false;
-  archiveQuestion(questionId, "auto", streak);
-  return true;
+  // 習得後も期限を持って復習する。旧版の自動除外だけを解除する。
+  if (state.archived[questionId]?.reason === "auto") delete state.archived[questionId];
+  return false;
+}
+
+function hasNewerPracticeAttempt(tracked, questions) {
+  return questions.some((question) => Number(tracked?.attempts?.[question.id]?.contentVersion || 1) > Number(question.contentVersion || 1));
+}
+
+function currentAttempt(question = session[currentIndex]) {
+  if (!question || !activeSession) return null;
+  activeSession.attempts ||= {};
+  if (activeSession.attempts[question.id] && Number(activeSession.attempts[question.id].contentVersion || 1) !== Number(question.contentVersion || 1)) {
+    delete activeSession.attempts[question.id];
+    delete state.answers[question.id];
+  }
+  if (!activeSession.attempts[question.id]) {
+    const now = new Date().toISOString();
+    activeSession.attempts[question.id] = {
+      attemptId: `${LearningCore.attemptId(activeSession.id, question.id)}:v${question.contentVersion || 1}`,
+      questionId: question.id,
+      presentedAt: now,
+      activeSince: now,
+      elapsedMs: 0,
+      selectedAnswer: "",
+      eliminatedChoices: [],
+      status: "answering",
+      ...LearningCore.assessmentContext(practiceRecords(), question.id, now, question)
+    };
+    markSessionDirty(activeSession.id);
+  }
+  return activeSession.attempts[question.id];
+}
+
+function pausePracticeAttempt() {
+  const attempt = activeSession?.attempts?.[session[currentIndex]?.id];
+  if (!attempt || !attempt.activeSince) return;
+  attempt.elapsedMs = LearningCore.elapsedMs(attempt, new Date().toISOString());
+  attempt.activeSince = null;
+  activeSession.currentIndex = currentIndex;
+  activeSession.lastActivityAt = new Date().toISOString();
+  markSessionDirty(activeSession.id);
+}
+
+function navigatePractice(index) {
+  if (gradingQuestionId || !activeSession || !Number.isInteger(index) || index < 0 || index >= session.length) return;
+  pausePracticeAttempt();
+  currentIndex = index;
+  activeSession.currentIndex = index;
+  activeSession.lastActivityAt = new Date().toISOString();
+  markSessionDirty(activeSession.id);
+  renderQuestion();
+  queueSave();
+}
+
+function selectCurrentAnswer(answer) {
+  const attempt = currentAttempt();
+  if (!attempt || attempt.status !== "answering" || gradingQuestionId) return;
+  pausePracticeAttempt();
+  attempt.selectedAnswer = answer;
+  state.answers[attempt.questionId] = answer;
+  activeSession.lastActivityAt = new Date().toISOString();
+  markSessionDirty(activeSession.id);
+  queueSave();
 }
 
 function strictCriteria(score) {
@@ -607,22 +805,54 @@ function strictCriteria(score) {
   return { questions: 5, sessions: 2, rate: 85, recentRate: 80 };
 }
 
-function autoItemStatus(subjectId, score, item) {
+function assessmentRecords() {
+  if (!assessmentCache || assessmentCache.sessions !== state.sessions || assessmentCache.revision !== syncRevision || assessmentCache.quality !== content.questionQuality) {
+    assessmentCache = { sessions: state.sessions, revision: syncRevision, quality: content.questionQuality,
+      records: Assessment.eligibleRecords(practiceRecords().filter((record) => !pendingContentReviewIds.has(record.questionId)), content.questionQuality) };
+  }
+  return assessmentCache.records;
+}
+
+function assessmentEvidence() {
+  const evidence = { ...(state.plan.evidence || {}) };
+  for (const entry of state.sessions) {
+    if (entry.type !== "official-mock" || !entry.finishedAt || !entry.summary) continue;
+    evidence[entry.id] = {
+      kind: "assessment", subject: entry.subject,
+      source: entry.assessmentSource || `公式 ${entry.examYear || 2026} ${entry.subject}`,
+      firstSeen: entry.firstSeen === true, calculatorUsed: entry.calculatorUsed !== false,
+      score: entry.summary.score, maxScore: entry.summary.maxScore,
+      minutes: entry.mockMinutes, timeLimit: content.subjects.find((subject) => subject.id === entry.subject)?.examMinutes,
+      completedAt: entry.finishedAt
+    };
+  }
+  return evidence;
+}
+
+function autoItemStatus(subjectId, score, item, recordsIndex = Assessment.indexRecords(assessmentRecords())) {
   const criteria = strictCriteria(score);
-  const topic = item.topicId ? content.topics.find((value) => value.id === item.topicId) : null;
-  const eligibleTopicCount = Number(topic?.courseCounts?.[score] || 0);
-  const mapped = Boolean(item.topicId && eligibleTopicCount);
-  let records = practiceRecords().filter((record) => record.subject === subjectId && Number(record.minimumCourse || 60) <= score);
-  if (mapped) records = records.filter((record) => record.topicId === item.topicId);
-  const requiredQuestions = Math.max(1, Math.min(criteria.questions, mapped ? eligibleTopicCount : criteria.questions));
-  const uniqueQuestions = new Set(records.map((record) => record.questionId)).size;
-  const sessions = new Set(records.map((record) => record.sessionId)).size;
-  const correct = records.filter((record) => record.correct).length;
-  const rate = records.length ? Math.round(correct / records.length * 100) : 0;
-  const recent = [...records].sort((a, b) => new Date(b.answeredAt) - new Date(a.answeredAt)).slice(0, Math.max(requiredQuestions, 10));
-  const recentRate = recent.length ? Math.round(recent.filter((record) => record.correct).length / recent.length * 100) : 0;
-  const passed = uniqueQuestions >= requiredQuestions && sessions >= criteria.sessions && rate >= criteria.rate && recentRate >= criteria.recentRate;
-  return { passed, uniqueQuestions, requiredQuestions, sessions, requiredSessions: criteria.sessions, rate, requiredRate: criteria.rate, recentRate, requiredRecentRate: criteria.recentRate, mapped, topic: topic?.label || null };
+  const status = Assessment.topicStatus(subjectId, score, item, content.topics, recordsIndex, criteria);
+  const kind = item.evidenceType || "topic";
+  if (kind === "topic") return status;
+  status.mapped = false;
+  status.passed = false;
+  if (kind === "assessment") {
+    const eligible = Assessment.independentAssessments(assessmentEvidence(), subjectId, 80);
+    status.passed = eligible.length >= 2;
+    status.reason = `初見・電卓なし・時間内80点以上：${eligible.length}/2セット（自己申告を含む）`;
+  } else if (kind === "prerequisite") {
+    const prerequisiteScore = Number(item.prerequisiteScore);
+    const previous = prerequisiteScore < score && content.studyPlans.subjects[subjectId].courses.find((course) => course.targetScore === prerequisiteScore);
+    const items = previous ? previous.groups.flatMap((group) => group.items) : [];
+    status.passed = items.length > 0 && items.every((previousItem) => autoItemStatus(subjectId, prerequisiteScore, previousItem, recordsIndex).passed);
+    status.reason = `${prerequisiteScore}点コースの各項目で確認`;
+  } else {
+    const entries = Object.values(state.plan.evidence || {}).filter((entry) => entry.kind === "activity" && entry.subject === subjectId && entry.itemText === item.text);
+    const completed = entries.some((entry) => entry.source?.trim() && entry.completedAt && Number(entry.minutes) > 0 && entry.confirmedCompletion === true);
+    status.passed = completed;
+    status.reason = completed ? "実施記録あり（自己申告）" : "教材・実施日・学習時間の記録が必要";
+  }
+  return status;
 }
 
 function planItemKey(subjectId, score, groupIndex, itemIndex) {
@@ -631,11 +861,12 @@ function planItemKey(subjectId, score, groupIndex, itemIndex) {
 
 function refreshAutoPlanCompletion() {
   const next = {};
+  const recordsIndex = Assessment.indexRecords(assessmentRecords());
   for (const [subjectId, plan] of Object.entries(content.studyPlans.subjects)) {
     for (const course of plan.courses) {
       course.groups.forEach((group, groupIndex) => group.items.forEach((item, itemIndex) => {
         const key = planItemKey(subjectId, course.targetScore, groupIndex, itemIndex);
-        next[key] = autoItemStatus(subjectId, course.targetScore, item).passed;
+        next[key] = autoItemStatus(subjectId, course.targetScore, item, recordsIndex).passed;
       }));
     }
   }
@@ -643,10 +874,10 @@ function refreshAutoPlanCompletion() {
 }
 
 function courseProgress(score, subjectId = null) {
-  const results = Object.values(state.results).filter((result) => (!subjectId || result.subject === subjectId) && Number(result.minimumCourse || 60) <= score);
+  const results = assessmentRecords().filter((result) => (!subjectId || result.subject === subjectId) && Number(result.minimumCourse || 60) <= score);
   const total = subjectId ? Number(content.courseCounts[score].subjects[subjectId]) : Number(content.courseCounts[score].total);
   const answered = new Set(results.map((result) => result.questionId)).size;
-  const records = practiceRecords().filter((result) => (!subjectId || result.subject === subjectId) && Number(result.minimumCourse || 60) <= score);
+  const records = assessmentRecords().filter((result) => (!subjectId || result.subject === subjectId) && Number(result.minimumCourse || 60) <= score);
   const rate = records.length ? Math.round(records.filter((result) => result.correct).length / records.length * 100) : 0;
   let autoDone = 0;
   let autoTotal = 0;
@@ -680,8 +911,8 @@ function foundationCheckpointProgress(checkpointId, subjectId = null) {
     && Number(result.minimumCourse || 60) === 60
     && foundationCheckpointForResult(result) === Number(checkpointId)
   );
-  const results = Object.values(state.results).filter(matches);
-  const records = practiceRecords().filter(matches);
+  const results = assessmentRecords().filter(matches);
+  const records = assessmentRecords().filter(matches);
   const total = subjectId
     ? Number(content.foundationCheckpointCounts[checkpointId]?.subjects?.[subjectId] || 0)
     : Number(content.foundationCheckpointCounts[checkpointId]?.total || 0);
@@ -690,16 +921,16 @@ function foundationCheckpointProgress(checkpointId, subjectId = null) {
   const rate = records.length ? Math.round(records.filter((record) => record.correct).length / records.length * 100) : 0;
   const recent = [...records].sort((left, right) => new Date(right.answeredAt) - new Date(left.answeredAt)).slice(0, 20);
   const recentRate = recent.length ? Math.round(recent.filter((record) => record.correct).length / recent.length * 100) : 0;
+  const subjects = subjectId ? [] : content.subjects.map((subject) => foundationCheckpointProgress(checkpointId, subject.id));
   const requiredQuestions = subjectId
     ? Math.min(total, Number(checkpoint.requiredQuestionsPerSubject) || 15)
-    : (Number(checkpoint.requiredQuestionsPerSubject) || 15) * content.subjects.length;
+    : subjects.reduce((sum, value) => sum + value.requiredQuestions, 0);
   const requiredSessions = subjectId ? Number(checkpoint.requiredSessionsPerSubject) || 2 : 0;
-  const ownPassed = answered >= requiredQuestions
+  const ownPassed = total > 0 && answered >= requiredQuestions
     && (!subjectId || sessions >= requiredSessions)
     && rate >= Number(checkpoint.requiredRate)
     && recentRate >= Number(checkpoint.requiredRecentRate);
-  const subjects = subjectId ? [] : content.subjects.map((subject) => foundationCheckpointProgress(checkpointId, subject.id));
-  const passed = subjectId ? ownPassed : subjects.every((value) => value.passed);
+  const passed = Boolean(subjectId ? ownPassed : subjects.length && subjects.every((value) => value.passed));
   return { checkpoint, total, answered, progress: total ? Math.round(answered / total * 100) : 0, rate, sessions, recentRate, requiredQuestions, requiredSessions, subjects, passed };
 }
 
@@ -729,8 +960,8 @@ function refreshFoundationCheckpoint(autoAdvance = false) {
 
 function tierProgress(score, subjectId = null) {
   const matches = (result) => (!subjectId || result.subject === subjectId) && Number(result.minimumCourse || 60) === score;
-  const results = Object.values(state.results).filter(matches);
-  const records = practiceRecords().filter(matches);
+  const results = assessmentRecords().filter(matches);
+  const records = assessmentRecords().filter(matches);
   const total = subjectId ? Number(content.courseCounts[score].addedSubjects[subjectId]) : Number(content.courseCounts[score].addedAtCourse);
   const answered = new Set(results.map((result) => result.questionId)).size;
   const correct = records.filter((record) => record.correct).length;
@@ -739,10 +970,13 @@ function tierProgress(score, subjectId = null) {
   const recent = [...records].sort((a, b) => new Date(b.answeredAt) - new Date(a.answeredAt)).slice(0, 20);
   const recentRate = recent.length ? Math.round(recent.filter((record) => record.correct).length / recent.length * 100) : 0;
   const criteria = layerCriteria(score);
-  const requiredQuestions = Math.min(total, subjectId ? Math.ceil(criteria.questions / content.subjects.length) : criteria.questions);
-  const ownPassed = answered >= requiredQuestions && sessions >= criteria.sessions && rate >= criteria.rate && recentRate >= criteria.recentRate;
   const subjectLayers = subjectId ? [] : content.subjects.map((subject) => tierProgress(score, subject.id));
-  const passed = ownPassed && (subjectId || subjectLayers.every((layer) => layer.passed));
+  const requiredQuestions = subjectId
+    ? Math.min(total, Math.ceil(criteria.questions / content.subjects.length))
+    : subjectLayers.reduce((sum, layer) => sum + layer.requiredQuestions, 0);
+  const ownPassed = total > 0 && answered >= requiredQuestions && sessions >= criteria.sessions && rate >= criteria.rate && recentRate >= criteria.recentRate;
+  // 全体の判定は科目別条件の達成を表す。科目ごとの対象数の差を追加ノルマにしない。
+  const passed = Boolean(subjectId ? ownPassed : subjectLayers.length && subjectLayers.every((layer) => layer.passed));
   return { score, total, answered, progress: total ? Math.round(answered / total * 100) : 0, rate, sessions, recentRate, criteria, requiredQuestions, subjectLayers, passed };
 }
 
@@ -805,8 +1039,14 @@ function phaseWorkload(phase = currentPhase()) {
 function rebuildAggregatesFromSessions() {
   const results = {};
   const attempts = {};
+  for (const [id, entry] of Object.entries(state.archived)) if (entry?.reason === "auto") delete state.archived[id];
+  const activity = Object.fromEntries(Object.entries(state.activity || {}).map(([date, value]) => [date, { answered: 0, correct: 0, mockMinutes: 0, planChecks: value.planChecks || 0 }]));
+  const activityDay = (date) => (activity[localDateKey(date)] ||= { answered: 0, correct: 0, mockMinutes: 0, planChecks: 0 });
   const recentRecords = [...practiceRecords()].sort((a, b) => new Date(a.answeredAt) - new Date(b.answeredAt));
   for (const record of recentRecords) {
+    const day = activityDay(record.answeredAt);
+    day.answered += 1;
+    day.correct += record.correct ? 1 : 0;
     const id = record.questionId;
     results[id] = { ...record };
     delete results[id].sessionId;
@@ -821,9 +1061,11 @@ function rebuildAggregatesFromSessions() {
   state.attempts = attempts;
   state.recent = [...new Set(recentRecords.reverse().map((record) => record.questionId))].slice(0, 100);
   const mockResults = {};
-  for (const item of [...state.sessions].filter((value) => value.type === "official-mock").sort((a, b) => new Date(a.finishedAt || a.startedAt) - new Date(b.finishedAt || b.startedAt))) {
-    mockResults[item.subject] = { score: item.summary?.score || 0, maxScore: item.summary?.maxScore || 100, finishedAt: item.finishedAt || item.startedAt };
+  for (const item of [...state.sessions].filter((value) => value.type === "official-mock" && value.summary).sort((a, b) => new Date(a.finishedAt || a.startedAt) - new Date(b.finishedAt || b.startedAt))) {
+    mockResults[item.subject] = { ...(item.mockResult || {}), score: item.summary.score || 0, maxScore: item.summary.maxScore || 100, finishedAt: item.finishedAt || item.startedAt };
+    activityDay(item.finishedAt || item.startedAt).mockMinutes += Number(item.mockMinutes) || 0;
   }
+  state.activity = activity;
   state.mockResults = mockResults;
   for (const id of Object.keys(state.answers)) if (!results[id]) delete state.answers[id];
   refreshAutoPlanCompletion();
@@ -955,8 +1197,11 @@ function topicOptions(subjectId = "") {
 
 function renderLibrary() {
   pageTitle.textContent = "問題演習";
+  const pending = state.sessions.filter((item) => item.type !== "official-mock" && item.questionIds?.length && item.status !== "completed");
   app.innerHTML = `<section class="view-stack">
     <div class="section-heading"><div><span class="eyebrow">QUESTION LAB</span><h2>演習セッションを組む</h2><p>${content.totals.questions.toLocaleString()}問を、科目・論点・難易度・目標点で絞り込みます。</p></div><div class="library-stage-selectors">${courseSelector()}${foundationCheckpointSelector()}</div></div>
+    ${content.questionQuality?.quarantinedQuestionIds?.length ? `<p class="muted">必要な図表を確認中の${content.questionQuality.quarantinedQuestionIds.length}問は出題を停止しています。訂正前の不成立問題の成績は、理解度判定から除きます。</p>` : ""}
+    ${pending.length ? `<div class="panel"><h3>中断した演習</h3>${pending.slice(-5).reverse().map((item) => `<button class="secondary" data-resume-session="${escapeHtml(item.id)}">${escapeHtml(item.label)}（${item.results.length}/${item.questionCount}問）を再開</button>`).join("")}</div>` : ""}
     <div class="panel filter-panel">
       <label><span>科目</span><select id="subjectFilter">${subjectOptions()}</select></label>
       <label><span>論点</span><select id="topicFilter"><option value="">すべて</option>${topicOptions()}</select></label>
@@ -967,14 +1212,31 @@ function renderLibrary() {
     <div class="quick-grid">
       <button class="quick-card" data-review="incorrect"><span>RETRY</span><strong>誤答だけ</strong><small>${Object.entries(state.results).filter(([id, result]) => !result.correct && !isArchived(id)).length}問</small></button>
       <button class="quick-card" data-review="flagged"><span>FLAGGED</span><strong>見直しだけ</strong><small>${Object.entries(state.flags).filter(([id, value]) => value && !isArchived(id)).length}問</small></button>
-      <button class="quick-card" data-review="adaptive"><span>ADAPTIVE</span><strong>弱点優先</strong><small>誤答 → 見直し → 未着手</small></button>
+      <button class="quick-card" data-review="adaptive"><span>ADAPTIVE</span><strong>弱点優先</strong><small>復習期限 → 誤答 → 見直し → 未着手</small></button>
       <button class="quick-card" data-view="archive"><span>ARCHIVE</span><strong>除外問題を管理</strong><small>${archiveCount()}問</small></button>
     </div>
     <div class="panel legend"><strong>段階開放のルール</strong><p><b>60点</b>：core論点中心　<b>70点</b>：standardまで拡張　<b>80点</b>：発展・新傾向を含む全範囲</p></div>
   </section>`;
 }
 
+async function refreshContentCatalogue() {
+  const response = await fetch("/api/content", { cache: "no-store" });
+  if (!response.ok) throw new Error("content_refresh_failed");
+  const latest = await response.json();
+  if (latest.exam?.id !== content.exam.id || !latest.questionQuality?.questions
+      || !latest.courseCounts || !latest.foundationCheckpointCounts || !Array.isArray(latest.topics)) {
+    throw new Error("content_refresh_failed");
+  }
+  // Quality rules and pool sizes/classifications describe the same revision.
+  // Replacing the whole catalogue also invalidates the cached assessment records.
+  content = latest;
+  pendingContentReviewIds.clear();
+  rebuildAggregatesFromSessions();
+}
+
 async function fetchQuestions(params = {}) {
+  // Retry a failed catalogue refresh before resuming or starting more practice.
+  if (pendingContentReviewIds.size) await refreshContentCatalogue();
   const queryParams = { ...params, course: state.plan.targetScore, tier: "exact", seed: params.seed || `${Date.now()}` };
   if (Number(state.plan.targetScore) === 60 && !params.ids) queryParams.checkpoint = state.plan.foundationCheckpoint;
   const query = new URLSearchParams(queryParams);
@@ -984,11 +1246,11 @@ async function fetchQuestions(params = {}) {
 }
 
 async function beginRemote(params, meta = {}) {
+  if (gradingQuestionId) return;
   app.innerHTML = '<div class="panel loading">演習セッションを組み立てています…</div>';
   try {
     const desired = Math.max(1, Math.min(100, Number(params.limit) || 20));
-    const result = await fetchQuestions({ ...params, limit: params.ids ? desired : 100 });
-    const available = result.questions.filter((question) => !isArchived(question.id)).slice(0, desired);
+    const available = await availableQuestions(params, desired);
     begin(available, { ...meta, filters: params });
   } catch {
     app.innerHTML = '<div class="panel empty">問題を読み込めませんでした。接続を確認してください。</div>';
@@ -996,12 +1258,81 @@ async function beginRemote(params, meta = {}) {
 }
 
 function begin(questions, meta = {}) {
+  if (gradingQuestionId) return;
   if (!questions.length) { alert("条件に合う問題がありません。"); return; }
+  pausePracticeAttempt();
+  if (activeSession?.status === "in-progress") activeSession.status = "paused";
   session = [...questions];
+  feedbackCache.clear();
+  eliminatedChoices.clear();
   beginTrackedSession(session, meta);
   currentIndex = 0;
   state.startedAt ||= new Date().toISOString();
   renderQuestion();
+  queueSave();
+}
+
+async function availableQuestions(params, desired, excludedIds = new Set()) {
+  if (desired <= 0) return [];
+  const available = [];
+  const seed = params.seed || `${Date.now()}`;
+  for (let offset = 0; offset < 5000; offset += 100) {
+    const result = await fetchQuestions({ ...params, seed, offset, limit: 100 });
+    available.push(...result.questions.filter((question) => !isArchived(question.id) && !excludedIds.has(question.id)));
+    if (available.length >= desired || params.ids || offset + result.questions.length >= result.total || !result.questions.length) break;
+  }
+  return available.slice(0, desired);
+}
+
+async function resumePracticeSession(sessionId) {
+  if (gradingQuestionId) return;
+  let saved = state.sessions.find((item) => item.id === sessionId && item.type !== "official-mock" && item.status !== "completed");
+  if (!saved?.questionIds?.length) return;
+  try {
+    const requestedIds = saved.questionIds.join(",");
+    const result = await fetchQuestions({ ids: requestedIds, limit: 100 });
+    saved = state.sessions.find((item) => item.id === sessionId && item.type !== "official-mock" && item.status !== "completed");
+    if (!saved || knownDeletedSessionIds.has(sessionId)) {
+      alert("この演習は削除または完了しています。演習一覧を確認してください。");
+      return setView("practice");
+    }
+    if (saved.questionIds?.join(",") !== requestedIds) {
+      alert("中断した演習の問題が更新されました。演習一覧からもう一度再開してください。");
+      return setView("practice");
+    }
+    const byId = new Map(result.questions.map((question) => [question.id, question]));
+    const questions = saved.questionIds.map((id) => byId.get(id)).filter((question) => question && !isArchived(question.id));
+    if (hasNewerPracticeAttempt(saved, questions)) {
+      activeSession = null;
+      session = [];
+      alert("中断した演習の問題が更新されました。演習一覧からもう一度再開してください。");
+      return setView("practice");
+    }
+    if (!questions.length) { saved.status = "completed"; markSessionDirty(saved.id); queueSave(); return setView("practice"); }
+    pausePracticeAttempt();
+    for (const attempt of Object.values(saved.attempts || {})) {
+      // A saved clock stops at the last known activity, never at reload time.
+      if (attempt.activeSince) attempt.elapsedMs = LearningCore.elapsedMs(attempt, saved.lastActivityAt || attempt.activeSince);
+      attempt.activeSince = null;
+      const record = saved.results.find((item) => item.attemptId === attempt.attemptId);
+      attempt.status = record ? "graded" : "answering";
+      if (record) attempt.selectedAnswer = record.submittedAnswer ?? attempt.selectedAnswer;
+    }
+    session = questions;
+    activeSession = saved;
+    saved.status = "in-progress";
+    const isUnanswered = (question) => !saved.results.some((record) => record.questionId === question.id && Number(record.contentVersion || 1) === Number(question.contentVersion || 1));
+    const resumeIndex = questions.findIndex((question) => question.id === saved.questionIds[saved.currentIndex || 0]);
+    const unanswered = questions.findIndex(isUnanswered);
+    currentIndex = resumeIndex >= 0 && isUnanswered(questions[resumeIndex]) ? resumeIndex : unanswered >= 0 ? unanswered : Math.max(0, resumeIndex);
+    saved.questionIds = questions.map((question) => question.id);
+    saved.questionCount = questions.length;
+    saved.currentIndex = currentIndex;
+    feedbackCache.clear();
+    renderQuestion();
+    markSessionDirty(saved.id);
+    queueSave();
+  } catch { alert("中断した演習を読み込めませんでした。接続を確認してください。"); }
 }
 
 function subjectLabel(id) {
@@ -1009,15 +1340,17 @@ function subjectLabel(id) {
 }
 
 function answerMarkup(question, feedback) {
-  const saved = state.answers[question.id];
+  const attempt = currentAttempt(question);
+  const saved = attempt?.selectedAnswer;
   const selected = new Set(Array.isArray(saved) ? saved : [saved]);
-  const eliminated = eliminatedChoices.get(question.id) || new Set();
+  const eliminated = new Set(attempt?.eliminatedChoices || []);
   const correctAnswers = new Set(Array.isArray(feedback?.correctAnswer) ? feedback.correctAnswer.map(String) : [feedback?.correctAnswer].filter((value) => value !== undefined).map(String));
-  const isGrading = gradingQuestionId === question.id;
+  const isGrading = Boolean(gradingQuestionId);
+  const locked = isGrading || attempt?.status === "graded";
   return `<div class="choices ${isGrading ? "is-grading" : ""}" role="radiogroup" aria-label="回答の選択肢" aria-busy="${isGrading}">${question.options.map((option) => {
     const isSelected = selected.has(option.id);
     const resultClass = feedback ? (correctAnswers.has(String(option.id)) ? "is-correct" : isSelected ? "is-incorrect" : "") : "";
-    return `<div role="radio" tabindex="${eliminated.has(option.id) || isGrading ? -1 : 0}" aria-checked="${isSelected}" aria-disabled="${eliminated.has(option.id) || isGrading}" class="choice ${isSelected ? "is-selected" : ""} ${eliminated.has(option.id) ? "is-eliminated" : ""} ${resultClass}" data-select-choice="${escapeHtml(option.id)}"><button type="button" role="checkbox" class="eliminate-toggle" data-eliminate-choice="${escapeHtml(option.id)}" aria-checked="${eliminated.has(option.id)}" aria-label="選択肢${escapeHtml(option.id)}を除外" ${isGrading ? "disabled" : ""}>×</button><span class="choice-key">${escapeHtml(option.id)}</span><span class="choice-text">${richText(option.label)}</span></div>`;
+    return `<div role="radio" tabindex="${eliminated.has(option.id) || locked ? -1 : 0}" aria-checked="${isSelected}" aria-disabled="${eliminated.has(option.id) || locked}" class="choice ${isSelected ? "is-selected" : ""} ${eliminated.has(option.id) ? "is-eliminated" : ""} ${resultClass}" data-select-choice="${escapeHtml(option.id)}"><button type="button" role="checkbox" class="eliminate-toggle" data-eliminate-choice="${escapeHtml(option.id)}" aria-checked="${eliminated.has(option.id)}" aria-label="選択肢${escapeHtml(option.id)}を除外" ${locked ? "disabled" : ""}>×</button><span class="choice-key">${escapeHtml(option.id)}</span><span class="choice-text">${richText(option.label)}</span></div>`;
   }).join("")}</div>`;
 }
 
@@ -1033,33 +1366,51 @@ function calculatorMarkup() {
 }
 
 function useCalculator(action, value) {
+  const attempt = currentView === "session" ? currentAttempt() : null;
+  if (attempt?.status === "answering" && !attempt.calculatorUsed) {
+    attempt.calculatorUsed = true;
+    attempt.assessmentEligible = false;
+    attempt.assessmentReason = "calculator_used";
+    markSessionDirty(activeSession.id);
+    queueSave();
+  }
   calculatorState = CalculatorCore.reduceCalculator(calculatorState, action, value);
   renderQuestion();
 }
 
 function nextSessionActionMarkup(className = "secondary") {
   return currentIndex === session.length - 1
-    ? `<button class="${className} finish-session" data-finish-session>演習を完了してトップへ</button>`
-    : `<button class="${className}" data-next>次へ →</button>`;
+    ? `<button class="${className} finish-session" data-finish-session ${gradingQuestionId ? "disabled" : ""}>演習を完了してトップへ</button>`
+    : `<button class="${className}" data-next ${gradingQuestionId ? "disabled" : ""}>次へ →</button>`;
 }
 
 function renderQuestion() {
+  if (!activeSession) { session = []; return setView("practice"); }
   clearInterval(mockTimer);
   currentView = "session";
   pageTitle.textContent = "演習中";
   document.querySelectorAll(".nav-item").forEach((button) => button.classList.toggle("is-active", button.dataset.view === "practice"));
   const question = session[currentIndex];
-  const stored = state.results[question.id];
-  const feedback = feedbackCache.get(question.id);
-  const isGrading = gradingQuestionId === question.id;
+  if (!question) return;
+  const attempt = currentAttempt(question);
+  if (attempt.status === "answering" && !attempt.activeSince && !document.hidden) attempt.activeSince = new Date().toISOString();
+  const stored = activeSession.results.find((record) => record.attemptId === attempt.attemptId);
+  const feedback = feedbackCache.get(attempt.attemptId);
+  if (feedback && stored && Date.parse(stored.explanationViewedAt || "") !== Date.now()) {
+    stored.explanationViewedAt = new Date().toISOString();
+    activeSession.lastActivityAt = stored.explanationViewedAt;
+    markSessionDirty(activeSession.id);
+    queueSave();
+  }
+  const isGrading = Boolean(gradingQuestionId);
   app.innerHTML = `<section class="practice-layout"><div>
-    <div class="session-progress"><span>${currentIndex + 1} / ${session.length}</span><i><b style="width:${((currentIndex + 1) / session.length) * 100}%"></b></i><small>${escapeHtml(question.difficulty)}・${question.minimumCourse === 60 ? `60点 ${escapeHtml(content.foundationCheckpoints.find((item) => item.id === question.foundationCheckpoint)?.shortLabel || "基礎")}` : `${question.minimumCourse}点追加層`}</small><button class="danger quit-session" data-quit-session>一旦やめる</button></div>
+    <div class="session-progress"><span>${currentIndex + 1} / ${session.length}</span><i><b style="width:${((currentIndex + 1) / session.length) * 100}%"></b></i><small>${escapeHtml(question.difficulty)}・${question.minimumCourse === 60 ? `60点 ${escapeHtml(content.foundationCheckpoints.find((item) => item.id === question.foundationCheckpoint)?.shortLabel || "基礎")}` : `${question.minimumCourse}点追加層`}</small><button class="danger quit-session" data-quit-session ${isGrading ? "disabled" : ""}>一旦やめる</button></div>
     <article class="question-card"><div class="question-meta"><span>${escapeHtml(subjectLabel(question.subject))}</span><span>${escapeHtml(question.topic)}</span><span>${escapeHtml(question.sourceId)}</span>${question.calculationRequired ? "<span>計算</span>" : ""}</div><h2>Q${currentIndex + 1}. ${escapeHtml(question.topic)}</h2><div class="prompt">${richText(question.prompt)}</div><div class="answer-area">${answerMarkup(question, feedback)}</div>
-      <div id="feedback" aria-live="polite">${feedback ? feedbackMarkup(feedback, question) : stored ? storedFeedbackMarkup(stored) : ""}</div>
+      <div id="feedback" aria-live="polite">${feedback ? feedbackMarkup(feedback, question) : stored ? storedFeedbackMarkup(stored) : ""}${stored?.assessmentEligible === false ? `<p class="muted">${stored.calculatorUsed ? "電卓を使った回答" : "解説確認から24時間未満の再回答など"}は練習として記録し、理解度の達成判定には加えません。</p>` : ""}</div>
       <label class="note-wrap"><span>自分用メモ</span><textarea class="note-input" id="questionNote" placeholder="間違えた理由、覚え方、再確認日など">${escapeHtml(state.notes[question.id] || "")}</textarea></label>
     </article>
-    <div class="actions"><button class="secondary" data-prev ${currentIndex === 0 ? "disabled" : ""}>← 前へ</button><button class="secondary" data-flag>${state.flags[question.id] ? "★ 見直し中" : "☆ 見直す"}</button>${feedback ? `<button class="secondary archive-action" data-archive>${isArchived(question.id) ? "アーカイブを解除" : "アーカイブにする"}</button>` : ""}<button class="primary" data-grade ${feedback || isGrading ? "disabled" : ""} aria-busy="${isGrading}">${feedback ? "採点済み" : isGrading ? "採点・保存中…" : "採点・解説"}</button>${nextSessionActionMarkup()}</div>
-  </div><aside class="panel navigator"><h3>問題一覧・${escapeHtml(subjectLabel(question.subject))}</h3><div class="question-map">${session.map((item, index) => `<button class="map-button ${index === currentIndex ? "current" : ""} ${state.results[item.id] ? "done" : ""} ${state.flags[item.id] ? "flagged" : ""}" data-jump="${index}">${index + 1}</button>`).join("")}</div><button class="text-button" data-view="progress">学習記録を見る →</button></aside>${question.calculationRequired ? calculatorMarkup() : ""}</section>`;
+    <div class="actions"><button class="secondary" data-prev ${currentIndex === 0 || isGrading ? "disabled" : ""}>← 前へ</button><button class="secondary" data-flag>${state.flags[question.id] ? "★ 見直し中" : "☆ 見直す"}</button>${feedback ? `<button class="secondary archive-action" data-archive>${isArchived(question.id) ? "アーカイブを解除" : "アーカイブにする"}</button>` : ""}<button class="primary" data-grade ${feedback || isGrading ? "disabled" : ""} aria-busy="${isGrading}">${feedback ? "採点済み" : isGrading ? "採点・保存中…" : stored ? "解説を再表示" : "採点・解説"}</button>${nextSessionActionMarkup()}</div>
+  </div><aside class="panel navigator"><h3>問題一覧・${escapeHtml(subjectLabel(question.subject))}</h3><div class="question-map">${session.map((item, index) => `<button class="map-button ${index === currentIndex ? "current" : ""} ${activeSession.results.some((record) => record.questionId === item.id) ? "done" : ""} ${state.flags[item.id] ? "flagged" : ""}" data-jump="${index}" ${isGrading ? "disabled" : ""}>${index + 1}</button>`).join("")}</div><button class="text-button" data-view="progress">学習記録を見る →</button></aside>${question.calculationRequired ? calculatorMarkup() : ""}</section>`;
 }
 
 function feedbackMarkup(result, question = session[currentIndex]) {
@@ -1069,191 +1420,254 @@ function feedbackMarkup(result, question = session[currentIndex]) {
 }
 
 function storedFeedbackMarkup(result) {
-  return `<div class="feedback ${result.correct ? "correct" : "incorrect"}"><strong>前回：${result.correct ? "正解" : "不正解"}</strong><p>「採点・解説」を押すと解説を再表示します。</p></div>`;
-}
-
-const sampleVisualConfig = {
-  finance: {
-    title: "数値と会計上の行き先をつなぐ",
-    route: ["条件・数値", "計算／会計ルール", "財務諸表への影響", "正答"]
-  },
-  operations: {
-    title: "現場の流れと評価軸で捉える",
-    route: ["投入・前提", "工程／管理手法", "QCD・効率への効果", "正答"]
-  },
-  law: {
-    title: "主体・原則・例外を分けて照合する",
-    route: ["誰が・何を", "原則の手続", "要件・例外", "法的効果と正答"]
-  },
-  sme: {
-    title: "対象・基準・年度を固定して読む",
-    route: ["制度／統計の対象", "人数・金額・年度", "支援内容／傾向", "正答"]
-  }
-};
-
-const sampleKeywords = {
-  finance: ["資産", "負債", "純資産", "利益", "キャッシュフロー", "原価", "ROA", "NPV", "資本コスト", "税効果", "仕訳", "リスク"],
-  operations: ["4M", "QCD", "PQCDSME", "ECRS", "SLP", "在庫", "発注", "物流", "レイアウト", "品質", "生産性", "工程", "店舗"],
-  law: ["会社法", "民法", "株主", "取締役", "特許", "商標", "著作権", "契約", "対抗要件", "決議", "期間", "例外"],
-  sme: ["中小企業", "小規模事業者", "白書", "補助金", "融資", "共済", "従業員", "開業率", "倒産", "支援", "認定", "年度"]
-};
-
-function compactSampleText(value, maximum = 190) {
-  const text = String(value || "")
-    .replace(/[#*_`]/g, "")
-    .replace(/^\s*[-・]\s*/gmu, "")
-    .replace(/^(?:まず|次に|続いて|最後に)[、,]\s*/u, "")
-    .replace(/\s+/gu, " ")
-    .trim();
-  return text.length > maximum ? `${text.slice(0, maximum).trim()}…` : text;
+  return `<div class="feedback ${result.correct ? "correct" : "incorrect"}"><strong>この試行：${result.correct ? "正解" : "不正解"}</strong><p>「解説を再表示」で確認できます。採点記録は追加されません。</p></div>`;
 }
 
 function sampleExplanationSteps(sample) {
-  let blocks = String(sample.explanation || "").split(/\n{2,}/u).map((block) => compactSampleText(block)).filter(Boolean);
-  if (blocks.length < 3) {
-    blocks = (String(sample.explanation || "").match(/[^。！？\n]+[。！？]?/gu) || []).map((block) => compactSampleText(block)).filter(Boolean);
-  }
-  const fallback = [
-    "問題文から主体・数値・時点などの条件を拾います。",
-    "科目固有のルールや計算式に当てはめます。",
-    "各選択肢との差分を確認して答案へ落とし込みます。"
-  ];
-  return [0, 1, 2].map((index) => blocks[index] || fallback[index]);
-}
-
-function sampleConditionTokens(sample) {
-  const text = `${sample.prompt || ""}\n${sample.originalExplanation || sample.explanation || ""}`;
-  const tokens = [sample.topic];
-  for (const match of text.matchAll(/[「【]([^」】]{2,28})[」】]/gu)) tokens.push(match[1]);
-  for (const keyword of sampleKeywords[sample.subject] || []) if (text.includes(keyword)) tokens.push(keyword);
-  for (const match of text.matchAll(/(?:19|20)\d{2}年度?|\d+(?:[,.]\d+)*(?:万円|千円|百万円|億円|人|社|年|か月|%|％|倍)/gu)) tokens.push(match[0]);
-  return [...new Set(tokens.map((token) => compactSampleText(token, 30)).filter(Boolean))].slice(0, 9);
-}
-
-function financeSampleVisual(sample, tokens) {
-  const text = `${sample.prompt || ""}\n${sample.originalExplanation || sample.explanation || ""}`;
-  const formulaCandidates = (text.match(/[^。！？\n]{0,70}(?:＝|=|÷|×)[^。！？\n]{0,90}/gu) || [])
-    .map((item) => compactSampleText(item, 140)).filter((item, index, values) => item && values.indexOf(item) === index).slice(0, 2);
-  const destinations = [
-    ["B/S", "貸借対照表", /資産|負債|純資産|貸借対照表/u],
-    ["P/L", "損益計算書", /利益|収益|費用|売上|損益計算書/u],
-    ["C/F", "資金の流れ", /キャッシュ|CF|現金|資金/u],
-    ["COST", "原価の集計", /原価|仕掛品|材料|賃金/u]
-  ].filter(([, , pattern]) => pattern.test(text));
-  return `<div class="finance-visual">
-    <div class="formula-stack">${formulaCandidates.length ? formulaCandidates.map((formula) => `<div><small>式・関係</small><strong>${escapeHtml(formula)}</strong></div>`).join("") : `<div><small>拾った条件</small><strong>${tokens.slice(1, 5).map(escapeHtml).join(" ／ ") || "会計ルールを確認"}</strong></div>`}</div>
-    <span class="visual-arrow" aria-hidden="true">→</span>
-    <div class="statement-destinations">${(destinations.length ? destinations : [["RULE", "会計上の分類"]]).map(([code, label]) => `<div><b>${code}</b><span>${label}</span></div>`).join("")}</div>
-  </div>`;
-}
-
-function operationsSampleVisual(sample, tokens) {
-  const route = [tokens.slice(1, 3).join("・") || "現場条件", sample.topic, tokens.find((token) => /QCD|品質|生産性|効率|在庫/u.test(token)) || "品質・コスト・納期", `選択肢 ${sample.answer}`];
-  return `<div class="process-visual">${route.map((item, index) => `<div><small>${index + 1}</small><strong>${escapeHtml(item)}</strong></div>${index < route.length - 1 ? '<span aria-hidden="true">→</span>' : ""}`).join("")}</div>`;
-}
-
-function lawSampleVisual(sample, tokens) {
-  const labels = ["主体", "原則", "要件・例外", "効果"];
-  const values = [tokens.find((token) => /会社|株主|取締役|権利者|当事者/u.test(token)) || "誰に適用されるか", "どの手続・決議が原則か", "期間・対抗要件・例外は何か", `選択肢 ${sample.answer} と一致`];
-  return `<div class="legal-visual">${labels.map((label, index) => `<div><small>${label}</small><strong>${escapeHtml(values[index])}</strong></div>`).join("")}</div>`;
-}
-
-function smeSampleVisual(sample, tokens) {
-  const period = tokens.find((token) => /年度|年$|%|％/u.test(token)) || "基準時点を確認";
-  const target = tokens.find((token) => /企業|事業者|従業員/u.test(token)) || "対象企業を確認";
-  return `<div class="policy-visual"><div><span>対象</span><strong>${escapeHtml(target)}</strong><small>対象者・業種</small></div><div><span>時点・数値</span><strong>${escapeHtml(period)}</strong><small>年度・人数・金額</small></div><div><span>結論</span><strong>選択肢 ${escapeHtml(sample.answer)}</strong><small>支援内容・統計傾向</small></div></div>`;
-}
-
-function subjectSampleVisual(sample, tokens) {
-  const config = sampleVisualConfig[sample.subject] || sampleVisualConfig.operations;
-  const diagram = sample.subject === "finance" ? financeSampleVisual(sample, tokens)
-    : sample.subject === "law" ? lawSampleVisual(sample, tokens)
-      : sample.subject === "sme" ? smeSampleVisual(sample, tokens)
-        : operationsSampleVisual(sample, tokens);
-  return `<section class="sample-section subject-visual-card subject-${sample.subject}"><header><h3>${config.title}</h3></header>${diagram}<div class="visual-route-legend">${config.route.map((item, index) => `<span><b>${index + 1}</b>${item}</span>`).join("")}</div></section>`;
+  return String(sample.explanation || "").split(/\n{2,}/u)
+    .map((block) => block.replace(/^(?:まず|次に|続いて|最後に)[、,]\s*/u, "").trim())
+    .filter(Boolean);
 }
 
 function originalExplanationMarkup(sample) {
-  return `<details class="original-explanation" open><summary><span>元教材の解説</span></summary><div class="original-explanation-body">${richText(sample.originalExplanation || sample.explanation || "解説はありません。")}</div></details>`;
+  return `<details class="original-explanation"><summary><span>解説全文</span></summary><div class="original-explanation-body">${richText(sample.originalExplanation || sample.explanation || "解説はありません。")}</div></details>`;
 }
 
 function guidedFeedbackExplanationMarkup(question = {}, result = {}) {
-  const answer = Array.isArray(result.correctAnswer) ? result.correctAnswer.join("・") : String(result.correctAnswer ?? "—");
-  const answerText = result.correctAnswerText || question.options?.find((option) => String(option.id) === answer)?.label || answer;
-  const explanation = {
-    ...question,
-    subject: result.subject || question.subject,
-    topic: result.topic || question.topic,
-    answer,
-    correctAnswerText: answerText,
-    explanation: result.explanation || "解説はありません。",
-    originalExplanation: result.originalExplanation || result.explanation || "解説はありません。"
-  };
-  const tokens = sampleConditionTokens(explanation);
-  const steps = sampleExplanationSteps(explanation);
+  const explanation = result.explanation || "解説はありません。";
+  const steps = sampleExplanationSteps({ explanation });
+  const reference = question.sourceReference;
   return `<div class="guided-feedback-explanation">
-    <section class="sample-section feedback-stage feedback-conditions"><div class="sample-section-label"><span>01</span><strong>条件を整理する</strong></div><p class="feedback-stage-lead">${escapeHtml(steps[0])}</p><div class="condition-tokens" aria-label="注目する条件">${tokens.map((token) => `<span>${escapeHtml(token)}</span>`).join("")}</div></section>
-    <section class="sample-section feedback-stage"><div class="sample-section-label"><span>02</span><strong>判断の順序</strong></div><div class="reasoning-steps">${steps.map((step, stepIndex) => `<div><span>${stepIndex + 1}</span><strong>${["条件を固定", "ルールを適用", "答案と照合"][stepIndex]}</strong><p>${escapeHtml(step)}</p></div>`).join("")}</div></section>
-    ${subjectSampleVisual(explanation, tokens)}
-    ${originalExplanationMarkup(explanation)}
+    <section class="sample-section feedback-stage"><div class="sample-section-label"><strong>判断の根拠</strong></div><div class="reasoning-steps">${steps.map((step, index) => `<div><span>${index + 1}</span><div class="reasoning-body">${richText(step)}</div></div>`).join("")}</div></section>
+    ${reference?.url?.startsWith("https://") ? `<p class="explanation-reference">出典：${inlineMarkdown(`[${reference.title || "根拠資料"}](${reference.url})`)}</p>` : ""}
+    ${originalExplanationMarkup({ explanation, originalExplanation: result.originalExplanation || explanation })}
   </div>`;
 }
 
 function collectAnswer() {
-  return state.answers[session[currentIndex].id] || "";
+  return currentAttempt()?.selectedAnswer || "";
+}
+
+function removeUnavailableQuestion(trackedId, questionId) {
+  const tracked = state.sessions.find((item) => item.id === trackedId);
+  if (!tracked || knownDeletedSessionIds.has(trackedId)) return;
+  const oldAttempt = tracked.attempts?.[questionId];
+  if (oldAttempt) feedbackCache.delete(oldAttempt.attemptId);
+  delete tracked.attempts?.[questionId];
+  delete state.answers[questionId];
+  tracked.questionIds = (tracked.questionIds || []).filter((id) => id !== questionId);
+  tracked.questionCount = tracked.questionIds.length;
+  tracked.currentIndex = Math.min(tracked.currentIndex || 0, Math.max(0, tracked.questionCount - 1));
+  tracked.status = tracked.questionCount ? "paused" : "completed";
+  tracked.lastActivityAt = new Date().toISOString();
+  markSessionDirty(tracked.id);
+  if (activeSession?.id === trackedId) {
+    activeSession = null;
+    session = [];
+    currentIndex = 0;
+  }
 }
 
 async function gradeCurrent() {
   const question = session[currentIndex];
-  if (feedbackCache.has(question.id) || gradingQuestionId === question.id) return;
-  const answer = collectAnswer();
+  if (!question || !activeSession || gradingQuestionId) return;
+  let tracked = activeSession;
+  let attempt = currentAttempt(question);
+  const trackedId = tracked.id;
+  const submittedAttemptId = attempt.attemptId;
+  if (feedbackCache.has(attempt.attemptId)) return;
+  const answer = attempt.selectedAnswer;
   if (!answer) { alert("選択肢を選んでください。"); return; }
-  state.answers[question.id] = answer;
+  let alreadyGraded = tracked.results.some((record) => record.attemptId === attempt.attemptId);
+  let contentChangeStatus = null;
+  let refreshingContent = false;
   gradingQuestionId = question.id;
+  attempt.status = alreadyGraded ? "graded" : "grading";
+  pausePracticeAttempt();
   renderQuestion();
   try {
-    const response = await fetch("/api/grade", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ questionId: question.id, answer }) });
+    const response = await fetch("/api/grade", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ questionId: question.id, answer, contentVersion: question.contentVersion || 1 }) });
+    const fullResult = response.ok ? await response.json() : null;
+    if (response.status === 404 || response.status === 409) {
+      contentChangeStatus = response.status;
+      // Do not keep using known-stale grades while the quality review is loading,
+      // including when a connection failure delays the authoritative catalogue.
+      pendingContentReviewIds.add(question.id);
+      assessmentCache = null;
+      rebuildAggregatesFromSessions();
+      refreshingContent = true;
+      await refreshContentCatalogue();
+      refreshingContent = false;
+    }
+    // A save may have merged remote progress during grading or catalogue loading.
+    // Always write into the live session; a removed session stays removed.
+    tracked = state.sessions.find((item) => item.id === trackedId);
+    if (!tracked || knownDeletedSessionIds.has(trackedId)) {
+      if (activeSession?.id === trackedId) activeSession = null;
+      alert("この演習は別の操作で削除されました。演習一覧に戻ります。");
+      return;
+    }
+    attempt = tracked.attempts?.[question.id];
+    if (!attempt || attempt.attemptId !== submittedAttemptId || (contentChangeStatus && tracked.status === "completed")) {
+      if (activeSession?.id === trackedId) activeSession = null;
+      alert("この演習は別の操作で更新されました。演習一覧から再開してください。");
+      return;
+    }
+    alreadyGraded = tracked.results.some((record) => record.attemptId === submittedAttemptId);
+    if (response.status === 404) {
+      removeUnavailableQuestion(trackedId, question.id);
+      await queueSave({ immediate: true });
+      alert("この問題は確認中のため出題を停止しました。残りの演習は一覧から再開できます。");
+      return;
+    }
+    if (response.status === 409) {
+      const fresh = await fetchQuestions({ ids: question.id, limit: 1 });
+      // Fetching the revised question is another synchronization boundary.
+      tracked = state.sessions.find((item) => item.id === trackedId);
+      if (!tracked || knownDeletedSessionIds.has(trackedId)) {
+        if (activeSession?.id === trackedId) activeSession = null;
+        alert("この演習は別の操作で削除されました。演習一覧に戻ります。");
+        return;
+      }
+      attempt = tracked.attempts?.[question.id];
+      if (!attempt || attempt.attemptId !== submittedAttemptId || tracked.status === "completed") {
+        // A newer draft or completed attempt belongs to the synced state.
+        // Leave it intact rather than rendering the old question over it.
+        if (activeSession?.id === trackedId) activeSession = null;
+        alert("この演習は別の操作で更新されました。演習一覧から再開してください。");
+        return;
+      }
+      const updatedQuestion = fresh.questions.find((item) => item.id === question.id);
+      if (!updatedQuestion) {
+        removeUnavailableQuestion(trackedId, question.id);
+        await queueSave({ immediate: true });
+        alert("この問題は確認中のため出題を停止しました。残りの演習は一覧から再開できます。");
+        return;
+      }
+      if (activeSession?.id !== trackedId) return;
+      activeSession = tracked;
+      const index = session.findIndex((item) => item.id === question.id);
+      if (index >= 0) session[index] = updatedQuestion;
+      feedbackCache.delete(submittedAttemptId);
+      delete tracked.attempts[question.id];
+      delete state.answers[question.id];
+      // Persist a fresh versioned draft before a save can merge old drafts.
+      attempt = currentAttempt(updatedQuestion);
+      tracked.lastActivityAt = new Date().toISOString();
+      markSessionDirty(tracked.id);
+      await queueSave({ immediate: true });
+      alert("問題が更新されました。新しい内容を確認して回答してください。");
+      return;
+    }
     if (!response.ok) throw new Error("grade_failed");
-    const fullResult = await response.json();
-    feedbackCache.set(question.id, fullResult);
-    state.results[question.id] = {
-      questionId: question.id,
-      subject: fullResult.subject,
-      topic: fullResult.topic,
-      topicId: fullResult.topicId,
-      difficulty: fullResult.difficulty,
-      minimumCourse: fullResult.minimumCourse,
-      foundationCheckpoint: fullResult.foundationCheckpoint || question.foundationCheckpoint || null,
-      correct: fullResult.correct,
-      answeredAt: new Date().toISOString()
-    };
-    const previous = state.attempts[question.id] || { count: 0, correct: 0 };
-    state.attempts[question.id] = { count: previous.count + 1, correct: previous.correct + (fullResult.correct ? 1 : 0), lastAt: new Date().toISOString() };
-    state.recent = [question.id, ...state.recent.filter((id) => id !== question.id)].slice(0, 100);
-    recordSessionResult(state.results[question.id]);
-    autoArchiveMasteredQuestion(question.id);
-    recordActivity("answer", fullResult.correct);
-    refreshAutoPlanCompletion();
-    refreshFoundationCheckpoint(true);
-    await queueSave({ immediate: true });
+    const recorded = tracked.results.find((item) => item.attemptId === attempt.attemptId);
+    if (recorded) {
+      attempt.selectedAnswer = recorded.submittedAnswer ?? attempt.selectedAnswer;
+      fullResult.correct = recorded.correct;
+    }
+    feedbackCache.set(attempt.attemptId, fullResult);
+    attempt.status = "graded";
+    const answeredAt = new Date().toISOString();
+    if (!alreadyGraded) {
+      const atSubmission = LearningCore.assessmentContext(practiceRecords(), question.id, answeredAt, question);
+      const record = {
+        questionId: question.id,
+        attemptId: attempt.attemptId,
+        subject: fullResult.subject,
+        topic: fullResult.topic,
+        topicId: fullResult.topicId,
+        difficulty: fullResult.difficulty,
+        minimumCourse: fullResult.minimumCourse,
+        foundationCheckpoint: fullResult.foundationCheckpoint || question.foundationCheckpoint || null,
+        correct: fullResult.correct,
+        submittedAnswer: answer,
+        correctAnswer: fullResult.correctAnswer,
+        contentVersion: fullResult.contentVersion || question.contentVersion || 1,
+        calculatorUsed: Boolean(attempt.calculatorUsed),
+        exposure: attempt.exposure,
+        assessmentEligible: attempt.assessmentEligible && atSubmission.assessmentEligible && fullResult.qualityStatus !== "quarantined",
+        assessmentReason: atSubmission.assessmentEligible ? attempt.assessmentReason : atSubmission.assessmentReason,
+        elapsedMs: attempt.elapsedMs,
+        presentedAt: attempt.presentedAt,
+        answeredAt,
+        explanationViewedAt: answeredAt
+      };
+      recordSessionResult(record, tracked);
+      rebuildAggregatesFromSessions();
+      refreshFoundationCheckpoint(true);
+      markSessionDirty(tracked.id);
+      await queueSave({ immediate: true });
+    } else {
+      const record = tracked.results.find((item) => item.attemptId === attempt.attemptId);
+      record.explanationViewedAt = answeredAt;
+      tracked.lastActivityAt = answeredAt;
+      markSessionDirty(tracked.id);
+      await queueSave({ immediate: true });
+    }
+  } catch (error) {
+    const live = state.sessions.find((item) => item.id === trackedId);
+    const liveAttempt = live?.attempts?.[question.id];
+    if (!alreadyGraded && liveAttempt?.attemptId === submittedAttemptId && liveAttempt.status === "grading") liveAttempt.status = "answering";
+    if (refreshingContent) {
+      if (live && live.status !== "completed" && liveAttempt?.attemptId === submittedAttemptId && !knownDeletedSessionIds.has(trackedId)) {
+        if (contentChangeStatus === 404) removeUnavailableQuestion(trackedId, question.id);
+        else {
+          live.status = "paused";
+          markSessionDirty(trackedId);
+        }
+      }
+      if (activeSession?.id === trackedId) activeSession = null;
+      await queueSave({ immediate: true });
+      alert("教材の更新情報を取得できませんでした。この問題の成績判定を保留しています。接続を確認し、演習一覧から再開してください。");
+    } else {
+      alert(error.message === "question_unavailable" ? "この問題は確認中のため出題を停止しました。演習一覧から再開してください。" : "採点できませんでした。接続を確認してください。");
+    }
+  } finally {
     gradingQuestionId = null;
-    if (currentView === "session" && session[currentIndex]?.id === question.id) renderQuestion();
-  } catch {
-    gradingQuestionId = null;
-    if (currentView === "session" && session[currentIndex]?.id === question.id) renderQuestion();
-    alert("採点できませんでした。接続を確認してください。");
+    if (currentView === "session" && activeSession?.id === trackedId) {
+      const live = state.sessions.find((item) => item.id === trackedId);
+      const displayed = session[currentIndex];
+      const liveAttempt = live?.attempts?.[displayed?.id];
+      // Saving can deliver another version. Rendering an older question would
+      // replace that newer draft through currentAttempt's version check.
+      activeSession = !live || knownDeletedSessionIds.has(trackedId)
+        || (liveAttempt && Number(liveAttempt.contentVersion || 1) !== Number(displayed?.contentVersion || 1))
+        ? null : live;
+    }
+    if (currentView === "session" && !activeSession) { session = []; setView("practice"); }
+    else if (currentView === "session" && activeSession?.id === trackedId && session[currentIndex]?.id === question.id) renderQuestion();
   }
 }
 
 function renderPlanCourse(course, plan, autoCompleted) {
   const unlocked = isCourseUnlocked(course.targetScore);
   const previous = course.targetScore === 70 ? 60 : 70;
+  const recordsIndex = Assessment.indexRecords(assessmentRecords());
   const groups = course.groups.map((group, groupIndex) => `<section><h3>${escapeHtml(group.title)}</h3>${group.items.map((item, itemIndex) => {
     const key = planItemKey(studySubject, course.targetScore, groupIndex, itemIndex);
-    const status = autoItemStatus(studySubject, course.targetScore, item);
-    return `<label class="plan-check auto-check depth-${Math.min(item.depth, 2)} ${status.passed ? "is-auto-complete" : ""}" title="${status.uniqueQuestions}/${status.requiredQuestions}問・${status.sessions}/${status.requiredSessions}セッション・正答率${status.rate}%・直近${status.recentRate}%"><input type="checkbox" disabled ${autoCompleted[key] ? "checked" : ""}><span>${escapeHtml(item.text)}<small>${status.mapped ? escapeHtml(status.topic || "対応論点") : "科目全体"}：${status.uniqueQuestions}/${status.requiredQuestions}問・${status.sessions}/${status.requiredSessions}回・${status.rate}%</small></span></label>`;
+    const status = autoItemStatus(studySubject, course.targetScore, item, recordsIndex);
+    const detail = status.reason || `${status.topic || "対応論点"}：${status.uniqueQuestions}/${status.requiredQuestions}問・${status.sessions}/${status.requiredSessions}回・${status.rate}%`;
+    return `<label class="plan-check auto-check depth-${Math.min(item.depth, 2)} ${status.passed ? "is-auto-complete" : ""}"><input type="checkbox" disabled ${autoCompleted[key] ? "checked" : ""}><span>${escapeHtml(item.text)}<small>${escapeHtml(detail)}</small></span></label>`;
   }).join("") || '<p class="muted">この層に追加される項目はありません。</p>'}</section>`).join("");
   return `<details class="plan-course ${unlocked ? "" : "is-locked"}" ${unlocked && course.targetScore === Number(state.plan.targetScore) ? "open" : ""}><summary><span>${unlocked ? course.targetScore : "🔒"}</span><div><small>${unlocked ? "LAYER" : "LOCKED"}</small><strong>${escapeHtml(course.title)}</strong>${unlocked ? "" : `<em>${previous}点層の到達判定に合格すると開放</em>`}</div><i>${course.groups.reduce((sum, group) => sum + group.items.length, 0)}項目</i></summary><div class="plan-groups">${groups}</div></details>`;
+}
+
+function studyEvidenceMarkup() {
+  const evidence = Object.entries(state.plan.evidence || {}).sort(([, left], [, right]) => new Date(right.completedAt) - new Date(left.completedAt));
+  const subject = content.subjects.find((item) => item.id === studySubject);
+  const activities = content.studyPlans.subjects[studySubject].courses.flatMap((course) => course.groups.flatMap((group) => group.items)).filter((item) => item.evidenceType === "external");
+  const independent = Assessment.independentAssessments(assessmentEvidence(), studySubject);
+  const recentMinutes = evidence.filter(([, item]) => new Date(item.completedAt) >= new Date(Date.now() - 7 * 86400000)).reduce((sum, [, item]) => sum + item.minutes, 0);
+  return `<section class="panel study-evidence"><h3>教材の実施・本試験形式の得点を記録</h3><p>${escapeHtml(subject.label)}：初見・電卓なし・時間内80点以上 ${independent.length}/2セット。直近7日間の外部教材 ${recentMinutes}分。</p><p class="muted">教材名には年度・回を含めてください。同じセットの再得点は初見判定に使いません。記録は自己申告として保存します。</p>
+    <form data-evidence-form class="study-form"><label>記録の種類<select name="kind"><option value="activity">教材・学習項目の実施</option><option value="assessment">一次の本試験形式（100点満点）</option></select></label><label>教材名・年度・回<input name="source" required maxlength="300" placeholder="例：R5再試験、簿記第3章、事例Ⅰ第1問"></label><label>実施日<input type="date" name="date" value="${localDateKey()}" max="${localDateKey()}" required></label><label>学習時間（分）<input type="number" name="minutes" min="1" max="1440" required></label><label>得点（模試のみ、100点満点）<input type="number" name="score" min="0" max="100"></label><label>対応する学習項目（任意）<select name="itemText"><option value="">実施量だけを記録</option>${activities.map((item) => `<option value="${escapeHtml(item.text)}">${escapeHtml(item.text)}</option>`).join("")}</select></label><label class="check-line"><input type="checkbox" name="confirmedCompletion">選んだ学習項目の条件をすべて満たした</label><label class="check-line"><input type="checkbox" name="firstSeen">模試の問題はすべて初見だった</label><label class="check-line"><input type="checkbox" name="calculatorUsed">電卓を使用した</label><label>振り返り・誤答原因<textarea name="note" maxlength="1000" rows="2"></textarea></label><button type="submit">実施記録を保存</button></form>
+    <div class="evidence-history">${evidence.filter(([, item]) => item.subject === studySubject).slice(0, 20).map(([id, item]) => `<article><div><strong>${escapeHtml(item.source)}</strong><p>${escapeHtml(String(item.completedAt).slice(0, 10))}・${item.minutes}分${item.kind === "assessment" ? `・${item.score}/100点・${item.firstSeen ? "初見" : "既見"}・${item.calculatorUsed ? "電卓あり" : "電卓なし"}` : "・学習実施"}</p><small>${escapeHtml(item.note)}</small></div><button class="secondary" type="button" data-delete-evidence="${escapeHtml(id)}">削除</button></article>`).join("") || '<p class="muted">この科目の実施記録はまだありません。</p>'}</div></section>`;
+}
+
+function studyProfileMarkup() {
+  const profile = state.plan.studyProfile || {};
+  const otherSubjects = { economics: "経済学・経済政策", management: "企業経営理論", information: "経営情報システム" };
+  const year = Number(content.exam.targetYear);
+  return `<details class="panel"><summary>受験条件・週の学習時間</summary><p>収録4科目を中心にした計画です。残り3科目の免除期間・申請を対象年度の試験案内で確認してください。</p><form data-study-profile class="study-form"><label>週の学習時間（時間、未確定なら空欄）<input name="weeklyHours" type="number" min="0.5" max="168" step="0.5" value="${profile.weeklyMinutes ? profile.weeklyMinutes / 60 : ""}"></label>${Object.entries(otherSubjects).map(([id, label]) => `<label>${label}<select name="${id}">${[["", "未確認"], ["none", "免除なし"], [String(year - 1), `${year - 1}年度科目合格`], [String(year - 2), `${year - 2}年度科目合格`], [String(year - 3), `${year - 3}年度以前の科目合格`], ["qualification", "他資格による免除を確認する"]].map(([value, text]) => `<option value="${value}" ${profile.exemptions?.[id] === value ? "selected" : ""}>${text}</option>`).join("")}</select><small>${escapeHtml(StudyEvidence.exemptionStatus(profile.exemptions?.[id], year))}</small></label>`).join("")}<button type="submit">受験条件を保存</button></form><p class="muted">一次の合格基準は受験科目の総点60%以上、各科目40%未満なし。各80点は学習目標です。免除は申請が必要で、最終的な条件は対象年度の公式案内に従います。</p></details>`;
 }
 
 function renderPlan() {
@@ -1270,7 +1684,9 @@ function renderPlan() {
     <div class="plan-overview-grid"><article class="panel phase-milestones"><div class="dashboard-card-head"><div><span class="eyebrow">CURRENT PHASE</span><h3>${escapeHtml(phase.label)}の達成項目</h3></div><strong>${phaseMilestoneProgress(phase).percent}<small>%</small></strong></div><div class="milestone-list">${(phase.milestones || []).map((item, index) => { const key = milestoneKey(phase.id, index); return `<label><input type="checkbox" data-milestone-check="${key}" ${completed[key] ? "checked" : ""}><span>${escapeHtml(item)}</span></label>`; }).join("")}</div></article>
       <article class="panel finance-plan"><div class="dashboard-card-head"><div><span class="eyebrow">BOOKKEEPING / CASE IV</span><h3>${escapeHtml(content.financeTrack.title)}</h3></div><strong>${financeMilestoneProgress().done}<small> / ${financeMilestoneProgress().total}</small></strong></div><div class="milestone-list finance-milestones">${content.financeTrack.milestones.map((item) => { const key = financeMilestoneKey(item.id); return `<label><input type="checkbox" data-finance-milestone="${key}" ${completed[key] ? "checked" : ""}><span><small>${formatMonthDay(item.date)}</small>${escapeHtml(item.label)}</span></label>`; }).join("")}</div></article></div>
     <div class="plan-tabs">${content.subjects.map((subject) => `<button class="${studySubject === subject.id ? "is-active" : ""}" data-plan-subject="${subject.id}">${escapeHtml(subject.shortLabel)}</button>`).join("")}<span>${completedCount} / ${totalItems} 完了</span></div>
-    <div class="auto-rule panel"><strong>自動達成ルール</strong><p>60点：5問・2セッション・正答率85%以上 ／ 70点：7問・2セッション・正答率85%以上 ／ 80点：10問・3セッション・正答率90%以上。直近成績も同水準を要求します。</p></div>
+    <div class="auto-rule panel"><strong>自動達成ルール</strong><p>60点：5問・2セッション・正答率85%以上 ／ 70点：7問・2セッション・正答率85%以上 ／ 80点：10問・3セッション・正答率90%以上。解説直後の再回答・不成立の旧版は評価から除きます。対応のない論点は未判定、外部教材・模試は実施記録で確認します。</p></div>
+    ${studyProfileMarkup()}
+    ${studyEvidenceMarkup()}
     <div class="plan-courses">${plan.courses.map((course) => renderPlanCourse(course, plan, autoCompleted)).join("")}</div>
   </section>`;
 }
@@ -1280,90 +1696,124 @@ function renderMockLibrary() {
   const official = content.officialExam;
   app.innerHTML = `<section class="view-stack">
     <div class="section-heading"><div><span class="eyebrow">OFFICIAL MOCK / ${official.eraYear}</span><h2>令和8年度 第1次試験</h2><p>公式問題PDFを別タブで開き、R4のマークシートで回答・採点します。</p></div><a class="secondary link-button" href="https://www.jf-cmca.jp/contents/010_c_/shikenmondai.html" target="_blank" rel="noopener">公式 問題一覧</a></div>
-    <div class="notice"><strong>実戦ルール</strong><p>机上は電卓・筆記用具のみ。時間終了まで答え合わせをせず、本試験と同じ順序で解いてください。</p></div>
+    <div class="notice"><strong>実戦ルール</strong><p>一次試験では電卓を使用できません。時間終了まで答え合わせをせず、本試験と同じ順序で解いてください。時間終了後は答案を固定します。</p></div>
     <div class="mock-grid">${content.subjects.map((subject, index) => {
       const exam = official.subjects[subject.id];
       const last = state.mockResults[subject.id];
       const trends = content.officialAnalysis.subjects[subject.id]?.topTopics || [];
-      return `<article class="mock-card tone-${index + 1}"><div class="mock-title"><span>${exam.code}</span><div><small>${official.eraYear}</small><h3>${escapeHtml(subject.label)}</h3></div></div><div class="mock-facts"><span>${exam.minutes}分</span><span>${exam.totalPoints}点</span><span>${exam.answerSlots.length}解答欄</span></div><div class="trend-list">${trends.slice(0, 3).map((item) => `<span>${escapeHtml(item.topic)} <b>${item.count}</b></span>`).join("")}</div>${last ? `<p class="last-score">前回 <strong>${last.score}</strong>点</p>` : ""}<button class="primary" data-start-mock="${subject.id}">問題PDFを開いて開始</button></article>`;
+      return `<article class="mock-card tone-${index + 1}"><div class="mock-title"><span>${exam.code}</span><div><small>${official.eraYear}</small><h3>${escapeHtml(subject.label)}</h3></div></div><div class="mock-facts"><span>${exam.minutes}分</span><span>${exam.totalPoints}点</span><span>${exam.answerSlots.length}解答欄</span></div><div class="trend-list">${trends.slice(0, 3).map((item) => `<span>${escapeHtml(item.topic)} <b>${item.count}</b></span>`).join("")}</div>${last ? `<p class="last-score">前回 <strong>${last.score}</strong>点</p>` : ""}<label class="check-line"><input type="checkbox" id="mock-first-seen-${subject.id}">この年度・科目の問題は初見</label><button class="primary" data-start-mock="${subject.id}">${state.sessions.some((entry) => entry.type === "official-mock" && entry.subject === subject.id && !entry.finishedAt) ? "中断した模試を再開" : "問題PDFを開いて開始"}</button></article>`;
     }).join("")}</div>
   </section>`;
 }
 
-function startOfficialMock(subjectId) {
-  const exam = content.officialExam.subjects[subjectId];
-  mockSubject = subjectId;
-  mockStartedAt = Date.now();
-  mockEndAt = Date.now() + exam.minutes * 60000;
-  window.open(exam.question_url, "_blank", "noopener");
-  renderMockSession();
+function currentMock() {
+  return state.sessions.find((item) => item.id === activeMockId && item.type === "official-mock");
 }
 
-function renderMockSession(result = null) {
+function startOfficialMock(subjectId) {
+  if (gradingQuestionId || mockGrading) return;
+  pausePracticeAttempt();
+  const exam = content.officialExam.subjects[subjectId];
+  let tracked = state.sessions.find((item) => item.type === "official-mock" && item.subject === subjectId && !item.finishedAt && item.endsAt);
+  if (!tracked) {
+    const now = Date.now();
+    tracked = { id: newSessionId("official"), type: "official-mock", label: `${content.officialExam.eraYear} ${subjectLabel(subjectId)} 公式模試`,
+      subject: subjectId, course: 80, examYear: content.officialExam.year || 2026,
+      assessmentSource: `公式 ${content.officialExam.year || 2026} ${subjectId}`,
+      firstSeen: Boolean(document.querySelector(`#mock-first-seen-${subjectId}`)?.checked)
+        && !state.sessions.some((entry) => entry.type === "official-mock" && entry.subject === subjectId),
+      calculatorUsed: false, startedAt: new Date(now).toISOString(), endsAt: new Date(now + exam.minutes * 60000).toISOString(),
+      lastActivityAt: new Date(now).toISOString(), questionCount: exam.answerSlots.length, answers: {}, results: [], status: "in-progress" };
+    state.sessions.push(tracked);
+    markSessionDirty(tracked.id);
+  }
+  activeMockId = tracked.id;
+  mockSubject = subjectId;
+  mockStartedAt = new Date(tracked.startedAt).getTime();
+  mockEndAt = new Date(tracked.endsAt).getTime();
+  window.open(exam.question_url, "_blank", "noopener");
+  renderMockSession(tracked.mockResult || null);
+  queueSave();
+}
+
+function renderMockSession(result = currentMock()?.mockResult || null) {
+  const tracked = currentMock();
+  if (!tracked) return setView("mock");
   const exam = content.officialExam.subjects[mockSubject];
+  const expired = Date.now() >= mockEndAt;
+  const locked = Boolean(result || expired || mockGrading);
   currentView = "mock-session";
   pageTitle.textContent = `公式模試・${subjectLabel(mockSubject)}`;
   document.querySelectorAll(".nav-item").forEach((button) => button.classList.toggle("is-active", button.dataset.view === "mock"));
   clearInterval(mockTimer);
   app.innerHTML = `<section class="view-stack mock-session">
     <div class="mock-bar"><div><span class="eyebrow">${escapeHtml(content.officialExam.eraYear)} / ${exam.code}</span><h2>${escapeHtml(exam.label)}</h2></div><div class="timer"><small>残り時間</small><strong id="timerValue">${exam.minutes}:00</strong></div><div class="mock-links"><a href="${exam.question_url}" target="_blank" rel="noopener">問題PDF ↗</a>${result ? `<a href="${exam.answer_url}" target="_blank" rel="noopener">正解PDF ↗</a>` : "<span>正解は採点後に表示</span>"}</div></div>
+    <p>一次試験・電卓なし・${tracked.firstSeen ? "初見" : "既見"}${expired && !result ? "。時間終了のため答案を固定しました。" : ""}</p>
     ${result ? mockResultMarkup(result) : ""}
-    <div class="answer-sheet">${exam.answerSlots.map((item) => `<label class="answer-slot ${result?.details.find((detail) => detail.id === item.id)?.correct === false ? "wrong" : ""}"><span>第${item.number}問${item.subquestion ? `-${item.subquestion}` : ""}</span><select data-mock-answer="${item.id}"><option value="">—</option>${["ア", "イ", "ウ", "エ", "オ"].map((choice) => `<option ${result?.details.find((detail) => detail.id === item.id)?.submitted === choice ? "selected" : ""}>${choice}</option>`).join("")}</select><small>${item.points}点</small>${result ? `<b>${result.details.find((detail) => detail.id === item.id)?.answer}</b>` : ""}</label>`).join("")}</div>
-    <div class="actions mock-actions"><button class="secondary" data-view="mock">模試一覧へ</button><button class="primary" data-grade-mock>採点する</button></div>
+    <div class="answer-sheet">${exam.answerSlots.map((item) => { const detail = result?.details?.find((value) => value.id === item.id); const submitted = detail?.submitted || tracked.answers?.[item.id] || ""; return `<label class="answer-slot ${detail?.correct === false ? "wrong" : ""}"><span>第${item.number}問${item.subquestion ? `-${item.subquestion}` : ""}</span><select data-mock-answer="${item.id}" ${locked ? "disabled" : ""}><option value="">—</option>${["ア", "イ", "ウ", "エ", "オ"].map((choice) => `<option ${submitted === choice ? "selected" : ""}>${choice}</option>`).join("")}</select><small>${item.points}点</small>${detail ? `<b>${escapeHtml(detail.answer)}</b>` : ""}</label>`; }).join("")}</div>
+    <div class="actions mock-actions"><button class="secondary" data-view="mock" ${mockGrading ? "disabled" : ""}>模試一覧へ</button><button class="primary" data-grade-mock ${result || mockGrading ? "disabled" : ""}>${result ? "採点済み" : mockGrading ? "採点中…" : "採点する"}</button></div>
   </section>`;
   updateTimer();
-  mockTimer = setInterval(updateTimer, 1000);
+  if (!result && !expired) mockTimer = setInterval(updateTimer, 1000);
 }
 
 function updateTimer() {
   const timer = document.querySelector("#timerValue");
   if (!timer || !mockEndAt) return;
   const remaining = Math.max(0, mockEndAt - Date.now());
-  const minutes = Math.floor(remaining / 60000);
-  const seconds = Math.floor((remaining % 60000) / 1000);
-  timer.textContent = `${minutes}:${String(seconds).padStart(2, "0")}`;
-  timer.closest(".timer")?.classList.toggle("urgent", remaining < 10 * 60000);
-  if (!remaining) clearInterval(mockTimer);
+  timer.textContent = `${Math.floor(remaining / 60000)}:${String(Math.floor((remaining % 60000) / 1000)).padStart(2, "0")}`;
+  timer.closest?.(".timer")?.classList.toggle("urgent", remaining < 10 * 60000);
+  if (!remaining) {
+    clearInterval(mockTimer);
+    document.querySelectorAll("[data-mock-answer]").forEach((select) => { select.disabled = true; });
+    const tracked = currentMock();
+    if (tracked && tracked.status === "in-progress") {
+      tracked.status = "time-ended";
+      tracked.timeLimitAnswers = { ...(tracked.answers || {}) };
+      markSessionDirty(tracked.id);
+      queueSave();
+    }
+  }
 }
 
 function mockResultMarkup(result) {
-  return `<div class="mock-result ${result.score >= 80 ? "excellent" : result.score >= 60 ? "pass" : "retry"}"><div><small>SCORE</small><strong>${result.score}<span>/ ${result.maxScore}</span></strong></div><p>${result.score >= 80 ? "80点到達。誤答論点だけを通常演習で補強しましょう。" : result.score >= 60 ? "合格ライン到達。あと20点を誤答分野から積み上げます。" : "まず60点ラインのcore論点へ戻りましょう。"}</p></div>`;
+  return `<div class="mock-result ${result.score >= 80 ? "excellent" : result.score >= 60 ? "pass" : "retry"}"><div><small>SCORE</small><strong>${result.score}<span>/ ${result.maxScore}</span></strong></div><p>${result.score >= 80 ? "このセットは80点以上です。初見と再演習を区別して評価します。" : result.score >= 60 ? "このセットは60点以上です。誤答原因と時間配分を確認しましょう。" : "誤答原因を整理し、基礎論点を補強しましょう。"}</p></div>`;
 }
 
 async function gradeMock() {
-  const answers = Object.fromEntries([...document.querySelectorAll("[data-mock-answer]")].map((select) => [select.dataset.mockAnswer, select.value]));
-  if (!Object.values(answers).some(Boolean)) { alert("少なくとも1問に回答してください。"); return; }
+  let tracked = currentMock();
+  if (!tracked || mockGrading) return;
+  if (tracked.mockResult) return renderMockSession(tracked.mockResult);
+  const trackedId = tracked.id;
+  mockGrading = true;
+  const finishedAt = new Date().toISOString();
+  const answers = { ...(tracked.timeLimitAnswers || tracked.answers || {}) };
+  renderMockSession();
   try {
-    const response = await fetch("/api/mock/grade", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ subjectId: mockSubject, answers }) });
+    const response = await fetch("/api/mock/grade", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ subjectId: tracked.subject, answers }) });
     if (!response.ok) throw new Error("mock_grade_failed");
     const result = await response.json();
-    state.mockResults[mockSubject] = { ...result, finishedAt: new Date().toISOString() };
-    const elapsedMinutes = mockStartedAt ? Math.max(1, Math.min(content.officialExam.subjects[mockSubject].minutes, Math.round((Date.now() - mockStartedAt) / 60000))) : content.officialExam.subjects[mockSubject].minutes;
-    state.sessions.push({
-      id: newSessionId("official"),
-      type: "official-mock",
-      label: `令和8年度 ${subjectLabel(mockSubject)} 公式模試`,
-      subject: mockSubject,
-      course: 80,
-      startedAt: new Date(mockStartedAt || Date.now()).toISOString(),
-      finishedAt: new Date().toISOString(),
-      lastActivityAt: new Date().toISOString(),
-      questionCount: result.details.length,
-      mockMinutes: elapsedMinutes,
+    tracked = state.sessions.find((item) => item.id === trackedId);
+    if (!tracked) { alert("この模試は別の操作で削除されました。模試一覧に戻ります。"); return; }
+    if (tracked.mockResult) return;
+    const elapsedMinutes = Math.max(1 / 60, Math.min(content.officialExam.subjects[tracked.subject].minutes, (new Date(finishedAt) - new Date(tracked.startedAt)) / 60000));
+    Object.assign(tracked, { finishedAt, lastActivityAt: finishedAt, status: "completed", mockMinutes: elapsedMinutes,
       summary: { score: result.score, maxScore: result.maxScore, answered: result.details.filter((item) => item.submitted).length },
-      results: []
-    });
-    markSessionDirty(state.sessions.at(-1).id);
-    recordActivity("mock", elapsedMinutes);
-    queueSave();
-    renderMockSession(result);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  } catch { alert("模試を採点できませんでした。"); }
+      timeLimitAnswers: answers, mockResult: result,
+      results: result.details.map((detail) => ({ ...detail, questionId: `official:${tracked.examYear}:${tracked.subject}:${detail.id}`, answeredAt: finishedAt })) });
+    markSessionDirty(tracked.id);
+    rebuildAggregatesFromSessions();
+    await queueSave({ immediate: true });
+  } catch { alert("模試を採点できませんでした。答案は端末に保持しています。"); }
+  finally {
+    mockGrading = false;
+    if (currentView === "mock-session" && activeMockId === trackedId) renderMockSession();
+  }
 }
 
 function topicPerformance() {
   const groups = new Map();
-  for (const result of practiceRecords()) {
+  for (const result of assessmentRecords()) {
     const key = result.topicId || `${result.subject}:${result.topic}`;
     const current = groups.get(key) || { subject: result.subject, topic: result.topic, answered: 0, correct: 0 };
     current.answered += 1;
@@ -1406,7 +1856,7 @@ function archivedQuestionSummaries() {
 function renderArchive() {
   pageTitle.textContent = "アーカイブ";
   const archived = archivedQuestionSummaries();
-  app.innerHTML = `<section class="view-stack"><div class="section-heading"><div><span class="eyebrow">ARCHIVE</span><h2>演習対象から外した問題</h2><p>異なる3日で連続正解した問題は自動で追加されます。戻すと通常演習・復習・自動割当の対象へ復帰します。</p></div><span class="archive-total">${archived.length}問</span></div>
+  app.innerHTML = `<section class="view-stack"><div class="section-heading"><div><span class="eyebrow">ARCHIVE</span><h2>演習対象から外した問題</h2><p>手動で除外した問題を管理します。習得した問題も期限を設けて復習します。戻すと通常演習・復習・自動割当の対象へ復帰します。</p></div><span class="archive-total">${archived.length}問</span></div>
     <div class="archive-subjects">${content.subjects.map((subject) => {
       const items = archived.filter((item) => item.subject === subject.id);
       return `<section class="archive-subject panel"><header><div><span class="eyebrow">${escapeHtml(subject.shortLabel)}</span><h3>${escapeHtml(subject.label)}</h3></div><strong>${items.length}<small>問</small></strong></header><div class="archive-list">${items.map((item) => `<article class="archive-row"><div><span>${item.archiveReason === "auto" ? `自動・${item.correctDayStreak}日連続正解` : "手動で追加"}</span><strong>${escapeHtml(item.topic || item.id)}</strong><small>${escapeHtml(item.id)}${item.archivedAt ? `・${escapeHtml(new Intl.DateTimeFormat("ja-JP", { dateStyle: "medium" }).format(new Date(item.archivedAt)))}に追加` : ""}</small></div><button class="secondary" data-unarchive="${escapeHtml(item.id)}">演習対象に戻す</button></article>`).join("") || '<div class="archive-empty">この科目のアーカイブはありません。</div>'}</div></section>`;
@@ -1415,23 +1865,44 @@ function renderArchive() {
 }
 
 function sessionSummary(item) {
-  if (item.summary) return { answered: Number(item.summary.answered) || item.questionCount || 0, correct: null, rate: Math.round(Number(item.summary.score) / Math.max(1, Number(item.summary.maxScore)) * 100), label: `${item.summary.score}/${item.summary.maxScore}点` };
+  if (item.summary) return { answered: Number(item.summary.answered ?? item.questionCount) || 0, correct: null, rate: Math.round(Number(item.summary.score) / Math.max(1, Number(item.summary.maxScore)) * 100), label: `${item.summary.score}/${item.summary.maxScore}点` };
   const results = item.results || [];
   const correct = results.filter((result) => result.correct).length;
   return { answered: results.length, correct, rate: results.length ? Math.round(correct / results.length * 100) : 0, label: `${correct}/${results.length}問正解` };
 }
 
 function sessionTierBreakdown(item) {
+  if (item.type === "official-mock") return "";
   const counts = { 60: 0, 70: 0, 80: 0 };
   for (const result of item.results || []) counts[Number(result.minimumCourse || 60)] += 1;
   return [60, 70, 80].filter((score) => counts[score]).map((score) => `${score}点層 ${counts[score]}問`).join(" / ");
+}
+
+function sessionHistoryActions(item) {
+  const action = item.type === "official-mock"
+    ? item.mockResult ? `<button class="secondary" data-open-mock="${escapeHtml(item.id)}">答案・結果</button>`
+      : !item.finishedAt ? `<button class="secondary" data-start-mock="${escapeHtml(item.subject)}">再開</button>` : ""
+    : item.questionIds?.length && item.status !== "completed" ? `<button class="secondary" data-resume-session="${escapeHtml(item.id)}">再開</button>` : "";
+  return `<div class="session-actions">${action}<button class="session-delete" data-delete-session="${escapeHtml(item.id)}" aria-label="このセッションを削除">削除</button></div>`;
+}
+
+function openMockResult(sessionId) {
+  if (gradingQuestionId || mockGrading) return;
+  const tracked = state.sessions.find((item) => item.id === sessionId && item.type === "official-mock" && item.mockResult);
+  if (!tracked) return;
+  pausePracticeAttempt();
+  activeMockId = tracked.id;
+  mockSubject = tracked.subject;
+  mockStartedAt = new Date(tracked.startedAt).getTime();
+  mockEndAt = new Date(tracked.endsAt || tracked.finishedAt).getTime();
+  renderMockSession();
 }
 
 function renderHistory() {
   pageTitle.textContent = "すべての実施記録";
   const sessions = [...state.sessions].sort((a, b) => new Date(b.lastActivityAt || b.finishedAt || b.startedAt) - new Date(a.lastActivityAt || a.finishedAt || a.startedAt));
   app.innerHTML = `<section class="view-stack"><div class="section-heading"><div><span class="eyebrow">ALL SESSIONS</span><h2>すべての実施記録</h2><p>通常演習、復習、公式模試を実施単位で保存しています。不要な記録だけを個別に削除できます。</p></div><span class="session-total">${sessions.length}セッション</span></div>
-    <div class="session-list">${sessions.map((item) => { const summary = sessionSummary(item); const breakdown = sessionTierBreakdown(item); const date = new Intl.DateTimeFormat("ja-JP", { dateStyle: "medium", timeStyle: "short" }).format(new Date(item.lastActivityAt || item.finishedAt || item.startedAt)); return `<article class="session-row"><div class="session-kind ${item.type}">${item.type === "official-mock" ? "模試" : item.type === "legacy" ? "移行" : "演習"}</div><div class="session-main"><small>${escapeHtml(date)}・目標${item.course || 60}点</small><strong>${escapeHtml(item.label || "演習セッション")}</strong><span>${item.subject ? escapeHtml(subjectLabel(item.subject)) : "科目横断"}・${summary.answered}問${breakdown ? `・${breakdown}` : ""}${item.mockMinutes ? `・${item.mockMinutes}分` : ""}</span></div><div class="session-score"><strong>${summary.rate}%</strong><small>${escapeHtml(summary.label)}</small></div><button class="session-delete" data-delete-session="${escapeHtml(item.id)}" aria-label="このセッションを削除">削除</button></article>`; }).join("") || '<div class="panel empty">まだ実施記録がありません。問題演習を開始すると、ここへセッション単位で保存されます。</div>'}</div>
+    <div class="session-list">${sessions.map((item) => { const summary = sessionSummary(item); const breakdown = sessionTierBreakdown(item); const date = new Intl.DateTimeFormat("ja-JP", { dateStyle: "medium", timeStyle: "short" }).format(new Date(item.lastActivityAt || item.finishedAt || item.startedAt)); return `<article class="session-row"><div class="session-kind ${item.type}">${item.type === "official-mock" ? "模試" : item.type === "legacy" ? "移行" : "演習"}</div><div class="session-main"><small>${escapeHtml(date)}・目標${item.course || 60}点</small><strong>${escapeHtml(item.label || "演習セッション")}</strong><span>${item.subject ? escapeHtml(subjectLabel(item.subject)) : "科目横断"}・${summary.answered}問${breakdown ? `・${breakdown}` : ""}${item.mockMinutes ? `・${item.mockMinutes}分` : ""}</span></div><div class="session-score"><strong>${summary.rate}%</strong><small>${escapeHtml(summary.label)}</small></div>${sessionHistoryActions(item)}</article>`; }).join("") || '<div class="panel empty">まだ実施記録がありません。問題演習を開始すると、ここへセッション単位で保存されます。</div>'}</div>
   </section>`;
 }
 
@@ -1498,37 +1969,58 @@ function renderOverview() {
   </section>`;
 }
 
+function reviewQuestionIds(mode) {
+  const records = assessmentRecords();
+  const byQuestion = new Map();
+  for (const record of records) {
+    if (!byQuestion.has(record.questionId)) byQuestion.set(record.questionId, []);
+    byQuestion.get(record.questionId).push(record);
+  }
+  const latest = new Map(records.map((record) => [record.questionId, record]));
+  const candidates = new Set([...latest.keys(), ...Object.keys(state.flags)]);
+  const blocked = new Set(content.questionQuality?.quarantinedQuestionIds || []);
+  return [...candidates].filter((id) => !isArchived(id) && !blocked.has(id)).map((id) => {
+    const due = LearningCore.reviewSchedule(byQuestion.get(id) || [], id);
+    return { id, flagged: Boolean(state.flags[id]), incorrect: latest.get(id)?.correct === false,
+      dueAt: due?.dueAt || new Date().toISOString() };
+  }).filter((item) => mode === "incorrect" ? item.incorrect : mode === "flagged" ? item.flagged : item.flagged || item.incorrect || new Date(item.dueAt) <= new Date())
+    .sort((a, b) => Number(b.flagged) - Number(a.flagged) || new Date(a.dueAt) - new Date(b.dueAt)).map((item) => item.id);
+}
+
 async function startReview(mode) {
-  const incorrect = Object.entries(state.results).filter(([id, result]) => !result.correct && !isArchived(id)).map(([id]) => id);
-  const flagged = Object.entries(state.flags).filter(([id, value]) => value && !isArchived(id)).map(([id]) => id);
-  let ids = mode === "incorrect" ? incorrect : mode === "flagged" ? flagged : [...new Set([...incorrect, ...flagged])];
-  if (ids.length) return beginRemote({ ids: ids.slice(0, 50).join(","), limit: Math.min(50, ids.length) }, { type: "review", label: mode === "incorrect" ? "誤答復習" : mode === "flagged" ? "見直し復習" : "弱点優先復習" });
+  const ids = reviewQuestionIds(mode);
+  if (ids.length) return beginRemote({ ids: ids.slice(0, 50).join(","), limit: Math.min(50, ids.length) }, { type: "review", label: mode === "incorrect" ? "誤答復習" : mode === "flagged" ? "見直し復習" : "期限・弱点の復習" });
   const subject = recommendedSubject();
-  return beginRemote({ subject: subject.id, limit: phaseWorkload().adjustedTarget }, { type: "adaptive", label: `${subject.label} 自動割当` });
+  return beginRemote({ subject: subject.id, limit: phaseWorkload().adjustedTarget }, { type: "adaptive", label: `${subject.label} 補強演習` });
 }
 
 async function beginDailyAllocation() {
+  if (gradingQuestionId || mockGrading) return;
   const workload = phaseWorkload();
-  if (workload.excludedToday) {
-    alert("今日は学習除外日です。必要な場合は通常演習から任意に学習できます。");
-    return setView("overview");
-  }
+  if (workload.excludedToday) { alert("今日は学習除外日です。必要な場合は通常演習から任意に学習できます。"); return setView("overview"); }
   const todayKey = localDateKey();
+  const unfinished = state.sessions.find((item) => item.type === "adaptive" && item.filters?.dailyDate === todayKey && item.status !== "completed"
+    && item.questionIds?.some((id) => !item.results.some((record) => record.questionId === id)));
+  if (unfinished) return resumePracticeSession(unfinished.id);
   const todayRecords = practiceRecords().filter((record) => localDateKey(record.answeredAt) === todayKey);
-  const requests = content.subjects.map((subject) => {
-    const done = todayRecords.filter((record) => record.subject === subject.id).length;
-    const remaining = Math.max(0, workload.allocation[subject.id] - done);
-    return remaining ? fetchQuestions({ subject: subject.id, limit: Math.min(100, Math.max(remaining * 4, remaining)), seed: `${todayKey}:${subject.id}` }).then((result) => ({ questions: result.questions.filter((question) => !isArchived(question.id)).slice(0, remaining) })) : Promise.resolve({ questions: [] });
-  });
-  app.innerHTML = '<div class="panel loading">本日の遅延補正と科目配分からセッションを組み立てています…</div>';
+  const excludedIds = new Set(todayRecords.map((record) => record.questionId));
+  app.innerHTML = '<div class="panel loading">本日の科目配分と未回答の問題から演習を組み立てています…</div>';
   try {
-    const results = await Promise.all(requests);
-    const questions = results.flatMap((result) => result.questions);
-    if (!questions.length) return startReview("adaptive");
-    begin(questions, { type: "adaptive", label: `本日の自動割当 ${questions.length}問`, filters: { workload } });
-  } catch {
-    app.innerHTML = '<div class="panel empty">自動割当を作成できませんでした。接続を確認してください。</div>';
-  }
+    const dueIds = reviewQuestionIds("adaptive").filter((id) => !excludedIds.has(id));
+    const requests = content.subjects.map(async (subject) => {
+      const done = new Set(todayRecords.filter((record) => record.subject === subject.id).map((record) => record.questionId)).size;
+      const remaining = Math.max(0, workload.allocation[subject.id] - done);
+      if (!remaining) return [];
+      const due = dueIds.filter((id) => id.startsWith(`${subject.id}:`)).slice(0, Math.max(1, Math.floor(remaining / 3)));
+      const review = due.length ? (await fetchQuestions({ ids: due.join(","), limit: due.length })).questions : [];
+      const omit = new Set([...excludedIds, ...review.map((question) => question.id)]);
+      const fresh = await availableQuestions({ subject: subject.id, seed: `${todayKey}:${subject.id}` }, remaining - review.length, omit);
+      return [...review, ...fresh];
+    });
+    const questions = (await Promise.all(requests)).flat();
+    if (!questions.length) { renderHome(); return; }
+    begin(questions, { type: "adaptive", label: `本日の自動割当 ${questions.length}問`, filters: { dailyDate: todayKey, workload } });
+  } catch { app.innerHTML = '<div class="panel empty">自動割当を作成できませんでした。接続を確認してください。</div>'; }
 }
 
 document.addEventListener("click", (event) => {
@@ -1545,21 +2037,21 @@ document.addEventListener("click", (event) => {
   const eliminateButton = event.target.closest("[data-eliminate-choice]");
   if (eliminateButton && currentView === "session") {
     const question = session[currentIndex];
-    if (gradingQuestionId === question.id) return;
-    const eliminated = eliminatedChoices.get(question.id) || new Set();
+    if (gradingQuestionId || currentAttempt()?.status !== "answering") return;
+    const attempt = currentAttempt();
+    const eliminated = new Set(attempt.eliminatedChoices || []);
     const choiceId = eliminateButton.dataset.eliminateChoice;
     eliminated.has(choiceId) ? eliminated.delete(choiceId) : eliminated.add(choiceId);
-    eliminatedChoices.set(question.id, eliminated);
-    if (state.answers[question.id] === choiceId) delete state.answers[question.id];
-    feedbackCache.delete(question.id);
+    attempt.eliminatedChoices = [...eliminated];
+    if (attempt.selectedAnswer === choiceId) attempt.selectedAnswer = "";
+    markSessionDirty(activeSession.id);
+    queueSave();
     return renderQuestion();
   }
   const choice = event.target.closest("[data-select-choice]");
   if (choice && currentView === "session" && !choice.classList.contains("is-eliminated")) {
-    if (gradingQuestionId === session[currentIndex].id) return;
-    feedbackCache.delete(session[currentIndex].id);
-    state.answers[session[currentIndex].id] = choice.dataset.selectChoice;
-    queueSave();
+    if (gradingQuestionId || currentAttempt()?.status !== "answering") return;
+    selectCurrentAnswer(choice.dataset.selectChoice);
     return renderQuestion();
   }
   const calcKey = event.target.closest("[data-calc-action]");
@@ -1637,6 +2129,8 @@ document.addEventListener("click", (event) => {
   }
   const subjectButton = event.target.closest("[data-start-subject]");
   if (subjectButton) return beginRemote({ subject: subjectButton.dataset.startSubject, limit: subjectButton.dataset.limit || currentPhase().sessionSize }, { label: `${subjectLabel(subjectButton.dataset.startSubject)} 演習` });
+  const resumeButton = event.target.closest("[data-resume-session]");
+  if (resumeButton) return resumePracticeSession(resumeButton.dataset.resumeSession);
   if (event.target.closest("[data-adaptive]")) return beginDailyAllocation();
   if (event.target.closest("[data-start-filtered]")) {
     const filteredSubject = document.querySelector("#subjectFilter").value;
@@ -1650,15 +2144,21 @@ document.addEventListener("click", (event) => {
   const review = event.target.closest("[data-review]")?.dataset.review;
   if (review) return startReview(review);
   const jump = event.target.closest("[data-jump]");
-  if (jump) { currentIndex = Number(jump.dataset.jump); return renderQuestion(); }
-  if (event.target.closest("[data-prev]")) { currentIndex -= 1; return renderQuestion(); }
+  if (jump) return navigatePractice(Number(jump.dataset.jump));
+  if (event.target.closest("[data-prev]")) return navigatePractice(currentIndex - 1);
   if (event.target.closest("[data-next]")) {
-    currentIndex += 1;
-    renderQuestion();
+    navigatePractice(currentIndex + 1);
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     return;
   }
   if (event.target.closest("[data-quit-session], [data-finish-session]")) {
+    if (gradingQuestionId) return;
+    pausePracticeAttempt();
+    if (activeSession) {
+      activeSession.status = event.target.closest("[data-finish-session]") ? "completed" : "paused";
+      markSessionDirty(activeSession.id);
+      queueSave();
+    }
     session = [];
     activeSession = null;
     currentIndex = 0;
@@ -1679,6 +2179,8 @@ document.addEventListener("click", (event) => {
   if (planSubjectButton) { studySubject = planSubjectButton.dataset.planSubject; return renderPlan(); }
   const mockButton = event.target.closest("[data-start-mock]");
   if (mockButton) return startOfficialMock(mockButton.dataset.startMock);
+  const mockResultButton = event.target.closest("[data-open-mock]");
+  if (mockResultButton) return openMockResult(mockResultButton.dataset.openMock);
   if (event.target.closest("[data-grade-mock]")) return gradeMock();
   const weakButton = event.target.closest("[data-weak-topic]");
   if (weakButton) {
@@ -1723,10 +2225,53 @@ document.addEventListener("keydown", (event) => {
   const choice = event.target.closest?.("[data-select-choice]");
   if (!choice || !["Enter", " "].includes(event.key) || choice.classList.contains("is-eliminated") || gradingQuestionId === session[currentIndex]?.id) return;
   event.preventDefault();
-  feedbackCache.delete(session[currentIndex].id);
-  state.answers[session[currentIndex].id] = choice.dataset.selectChoice;
-  queueSave();
+  if (currentView !== "session" || currentAttempt()?.status !== "answering") return;
+  selectCurrentAnswer(choice.dataset.selectChoice);
   renderQuestion();
+});
+
+document.addEventListener("change", (event) => {
+  if (!event.target.matches?.("[data-mock-answer]")) return;
+  const tracked = currentMock();
+  if (!tracked || tracked.finishedAt || mockGrading) return;
+  if (Date.now() >= new Date(tracked.endsAt).getTime()) { renderMockSession(); return; }
+  tracked.answers[event.target.dataset.mockAnswer] = event.target.value;
+  tracked.lastActivityAt = new Date().toISOString();
+  markSessionDirty(tracked.id);
+  queueSave();
+});
+
+document.addEventListener("submit", (event) => {
+  const form = event.target;
+  if (!form.matches?.("[data-evidence-form], [data-study-profile]")) return;
+  event.preventDefault();
+  const value = (name) => form.elements.namedItem(name)?.value || "";
+  if (form.matches("[data-study-profile]")) {
+    const hours = value("weeklyHours") === "" ? null : Number(value("weeklyHours"));
+    if (hours !== null && (!Number.isFinite(hours) || hours < .5 || hours > 168)) return alert("週の学習時間は0.5〜168時間で指定してください。");
+    state.plan.studyProfile = { weeklyMinutes: hours === null ? null : hours * 60,
+      exemptions: Object.fromEntries(["economics", "management", "information"].map((id) => [id, value(id)])) };
+  } else {
+    try {
+      const input = Object.fromEntries(["kind", "source", "date", "minutes", "score", "itemText", "note"].map((name) => [name, value(name)]));
+      for (const name of ["confirmedCompletion", "firstSeen", "calculatorUsed"]) input[name] = Boolean(form.elements.namedItem(name)?.checked);
+      const entry = StudyEvidence.parseEvidence(input, content.subjects.find((subject) => subject.id === studySubject), localDateKey());
+      state.plan.evidence ||= {};
+      state.plan.evidence[newSessionId("evidence")] = entry;
+    } catch (error) { return alert(error.message); }
+  }
+  refreshAutoPlanCompletion();
+  queueSave({ immediate: true });
+  renderPlan();
+});
+
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-delete-evidence]");
+  if (!button) return;
+  delete state.plan.evidence?.[button.dataset.deleteEvidence];
+  refreshAutoPlanCompletion();
+  queueSave({ immediate: true });
+  renderPlan();
 });
 
 async function boot() {

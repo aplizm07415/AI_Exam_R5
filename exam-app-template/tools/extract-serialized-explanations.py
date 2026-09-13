@@ -1,5 +1,6 @@
 import ast
 import json
+import re
 from pathlib import Path
 
 
@@ -34,14 +35,20 @@ for subject in CONFIG["subjects"]:
         explanation = question.get("explanation")
         text = explanation.get("text", "") if isinstance(explanation, dict) else str(explanation or "")
         stripped = text.strip()
+        # Some records put a standalone answer recap before the serialized
+        # explanation. Keep the prefix and decode only the literal object.
+        prefix = ""
         if not stripped.startswith(("{", "[")):
-            continue
+            match = re.search(r"(?m)^[ \t]*(?=\{[ \t]*['\"](?:summary|steps|conclusion|title|description)['\"]\s*:)", stripped)
+            if not match:
+                continue
+            prefix, stripped = stripped[:match.start()].strip(), stripped[match.start():].strip()
         try:
             parsed = ast.literal_eval(stripped)
         except (SyntaxError, ValueError) as error:
             failures.append(f"{subject['id']}:{question['id']} ({error})")
             continue
-        parts = []
+        parts = [prefix] if prefix else []
         for part in flatten(parsed):
             if part not in parts:
                 parts.append(part)

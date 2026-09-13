@@ -2,6 +2,13 @@ const SMALL_KATAKANA = new Map([
   ["ァ", "ア"], ["ィ", "イ"], ["ゥ", "ウ"], ["ェ", "エ"], ["ォ", "オ"]
 ]);
 
+function normalizeStudyText(value) {
+  // NFKC would turn σ² into σ2 and 1.1² into 1.12. Keep mathematical
+  // superscripts/subscripts while normalizing the surrounding Japanese text.
+  return String(value ?? "").split(/([\u00b2\u00b3\u00b9\u2070-\u209f])/u)
+    .map((part, index) => index % 2 ? part : part.normalize("NFKC")).join("");
+}
+
 function normalizeChoiceId(value) {
   return String(value ?? "")
     .normalize("NFKC")
@@ -11,7 +18,7 @@ function normalizeChoiceId(value) {
 
 function normalizeChoiceText(choice) {
   const sourceLabel = String(choice?.label ?? "").normalize("NFKC").trim();
-  const text = String(choice?.text ?? "").normalize("NFKC").trim();
+  const text = normalizeStudyText(choice?.text).trim();
   if (!sourceLabel || !text) return text;
   const escapedLabel = sourceLabel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   // ハイフンは区切りではなく負号の可能性があるため、ここでは除去しない。
@@ -38,7 +45,6 @@ function difficultyFor(question) {
   const prompt = String(question?.question_text ?? "").normalize("NFKC");
   const choices = (question?.choices || []).map((choice) => String(choice?.text ?? "")).join("\n");
   const numbers = numericTokens(prompt);
-  const markedComplex = /^\s*※複雑/.test(prompt);
   const calculation = calculationRequired(question);
   const multiStageCalculation = calculation && (
     numbers.length >= 6
@@ -48,7 +54,7 @@ function difficultyFor(question) {
   const caseAndException = /(中小企業診断士|会話|事例|相談を受け|ただし|なお).*(例外|場合|要件|条件|適用|該当)/s.test(`${prompt}\n${choices}`);
   const comparesSeveralRules = /(それぞれ|両者|比較|A社.*B社|複数).*(適切|不適切|正しい|誤り)/s.test(prompt);
 
-  if (markedComplex || multiStageCalculation || (needsSeveralJudgments && caseAndException)) return "発展";
+  if (multiStageCalculation || (needsSeveralJudgments && caseAndException)) return "発展";
   if (calculation || needsSeveralJudgments || caseAndException || comparesSeveralRules || (question?.choices || []).length >= 5) return "標準";
   return "基礎";
 }
@@ -58,5 +64,6 @@ module.exports = {
   difficultyFor,
   normalizeChoiceId,
   normalizeChoiceText,
+  normalizeStudyText,
   numericTokens
 };

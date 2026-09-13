@@ -67,6 +67,7 @@ function validProgressBundle(body) {
   if (!validState(body?.state)) return false;
   if (["sessions", "results", "attempts", "recent", "mockResults"].some((key) => key in body.state)) return false;
   if (!Array.isArray(body.sessions) || body.sessions.length > 100 || !body.sessions.every(validSession)) return false;
+  if (new Set(body.sessions.map((session) => session.id)).size !== body.sessions.length) return false;
   if (!Array.isArray(body.deletedSessionIds) || body.deletedSessionIds.length > 100) return false;
   if (!body.deletedSessionIds.every((id) => /^[a-z0-9][a-z0-9_-]{0,127}$/i.test(String(id)))) return false;
   return Number.isInteger(Number(body.expectedVersion)) && Number(body.expectedVersion) >= 0;
@@ -99,6 +100,9 @@ async function handler(request, response) {
     try {
       const body = await readJson(request, 100_000);
       const question = questionsById.get(body.questionId);
+      if (question && Number(body.contentVersion ?? 1) !== Number(question.contentVersion ?? 1)) {
+        return sendJson(response, 409, { error: "question_version_changed" });
+      }
       return question ? sendJson(response, 200, gradeQuestion(question, body.answer)) : sendJson(response, 404, { error: "question_not_found" });
     } catch (error) {
       return sendJson(response, error.message === "request_too_large" ? 413 : 400, { error: error.message });

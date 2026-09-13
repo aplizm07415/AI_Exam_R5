@@ -11,6 +11,7 @@ function normalizeNumber(value) {
 }
 
 function gradeQuestion(question, submitted) {
+  if (question.qualityStatus === "quarantined") throw new Error(`出題停止中の問題は採点できません: ${question.id}`);
   let normalizedAnswer = submitted;
   let correct = false;
 
@@ -33,6 +34,9 @@ function gradeQuestion(question, submitted) {
 
   return {
     questionId: question.id,
+    contentVersion: question.contentVersion || 1,
+    qualityStatus: question.qualityStatus || "unreviewed",
+    reviewedAt: question.reviewedAt || null,
     subject: question.subject,
     topic: question.topic,
     topicId: question.topicId,

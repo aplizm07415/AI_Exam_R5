@@ -1,0 +1,277 @@
+{
+  "reviewedAt": "2026-09-13",
+  "scope": "初回の図表候補52問と省略表現検出で追加された1問を点検。本文中の条件の有無・原資料復元状況を記録したもので、全問の意味内容の検証や元試験との一致を保証しない。text_conditions_presentの問題も補完数値・専門的正確性の点検を要する。",
+  "candidateSnapshotTotal": 53,
+  "dispositionCounts": {
+    "quarantined": 22,
+    "text_conditions_present": 24,
+    "restored_from_official_figure": 7
+  },
+  "questions": [
+    {
+      "id": "finance:S-5089",
+      "disposition": "quarantined",
+      "note": "軌跡①〜④の形状と相関係数を対応付ける図が欠落"
+    },
+    {
+      "id": "finance:S-5092",
+      "disposition": "quarantined",
+      "note": "番号①〜④に対応するポートフォリオ曲線図が欠落"
+    },
+    {
+      "id": "finance:S-5094",
+      "disposition": "text_conditions_present",
+      "note": "本文がAを分散可能、Bを分散不能、Cを市場リスクと定義している。"
+    },
+    {
+      "id": "finance:S-5138",
+      "disposition": "text_conditions_present",
+      "note": "省略はC/F計算書の後半。営業収入・仕入支出の計算に必要な売上高・原価・残高増減は記載されている。"
+    },
+    {
+      "id": "finance:S-5164",
+      "disposition": "text_conditions_present",
+      "note": "EBITの2状態と発生確率・投下資本額が本文に記載されている。"
+    },
+    {
+      "id": "finance:S-5165",
+      "disposition": "text_conditions_present",
+      "note": "EBIT・資金調達額・利率・税率が本文に記載されている。"
+    },
+    {
+      "id": "finance:S-5188",
+      "disposition": "restored_from_official_figure",
+      "note": "平成23年度財務・会計第18問の公式表を画像で照合し、A〜Iの全9候補を復元。Cのリスク3%・リターン6%が他8候補を支配することを独立比較し、公式正解イも確認。旧解説のリスク10%・リターン8%等は原表と一致せず訂正。"
+    },
+    {
+      "id": "finance:S-5299",
+      "disposition": "quarantined",
+      "note": "初期投資額・各期キャッシュフローと現価係数表が欠落"
+    },
+    {
+      "id": "finance:S-5320",
+      "disposition": "quarantined",
+      "note": "番号①〜④に対応するポートフォリオ曲線図が欠落"
+    },
+    {
+      "id": "finance:S-5337",
+      "disposition": "text_conditions_present",
+      "note": "図Bの①が銘柄数とともに低下し②が一定である旨が本文に記載されている。"
+    },
+    {
+      "id": "finance:S-5338",
+      "disposition": "text_conditions_present",
+      "note": "ACの効率的フロンティアと安全資産の定義が本文に記載されている。"
+    },
+    {
+      "id": "finance:S-5357",
+      "disposition": "quarantined",
+      "note": "資産A〜Dと無差別曲線を示す図が欠落"
+    },
+    {
+      "id": "finance:S-5360",
+      "disposition": "text_conditions_present",
+      "note": "軌跡①の直線と④のリスクをゼロにできる形状が本文に記載されている。"
+    },
+    {
+      "id": "finance:S-5423",
+      "disposition": "quarantined",
+      "note": "フロンティア上の各点の位置と接点を特定する図が欠落"
+    },
+    {
+      "id": "finance:S-5468",
+      "disposition": "text_conditions_present",
+      "note": "各点の役割と接点が本文に記載されている。"
+    },
+    {
+      "id": "finance:S-5469",
+      "disposition": "restored_from_official_figure",
+      "note": "令和6年度財務・会計第20問の公式図を画像で照合し、A(1%,15%)・B(3%,15%)・C(3%,5%)・D(5%,5%)を復元。期待収益率だけを比較するとAとBが同等に最適となり、公式正解イとも一致。"
+    },
+    {
+      "id": "finance:S-5489",
+      "disposition": "restored_from_official_figure",
+      "note": "令和7年度公式PDFの共通図を照合し、曲線AD、直線EG、最小分散点B、安全資産E、接点Cの位置関係を文字表で復元。公式正解表の設問1・正答エを確認。"
+    },
+    {
+      "id": "finance:S-5490",
+      "disposition": "restored_from_official_figure",
+      "note": "令和7年度公式PDFの共通図を照合し、安全資産を含む直線EG、接点C、効率的フロンティアの位置関係を文字表で復元。公式正解表に合わせ正答をエからアへ訂正。"
+    },
+    {
+      "id": "operations:S-4565",
+      "disposition": "text_conditions_present",
+      "note": "月別の故障発生確率が本文に記載されている。"
+    },
+    {
+      "id": "operations:S-4636",
+      "disposition": "text_conditions_present",
+      "note": "稼働・故障復旧の時刻が本文に記載されている。改行と時系列の見やすさは改善候補。"
+    },
+    {
+      "id": "operations:S-4656",
+      "disposition": "text_conditions_present",
+      "note": "自主保全のステップとA〜Cの位置が本文に列挙されている。"
+    },
+    {
+      "id": "operations:S-4706",
+      "disposition": "quarantined",
+      "note": "選択肢アの斜線領域を示す作業域図がプレースホルダーのまま"
+    },
+    {
+      "id": "operations:S-4718",
+      "disposition": "text_conditions_present",
+      "note": "a〜cの品種数と量の特徴が本文に記載されている。原図との同一性の検証は別途必要。"
+    },
+    {
+      "id": "operations:S-4722",
+      "disposition": "quarantined",
+      "note": "CPMに必要な作業・先行関係・短縮可能日数・費用の表が欠落"
+    },
+    {
+      "id": "operations:S-4728",
+      "disposition": "text_conditions_present",
+      "note": "ワークサンプリングの度数が本文に記載されている。余裕区分等の専門的妥当性は追加点検対象。"
+    },
+    {
+      "id": "operations:S-4731",
+      "disposition": "text_conditions_present",
+      "note": "工数・内外製単価が本文に記載されている。費用最小化は単なる効率順の貪欲選択を一般化しない。"
+    },
+    {
+      "id": "operations:S-4775",
+      "disposition": "restored_from_official_figure",
+      "note": "平成29年度公式PDFの表を画像で照合し、加工7・運搬15・貯蔵3・滞留0・数量検査1・品質検査2と各記号を復元。加工比率25%と正答ウへ訂正。"
+    },
+    {
+      "id": "operations:S-4779",
+      "disposition": "text_conditions_present",
+      "note": "一連の作業と保管・滞留が本文に記載されている。工程分類と原図の照合は別途必要。"
+    },
+    {
+      "id": "operations:S-4792",
+      "disposition": "text_conditions_present",
+      "note": "人時生産性を計算できる表が本文にあるが、旧解説に欠落補完の記述がある。原表との同一性は未確認。"
+    },
+    {
+      "id": "operations:S-4796",
+      "disposition": "quarantined",
+      "note": "PQ曲線のタイプI・IIを対応付ける図が欠落。解説のP/Qの定義と工程図表の区別も再点検が必要"
+    },
+    {
+      "id": "operations:S-4820",
+      "disposition": "quarantined",
+      "note": "区域A〜Cの包含関係を示す図が欠落"
+    },
+    {
+      "id": "operations:S-4835",
+      "disposition": "quarantined",
+      "note": "作業A〜Gの内容・時間・先行関係の表が欠落。解説は未提示の時間を仮定し、担当者の作業負荷も一部除外している"
+    },
+    {
+      "id": "operations:S-4837",
+      "disposition": "quarantined",
+      "note": "分割区分1〜4と作業内容を対応付ける表が欠落"
+    },
+    {
+      "id": "operations:S-4839",
+      "disposition": "restored_from_official_figure",
+      "note": "令和2年度の公式PDFを目視し、全拠点と配送経路を復元。上流輸送を除いた170を独立検算。"
+    },
+    {
+      "id": "operations:S-4855",
+      "disposition": "text_conditions_present",
+      "note": "①〜③の分布形状とa〜cの原因が本文に記載されている。"
+    },
+    {
+      "id": "operations:S-4865",
+      "disposition": "quarantined",
+      "note": "作業域と左手・右手の動作要素一覧が欠落。動作要素5〜12や個数を判定できない"
+    },
+    {
+      "id": "operations:S-4885",
+      "disposition": "text_conditions_present",
+      "note": "4工程の時間・稼働時間・生産数が本文に記載されている。"
+    },
+    {
+      "id": "operations:S-4891",
+      "disposition": "quarantined",
+      "note": "検査の種類と滞留等を示す工程記号が欠落。補足文からは複合検査記号を特定できない"
+    },
+    {
+      "id": "operations:S-4896",
+      "disposition": "text_conditions_present",
+      "note": "作業a〜hの時間と先行関係が本文に記載されている。元資料の値と同一かは別途点検。"
+    },
+    {
+      "id": "operations:S-4897",
+      "disposition": "restored_from_official_figure",
+      "note": "令和4年度の公式PDFを目視し、時間と先行関係を復元。4工程不可・5工程可を全探索で確認。"
+    },
+    {
+      "id": "operations:S-4911",
+      "disposition": "text_conditions_present",
+      "note": "搬送経路と需要・車両容量の条件が本文に記載されている。"
+    },
+    {
+      "id": "operations:S-4914",
+      "disposition": "quarantined",
+      "note": "散布図a〜cと相関の向きを対応付ける図が欠落"
+    },
+    {
+      "id": "operations:S-4944",
+      "disposition": "text_conditions_present",
+      "note": "A〜EのD・I値が本文に記載されている。"
+    },
+    {
+      "id": "operations:S-4946",
+      "disposition": "text_conditions_present",
+      "note": "工程手順が本文にあるが、旧解説は一般的な流れを想定したと記載。原図との同一性は未確認。"
+    },
+    {
+      "id": "operations:S-4949",
+      "disposition": "quarantined",
+      "note": "PERT図と正誤を問う記述a〜eがともに欠落"
+    },
+    {
+      "id": "operations:S-4964",
+      "disposition": "quarantined",
+      "note": "部品表の階層と親子関係が平坦化され、必要数量を一意に計算できない"
+    },
+    {
+      "id": "operations:S-4975",
+      "disposition": "quarantined",
+      "note": "流動数曲線と時点の図が欠落。本文上のa・b・dの関係と正答の整合も再点検が必要"
+    },
+    {
+      "id": "operations:S-4999",
+      "disposition": "quarantined",
+      "note": "機械別工数・単位利益・使用可能工数の表が欠落"
+    },
+    {
+      "id": "operations:S-5002",
+      "disposition": "text_conditions_present",
+      "note": "需要と発注費・保管費・期間別の費用表が本文に記載されている。"
+    },
+    {
+      "id": "operations:S-5010",
+      "disposition": "quarantined",
+      "note": "売場別の売上高・粗利益率・SKU数・ゴンドラ本数の表が欠落"
+    },
+    {
+      "id": "operations:S-5020",
+      "disposition": "quarantined",
+      "note": "EDIフレームワークの空欄A〜Cの役割を示す図が欠落"
+    },
+    {
+      "id": "sme:S-0292",
+      "disposition": "text_conditions_present",
+      "note": "付加価値額の計算用数値が本文にある。人件費・減価償却費が売上原価に含まれるかの条件は追加点検対象。"
+    },
+    {
+      "id": "sme:S-0582",
+      "disposition": "quarantined",
+      "note": "設備投資の課題の回答割合を示す図表が欠落し、対応する白書の図番号・調査条件も未特定"
+    }
+  ]
+}

@@ -18,26 +18,34 @@
                 {
                   "text": "仕訳の基本ルール（5要素）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "財務_会計:基本的な簿記・原価計算",
-                  "topic": "基本的な簿記・原価計算"
+                  "topic": "基本的な簿記・原価計算",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "主要な勘定科目",
                   "depth": 0,
-                  "topicId": "財務_会計:基本的な簿記・原価計算",
-                  "topic": "基本的な簿記・原価計算"
+                  "evidenceType": "topic",
+                  "topicId": "財務_会計:基本的な簿記・会計処理",
+                  "topic": "基本的な簿記・会計処理",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "決算整理仕訳（減価償却、貸倒引当金、売上原価の算定）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "財務_会計:基本的な簿記・原価計算",
-                  "topic": "基本的な簿記・原価計算"
+                  "topic": "基本的な簿記・原価計算",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "財務諸表（B/S, P/L, C/S）の構造と関係性",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "財務_会計:基本的な簿記・原価計算",
-                  "topic": "基本的な簿記・原価計算"
+                  "topic": "基本的な簿記・原価計算",
+                  "mappingStatus": "suggested"
                 }
               ]
             },
@@ -47,26 +55,34 @@
                 {
                   "text": "収益性分析（売上高総利益率、ROEなど）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "財務_会計:財務諸表分析",
-                  "topic": "財務諸表分析"
+                  "topic": "財務諸表分析",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "安全性分析（流動比率、自己資本比率など）",
                   "depth": 0,
-                  "topicId": "財務_会計:財務諸表分析",
-                  "topic": "財務諸表分析"
+                  "evidenceType": "topic",
+                  "topicId": "財務_会計:財務分析(Financial_Analysis)",
+                  "topic": "財務分析(Financial Analysis)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "効率性分析（総資本回転率、棚卸資産回転期間など）",
                   "depth": 0,
-                  "topicId": "財務_会計:財務諸表分析",
-                  "topic": "財務諸表分析"
+                  "evidenceType": "topic",
+                  "topicId": "財務_会計:財務分析",
+                  "topic": "財務分析",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "損益分岐点分析（CVP分析）の基本計算",
                   "depth": 0,
-                  "topicId": "財務_会計:財務分析(経営分析)",
-                  "topic": "財務分析(経営分析)"
+                  "evidenceType": "topic",
+                  "topicId": "財務_会計:CVP分析(損益分岐点分析)",
+                  "topic": "CVP分析(損益分岐点分析)",
+                  "mappingStatus": "suggested"
                 }
               ]
             },
@@ -76,32 +92,42 @@
                 {
                   "text": "原価の分類（変動費・固定費、直接費・間接費）",
                   "depth": 0,
-                  "topicId": "財務_会計:基本的な簿記・原価計算",
-                  "topic": "基本的な簿記・原価計算"
+                  "evidenceType": "topic",
+                  "topicId": "財務_会計:CVP分析(損益分岐点分析)",
+                  "topic": "CVP分析(損益分岐点分析)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "費目別・部門別・製品別計算の概要",
                   "depth": 0,
-                  "topicId": "財務_会計:原価計算",
-                  "topic": "原価計算"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "個別原価計算と総合原価計算の基礎",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "財務_会計:原価計算",
-                  "topic": "原価計算"
+                  "topic": "原価計算",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "標準原価計算（価格差異・数量差異の基本）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "財務_会計:原価計算",
-                  "topic": "原価計算"
+                  "topic": "原価計算",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "直接原価計算と全部原価計算の比較",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "財務_会計:原価計算",
-                  "topic": "原価計算"
+                  "topic": "原価計算",
+                  "mappingStatus": "suggested"
                 }
               ]
             },
@@ -111,14 +137,18 @@
                 {
                   "text": "CVP分析（損益分岐点売上高、目標利益達成売上高）",
                   "depth": 0,
-                  "topicId": "財務_会計:管理会計(原価計算)",
-                  "topic": "管理会計(原価計算)"
+                  "evidenceType": "topic",
+                  "topicId": "財務_会計:CVP分析(損益分岐点分析)",
+                  "topic": "CVP分析(損益分岐点分析)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "業務的意思決定（差額原価収益分析）",
                   "depth": 0,
-                  "topicId": "財務_会計:原価計算(Cost_Accounting)",
-                  "topic": "原価計算(Cost Accounting)"
+                  "evidenceType": "topic",
+                  "topicId": "財務_会計:管理会計における意思決定と原価計算_(Managerial_Accounting_for_Decision_Making_Costing)",
+                  "topic": "管理会計における意思決定と原価計算",
+                  "mappingStatus": "suggested"
                 }
               ]
             },
@@ -128,14 +158,18 @@
                 {
                   "text": "時間価値の計算（現在価値・将来価値）",
                   "depth": 0,
-                  "topicId": "財務_会計:企業価値評価と資本構成(ファイナンス)",
-                  "topic": "企業価値評価と資本構成(ファイナンス)"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "キャッシュフローの概念（フリーキャッシュフローの基本）",
                   "depth": 0,
-                  "topicId": "財務_会計:企業価値評価と資本構成(ファイナンス)",
-                  "topic": "企業価値評価と資本構成(ファイナンス)"
+                  "evidenceType": "topic",
+                  "topicId": "財務_会計:キャッシュ・フロー計算書",
+                  "topic": "キャッシュ・フロー計算書",
+                  "mappingStatus": "suggested"
                 }
               ]
             }
@@ -151,26 +185,35 @@
                 {
                   "text": "60点コースの全項目",
                   "depth": 0,
-                  "topicId": "財務_会計:基本的な簿記・原価計算",
-                  "topic": "基本的な簿記・原価計算"
+                  "evidenceType": "prerequisite",
+                  "prerequisiteScore": 60,
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "税効果会計の基本",
                   "depth": 0,
-                  "topicId": "財務_会計:簿記・会計基準",
-                  "topic": "簿記・会計基準"
+                  "evidenceType": "topic",
+                  "topicId": "財務_会計:税効果会計",
+                  "topic": "税効果会計",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "リース会計",
                   "depth": 0,
-                  "topicId": "財務_会計:基本的な簿記・原価計算",
-                  "topic": "基本的な簿記・原価計算"
+                  "evidenceType": "topic",
+                  "topicId": "財務_会計:のれん・リース会計",
+                  "topic": "のれん・リース会計",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "連結会計の基礎（資本連結、のれん）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "財務_会計:連結会計の基礎",
-                  "topic": "連結会計の基礎"
+                  "topic": "連結会計の基礎",
+                  "mappingStatus": "suggested"
                 }
               ]
             },
@@ -180,20 +223,35 @@
                 {
                   "text": "60点コースの全項目",
                   "depth": 0,
-                  "topicId": "財務_会計:財務諸表分析",
-                  "topic": "財務諸表分析"
+                  "evidenceType": "prerequisite",
+                  "prerequisiteScore": 60,
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "キャッシュフロー計算書の作成（間接法・直接法）",
                   "depth": 0,
-                  "topicId": "財務_会計:財務諸表分析",
-                  "topic": "財務諸表分析"
+                  "evidenceType": "topic",
+                  "topicId": "財務_会計:キャッシュフロー計算",
+                  "topic": "キャッシュフロー計算",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "キャッシュフロー分析",
                   "depth": 0,
-                  "topicId": "財務_会計:財務諸表分析",
-                  "topic": "財務諸表分析"
+                  "evidenceType": "topic",
+                  "topicId": "財務_会計:キャッシュフロー計算",
+                  "topic": "キャッシュフロー計算",
+                  "mappingStatus": "reviewed-topic-link",
+                  "mappingReason": "間接法の増減要因、現金収支、営業CF・FCFの計算を含む9問の分類を確認。DCF等の企業価値評価や財務分析全体は代用しない。名称が似た『キャッシュ・フロー計算書』には損益・売却仕訳の誤分類があるため、一括統合しない。",
+                  "supportingQuestionIds": [
+                    "finance:S-5120",
+                    "finance:S-5289",
+                    "finance:S-5415",
+                    "finance:S-5457",
+                    "finance:S-5491"
+                  ]
                 }
               ]
             },
@@ -203,26 +261,35 @@
                 {
                   "text": "60点コースの全項目",
                   "depth": 0,
-                  "topicId": "財務_会計:原価計算",
-                  "topic": "原価計算"
+                  "evidenceType": "prerequisite",
+                  "prerequisiteScore": 60,
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "標準原価計算（製造間接費差異、歩留差異・配合差異）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "財務_会計:原価計算",
-                  "topic": "原価計算"
+                  "topic": "原価計算",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "活動基準原価計算（ABC）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "財務_会計:原価計算",
-                  "topic": "原価計算"
+                  "topic": "原価計算",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "等級別・組別総合原価計算",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "財務_会計:原価計算",
-                  "topic": "原価計算"
+                  "topic": "原価計算",
+                  "mappingStatus": "suggested"
                 }
               ]
             },
@@ -232,20 +299,27 @@
                 {
                   "text": "60点コースの全項目",
                   "depth": 0,
-                  "topicId": "財務_会計:原価計算(Cost_Accounting)",
-                  "topic": "原価計算(Cost Accounting)"
+                  "evidenceType": "prerequisite",
+                  "prerequisiteScore": 60,
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "設備投資の経済性計算（NPV法、IRR法、回収期間法）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "財務_会計:設備投資の経済性計算",
-                  "topic": "設備投資の経済性計算"
+                  "topic": "設備投資の経済性計算",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "事業部の業績評価（ROI、RI）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "財務_会計:原価計算および管理会計",
-                  "topic": "原価計算および管理会計"
+                  "topic": "原価計算および管理会計",
+                  "mappingStatus": "suggested"
                 }
               ]
             },
@@ -255,26 +329,35 @@
                 {
                   "text": "60点コースの全項目",
                   "depth": 0,
-                  "topicId": "財務_会計:企業価値評価と資本構成(ファイナンス)",
-                  "topic": "企業価値評価と資本構成(ファイナンス)"
+                  "evidenceType": "prerequisite",
+                  "prerequisiteScore": 60,
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "資本コスト（WACC）の計算",
                   "depth": 0,
-                  "topicId": "財務_会計:企業価値評価と資本構成(ファイナンス)",
-                  "topic": "企業価値評価と資本構成(ファイナンス)"
+                  "evidenceType": "topic",
+                  "topicId": "財務_会計:企業価値評価・資本コスト(Valuation_Cost_of_Capital)",
+                  "topic": "企業価値評価・資本コスト(Valuation & Cost of Capital)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "ポートフォリオ理論の基礎（リスクとリターン、相関係数）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "財務_会計:証券投資理論",
-                  "topic": "証券投資理論"
+                  "topic": "証券投資理論",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "CAPM（資本資産価格モデル）の基本",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "財務_会計:資本資産評価モデル(CAPM)",
-                  "topic": "資本資産評価モデル(CAPM)"
+                  "topic": "資本資産評価モデル(CAPM)",
+                  "mappingStatus": "suggested"
                 }
               ]
             },
@@ -284,14 +367,18 @@
                 {
                   "text": "配当割引モデル",
                   "depth": 0,
-                  "topicId": "財務_会計:企業価値評価",
-                  "topic": "企業価値評価"
+                  "evidenceType": "topic",
+                  "topicId": "財務_会計:WACC(加重平均資本コスト)",
+                  "topic": "WACC(加重平均資本コスト)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "DCF法による企業価値評価の基本",
                   "depth": 0,
-                  "topicId": "財務_会計:企業価値評価",
-                  "topic": "企業価値評価"
+                  "evidenceType": "topic",
+                  "topicId": "財務_会計:企業価値評価(DCF等)",
+                  "topic": "企業価値評価(DCF等)",
+                  "mappingStatus": "suggested"
                 }
               ]
             }
@@ -307,26 +394,35 @@
                 {
                   "text": "70点コースの全項目",
                   "depth": 0,
-                  "topicId": "財務_会計:基本的な簿記・原価計算",
-                  "topic": "基本的な簿記・原価計算"
+                  "evidenceType": "prerequisite",
+                  "prerequisiteScore": 70,
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "連結会計の応用（持分法、アップストリーム/ダウンストリーム）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "財務_会計:連結会計",
-                  "topic": "連結会計"
+                  "topic": "連結会計",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "企業結合・事業分離の会計",
                   "depth": 0,
-                  "topicId": "財務_会計:基本的な簿記・原価計算",
-                  "topic": "基本的な簿記・原価計算"
+                  "evidenceType": "topic",
+                  "topicId": "財務_会計:企業結合と組織再編",
+                  "topic": "企業結合と組織再編",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "+（新傾向）IFRSの主要な論点とJ-GAAPとの差異",
                   "depth": 0,
-                  "topicId": "財務_会計:基本的な簿記・原価計算",
-                  "topic": "基本的な簿記・原価計算"
+                  "evidenceType": "topic",
+                  "topicId": "財務_会計:制度会計・会計基準(Financial_Accounting_Standards)",
+                  "topic": "制度会計・会計基準(Financial Accounting Standards)",
+                  "mappingStatus": "suggested"
                 }
               ]
             },
@@ -336,14 +432,19 @@
                 {
                   "text": "70点コースの全項目",
                   "depth": 0,
-                  "topicId": "財務_会計:財務諸表分析",
-                  "topic": "財務諸表分析"
+                  "evidenceType": "prerequisite",
+                  "prerequisiteScore": 70,
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "1株当たり分析（EPS, BPS, PER, PBR）の応用",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "財務_会計:財務諸表分析",
-                  "topic": "財務諸表分析"
+                  "topic": "財務諸表分析",
+                  "mappingStatus": "suggested"
                 }
               ]
             },
@@ -353,20 +454,27 @@
                 {
                   "text": "70点コースの全項目",
                   "depth": 0,
-                  "topicId": "財務_会計:原価計算",
-                  "topic": "原価計算"
+                  "evidenceType": "prerequisite",
+                  "prerequisiteScore": 70,
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "連産品・副産物の原価計算",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "財務_会計:原価計算",
-                  "topic": "原価計算"
+                  "topic": "原価計算",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "品質原価計算",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "財務_会計:原価計算",
-                  "topic": "原価計算"
+                  "topic": "原価計算",
+                  "mappingStatus": "suggested"
                 }
               ]
             },
@@ -376,20 +484,27 @@
                 {
                   "text": "70点コースの全項目",
                   "depth": 0,
-                  "topicId": "財務_会計:原価計算(Cost_Accounting)",
-                  "topic": "原価計算(Cost Accounting)"
+                  "evidenceType": "prerequisite",
+                  "prerequisiteScore": 70,
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "バランスト・スコアカード（BSC）",
                   "depth": 0,
-                  "topicId": "財務_会計:原価計算(Cost_Accounting)",
-                  "topic": "原価計算(Cost Accounting)"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "+（新傾向）リアルオプション",
                   "depth": 0,
-                  "topicId": "財務_会計:原価計算(Cost_Accounting)",
-                  "topic": "原価計算(Cost Accounting)"
+                  "evidenceType": "topic",
+                  "topicId": "財務_会計:コーポレートファイナンス",
+                  "topic": "コーポレートファイナンス",
+                  "mappingStatus": "suggested"
                 }
               ]
             },
@@ -399,20 +514,27 @@
                 {
                   "text": "70点コースの全項目",
                   "depth": 0,
-                  "topicId": "財務_会計:企業価値評価と資本構成(ファイナンス)",
-                  "topic": "企業価値評価と資本構成(ファイナンス)"
+                  "evidenceType": "prerequisite",
+                  "prerequisiteScore": 70,
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "MM理論（資本構成と企業価値）",
                   "depth": 0,
-                  "topicId": "財務_会計:企業価値評価と資本構成(ファイナンス)",
-                  "topic": "企業価値評価と資本構成(ファイナンス)"
+                  "evidenceType": "topic",
+                  "topicId": "財務_会計:資本コストと企業価値",
+                  "topic": "資本コストと企業価値",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "ポートフォリオ理論の応用（効率的フロンティア）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "財務_会計:ポートフォリオ理論・資本市場線",
-                  "topic": "ポートフォリオ理論・資本市場線"
+                  "topic": "ポートフォリオ理論・資本市場線",
+                  "mappingStatus": "suggested"
                 }
               ]
             },
@@ -422,20 +544,27 @@
                 {
                   "text": "70点コースの全項目",
                   "depth": 0,
-                  "topicId": "財務_会計:企業価値評価",
-                  "topic": "企業価値評価"
+                  "evidenceType": "prerequisite",
+                  "prerequisiteScore": 70,
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "EVA（経済的付加価値）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "財務_会計:企業価値評価",
-                  "topic": "企業価値評価"
+                  "topic": "企業価値評価",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "M&Aにおける企業価値評価（類似会社比較法など）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "財務_会計:企業価値評価",
-                  "topic": "企業価値評価"
+                  "topic": "企業価値評価",
+                  "mappingStatus": "suggested"
                 }
               ]
             },
@@ -445,14 +574,18 @@
                 {
                   "text": "デリバティブ（先物、オプション）の基礎",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "財務_会計:デリバティブ取引",
-                  "topic": "デリバティブ取引"
+                  "topic": "デリバティブ取引",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "+（新傾向）非財務情報開示（統合報告書、ESG）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": null,
-                  "topic": null
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 }
               ]
             },
@@ -462,74 +595,98 @@
                 {
                   "text": "2026年11月15日までに簿記2級の商業簿記・工業簿記を一巡する",
                   "depth": 0,
-                  "topicId": "財務_会計:基本的な簿記・原価計算",
-                  "topic": "基本的な簿記・原価計算"
+                  "evidenceType": "external",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "2027年1〜2月に簿記2級を受験し、3月を再受験バッファにする",
                   "depth": 0,
-                  "topicId": "財務_会計:基本的な簿記・原価計算",
-                  "topic": "基本的な簿記・原価計算"
+                  "evidenceType": "external",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "簿記合格までは財務系時間を簿記2級70%・一次財務20%・事例Ⅳ10%に分ける",
                   "depth": 0,
-                  "topicId": "財務_会計:基本的な簿記・原価計算",
-                  "topic": "基本的な簿記・原価計算"
+                  "evidenceType": "external",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "簿記合格後は一次財務60%・事例Ⅳ40%へ切り替える",
                   "depth": 0,
-                  "topicId": "財務_会計:基本的な簿記・原価計算",
-                  "topic": "基本的な簿記・原価計算"
+                  "evidenceType": "external",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "事例ⅣはPhase 2まで週1回30〜45分、Phase 3は週1回80分実施する",
                   "depth": 0,
+                  "evidenceType": "external",
                   "topicId": null,
-                  "topic": null
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "商業簿記を財務諸表・キャッシュフロー・経営分析へ接続する",
                   "depth": 0,
-                  "topicId": "財務_会計:財務諸表分析",
-                  "topic": "財務諸表分析"
+                  "evidenceType": "external",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "工業簿記を原価計算・CVP・差額原価収益分析へ接続する",
                   "depth": 0,
-                  "topicId": "財務_会計:基本的な簿記・原価計算",
-                  "topic": "基本的な簿記・原価計算"
+                  "evidenceType": "external",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "NPV、企業価値、証券投資、CAPMは一次財務固有論点として毎週残す",
                   "depth": 0,
-                  "topicId": "財務_会計:資本コストと企業価値",
-                  "topic": "資本コストと企業価値"
+                  "evidenceType": "external",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "公式過去問で32〜75点と振れた原因を、知識・計算手順・時間・読み違いに分類する",
                   "depth": 0,
+                  "evidenceType": "external",
                   "topicId": null,
-                  "topic": null
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "R7、R8、TAC模試の誤答を、数値・条件・問われ方を変えた初見相当類題で解き直す",
                   "depth": 0,
+                  "evidenceType": "external",
                   "topicId": null,
-                  "topic": null
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "財務諸表、原価計算表、投資評価表を含む問題を60分で処理する",
                   "depth": 0,
-                  "topicId": "財務_会計:原価計算",
-                  "topic": "原価計算"
+                  "evidenceType": "external",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "同一問題の再得点ではなく、初見相当セットで80点以上を2回確認する",
                   "depth": 0,
+                  "evidenceType": "assessment",
                   "topicId": null,
-                  "topic": null
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 }
               ]
             }
@@ -554,80 +711,114 @@
                 {
                   "text": "生産形態（個別・ロット・連続生産）",
                   "depth": 0,
-                  "topicId": "運営管理:生産計画・管理の基本概念と手法",
-                  "topic": "生産計画・管理の基本概念と手法"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:生産方式・管理方式の基礎知識",
+                  "topic": "生産方式・管理方式の基礎知識",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "生産の4M（Man, Machine, Material, Method）",
                   "depth": 0,
-                  "topicId": "運営管理:生産計画・管理の基本概念と手法",
-                  "topic": "生産計画・管理の基本概念と手法"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:生産管理の基本指標(PQCDSME)",
+                  "topic": "生産管理の基本指標(PQCDSME)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "QCDS（品質・コスト・納期・サービス）",
                   "depth": 0,
-                  "topicId": "運営管理:生産計画・管理の基本概念と手法",
-                  "topic": "生産計画・管理の基本概念と手法"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:生産管理の基本機能・用語",
+                  "topic": "生産管理の基本機能・用語",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "需要予測の基本（移動平均法）",
                   "depth": 0,
-                  "topicId": "運営管理:生産計画・管理の基本概念と手法",
-                  "topic": "生産計画・管理の基本概念と手法"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:生産計画・統制",
+                  "topic": "生産計画・統制",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "生産計画（大日程・中日程・小日程計画）",
                   "depth": 0,
-                  "topicId": "運営管理:生産計画・管理の基本概念と手法",
-                  "topic": "生産計画・管理の基本概念と手法"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:生産計画・日程計画",
+                  "topic": "生産計画・日程計画",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "MRP（資材所要量計画）の基本",
                   "depth": 0,
-                  "topicId": "運営管理:生産計画・管理の基本概念と手法",
-                  "topic": "生産計画・管理の基本概念と手法"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:生産計画・管理技法_(MRP_PERT/CPM_ラインバランシング)",
+                  "topic": "生産計画・管理技法 (MRP, PERT/CPM, ラインバランシング)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "JIT（ジャストインタイム）とトヨタ生産方式（かんばん方式）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:生産の合理化・改善手法(IE_TPS_TOCなど)",
-                  "topic": "生産の合理化・改善手法(IE、TPS、TOCなど)"
+                  "topic": "生産の合理化・改善手法(IE、TPS、TOCなど)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "生産統制（現品管理・進捗管理）",
                   "depth": 0,
-                  "topicId": "運営管理:生産計画・管理の基本概念と手法",
-                  "topic": "生産計画・管理の基本概念と手法"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:生産計画と統制(OR的手法を含む)",
+                  "topic": "生産計画と統制(OR的手法を含む)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "QC七つ道具（パレート図、特性要因図、ヒストグラムなど）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:品質管理(QC)と品質保証",
-                  "topic": "品質管理(QC)と品質保証"
+                  "topic": "品質管理(QC)と品質保証",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "TQC / TQM の概念",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:品質管理(QC)と品質保証",
-                  "topic": "品質管理(QC)と品質保証"
+                  "topic": "品質管理(QC)と品質保証",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "設備保全（予防保全・事後保全）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:設備管理",
-                  "topic": "設備管理"
+                  "topic": "設備管理",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "IEの基本（工程分析、稼働分析）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:IE(インダストリアル・エンジニアリング)関連手法",
-                  "topic": "IE(インダストリアル・エンジニアリング)関連手法"
+                  "topic": "IE(インダストリアル・エンジニアリング)関連手法",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "時間研究の基本（ストップウォッチ法）",
                   "depth": 0,
-                  "topicId": "運営管理:生産計画・管理の基本概念と手法",
-                  "topic": "生産計画・管理の基本概念と手法"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:標準時間と作業測定",
+                  "topic": "標準時間と作業測定",
+                  "mappingStatus": "reviewed-topic-link",
+                  "mappingReason": "標準時間、観測時間、レイティング、余裕率、作業測定を扱う分類へ対応。ストップウォッチ法を問う設問と計算問題を確認。工程分析・動作経済・生産方式全体を含むIEの広域分類は使わない。",
+                  "supportingQuestionIds": [
+                    "operations:S-4508",
+                    "operations:S-4510",
+                    "operations:S-4616",
+                    "operations:S-4701",
+                    "operations:S-4924"
+                  ]
                 }
               ]
             },
@@ -637,68 +828,90 @@
                 {
                   "text": "店舗レイアウトの種類（格子型、フリーフロー型など）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:店舗・販売管理の実務(ISM_VMD)",
-                  "topic": "店舗・販売管理の実務(ISM、VMD)"
+                  "topic": "店舗・販売管理の実務(ISM、VMD)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "動線計画（主動線・副動線）",
                   "depth": 0,
-                  "topicId": "運営管理:店舗・販売管理の実務(ISM_VMD)",
-                  "topic": "店舗・販売管理の実務(ISM、VMD)"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:店舗運営とマーチャンダイジング",
+                  "topic": "店舗運営とマーチャンダイジング",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "ABC分析（商品・顧客分析）",
                   "depth": 0,
-                  "topicId": "運営管理:店舗・販売管理の実務(ISM_VMD)",
-                  "topic": "店舗・販売管理の実務(ISM、VMD)"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:マーチャンダイジングと顧客分析",
+                  "topic": "マーチャンダイジングと顧客分析",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "発注方式（定量発注方式・定期発注方式）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:在庫管理と発注方式",
-                  "topic": "在庫管理と発注方式"
+                  "topic": "在庫管理と発注方式",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "在庫管理の基本指標（在庫回転率）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:在庫管理",
-                  "topic": "在庫管理"
+                  "topic": "在庫管理",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "マーチャンダイジングの基本",
                   "depth": 0,
-                  "topicId": "運営管理:店舗・販売管理の実務(ISM_VMD)",
-                  "topic": "店舗・販売管理の実務(ISM、VMD)"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:マーチャンダイジングと顧客分析",
+                  "topic": "マーチャンダイジングと顧客分析",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "GMROI（商品投下資本粗利益率）と交差比率の基本計算",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:小売業の経営分析指標",
-                  "topic": "小売業の経営分析指標"
+                  "topic": "小売業の経営分析指標",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "インストアプロモーション（ISP）とPOP広告",
                   "depth": 0,
-                  "topicId": "運営管理:店舗・販売管理の実務(ISM_VMD)",
-                  "topic": "店舗・販売管理の実務(ISM、VMD)"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:店舗運営とマーチャンダイジング",
+                  "topic": "店舗運営とマーチャンダイジング",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "物流の機能と物流センター（DC/TC）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:物流・サプライチェーンマネジメント",
-                  "topic": "物流・サプライチェーンマネジメント"
+                  "topic": "物流・サプライチェーンマネジメント",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "サードパーティロジスティクス（3PL）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:物流管理(ネットワーク_センター運営_共同物流)",
-                  "topic": "物流管理(ネットワーク、センター運営、共同物流)"
+                  "topic": "物流管理(ネットワーク、センター運営、共同物流)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "POSシステム",
                   "depth": 0,
-                  "topicId": "運営管理:店舗・販売管理の実務(ISM_VMD)",
-                  "topic": "店舗・販売管理の実務(ISM、VMD)"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:情報システム(POS・EDI)",
+                  "topic": "情報システム(POS・EDI)",
+                  "mappingStatus": "suggested"
                 }
               ]
             }
@@ -714,98 +927,130 @@
                 {
                   "text": "生産形態（個別・ロット・連続生産）",
                   "depth": 0,
-                  "topicId": "運営管理:生産計画・管理の基本概念と手法",
-                  "topic": "生産計画・管理の基本概念と手法"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:生産方式・管理方式の基礎知識",
+                  "topic": "生産方式・管理方式の基礎知識",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "生産の4M（Man, Machine, Material, Method）",
                   "depth": 0,
-                  "topicId": "運営管理:生産計画・管理の基本概念と手法",
-                  "topic": "生産計画・管理の基本概念と手法"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:生産管理の基本指標(PQCDSME)",
+                  "topic": "生産管理の基本指標(PQCDSME)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "QCDS（品質・コスト・納期・サービス）",
                   "depth": 0,
-                  "topicId": "運営管理:生産計画・管理の基本概念と手法",
-                  "topic": "生産計画・管理の基本概念と手法"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:生産管理の基本機能・用語",
+                  "topic": "生産管理の基本機能・用語",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "需要予測（移動平均法、指数平滑法）",
                   "depth": 0,
-                  "topicId": "運営管理:生産計画・管理の基本概念と手法",
-                  "topic": "生産計画・管理の基本概念と手法"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:生産計画・統制",
+                  "topic": "生産計画・統制",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "生産計画（基準生産計画、MRP、能力所要量計画）",
                   "depth": 0,
-                  "topicId": "運営管理:生産計画・管理の基本概念と手法",
-                  "topic": "生産計画・管理の基本概念と手法"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:生産計画・日程計画",
+                  "topic": "生産計画・日程計画",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "JIT（ジャストインタイム）とトヨタ生産方式（かんばん方式）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:生産の合理化・改善手法(IE_TPS_TOCなど)",
-                  "topic": "生産の合理化・改善手法(IE、TPS、TOCなど)"
+                  "topic": "生産の合理化・改善手法(IE、TPS、TOCなど)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "生産統制（日程計画、現品管理、進捗管理、余力管理）",
                   "depth": 0,
-                  "topicId": "運営管理:生産計画・管理の基本概念と手法",
-                  "topic": "生産計画・管理の基本概念と手法"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:生産計画と統制(OR的手法を含む)",
+                  "topic": "生産計画と統制(OR的手法を含む)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "PERT / CPM（アローダイアグラム）の計算",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:生産計画・管理技法_(MRP_PERT/CPM_ラインバランシング)",
-                  "topic": "生産計画・管理技法 (MRP, PERT/CPM, ラインバランシング)"
+                  "topic": "生産計画・管理技法 (MRP, PERT/CPM, ラインバランシング)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "QC七つ道具と新QC七つ道具",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:品質管理(QC)と品質保証",
-                  "topic": "品質管理(QC)と品質保証"
+                  "topic": "品質管理(QC)と品質保証",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "TQC / TQM と ISO9000ファミリー",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:品質管理(QC)と品質保証",
-                  "topic": "品質管理(QC)と品質保証"
+                  "topic": "品質管理(QC)と品質保証",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "設備管理とTPM（全員参加の生産保全）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:設備管理",
-                  "topic": "設備管理"
+                  "topic": "設備管理",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "IE（工程分析、稼働分析、動作研究）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:IE(インダストリアル・エンジニアリング)関連手法",
-                  "topic": "IE(インダストリアル・エンジニアリング)関連手法"
+                  "topic": "IE(インダストリアル・エンジニアリング)関連手法",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "時間研究（レイティング、余裕率を含む計算）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:標準時間と作業測定",
-                  "topic": "標準時間と作業測定"
+                  "topic": "標準時間と作業測定",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "TOC（制約理論）とDBR",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:生産の合理化・改善手法(IE_TPS_TOCなど)",
-                  "topic": "生産の合理化・改善手法(IE、TPS、TOCなど)"
+                  "topic": "生産の合理化・改善手法(IE、TPS、TOCなど)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "VE / VA（価値分析・価値工学）",
                   "depth": 0,
-                  "topicId": "運営管理:生産計画・管理の基本概念と手法",
-                  "topic": "生産計画・管理の基本概念と手法"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:製品開発と生産方式",
+                  "topic": "製品開発と生産方式",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "コンカレントエンジニアリング",
                   "depth": 0,
-                  "topicId": "運営管理:生産計画・管理の基本概念と手法",
-                  "topic": "生産計画・管理の基本概念と手法"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 }
               ]
             },
@@ -815,86 +1060,114 @@
                 {
                   "text": "店舗レイアウトとストアゾーニング",
                   "depth": 0,
-                  "topicId": "運営管理:店舗・販売管理の実務(ISM_VMD)",
-                  "topic": "店舗・販売管理の実務(ISM、VMD)"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:店舗運営とマーチャンダイジング",
+                  "topic": "店舗運営とマーチャンダイジング",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "動線計画と照明・色彩計画",
                   "depth": 0,
-                  "topicId": "運営管理:店舗・販売管理の実務(ISM_VMD)",
-                  "topic": "店舗・販売管理の実務(ISM、VMD)"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:店舗運営と立地・法規",
+                  "topic": "店舗運営と立地・法規",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "ABC分析と商品予算計画",
                   "depth": 0,
-                  "topicId": "運営管理:店舗・販売管理の実務(ISM_VMD)",
-                  "topic": "店舗・販売管理の実務(ISM、VMD)"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:在庫管理",
+                  "topic": "在庫管理",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "発注方式（定量・定期）と安全在庫の計算",
                   "depth": 0,
-                  "topicId": "運営管理:店舗・販売管理の実務(ISM_VMD)",
-                  "topic": "店舗・販売管理の実務(ISM、VMD)"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:在庫管理と発注方式",
+                  "topic": "在庫管理と発注方式",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "在庫管理指標（在庫回転率、在庫日数）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:在庫管理",
-                  "topic": "在庫管理"
+                  "topic": "在庫管理",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "マーチャンダイジングと関連指標（GMROI、交差比率）の応用計算",
                   "depth": 0,
-                  "topicId": "運営管理:店舗・販売管理の実務(ISM_VMD)",
-                  "topic": "店舗・販売管理の実務(ISM、VMD)"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:マーチャンダイジングと顧客分析",
+                  "topic": "マーチャンダイジングと顧客分析",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "インストアマーチャンダイジング（ISM）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:店舗・販売管理の実務(ISM_VMD)",
-                  "topic": "店舗・販売管理の実務(ISM、VMD)"
+                  "topic": "店舗・販売管理の実務(ISM、VMD)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "販売促進（インストアプロモーション、アウトストアプロモーション）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:価格設定とプロモーション",
-                  "topic": "価格設定とプロモーション"
+                  "topic": "価格設定とプロモーション",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "物流センター（DC/TC）と物流コスト管理",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:物流・サプライチェーンマネジメント",
-                  "topic": "物流・サプライチェーンマネジメント"
+                  "topic": "物流・サプライチェーンマネジメント",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "共同配送とモーダルシフト",
                   "depth": 0,
-                  "topicId": "運営管理:店舗・販売管理の実務(ISM_VMD)",
-                  "topic": "店舗・販売管理の実務(ISM、VMD)"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:物流センターと輸送",
+                  "topic": "物流センターと輸送",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "サードパーティロジスティクス（3PL）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:物流管理(ネットワーク_センター運営_共同物流)",
-                  "topic": "物流管理(ネットワーク、センター運営、共同物流)"
+                  "topic": "物流管理(ネットワーク、センター運営、共同物流)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "SCM（サプライチェーン・マネジメント）とブルウィップ効果",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:物流・サプライチェーンマネジメント(SCM)",
-                  "topic": "物流・サプライチェーンマネジメント(SCM)"
+                  "topic": "物流・サプライチェーンマネジメント(SCM)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "QR（クイックレスポンス）とECR（効率的消費者対応）",
                   "depth": 0,
-                  "topicId": "運営管理:店舗・販売管理の実務(ISM_VMD)",
-                  "topic": "店舗・販売管理の実務(ISM、VMD)"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "POSデータ活用",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:情報システムとデータ活用",
-                  "topic": "情報システムとデータ活用"
+                  "topic": "情報システムとデータ活用",
+                  "mappingStatus": "suggested"
                 }
               ]
             }
@@ -910,116 +1183,154 @@
                 {
                   "text": "生産形態（個別・ロット・連続生産）",
                   "depth": 0,
-                  "topicId": "運営管理:生産計画・管理の基本概念と手法",
-                  "topic": "生産計画・管理の基本概念と手法"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:生産方式・管理方式の基礎知識",
+                  "topic": "生産方式・管理方式の基礎知識",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "生産の4M（Man, Machine, Material, Method）",
                   "depth": 0,
-                  "topicId": "運営管理:生産計画・管理の基本概念と手法",
-                  "topic": "生産計画・管理の基本概念と手法"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:生産管理の基本指標(PQCDSME)",
+                  "topic": "生産管理の基本指標(PQCDSME)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "QCDS（品質・コスト・納期・サービス）",
                   "depth": 0,
-                  "topicId": "運営管理:生産計画・管理の基本概念と手法",
-                  "topic": "生産計画・管理の基本概念と手法"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:生産管理の基本機能・用語",
+                  "topic": "生産管理の基本機能・用語",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "需要予測（移動平均法、指数平滑法、季節調整）",
                   "depth": 0,
-                  "topicId": "運営管理:生産計画・管理の基本概念と手法",
-                  "topic": "生産計画・管理の基本概念と手法"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:生産計画・統制",
+                  "topic": "生産計画・統制",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "生産計画（基準生産計画、MRP、能力所要量計画）",
                   "depth": 0,
-                  "topicId": "運営管理:生産計画・管理の基本概念と手法",
-                  "topic": "生産計画・管理の基本概念と手法"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:生産計画・日程計画",
+                  "topic": "生産計画・日程計画",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "JIT（ジャストインタイム）とトヨタ生産方式（かんばん方式）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:生産の合理化・改善手法(IE_TPS_TOCなど)",
-                  "topic": "生産の合理化・改善手法(IE、TPS、TOCなど)"
+                  "topic": "生産の合理化・改善手法(IE、TPS、TOCなど)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "生産統制（日程計画、現品管理、進捗管理、余力管理）",
                   "depth": 0,
-                  "topicId": "運営管理:生産計画・管理の基本概念と手法",
-                  "topic": "生産計画・管理の基本概念と手法"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:生産計画と統制(OR的手法を含む)",
+                  "topic": "生産計画と統制(OR的手法を含む)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "PERT / CPM（アローダイアグラム）の計算",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:生産計画・管理技法_(MRP_PERT/CPM_ラインバランシング)",
-                  "topic": "生産計画・管理技法 (MRP, PERT/CPM, ラインバランシング)"
+                  "topic": "生産計画・管理技法 (MRP, PERT/CPM, ラインバランシング)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "QC七つ道具と新QC七つ道具",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:品質管理(QC)と品質保証",
-                  "topic": "品質管理(QC)と品質保証"
+                  "topic": "品質管理(QC)と品質保証",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "TQC / TQM と ISO9000ファミリー",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:品質管理(QC)と品質保証",
-                  "topic": "品質管理(QC)と品質保証"
+                  "topic": "品質管理(QC)と品質保証",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "設備管理とTPM（全員参加の生産保全）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:設備管理",
-                  "topic": "設備管理"
+                  "topic": "設備管理",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "IE（工程分析、稼働分析、動作研究）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:IE(インダストリアル・エンジニアリング)関連手法",
-                  "topic": "IE(インダストリアル・エンジニアリング)関連手法"
+                  "topic": "IE(インダストリアル・エンジニアリング)関連手法",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "時間研究（レイティング、余裕率を含む計算）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:標準時間と作業測定",
-                  "topic": "標準時間と作業測定"
+                  "topic": "標準時間と作業測定",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "TOC（制約理論）とDBR",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:生産の合理化・改善手法(IE_TPS_TOCなど)",
-                  "topic": "生産の合理化・改善手法(IE、TPS、TOCなど)"
+                  "topic": "生産の合理化・改善手法(IE、TPS、TOCなど)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "VE / VA（価値分析・価値工学）",
                   "depth": 0,
-                  "topicId": "運営管理:生産計画・管理の基本概念と手法",
-                  "topic": "生産計画・管理の基本概念と手法"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:製品開発と生産方式",
+                  "topic": "製品開発と生産方式",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "コンカレントエンジニアリング",
                   "depth": 0,
-                  "topicId": "運営管理:生産計画・管理の基本概念と手法",
-                  "topic": "生産計画・管理の基本概念と手法"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "+（新傾向）スマートファクトリー: IoTやAIを活用した生産性向上の事例として、出題可能性が高まっています。",
                   "depth": 0,
-                  "topicId": "運営管理:生産計画・管理の基本概念と手法",
-                  "topic": "生産計画・管理の基本概念と手法"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:作業研究と生産性向上",
+                  "topic": "作業研究と生産性向上",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "+（新傾向）インダストリー4.0 / Society 5.0: 製造業のDX化という大きな文脈で理解しておく必要があります。",
                   "depth": 0,
-                  "topicId": "運営管理:生産計画・管理の基本概念と手法",
-                  "topic": "生産計画・管理の基本概念と手法"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:IE(インダストリアル・エンジニアリング)",
+                  "topic": "IE(インダストリアル・エンジニアリング)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "+（新傾向）サーキュラーエコノミー: サステナビリティの観点から、製品ライフサイクル全体の設計が問われます。",
                   "depth": 0,
-                  "topicId": "運営管理:生産計画・管理の基本概念と手法",
-                  "topic": "生産計画・管理の基本概念と手法"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 }
               ]
             },
@@ -1029,110 +1340,146 @@
                 {
                   "text": "店舗レイアウトとストアゾーニング",
                   "depth": 0,
-                  "topicId": "運営管理:店舗・販売管理の実務(ISM_VMD)",
-                  "topic": "店舗・販売管理の実務(ISM、VMD)"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:店舗運営とマーチャンダイジング",
+                  "topic": "店舗運営とマーチャンダイジング",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "動線計画と照明・色彩計画",
                   "depth": 0,
-                  "topicId": "運営管理:店舗・販売管理の実務(ISM_VMD)",
-                  "topic": "店舗・販売管理の実務(ISM、VMD)"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:店舗運営と立地・法規",
+                  "topic": "店舗運営と立地・法規",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "ABC分析と商品予算計画",
                   "depth": 0,
-                  "topicId": "運営管理:店舗・販売管理の実務(ISM_VMD)",
-                  "topic": "店舗・販売管理の実務(ISM、VMD)"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:在庫管理",
+                  "topic": "在庫管理",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "発注方式（定量・定期）と安全在庫の計算",
                   "depth": 0,
-                  "topicId": "運営管理:店舗・販売管理の実務(ISM_VMD)",
-                  "topic": "店舗・販売管理の実務(ISM、VMD)"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:在庫管理と発注方式",
+                  "topic": "在庫管理と発注方式",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "在庫管理指標（在庫回転率、在庫日数）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:在庫管理",
-                  "topic": "在庫管理"
+                  "topic": "在庫管理",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "マーチャンダイジングと関連指標（GMROI、交差比率）の応用計算",
                   "depth": 0,
-                  "topicId": "運営管理:店舗・販売管理の実務(ISM_VMD)",
-                  "topic": "店舗・販売管理の実務(ISM、VMD)"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:マーチャンダイジングと顧客分析",
+                  "topic": "マーチャンダイジングと顧客分析",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "インストアマーチャンダイジング（ISM）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:店舗・販売管理の実務(ISM_VMD)",
-                  "topic": "店舗・販売管理の実務(ISM、VMD)"
+                  "topic": "店舗・販売管理の実務(ISM、VMD)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "販売促進（インストアプロモーション、アウトストアプロモーション）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:価格設定とプロモーション",
-                  "topic": "価格設定とプロモーション"
+                  "topic": "価格設定とプロモーション",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "物流センター（DC/TC）と物流コスト管理",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:物流・サプライチェーンマネジメント",
-                  "topic": "物流・サプライチェーンマネジメント"
+                  "topic": "物流・サプライチェーンマネジメント",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "共同配送とモーダルシフト",
                   "depth": 0,
-                  "topicId": "運営管理:店舗・販売管理の実務(ISM_VMD)",
-                  "topic": "店舗・販売管理の実務(ISM、VMD)"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:物流センターと輸送",
+                  "topic": "物流センターと輸送",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "サードパーティロジスティクス（3PL）/ フォースパーティロジスティクス（4PL）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:物流管理(ネットワーク_センター運営_共同物流)",
-                  "topic": "物流管理(ネットワーク、センター運営、共同物流)"
+                  "topic": "物流管理(ネットワーク、センター運営、共同物流)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "SCM（サプライチェーン・マネジメント）とブルウィップ効果",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:物流・サプライチェーンマネジメント(SCM)",
-                  "topic": "物流・サプライチェーンマネジメント(SCM)"
+                  "topic": "物流・サプライチェーンマネジメント(SCM)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "QR（クイックレスポンス）とECR（効率的消費者対応）",
                   "depth": 0,
-                  "topicId": "運営管理:店舗・販売管理の実務(ISM_VMD)",
-                  "topic": "店舗・販売管理の実務(ISM、VMD)"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "POSデータ活用とID-POS分析",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "運営管理:POSデータ分析と関連知識",
-                  "topic": "POSデータ分析と関連知識"
+                  "topic": "POSデータ分析と関連知識",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "+（新傾向）OMO（Online Merges with Offline）: ECと実店舗の連携による顧客体験向上が近年の重要テーマです。",
                   "depth": 0,
-                  "topicId": "運営管理:店舗・販売管理の実務(ISM_VMD)",
-                  "topic": "店舗・販売管理の実務(ISM、VMD)"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "+（新傾向）RFID（Radio Frequency Identification）: 在庫管理や無人店舗の効率化技術として注目されています。",
                   "depth": 0,
-                  "topicId": "運営管理:店舗・販売管理の実務(ISM_VMD)",
-                  "topic": "店舗・販売管理の実務(ISM、VMD)"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:在庫管理",
+                  "topic": "在庫管理",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "+（新傾向）食品ロス削減の取り組み: SDGsへの関心の高まりから、小売業の社会的責任として出題され得ます。",
                   "depth": 0,
-                  "topicId": "運営管理:店舗・販売管理の実務(ISM_VMD)",
-                  "topic": "店舗・販売管理の実務(ISM、VMD)"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "+（新傾向）物流DX（ダイナミックプライシング、配送ルート最適化）: AI活用による物流効率化は、喫緊の社会課題と直結しています。",
                   "depth": 0,
-                  "topicId": "運営管理:店舗・販売管理の実務(ISM_VMD)",
-                  "topic": "店舗・販売管理の実務(ISM、VMD)"
+                  "evidenceType": "topic",
+                  "topicId": "運営管理:物流・サプライチェーンマネジメント",
+                  "topic": "物流・サプライチェーンマネジメント",
+                  "mappingStatus": "suggested"
                 }
               ]
             },
@@ -1142,26 +1489,34 @@
                 {
                   "text": "令和3〜8年度を本試験時間で完走し、公式過去問の基準得点を揃える",
                   "depth": 0,
+                  "evidenceType": "external",
                   "topicId": null,
-                  "topic": null
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "PERT、工程表、管理図、ラインバランシング、在庫表、店舗レイアウトを図表のまま解く",
                   "depth": 0,
-                  "topicId": "運営管理:生産計画・管理技法_(MRP_PERT/CPM_ラインバランシング)",
-                  "topic": "生産計画・管理技法 (MRP, PERT/CPM, ラインバランシング)"
+                  "evidenceType": "external",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "R8の44点とTAC模試70点の差を、論点・形式・時間超過に分解する",
                   "depth": 0,
+                  "evidenceType": "external",
                   "topicId": null,
-                  "topic": null
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "初見相当の図表セットで80点以上を2回確認する",
                   "depth": 0,
+                  "evidenceType": "assessment",
                   "topicId": null,
-                  "topic": null
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 }
               ]
             }
@@ -1186,32 +1541,42 @@
                 {
                   "text": "株式会社の設立",
                   "depth": 0,
-                  "topicId": "経営法務:会社法",
-                  "topic": "会社法"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:会社法(Company_Act)",
+                  "topic": "会社法(Company Act)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "株式の基本（譲渡、種類株式の概要）",
                   "depth": 0,
-                  "topicId": "経営法務:会社法",
-                  "topic": "会社法"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:会社法(機関・株式・組織再編)",
+                  "topic": "会社法(機関・株式・組織再編)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "機関の基本（株主総会、取締役・取締役会、監査役）",
                   "depth": 0,
-                  "topicId": "経営法務:会社法",
-                  "topic": "会社法"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:会社法_機関運営",
+                  "topic": "会社法：機関運営",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "計算書類の概要",
                   "depth": 0,
-                  "topicId": "経営法務:会社法",
-                  "topic": "会社法"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "持分会社（合同会社）の概要",
                   "depth": 0,
-                  "topicId": "経営法務:会社法",
-                  "topic": "会社法"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:会社法_-_新しい事業体(合同会社・LLP)",
+                  "topic": "会社法 - 新しい事業体(合同会社・LLP)",
+                  "mappingStatus": "suggested"
                 }
               ]
             },
@@ -1221,32 +1586,42 @@
                 {
                   "text": "産業財産権四法（特許権、実用新案権、意匠権、商標権）の比較",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "経営法務:産業財産権四法の比較",
-                  "topic": "産業財産権四法の比較"
+                  "topic": "産業財産権四法の比較",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "各権利の存続期間",
                   "depth": 0,
-                  "topicId": "経営法務:知的財産法全般",
-                  "topic": "知的財産法全般"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:知的財産法の横断的理解と比較",
+                  "topic": "知的財産法の横断的理解と比較",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "著作権の基本（著作者人格権と著作財産権）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "経営法務:知的財産法_著作権法",
-                  "topic": "知的財産法：著作権法"
+                  "topic": "知的財産法：著作権法",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "商標権（出願、効力）",
                   "depth": 0,
-                  "topicId": "経営法務:知的財産法全般",
-                  "topic": "知的財産法全般"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:知的財産法_商標法",
+                  "topic": "知的財産法：商標法",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "不正競争防止法の概要（周知表示混同惹起行為など）",
                   "depth": 0,
-                  "topicId": "経営法務:知的財産法全般",
-                  "topic": "知的財産法全般"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:不正競争防止法",
+                  "topic": "不正競争防止法",
+                  "mappingStatus": "suggested"
                 }
               ]
             },
@@ -1256,26 +1631,34 @@
                 {
                   "text": "契約の成立",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "経営法務:民法(債権・契約)",
-                  "topic": "民法(債権・契約)"
+                  "topic": "民法(債権・契約)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "債務不履行（履行遅滞、履行不能、不完全履行）",
                   "depth": 0,
-                  "topicId": "経営法務:民法(債権・相続)",
-                  "topic": "民法(債権・相続)"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:民法(債権・不法行為)",
+                  "topic": "民法(債権・不法行為)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "売買契約の基本（契約不適合責任）",
                   "depth": 0,
-                  "topicId": "経営法務:民法(Civil_Code)",
-                  "topic": "民法(Civil Code)"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:民法_債権各論(契約)",
+                  "topic": "民法：債権各論(契約)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "倒産法制の概要（破産、民事再生の違い）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "経営法務:倒産法",
-                  "topic": "倒産法"
+                  "topic": "倒産法",
+                  "mappingStatus": "suggested"
                 }
               ]
             },
@@ -1285,14 +1668,18 @@
                 {
                   "text": "独占禁止法の概要（私的独占、不当な取引制限）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "経営法務:消費者保護・競争法",
-                  "topic": "消費者保護・競争法"
+                  "topic": "消費者保護・競争法",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "消費者契約法の概要",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "経営法務:消費者保護・競争法",
-                  "topic": "消費者保護・競争法"
+                  "topic": "消費者保護・競争法",
+                  "mappingStatus": "suggested"
                 }
               ]
             }
@@ -1308,50 +1695,66 @@
                 {
                   "text": "株式会社の設立（変態設立事項を含む）",
                   "depth": 0,
-                  "topicId": "経営法務:会社法",
-                  "topic": "会社法"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:会社法(Company_Act)",
+                  "topic": "会社法(Company Act)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "株式（単元株、株式併合・分割、自己株式）",
                   "depth": 0,
-                  "topicId": "経営法務:会社法",
-                  "topic": "会社法"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:会社法_-_議事録・株式",
+                  "topic": "会社法 - 議事録・株式",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "資金調達（募集株式の発行、社債）",
                   "depth": 0,
-                  "topicId": "経営法務:会社法",
-                  "topic": "会社法"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:会社法_-_組織再編・資金調達",
+                  "topic": "会社法 - 組織再編・資金調達",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "機関（株主総会決議、役員の責任、指名委員会等設置会社）",
                   "depth": 0,
-                  "topicId": "経営法務:会社法",
-                  "topic": "会社法"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:会社法(機関・役員)",
+                  "topic": "会社法(機関・役員)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "計算書類と剰余金の配当",
                   "depth": 0,
-                  "topicId": "経営法務:会社法",
-                  "topic": "会社法"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "定款変更",
                   "depth": 0,
-                  "topicId": "経営法務:会社法",
-                  "topic": "会社法"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:会社法_-_機関設計",
+                  "topic": "会社法 - 機関設計",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "組織再編（合併、会社分割、株式交換・移転）の概要",
                   "depth": 0,
-                  "topicId": "経営法務:会社法",
-                  "topic": "会社法"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:M_A・組織再編の手法と手続き",
+                  "topic": "M&A・組織再編の手法と手続き",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "持分会社（合名・合資・合同）",
                   "depth": 0,
-                  "topicId": "経営法務:会社法",
-                  "topic": "会社法"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:会社法_-_組織・運営",
+                  "topic": "会社法 - 組織・運営",
+                  "mappingStatus": "suggested"
                 }
               ]
             },
@@ -1361,38 +1764,50 @@
                 {
                   "text": "特許権・実用新案権（新規性、進歩性、先願主義）",
                   "depth": 0,
-                  "topicId": "経営法務:知的財産法全般",
-                  "topic": "知的財産法全般"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:産業財産権四法の比較",
+                  "topic": "産業財産権四法の比較",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "意匠権（部分意匠、関連意匠）",
                   "depth": 0,
-                  "topicId": "経営法務:知的財産法全般",
-                  "topic": "知的財産法全般"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:知的財産権法(横断的・体系的理解)",
+                  "topic": "知的財産権法(横断的・体系的理解)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "商標権（団体商標、地域団体商標、防護標章）",
                   "depth": 0,
-                  "topicId": "経営法務:知的財産法全般",
-                  "topic": "知的財産法全般"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:知的財産法_商標法",
+                  "topic": "知的財産法：商標法",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "著作権（権利の制限、保護期間、隣接権）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "経営法務:知的財産法_著作権法",
-                  "topic": "知的財産法：著作権法"
+                  "topic": "知的財産法：著作権法",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "不正競争防止法（営業秘密、限定提供データ）",
                   "depth": 0,
-                  "topicId": "経営法務:知的財産法全般",
-                  "topic": "知的財産法全般"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:不正競争防止法",
+                  "topic": "不正競争防止法",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "パリ条約・特許協力条約（PCT）の基本",
                   "depth": 0,
-                  "topicId": "経営法務:知的財産法全般",
-                  "topic": "知的財産法全般"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:知的財産権(横断・国際条約)",
+                  "topic": "知的財産権(横断・国際条約)",
+                  "mappingStatus": "suggested"
                 }
               ]
             },
@@ -1402,50 +1817,66 @@
                 {
                   "text": "意思表示（心裡留保、虚偽表示、錯誤、詐欺・強迫）",
                   "depth": 0,
-                  "topicId": "経営法務:民法(債権・相続)",
-                  "topic": "民法(債権・相続)"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:改正民法(2020年4月1日施行)",
+                  "topic": "改正民法(2020年4月1日施行)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "代理",
                   "depth": 0,
-                  "topicId": "経営法務:民法(債権・相続)",
-                  "topic": "民法(債権・相続)"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:民法(特に債権・契約分野)",
+                  "topic": "民法(特に債権・契約分野)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "消滅時効",
                   "depth": 0,
-                  "topicId": "経営法務:民法(Civil_Code)",
-                  "topic": "民法(Civil Code)"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:民法(債権・不法行為)",
+                  "topic": "民法(債権・不法行為)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "担保物権（抵当権、質権、留置権）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "経営法務:民法_-_債権・物権",
-                  "topic": "民法 - 債権・物権"
+                  "topic": "民法 - 債権・物権",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "保証・連帯保証",
                   "depth": 0,
-                  "topicId": "経営法務:民法(Civil_Code)",
-                  "topic": "民法(Civil Code)"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:民法_-_債権・物権",
+                  "topic": "民法 - 債権・物権",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "請負・委任契約",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "経営法務:民法(債権・契約)",
-                  "topic": "民法(債権・契約)"
+                  "topic": "民法(債権・契約)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "相続の基本（法定相続分、遺留分）",
                   "depth": 0,
-                  "topicId": "経営法務:民法(債権・相続)",
-                  "topic": "民法(債権・相続)"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:事業承継・相続",
+                  "topic": "事業承継・相続",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "倒産法制（破産、民事再生、会社更生）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "経営法務:倒産法",
-                  "topic": "倒産法"
+                  "topic": "倒産法",
+                  "mappingStatus": "suggested"
                 }
               ]
             },
@@ -1455,32 +1886,42 @@
                 {
                   "text": "独占禁止法（不公正な取引方法、企業結合規制）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "経営法務:独占禁止法(不公正な取引方法)",
-                  "topic": "独占禁止法(不公正な取引方法)"
+                  "topic": "独占禁止法(不公正な取引方法)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "金融商品取引法の概要",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "経営法務:金融商品取引法",
-                  "topic": "金融商品取引法"
+                  "topic": "金融商品取引法",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "個人情報保護法",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": null,
-                  "topic": null
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "消費者契約法・特定商取引法",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "経営法務:消費者保護・競争法関連",
-                  "topic": "消費者保護・競争法関連"
+                  "topic": "消費者保護・競争法関連",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "下請代金支払遅延等防止法（下請法）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "経営法務:その他(下請法_プロバイダ責任制限法_国際契約)",
-                  "topic": "その他(下請法、プロバイダ責任制限法、国際契約)"
+                  "topic": "その他(下請法、プロバイダ責任制限法、国際契約)",
+                  "mappingStatus": "suggested"
                 }
               ]
             }
@@ -1496,50 +1937,66 @@
                 {
                   "text": "設立・定款・株式の網羅的理解",
                   "depth": 0,
-                  "topicId": "経営法務:会社法",
-                  "topic": "会社法"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:会社法における機関設計と手続き",
+                  "topic": "会社法における機関設計と手続き",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "機関設計とコーポレート・ガバナンス",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "経営法務:会社の機関設計とコーポレート・ガバナンス",
-                  "topic": "会社の機関設計とコーポレート・ガバナンス"
+                  "topic": "会社の機関設計とコーポレート・ガバナンス",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "役員の責任（任務懈怠、競業避止義務、利益相反取引）",
                   "depth": 0,
-                  "topicId": "経営法務:会社法",
-                  "topic": "会社法"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:会社法(機関・役員)",
+                  "topic": "会社法(機関・役員)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "計算（資本金・準備金、剰余金）",
                   "depth": 0,
-                  "topicId": "経営法務:会社法",
-                  "topic": "会社法"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:会社法(組織再編・ファイナンス)",
+                  "topic": "会社法(組織再編・ファイナンス)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "資金調達（新株予約権含む）",
                   "depth": 0,
-                  "topicId": "経営法務:会社法",
-                  "topic": "会社法"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:会社法(資金調達・組織再編)",
+                  "topic": "会社法(資金調達・組織再編)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "M&A関連法務（組織再編の手続き、株式買取請求権）",
                   "depth": 0,
-                  "topicId": "経営法務:会社法",
-                  "topic": "会社法"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:会社法(組織再編)",
+                  "topic": "会社法(組織再編)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "会社の解散・清算",
                   "depth": 0,
-                  "topicId": "経営法務:会社法",
-                  "topic": "会社法"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:会社法における機関設計と手続き",
+                  "topic": "会社法における機関設計と手続き",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "+ コーポレート・ガバナンス・コード: 企業価値向上への要請が強まっており、関連知識が問われる可能性があるため。",
                   "depth": 0,
-                  "topicId": "経営法務:会社法",
-                  "topic": "会社法"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:会社の機関設計とコーポレート・ガバナンス",
+                  "topic": "会社の機関設計とコーポレート・ガバナンス",
+                  "mappingStatus": "suggested"
                 }
               ]
             },
@@ -1549,38 +2006,50 @@
                 {
                   "text": "各権利の発生・効力・消滅・活用の網羅的理解",
                   "depth": 0,
-                  "topicId": "経営法務:知的財産法全般",
-                  "topic": "知的財産法全般"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "審判・訴訟（無効審判、取消審判、侵害訴訟）",
                   "depth": 0,
-                  "topicId": "経営法務:知的財産法全般",
-                  "topic": "知的財産法全般"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:知的財産法_-_横断的理解",
+                  "topic": "知的財産法 - 横断的理解",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "ライセンス契約（専用実施権、通常実施権）",
                   "depth": 0,
-                  "topicId": "経営法務:知的財産法全般",
-                  "topic": "知的財産法全般"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:知的財産権法全般",
+                  "topic": "知的財産権法全般",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "営業秘密の管理と保護",
                   "depth": 0,
-                  "topicId": "経営法務:知的財産法全般",
-                  "topic": "知的財産法全般"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:知的財産権(法改正・新制度)",
+                  "topic": "知的財産権(法改正・新制度)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "国際出願制度（マドリッド協定議定書など）",
                   "depth": 0,
-                  "topicId": "経営法務:知的財産法全般",
-                  "topic": "知的財産法全般"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:知的財産法(Intellectual_Property_Law)",
+                  "topic": "知的財産法(Intellectual Property Law)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "種苗法、地理的表示（GI）保護制度",
                   "depth": 0,
-                  "topicId": "経営法務:知的財産法全般",
-                  "topic": "知的財産法全般"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 }
               ]
             },
@@ -1590,44 +2059,58 @@
                 {
                   "text": "債権（債権者代位権、詐害行為取消権、債権譲渡）",
                   "depth": 0,
-                  "topicId": "経営法務:民法(債権・契約)",
-                  "topic": "民法(債権・契約)"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:債権管理・倒産・金融関連法務",
+                  "topic": "債権管理・倒産・金融関連法務",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "物権変動",
                   "depth": 0,
-                  "topicId": "経営法務:民法(債権・相続)",
-                  "topic": "民法(債権・相続)"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:民法(物権・相続分野)",
+                  "topic": "民法(物権・相続分野)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "不法行為",
                   "depth": 0,
-                  "topicId": "経営法務:民法(債権・相続)",
-                  "topic": "民法(債権・相続)"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:民法(債権・不法行為)",
+                  "topic": "民法(債権・不法行為)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "相続（遺言、遺産分割）",
                   "depth": 0,
-                  "topicId": "経営法務:民法(債権・相続)",
-                  "topic": "民法(債権・相続)"
+                  "evidenceType": "topic",
+                  "topicId": "経営法務:事業承継・相続",
+                  "topic": "事業承継・相続",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "家族法（親族、婚姻）の基礎",
                   "depth": 0,
-                  "topicId": "経営法務:民法(債権・相続)",
-                  "topic": "民法(債権・相続)"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "手形法・小切手法の基礎",
                   "depth": 0,
-                  "topicId": "経営法務:民法(債権・相続)",
-                  "topic": "民法(債権・相続)"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "+ フリーランス保護新法: 新しい働き方に対応する法整備であり、時事的な関心が高いため。",
                   "depth": 0,
-                  "topicId": "経営法務:民法(債権・相続)",
-                  "topic": "民法(債権・相続)"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 }
               ]
             },
@@ -1637,38 +2120,50 @@
                 {
                   "text": "独占禁止法（課徴金制度、審判手続き）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "経営法務:競争法関連(独占禁止法・不正競争防止法)",
-                  "topic": "競争法関連(独占禁止法・不正競争防止法)"
+                  "topic": "競争法関連(独占禁止法・不正競争防止法)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "金融商品取引法（インサイダー取引規制、開示制度）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "経営法務:金融商品取引法",
-                  "topic": "金融商品取引法"
+                  "topic": "金融商品取引法",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "景品表示法",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "経営法務:消費者保護・競争法",
-                  "topic": "消費者保護・競争法"
+                  "topic": "消費者保護・競争法",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "PL法（製造物責任法）",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "経営法務:消費者保護・競争法関連",
-                  "topic": "消費者保護・競争法関連"
+                  "topic": "消費者保護・競争法関連",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "+ 個人情報保護法の改正: 近年改正が頻繁で、企業のコンプライアンス上も重要性が増しているため。",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "経営法務:その他実務関連法務",
-                  "topic": "その他実務関連法務"
+                  "topic": "その他実務関連法務",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "+ 電子帳簿保存法・インボイス制度: DX推進と税制改正に伴い、中小企業の実務に直結するため。",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": null,
-                  "topic": null
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 }
               ]
             },
@@ -1678,26 +2173,34 @@
                 {
                   "text": "過去問の各選択肢を2027年度試験案内の法令基準日で再判定する",
                   "depth": 0,
+                  "evidenceType": "external",
                   "topicId": null,
-                  "topic": null
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "R8の52点とTAC模試32点の誤答を、改正・事例・複合論点・知識不足に分類する",
                   "depth": 0,
+                  "evidenceType": "external",
                   "topicId": null,
-                  "topic": null
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "会社法、知財、民法をまたぐ事例形式の初見相当問題を解く",
                   "depth": 0,
-                  "topicId": "経営法務:会社法",
-                  "topic": "会社法"
+                  "evidenceType": "external",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "古い正解の記憶ではなく、根拠条文と施行日を説明して80点以上を2回確認する",
                   "depth": 0,
+                  "evidenceType": "assessment",
                   "topicId": null,
-                  "topic": null
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 }
               ]
             }
@@ -1722,74 +2225,98 @@
                 {
                   "text": "第1章 中小企業の動向",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "中小企業経営_中小企業政策:中小企業の動向(中小企業白書)",
-                  "topic": "中小企業の動向(中小企業白書)"
+                  "topic": "中小企業の動向(中小企業白書)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "中小企業・小規模事業者の定義（製造業、卸売業、小売業、サービス業）",
                   "depth": 1,
+                  "evidenceType": "topic",
                   "topicId": "中小企業経営_中小企業政策:中小企業基本法",
-                  "topic": "中小企業基本法"
+                  "topic": "中小企業基本法",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "企業数・従業者数における中小企業の割合",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書に基づく統計データの読解",
-                  "topic": "中小企業白書に基づく統計データの読解"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:中小企業の統計的全体像",
+                  "topic": "中小企業の統計的全体像",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "開業率・廃業率の推移",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書に基づく統計分析",
-                  "topic": "中小企業白書に基づく統計分析"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:開業・倒産の動向",
+                  "topic": "開業・倒産の動向",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "労働生産性の動向（大企業との比較）",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:中小企業の動向(中小企業白書)",
-                  "topic": "中小企業の動向(中小企業白書)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:労働生産性と資本装備率",
+                  "topic": "労働生産性と資本装備率",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "第2章 成長・発展の姿",
                   "depth": 0,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書に基づく統計分析",
-                  "topic": "中小企業白書に基づく統計分析"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "事業承継の現状と課題（親族内、従業員、第三者）",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書・各種統計データ",
-                  "topic": "中小企業白書・各種統計データ"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:事業承継",
+                  "topic": "事業承継",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "M&Aの動向",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書に基づく統計データ",
-                  "topic": "中小企業白書に基づく統計データ"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:M_A・事業承継",
+                  "topic": "M&A・事業承継",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "DX（デジタルトランスフォーメーション）の取組状況",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書に基づく統計データの読解",
-                  "topic": "中小企業白書に基づく統計データの読解"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:現代的経営課題と関連施策",
+                  "topic": "現代的経営課題と関連施策",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "海外展開の動向",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書に基づく統計データの読解",
-                  "topic": "中小企業白書に基づく統計データの読解"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:中小企業のビジネスダイナミクス",
+                  "topic": "中小企業のビジネスダイナミクス",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "第3章 小規模企業の動向",
                   "depth": 0,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書・各種統計データ",
-                  "topic": "中小企業白書・各種統計データ"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:中小企業の基本統計(白書・経済センサス)",
+                  "topic": "中小企業の基本統計(白書・経済センサス)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "小規模企業の現状と課題",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書・各種統計データ",
-                  "topic": "中小企業白書・各種統計データ"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:中小企業の基本統計(白書・経済センサス)",
+                  "topic": "中小企業の基本統計(白書・経済センサス)",
+                  "mappingStatus": "suggested"
                 }
               ]
             },
@@ -1799,122 +2326,162 @@
                 {
                   "text": "第4章 中小企業政策の体系と基本法",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "topic": "個別の中小企業支援施策(政策)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "中小企業基本法の基本理念と基本方針",
                   "depth": 1,
+                  "evidenceType": "topic",
                   "topicId": "中小企業経営_中小企業政策:中小企業基本法",
-                  "topic": "中小企業基本法"
+                  "topic": "中小企業基本法",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "中小企業憲章の概要",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "第5章 経営支援",
                   "depth": 0,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "経営革新計画の概要",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:経営革新計画(旧中小企業新事業活動促進法)",
+                  "topic": "経営革新計画(旧中小企業新事業活動促進法)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "経営力向上計画の概要",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:主要な経営支援計画・認定制度",
+                  "topic": "主要な経営支援計画・認定制度",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "ものづくり・商業・サービス生産性向上促進補助金（ものづくり補助金）",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:補助金・助成金制度",
+                  "topic": "補助金・助成金制度",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "小規模事業者持続化補助金",
                   "depth": 1,
+                  "evidenceType": "topic",
                   "topicId": "中小企業経営_中小企業政策:中小企業向け主要施策(補助金・融資・税制)",
-                  "topic": "中小企業向け主要施策(補助金・融資・税制)"
+                  "topic": "中小企業向け主要施策(補助金・融資・税制)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "事業再構築補助金",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:主要な中小企業支援策(金融・補助金・税制)",
+                  "topic": "主要な中小企業支援策(金融・補助金・税制)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "IT導入補助金",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:主要な中小企業支援策(金融・補助金・税制)",
+                  "topic": "主要な中小企業支援策(金融・補助金・税制)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "第6章 金融支援",
                   "depth": 0,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:金融・財務支援",
+                  "topic": "金融・財務支援",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "日本政策金融公庫の役割と主要な融資制度",
                   "depth": 1,
+                  "evidenceType": "topic",
                   "topicId": "中小企業経営_中小企業政策:金融支援政策(日本政策金融公庫)",
-                  "topic": "金融支援政策(日本政策金融公庫)"
+                  "topic": "金融支援政策(日本政策金融公庫)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "商工組合中央金庫（商工中金）の役割",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:中小企業の組合制度",
+                  "topic": "中小企業の組合制度",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "信用保証協会の役割と保証制度の仕組み",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:主要な中小企業支援策(金融支援)",
+                  "topic": "主要な中小企業支援策(金融支援)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "第7章 税制措置",
                   "depth": 0,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:中小企業向け主要施策(補助金・融資・税制)",
+                  "topic": "中小企業向け主要施策(補助金・融資・税制)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "中小企業投資促進税制の概要",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:中小企業向け主要施策(補助金・融資・税制)",
+                  "topic": "中小企業向け主要施策(補助金・融資・税制)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "中小企業経営強化税制の概要",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:中小企業向け主要施策(補助金・融資・税制)",
+                  "topic": "中小企業向け主要施策(補助金・融資・税制)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "第8章 その他の重要施策",
                   "depth": 0,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "小規模企業共済制度",
                   "depth": 1,
+                  "evidenceType": "topic",
                   "topicId": "中小企業経営_中小企業政策:各種共済・融資・補助金制度",
-                  "topic": "各種共済・融資・補助金制度"
+                  "topic": "各種共済・融資・補助金制度",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "経営セーフティ共済（倒産防止共済）",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:共済制度・税制",
+                  "topic": "共済制度・税制",
+                  "mappingStatus": "suggested"
                 }
               ]
             }
@@ -1930,98 +2497,133 @@
                 {
                   "text": "第1章 中小企業の動向",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "中小企業経営_中小企業政策:中小企業の動向(中小企業白書)",
-                  "topic": "中小企業の動向(中小企業白書)"
+                  "topic": "中小企業の動向(中小企業白書)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "60点コースの全項目",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書に基づく統計分析",
-                  "topic": "中小企業白書に基づく統計分析"
+                  "evidenceType": "prerequisite",
+                  "prerequisiteScore": 60,
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "業種別の動向（付加価値額、経常利益など）",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書に基づく統計データの読解",
-                  "topic": "中小企業白書に基づく統計データの読解"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:中小企業の基本統計(白書・経済センサス)",
+                  "topic": "中小企業の基本統計(白書・経済センサス)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "資金調達の動向（直接金融・間接金融）",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書に基づく統計分析",
-                  "topic": "中小企業白書に基づく統計分析"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:中小企業金融と関連政策",
+                  "topic": "中小企業金融と関連政策",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "設備投資の動向",
                   "depth": 1,
+                  "evidenceType": "topic",
                   "topicId": "中小企業経営_中小企業政策:中小企業白書に基づく統計分析",
-                  "topic": "中小企業白書に基づく統計分析"
+                  "topic": "中小企業白書に基づく統計分析",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "雇用・労働環境（人手不足、賃上げの動向）",
                   "depth": 1,
+                  "evidenceType": "topic",
                   "topicId": "中小企業経営_中小企業政策:労働・雇用環境",
-                  "topic": "労働・雇用環境"
+                  "topic": "労働・雇用環境",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "第2章 成長・発展の姿",
                   "depth": 0,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書に基づく統計分析",
-                  "topic": "中小企業白書に基づく統計分析"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "60点コースの全項目",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書に基づく統計分析",
-                  "topic": "中小企業白書に基づく統計分析"
+                  "evidenceType": "prerequisite",
+                  "prerequisiteScore": 60,
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "スタートアップ（新規創業）の動向と課題",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書に基づく統計分析",
-                  "topic": "中小企業白書に基づく統計分析"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:創業・新事業関連施策",
+                  "topic": "創業・新事業関連施策",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "知的財産の活用状況",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書に基づく統計分析",
-                  "topic": "中小企業白書に基づく統計分析"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "価格転嫁の動向",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書に基づく統計分析",
-                  "topic": "中小企業白書に基づく統計分析"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:中小企業のビジネスダイナミクス",
+                  "topic": "中小企業のビジネスダイナミクス",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "サプライチェーンにおける取引関係",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書に基づく統計分析",
-                  "topic": "中小企業白書に基づく統計分析"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "第3章 小規模企業の動向",
                   "depth": 0,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書・各種統計データ",
-                  "topic": "中小企業白書・各種統計データ"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:中小企業の基本統計(白書・経済センサス)",
+                  "topic": "中小企業の基本統計(白書・経済センサス)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "60点コースの全項目",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書に基づく統計分析",
-                  "topic": "中小企業白書に基づく統計分析"
+                  "evidenceType": "prerequisite",
+                  "prerequisiteScore": 60,
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "小規模企業の事業承継",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書・各種統計データ",
-                  "topic": "中小企業白書・各種統計データ"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:事業承継",
+                  "topic": "事業承継",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "地域経済における役割",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書に基づく統計分析",
-                  "topic": "中小企業白書に基づく統計分析"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 }
               ]
             },
@@ -2031,146 +2633,199 @@
                 {
                   "text": "第4章 中小企業政策の体系と基本法",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "topic": "個別の中小企業支援施策(政策)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "60点コースの全項目",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "prerequisite",
+                  "prerequisiteScore": 60,
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "中小企業等経営強化法の概要",
                   "depth": 1,
+                  "evidenceType": "topic",
                   "topicId": "中小企業経営_中小企業政策:中小企業等経営強化法",
-                  "topic": "中小企業等経営強化法"
+                  "topic": "中小企業等経営強化法",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "小規模企業振興基本法の概要",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:中小企業基本法・小規模企業振興基本法",
+                  "topic": "中小企業基本法・小規模企業振興基本法",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "第5章 経営支援",
                   "depth": 0,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "60点コースの全項目",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "prerequisite",
+                  "prerequisiteScore": 60,
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "事業承継・引継ぎ補助金",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:事業承継",
+                  "topic": "事業承継",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "よろず支援拠点、中小企業119の役割",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "ミラサポplusの機能",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "第6章 金融支援",
                   "depth": 0,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:金融・財務支援",
+                  "topic": "金融・財務支援",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "60点コースの全項目",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "prerequisite",
+                  "prerequisiteScore": 60,
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "責任共有制度（部分保証・責任共有対象外）",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "経営力強化保証制度",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:主要な中小企業支援策(金融支援)",
+                  "topic": "主要な中小企業支援策(金融支援)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "挑戦支援資本強化特例制度（資本性ローン）",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:税制措置・共済制度",
+                  "topic": "税制措置・共済制度",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "第7章 税制措置",
                   "depth": 0,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:中小企業向け主要施策(補助金・融資・税制)",
+                  "topic": "中小企業向け主要施策(補助金・融資・税制)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "60点コースの全項目",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "prerequisite",
+                  "prerequisiteScore": 60,
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "所得拡大促進税制（賃上げ促進税制）",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:中小企業向け主要施策(補助金・融資・税制)",
+                  "topic": "中小企業向け主要施策(補助金・融資・税制)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "事業承継税制（法人版・個人版）の概要",
                   "depth": 1,
+                  "evidenceType": "topic",
                   "topicId": "中小企業経営_中小企業政策:事業承継",
-                  "topic": "事業承継"
+                  "topic": "事業承継",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "第8章 その他の重要施策",
                   "depth": 0,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "60点コースの全項目",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "prerequisite",
+                  "prerequisiteScore": 60,
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "中小企業退職金共済制度（中退共）",
                   "depth": 1,
+                  "evidenceType": "topic",
                   "topicId": "中小企業経営_中小企業政策:主要な中小企業支援策(税制・共済)",
-                  "topic": "主要な中小企業支援策(税制・共済)"
+                  "topic": "主要な中小企業支援策(税制・共済)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "下請中小企業振興法と下請代金支払遅延等防止法（下請代金法）の概要",
                   "depth": 1,
+                  "evidenceType": "topic",
                   "topicId": "中小企業経営_中小企業政策:下請代金支払遅延等防止法",
-                  "topic": "下請代金支払遅延等防止法"
+                  "topic": "下請代金支払遅延等防止法",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "官公需についての中小企業者の受注の確保に関する法律（官公需法）",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:中小企業基本法",
+                  "topic": "中小企業基本法",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "商店街活性化のための支援策",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:現代的な経営課題",
+                  "topic": "現代的な経営課題",
+                  "mappingStatus": "suggested"
                 }
               ]
             }
@@ -2186,86 +2841,117 @@
                 {
                   "text": "第1章 中小企業の動向",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "中小企業経営_中小企業政策:中小企業の動向(中小企業白書)",
-                  "topic": "中小企業の動向(中小企業白書)"
+                  "topic": "中小企業の動向(中小企業白書)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "70点コースの全項目",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書に基づく統計分析",
-                  "topic": "中小企業白書に基づく統計分析"
+                  "evidenceType": "prerequisite",
+                  "prerequisiteScore": 70,
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "白書掲載の主要な図表・グラフの背景と詳細な数値傾向",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書_に基づく統計分析",
-                  "topic": "『中小企業白書』に基づく統計分析"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:中小企業白書(主に2013年版)に基づく統計問題",
+                  "topic": "中小企業白書(主に2013年版)に基づく統計問題",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "企業のライフサイクルと動向の関係",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書に基づく統計分析",
-                  "topic": "中小企業白書に基づく統計分析"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "+（新傾向）GX（グリーントランスフォーメーション）への取組状況：脱炭素社会への移行は国策であり、中小企業の対応が注目されているため。",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書に基づく統計分析",
-                  "topic": "中小企業白書に基づく統計分析"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "第2章 成長・発展の姿",
                   "depth": 0,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書に基づく統計分析",
-                  "topic": "中小企業白書に基づく統計分析"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "70点コースの全項目",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書に基づく統計分析",
-                  "topic": "中小企業白書に基づく統計分析"
+                  "evidenceType": "prerequisite",
+                  "prerequisiteScore": 70,
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "+（新傾向）スタートアップ支援とエコシステム形成：政府が「スタートアップ育成5か年計画」を掲げ、関連する分析が強化されているため。",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書に基づく統計分析",
-                  "topic": "中小企業白書に基づく統計分析"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:創業・新事業関連施策",
+                  "topic": "創業・新事業関連施策",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "+（新傾向）価格転嫁とコスト構造の変化：近年の物価高騰を受け、中小企業の収益構造を分析する視点が重要視されているため。",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書に基づく統計分析",
-                  "topic": "中小企業白書に基づく統計分析"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:中小企業のビジネスダイナミクス",
+                  "topic": "中小企業のビジネスダイナミクス",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "フリーランス・副業兼業の動向",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書に基づく統計分析",
-                  "topic": "中小企業白書に基づく統計分析"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "白書のコラムや付注に記載されている詳細事例",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書に基づく統計分析",
-                  "topic": "中小企業白書に基づく統計分析"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "第3章 小規模企業の動向",
                   "depth": 0,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書・各種統計データ",
-                  "topic": "中小企業白書・各種統計データ"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:中小企業の基本統計(白書・経済センサス)",
+                  "topic": "中小企業の基本統計(白書・経済センサス)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "70点コースの全項目",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書に基づく統計分析",
-                  "topic": "中小企業白書に基づく統計分析"
+                  "evidenceType": "prerequisite",
+                  "prerequisiteScore": 70,
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "小規模企業白書の詳細な分析内容（地域コミュニティとの関わりなど）",
                   "depth": 1,
+                  "evidenceType": "topic",
                   "topicId": "中小企業経営_中小企業政策:中小企業白書_に基づく統計分析",
-                  "topic": "『中小企業白書』に基づく統計分析"
+                  "topic": "『中小企業白書』に基づく統計分析",
+                  "mappingStatus": "suggested"
                 }
               ]
             },
@@ -2275,140 +2961,191 @@
                 {
                   "text": "第4章 中小企業政策の体系と基本法",
                   "depth": 0,
+                  "evidenceType": "topic",
                   "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "topic": "個別の中小企業支援施策(政策)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "70点コースの全項目",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "prerequisite",
+                  "prerequisiteScore": 70,
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "中小企業活性化パッケージの全体像",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "各法律の条文レベルでの目的・定義の理解",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:中小企業関連法規",
+                  "topic": "中小企業関連法規",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "第5章 経営支援",
                   "depth": 0,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "70点コースの全項目",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "prerequisite",
+                  "prerequisiteScore": 70,
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "各補助金の公募要領の要点（加点項目、対象経費など）",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:主要な中小企業支援策(金融・補助金・税制)",
+                  "topic": "主要な中小企業支援策(金融・補助金・税制)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "+（新傾向）事業再構築補助金の類型と要件：コロナ禍後の経済構造転換を促す目玉政策であり、制度変更が頻繁なため。",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:主要な中小企業支援策(金融・補助金・税制)",
+                  "topic": "主要な中小企業支援策(金融・補助金・税制)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "先進的な技術実証・導入支援（Go-Tech事業など）",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:主要な中小企業支援策の具体的要件",
+                  "topic": "主要な中小企業支援策の具体的要件",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "第6章 金融支援",
                   "depth": 0,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:金融・財務支援",
+                  "topic": "金融・財務支援",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "70点コースの全項目",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "prerequisite",
+                  "prerequisiteScore": 70,
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "各種保証制度の保証限度額・保証割合の詳細",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:主要な中小企業支援策(金融支援)",
+                  "topic": "主要な中小企業支援策(金融支援)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "新型コロナウイルス感染症関連の金融支援策の変遷",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:中小企業向け金融支援策",
+                  "topic": "中小企業向け金融支援策",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "第7章 税制措置",
                   "depth": 0,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:中小企業向け主要施策(補助金・融資・税制)",
+                  "topic": "中小企業向け主要施策(補助金・融資・税制)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "70点コースの全項目",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "prerequisite",
+                  "prerequisiteScore": 70,
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "各税制の適用要件、控除額・特別償却率の詳細",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:中小企業向け主要施策(補助金・融資・税制)",
+                  "topic": "中小企業向け主要施策(補助金・融資・税制)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "+（新傾向）インボイス制度関連の支援措置：制度導入に伴う中小企業の負担軽減策として、時事性が非常に高いため。",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:中小企業等経営強化法関連",
+                  "topic": "中小企業等経営強化法関連",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "研究開発税制（中小企業技術基盤強化税制）",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:中小企業向け主要施策(補助金・融資・税制)",
+                  "topic": "中小企業向け主要施策(補助金・融資・税制)",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "第8章 その他の重要施策",
                   "depth": 0,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "70点コースの全項目",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "prerequisite",
+                  "prerequisiteScore": 70,
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "中小企業等協同組合法、中小企業団体の組織に関する法律の概要",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:連携・共同化・組織化に関する施策",
+                  "topic": "連携・共同化・組織化に関する施策",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "公正取引委員会の役割と独占禁止法・下請法違反事例",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": "中小企業経営_中小企業政策:下請代金支払遅延等防止法",
+                  "topic": "下請代金支払遅延等防止法",
+                  "mappingStatus": "suggested"
                 },
                 {
                   "text": "最新の施策利用ガイドブックから、公式シラバス・過去問・taxonomyに対応する現行施策を優先して把握",
                   "depth": 1,
-                  "topicId": "中小企業経営_中小企業政策:個別の中小企業支援施策(政策)",
-                  "topic": "個別の中小企業支援施策(政策)"
+                  "evidenceType": "topic",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 }
               ]
             },
@@ -2418,62 +3155,82 @@
                 {
                   "text": "企業数、従業者数、付加価値、労働生産性、開廃業、倒産・休廃業など25〜30の基幹指標を選ぶ",
                   "depth": 0,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書_に基づく統計分析",
-                  "topic": "『中小企業白書』に基づく統計分析"
+                  "evidenceType": "external",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "各指標について、増減方向・大小関係・順位を説明する",
                   "depth": 0,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書_に基づく統計分析",
-                  "topic": "『中小企業白書』に基づく統計分析"
+                  "evidenceType": "external",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "約何割、何%台、約何万社という規模感を回答する",
                   "depth": 0,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書_に基づく統計分析",
-                  "topic": "『中小企業白書』に基づく統計分析"
+                  "evidenceType": "external",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "廃業率、倒産件数、休廃業・解散件数など、似た指標の定義と母集団を区別する",
                   "depth": 0,
-                  "topicId": "中小企業経営_中小企業政策:開廃業・倒産の動向",
-                  "topic": "開廃業・倒産の動向"
+                  "evidenceType": "external",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "白書・小規模企業白書の折れ線、棒、構成比、比較表を原形式に近い状態で読む",
                   "depth": 0,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書_に基づく統計分析",
-                  "topic": "『中小企業白書』に基づく統計分析"
+                  "evidenceType": "external",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "1指標につき、グラフ読解・概数回答・複数指標比較の3段階を実施する",
                   "depth": 0,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書_に基づく統計分析",
-                  "topic": "『中小企業白書』に基づく統計分析"
+                  "evidenceType": "external",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "80〜120問の出典付き統計問題を、最新資料への更新日を確認しながら解く",
                   "depth": 0,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書_に基づく統計分析",
-                  "topic": "『中小企業白書』に基づく統計分析"
+                  "evidenceType": "external",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "各問題の資料名、公表年度、URL、ページ・図表番号、定義、期間、単位を確認する",
                   "depth": 0,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書_に基づく統計分析",
-                  "topic": "『中小企業白書』に基づく統計分析"
+                  "evidenceType": "external",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "2026年版白書を主教材とし、2027年版公表後は差分を確認する",
                   "depth": 0,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書_に基づく統計分析",
-                  "topic": "『中小企業白書』に基づく統計分析"
+                  "evidenceType": "external",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 },
                 {
                   "text": "令和3〜8年度を本試験時間で実施し、初見相当セットで80点以上を2回確認する",
                   "depth": 0,
-                  "topicId": "中小企業経営_中小企業政策:中小企業白書_に基づく統計分析",
-                  "topic": "『中小企業白書』に基づく統計分析"
+                  "evidenceType": "assessment",
+                  "topicId": null,
+                  "topic": null,
+                  "mappingStatus": "unmapped"
                 }
               ]
             }

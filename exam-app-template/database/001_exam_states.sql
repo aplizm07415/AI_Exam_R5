@@ -23,5 +23,13 @@ CREATE TABLE IF NOT EXISTS exam_session_states (
 CREATE INDEX IF NOT EXISTS exam_states_updated_at_idx
   ON exam_states (updated_at DESC);
 
+CREATE TABLE IF NOT EXISTS exam_session_deletions (
+  app_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  session_id TEXT NOT NULL,
+  deleted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (app_id, user_id, session_id)
+);
+
 CREATE INDEX IF NOT EXISTS exam_session_states_updated_at_idx
   ON exam_session_states (app_id, user_id, updated_at DESC);

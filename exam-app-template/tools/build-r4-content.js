@@ -9,9 +9,8 @@ const analysisRoot = path.join(contentRoot, "analysis");
 const officialRoot = path.join(contentRoot, "official");
 const pdfTextRoot = path.join(repoRoot, "tmp", "pdfs", "r8");
 const config = JSON.parse(fs.readFileSync(path.join(contentRoot, "exam.json"), "utf8"));
-
-fs.mkdirSync(analysisRoot, { recursive: true });
-fs.mkdirSync(officialRoot, { recursive: true });
+const corrections = require("../content/corrections.json");
+const planMappingOverrides = require("../content/analysis/plan-mapping-overrides.json");
 
 function normalize(value) {
   return String(value ?? "").normalize("NFKC").toLocaleLowerCase("ja").replace(/\s+/g, " ");
@@ -109,6 +108,22 @@ function questionText(question) {
   ].filter(Boolean).join("\n");
 }
 
+function mapPlanItem(subjectId, course, item, taxonomy, classify, mappings = planMappingOverrides.mappings) {
+  const override = item.evidenceType === "topic" && mappings.find((entry) => (
+    entry.subjectId === subjectId && entry.course === Number(course) && entry.text === item.text
+  ));
+  const topic = override ? taxonomy.topics.find((value) => value.topic_id === override.topicId) : null;
+  if (override && !topic) throw new Error(`計画対応の論点IDがtaxonomyにありません: ${override.topicId}`);
+  const match = topic ? { topic } : item.evidenceType === "topic" ? classify(item.text) : null;
+  return {
+    ...item,
+    topicId: match?.topic.topic_id || null,
+    topic: match?.topic.display_name || null,
+    mappingStatus: override ? "reviewed-topic-link" : match ? "suggested" : "unmapped",
+    ...(override ? { mappingReason: override.reason, supportingQuestionIds: [...override.supportingQuestionIds] } : {})
+  };
+}
+
 function splitOfficialQuestions(text) {
   const normalized = String(text).normalize("NFKC");
   const matches = [...normalized.matchAll(/第\s*(\d+)\s*問/g)];
@@ -120,84 +135,111 @@ function splitOfficialQuestions(text) {
   });
 }
 
-const questionIndex = {
-  version: 1,
-  generatedAt: new Date().toISOString(),
-  questions: {}
-};
-const studyPlans = { version: 1, subjects: {} };
-const officialAnalysisPath = path.join(officialRoot, "r8-analysis.json");
-const officialAnalysis = fs.existsSync(officialAnalysisPath)
-  ? JSON.parse(fs.readFileSync(officialAnalysisPath, "utf8"))
-  : { version: 1, year: 2026, subjects: {} };
+function buildContent() {
+  fs.mkdirSync(analysisRoot, { recursive: true });
+  fs.mkdirSync(officialRoot, { recursive: true });
+  const questionIndex = {
+    version: 1,
+    generatedAt: new Date().toISOString(),
+    questions: {}
+  };
+  const studyPlans = { version: 1, subjects: {} };
+  const officialAnalysisPath = path.join(officialRoot, "r8-analysis.json");
+  const officialAnalysis = fs.existsSync(officialAnalysisPath)
+    ? JSON.parse(fs.readFileSync(officialAnalysisPath, "utf8"))
+    : { version: 1, year: 2026, subjects: {} };
 
-for (const subject of config.subjects) {
-  const taxonomySource = path.join(repoRoot, subject.taxonomyFile);
-  const planSource = path.join(repoRoot, subject.studyPlanFile);
-  const taxonomyTarget = path.join(analysisRoot, subject.taxonomyFile);
-  const planTarget = path.join(analysisRoot, subject.studyPlanFile);
-  fs.copyFileSync(taxonomySource, taxonomyTarget);
-  fs.copyFileSync(planSource, planTarget);
+  for (const subject of config.subjects) {
+    const taxonomySource = path.join(repoRoot, subject.taxonomyFile);
+    const planSource = path.join(repoRoot, subject.studyPlanFile);
+    const taxonomyTarget = path.join(analysisRoot, subject.taxonomyFile);
+    const planTarget = path.join(analysisRoot, subject.studyPlanFile);
+    fs.copyFileSync(taxonomySource, taxonomyTarget);
+    fs.copyFileSync(planSource, planTarget);
 
-  const taxonomy = JSON.parse(fs.readFileSync(taxonomySource, "utf8"));
-  const planMarkdown = fs.readFileSync(planSource, "utf8");
-  const questions = JSON.parse(fs.readFileSync(path.join(contentRoot, "source", subject.sourceFile), "utf8"));
-  const classify = createClassifier(taxonomy);
-  const counts = { 基礎: 0, 標準: 0, 発展: 0, unmapped: 0 };
+    const taxonomy = JSON.parse(fs.readFileSync(taxonomySource, "utf8"));
+    const planMarkdown = fs.readFileSync(planSource, "utf8");
+    const questions = JSON.parse(fs.readFileSync(path.join(contentRoot, "source", subject.sourceFile), "utf8"));
+    const classify = createClassifier(taxonomy);
+    const counts = { 基礎: 0, 標準: 0, 発展: 0, unmapped: 0 };
 
-  for (const question of questions) {
-    const id = `${subject.id}:${question.id}`;
-    const match = classify(questionText(question), question.category);
-    const difficulty = difficultyFor(question);
-    const priority = priorityFor(match?.topic);
-    counts[difficulty] += 1;
-    if (!match) counts.unmapped += 1;
-    questionIndex.questions[id] = {
-      originalId: question.id,
-      topicId: match?.topic.topic_id || `${subject.id}:unclassified`,
-      topic: match?.topic.display_name || "未分類",
-      parent: match?.topic.parent_id || "未分類",
-      tags: match?.topic.tags || [],
-      priority,
-      difficulty,
-      minimumCourse: minimumCourse(priority, difficulty)
-    };
-  }
+    for (const question of questions) {
+      const id = `${subject.id}:${question.id}`;
+      const match = classify(questionText(question), question.category);
+      const correction = corrections[id] || {};
+      if (correction.difficulty !== undefined && !["基礎", "標準", "発展"].includes(correction.difficulty)) {
+        throw new Error(`訂正問題の難易度が不正です: ${id}`);
+      }
+      const difficulty = correction.difficulty || difficultyFor({ ...question,
+        question_text: correction.questionText || question.question_text,
+        choices: question.choices.map((choice) => ({ ...choice, text: correction.choiceText?.[choice.label] || choice.text }))
+      });
+      const priority = priorityFor(match?.topic);
+      counts[difficulty] += 1;
+      if (!match) counts.unmapped += 1;
+      questionIndex.questions[id] = {
+        originalId: question.id,
+        topicId: match?.topic.topic_id || `${subject.id}:unclassified`,
+        topic: match?.topic.display_name || "未分類",
+        parent: match?.topic.parent_id || "未分類",
+        tags: match?.topic.tags || [],
+        priority,
+        difficulty,
+        minimumCourse: minimumCourse(priority, difficulty)
+      };
+    }
 
-  const structuredPlan = parseStudyPlan(planMarkdown);
-  for (const course of structuredPlan.courses) {
-    for (const group of course.groups) {
-      for (const item of group.items) {
-        const match = classify(item.text, group.title);
-        item.topicId = match?.topic.topic_id || null;
-        item.topic = match?.topic.display_name || null;
+    const structuredPlan = parseStudyPlan(planMarkdown);
+    for (const course of structuredPlan.courses) {
+      for (const group of course.groups) {
+        for (const item of group.items) {
+          // Learning activities and prerequisite groups need their own evidence;
+          // a category name must not turn them into unrelated knowledge checks.
+          const prerequisite = item.text.match(/^(60|70)点コースの全項目$/);
+          const external = /^R4.*補強/.test(group.title);
+          item.evidenceType = prerequisite ? "prerequisite"
+            : external && /80点以上.*2回/.test(item.text) ? "assessment"
+              : external ? "external" : "topic";
+          if (prerequisite) item.prerequisiteScore = Number(prerequisite[1]);
+          Object.assign(item, mapPlanItem(subject.id, course.targetScore, item, taxonomy, classify));
+          for (const id of item.supportingQuestionIds || []) {
+            const evidence = questionIndex.questions[id];
+            if (!id.startsWith(`${subject.id}:`) || evidence?.topicId !== item.topicId || evidence.minimumCourse > course.targetScore) {
+              throw new Error(`計画対応の根拠問題を再確認してください: ${subject.id}/${item.text}/${id}`);
+            }
+          }
+        }
       }
     }
-  }
-  studyPlans.subjects[subject.id] = {
-    subject: subject.label,
-    ...structuredPlan
-  };
-
-  const pdfText = path.join(pdfTextRoot, `${subject.officialCode}1JC2026.txt`);
-  if (fs.existsSync(pdfText)) {
-    const officialQuestions = splitOfficialQuestions(fs.readFileSync(pdfText, "utf8"));
-    const topicCounts = new Map();
-    const classified = officialQuestions.map((question) => {
-      const match = classify(question.excerpt);
-      const topic = match?.topic.display_name || "未分類";
-      topicCounts.set(topic, (topicCounts.get(topic) || 0) + 1);
-      return { ...question, topic, topicId: match?.topic.topic_id || `${subject.id}:unclassified` };
-    });
-    officialAnalysis.subjects[subject.id] = {
-      questions: classified,
-      topTopics: [...topicCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8).map(([topic, count]) => ({ topic, count }))
+    studyPlans.subjects[subject.id] = {
+      subject: subject.label,
+      ...structuredPlan
     };
+
+    const pdfText = path.join(pdfTextRoot, `${subject.officialCode}1JC2026.txt`);
+    if (fs.existsSync(pdfText)) {
+      const officialQuestions = splitOfficialQuestions(fs.readFileSync(pdfText, "utf8"));
+      const topicCounts = new Map();
+      const classified = officialQuestions.map((question) => {
+        const match = classify(question.excerpt);
+        const topic = match?.topic.display_name || "未分類";
+        topicCounts.set(topic, (topicCounts.get(topic) || 0) + 1);
+        return { ...question, topic, topicId: match?.topic.topic_id || `${subject.id}:unclassified` };
+      });
+      officialAnalysis.subjects[subject.id] = {
+        questions: classified,
+        topTopics: [...topicCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8).map(([topic, count]) => ({ topic, count }))
+      };
+    }
+
+    console.log(`${subject.label}: ${questions.length}問`, counts);
   }
 
-  console.log(`${subject.label}: ${questions.length}問`, counts);
+  fs.writeFileSync(path.join(contentRoot, "question-index.json"), `${JSON.stringify(questionIndex, null, 2)}\n`);
+  fs.writeFileSync(path.join(analysisRoot, "study-plans.json"), `${JSON.stringify(studyPlans, null, 2)}\n`);
+  fs.writeFileSync(officialAnalysisPath, `${JSON.stringify(officialAnalysis, null, 2)}\n`);
 }
 
-fs.writeFileSync(path.join(contentRoot, "question-index.json"), `${JSON.stringify(questionIndex, null, 2)}\n`);
-fs.writeFileSync(path.join(analysisRoot, "study-plans.json"), `${JSON.stringify(studyPlans, null, 2)}\n`);
-fs.writeFileSync(officialAnalysisPath, `${JSON.stringify(officialAnalysis, null, 2)}\n`);
+if (require.main === module) buildContent();
+
+module.exports = { createClassifier, mapPlanItem, parseStudyPlan, questionText };

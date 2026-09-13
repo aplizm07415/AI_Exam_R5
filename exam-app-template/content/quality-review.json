@@ -1,0 +1,319 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-09-13",
+  "scope": "全問題の機械的構造検査と、不成立・法改正・解説欠落の確認済み事例の重点点検。未点検問題の専門的正確性は検証済みと扱わない。",
+  "questions": {
+    "law:S-CV-10-291": {
+      "status": "corrected",
+      "contentVersion": 2,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-05",
+      "reason": "B・Cがともに成立する旧版の選択肢を訂正",
+      "reviewMethod": "民法900条と国税庁の法定相続分を照合"
+    },
+    "operations:S-4687": {
+      "status": "corrected",
+      "contentVersion": 2,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-05",
+      "reason": "a・b・dが成立する旧版の単価記述を訂正",
+      "reviewMethod": "提示表から4活動の単価を独立再計算"
+    },
+    "finance:S-5312": {
+      "status": "corrected",
+      "contentVersion": 2,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-05",
+      "reason": "選択肢と解説の肯定・否定の不一致を訂正",
+      "reviewMethod": "原価計算基準の製品との関連における分類・労務費計算を照合"
+    },
+    "law:S-OT-03-426": {
+      "status": "corrected",
+      "contentVersion": 2,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-05",
+      "reason": "2026年施行の取適法に合わせ対象期間・振込手数料の説明を訂正",
+      "reviewMethod": "公正取引委員会の取適法Q96・Q99を照合"
+    },
+    "finance:S-5188": {
+      "status": "corrected",
+      "contentVersion": 2,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-13",
+      "reason": "公式表のA〜Iの数値を復元し、原表と異なっていた解説の数値を訂正",
+      "reviewMethod": "平成23年度財務・会計第18問の公式PDFを画像で照合。全9候補の支配関係を独立検算し、公式正解イも確認"
+    },
+    "finance:S-5299": {
+      "status": "quarantined",
+      "contentVersion": 1,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-05",
+      "reason": "初期投資額・各期キャッシュフローと現価係数表が欠落",
+      "reviewMethod": "問題文・選択肢・付属画像を確認。原資料との照合による復元が完了するまで出題停止。"
+    },
+    "finance:S-5320": {
+      "status": "quarantined",
+      "contentVersion": 1,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-05",
+      "reason": "番号①〜④に対応するポートフォリオ曲線図が欠落",
+      "reviewMethod": "問題文・選択肢・付属画像を確認。原資料との照合による復元が完了するまで出題停止。"
+    },
+    "finance:S-5092": {
+      "status": "quarantined",
+      "contentVersion": 1,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-05",
+      "reason": "番号①〜④に対応するポートフォリオ曲線図が欠落",
+      "reviewMethod": "問題文・選択肢・付属画像を確認。原資料との照合による復元が完了するまで出題停止。"
+    },
+    "finance:S-5357": {
+      "status": "quarantined",
+      "contentVersion": 1,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-05",
+      "reason": "資産A〜Dと無差別曲線を示す図が欠落",
+      "reviewMethod": "問題文・選択肢・付属画像を確認。原資料との照合による復元が完了するまで出題停止。"
+    },
+    "finance:S-5469": {
+      "status": "corrected",
+      "contentVersion": 2,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-13",
+      "reason": "公式図の4資産の座標を表で復元し、正答から図を推測していた解説を置換",
+      "reviewMethod": "令和6年度財務・会計第20問の公式PDFを画像で照合。期待収益率の最大値と同率資産を独立比較し、公式正解イも確認"
+    },
+    "operations:S-4999": {
+      "status": "quarantined",
+      "contentVersion": 1,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-05",
+      "reason": "機械別工数・単位利益・使用可能工数の表が欠落",
+      "reviewMethod": "問題文・選択肢・付属画像を確認。原資料との照合による復元が完了するまで出題停止。"
+    },
+    "operations:S-5010": {
+      "status": "quarantined",
+      "contentVersion": 1,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-05",
+      "reason": "売場別の売上高・粗利益率・SKU数・ゴンドラ本数の表が欠落",
+      "reviewMethod": "問題文・選択肢・付属画像を確認。原資料との照合による復元が完了するまで出題停止。"
+    },
+    "finance:S-5248": {
+      "status": "corrected",
+      "contentVersion": 2,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-06",
+      "reason": "按分基準を明示し、正常市価による一意な正答へ改題",
+      "reviewMethod": "原価計算基準29を照合し、4方法の按分額を独立再計算"
+    },
+    "finance:S-5309": {
+      "status": "corrected",
+      "contentVersion": 2,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-06",
+      "reason": "増減額とC/F上の符号の混同・複数正答を解消する学習用改題",
+      "reviewMethod": "既存数値を仮定として明示し、残高差を独立計算。元試験の財務諸表や正答発表の復元とは扱わない"
+    },
+    "operations:S-4814": {
+      "status": "corrected",
+      "contentVersion": 2,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-06",
+      "reason": "清掃と清潔の説明を明確化し、対応記号と正答を一致させる学習用改題",
+      "reviewMethod": "JICAの5S定義と照合し、5活動と唯一の選択肢を確認"
+    },
+    "operations:S-4632": {
+      "status": "corrected",
+      "contentVersion": 2,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-06",
+      "reason": "発注方式と同容量2ビンの条件を明示する学習用改題",
+      "reviewMethod": "MIT教材の在庫ポジションと発注方策を照合し、定期発注の反例を計算"
+    },
+    "finance:S-5126": {
+      "status": "corrected",
+      "contentVersion": 2,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-06",
+      "reason": "正規化で通常数字へ変わっていた割引式の指数²・³を原文どおりに保持",
+      "reviewMethod": "原本の式・選択肢と配信後の表示を照合。数式の互換正規化を修正し、旧表示の成績は判定対象外"
+    },
+    "operations:S-4785": {
+      "status": "corrected",
+      "contentVersion": 2,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-06",
+      "reason": "正規化で1.12へ変わっていた1.1²と、σ²・H₁の上付き・下付きを原文どおりに保持",
+      "reviewMethod": "原本の式・選択肢と配信後の表示を照合。数式の互換正規化を修正し、旧表示の成績は判定対象外"
+    },
+    "finance:S-5089": {
+      "status": "quarantined",
+      "contentVersion": 1,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-06",
+      "reason": "軌跡①〜④の形状と相関係数を対応付ける図が欠落",
+      "reviewMethod": "配信される問題文・選択肢・解説と原本の収録状態を確認。未提示データを解説の推測で補って採点せず、原資料照合が完了するまで出題停止。"
+    },
+    "finance:S-5423": {
+      "status": "quarantined",
+      "contentVersion": 1,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-06",
+      "reason": "フロンティア上の各点の位置と接点を特定する図が欠落",
+      "reviewMethod": "配信される問題文・選択肢・解説と原本の収録状態を確認。未提示データを解説の推測で補って採点せず、原資料照合が完了するまで出題停止。"
+    },
+    "finance:S-5489": {
+      "status": "corrected",
+      "contentVersion": 2,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-09",
+      "reason": "欠落していた共通図の位置関係を公式原図で復元",
+      "reviewMethod": "令和7年度財務・会計第20問の公式原図・公式正解表を照合。図にない数値を追加せず文字表で位置関係を復元し、リスク資産のみと安全資産の貸借が可能な場合を分けて確認"
+    },
+    "finance:S-5490": {
+      "status": "corrected",
+      "contentVersion": 2,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-09",
+      "reason": "共通図を公式原図で復元し、直線EG・接点Cの誤読とリスク回避の断定を訂正。公式正解表のアへ正答を修正",
+      "reviewMethod": "令和7年度財務・会計第20問の公式原図・公式正解表を照合。図にない数値を追加せず文字表で位置関係を復元し、リスク資産のみと安全資産の貸借が可能な場合を分けて確認"
+    },
+    "operations:S-4706": {
+      "status": "quarantined",
+      "contentVersion": 1,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-06",
+      "reason": "選択肢アの斜線領域を示す作業域図がプレースホルダーのまま",
+      "reviewMethod": "配信される問題文・選択肢・解説と原本の収録状態を確認。未提示データを解説の推測で補って採点せず、原資料照合が完了するまで出題停止。"
+    },
+    "operations:S-4722": {
+      "status": "quarantined",
+      "contentVersion": 1,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-06",
+      "reason": "CPMに必要な作業・先行関係・短縮可能日数・費用の表が欠落",
+      "reviewMethod": "配信される問題文・選択肢・解説と原本の収録状態を確認。未提示データを解説の推測で補って採点せず、原資料照合が完了するまで出題停止。"
+    },
+    "operations:S-4796": {
+      "status": "quarantined",
+      "contentVersion": 1,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-06",
+      "reason": "PQ曲線のタイプI・IIを対応付ける図が欠落。解説のP/Qの定義と工程図表の区別も再点検が必要",
+      "reviewMethod": "配信される問題文・選択肢・解説と原本の収録状態を確認。未提示データを解説の推測で補って採点せず、原資料照合が完了するまで出題停止。"
+    },
+    "operations:S-4820": {
+      "status": "quarantined",
+      "contentVersion": 1,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-06",
+      "reason": "区域A〜Cの包含関係を示す図が欠落",
+      "reviewMethod": "配信される問題文・選択肢・解説と原本の収録状態を確認。未提示データを解説の推測で補って採点せず、原資料照合が完了するまで出題停止。"
+    },
+    "operations:S-4835": {
+      "status": "quarantined",
+      "contentVersion": 1,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-06",
+      "reason": "作業A〜Gの内容・時間・先行関係の表が欠落。解説は未提示の時間を仮定し、担当者の作業負荷も一部除外している",
+      "reviewMethod": "配信される問題文・選択肢・解説と原本の収録状態を確認。未提示データを解説の推測で補って採点せず、原資料照合が完了するまで出題停止。"
+    },
+    "operations:S-4837": {
+      "status": "quarantined",
+      "contentVersion": 1,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-06",
+      "reason": "分割区分1〜4と作業内容を対応付ける表が欠落",
+      "reviewMethod": "配信される問題文・選択肢・解説と原本の収録状態を確認。未提示データを解説の推測で補って採点せず、原資料照合が完了するまで出題停止。"
+    },
+    "operations:S-4865": {
+      "status": "quarantined",
+      "contentVersion": 1,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-06",
+      "reason": "作業域と左手・右手の動作要素一覧が欠落。動作要素5〜12や個数を判定できない",
+      "reviewMethod": "配信される問題文・選択肢・解説と原本の収録状態を確認。未提示データを解説の推測で補って採点せず、原資料照合が完了するまで出題停止。"
+    },
+    "operations:S-4891": {
+      "status": "quarantined",
+      "contentVersion": 1,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-06",
+      "reason": "検査の種類と滞留等を示す工程記号が欠落。補足文からは複合検査記号を特定できない",
+      "reviewMethod": "配信される問題文・選択肢・解説と原本の収録状態を確認。未提示データを解説の推測で補って採点せず、原資料照合が完了するまで出題停止。"
+    },
+    "operations:S-4914": {
+      "status": "quarantined",
+      "contentVersion": 1,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-06",
+      "reason": "散布図a〜cと相関の向きを対応付ける図が欠落",
+      "reviewMethod": "配信される問題文・選択肢・解説と原本の収録状態を確認。未提示データを解説の推測で補って採点せず、原資料照合が完了するまで出題停止。"
+    },
+    "operations:S-4949": {
+      "status": "quarantined",
+      "contentVersion": 1,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-06",
+      "reason": "PERT図と正誤を問う記述a〜eがともに欠落",
+      "reviewMethod": "配信される問題文・選択肢・解説と原本の収録状態を確認。未提示データを解説の推測で補って採点せず、原資料照合が完了するまで出題停止。"
+    },
+    "operations:S-4964": {
+      "status": "quarantined",
+      "contentVersion": 1,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-06",
+      "reason": "部品表の階層と親子関係が平坦化され、必要数量を一意に計算できない",
+      "reviewMethod": "配信される問題文・選択肢・解説と原本の収録状態を確認。未提示データを解説の推測で補って採点せず、原資料照合が完了するまで出題停止。"
+    },
+    "operations:S-4975": {
+      "status": "quarantined",
+      "contentVersion": 1,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-06",
+      "reason": "流動数曲線と時点の図が欠落。本文上のa・b・dの関係と正答の整合も再点検が必要",
+      "reviewMethod": "配信される問題文・選択肢・解説と原本の収録状態を確認。未提示データを解説の推測で補って採点せず、原資料照合が完了するまで出題停止。"
+    },
+    "operations:S-5020": {
+      "status": "quarantined",
+      "contentVersion": 1,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-06",
+      "reason": "EDIフレームワークの空欄A〜Cの役割を示す図が欠落",
+      "reviewMethod": "配信される問題文・選択肢・解説と原本の収録状態を確認。未提示データを解説の推測で補って採点せず、原資料照合が完了するまで出題停止。"
+    },
+    "sme:S-0582": {
+      "status": "quarantined",
+      "contentVersion": 1,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-06",
+      "reason": "設備投資の課題の回答割合を示す図表が欠落し、対応する白書の図番号・調査条件も未特定",
+      "reviewMethod": "配信される問題文・選択肢・解説と原本の収録状態を確認。未提示データを解説の推測で補って採点せず、原資料照合が完了するまで出題停止。"
+    },
+    "operations:S-4839": {
+      "status": "corrected",
+      "contentVersion": 2,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-06",
+      "reason": "補完図の数値と上流輸送中在庫の誤加算を公式図で訂正",
+      "reviewMethod": "令和2年度運営管理第2問の公式PDF図表と照合し、Bと下流の在庫・輸送中在庫のみを独立集計"
+    },
+    "operations:S-4897": {
+      "status": "corrected",
+      "contentVersion": 2,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-07",
+      "reason": "補完図の作業時間・先行関係を公式原図へ復元し、5工程・79.14%の解説に訂正",
+      "reviewMethod": "令和4年度運営管理第2問の公式PDF図表と照合し、工程への割当を全探索して最小5工程を確認"
+    },
+    "operations:S-4775": {
+      "status": "corrected",
+      "contentVersion": 2,
+      "minimumScoringVersion": 2,
+      "reviewedAt": "2026-09-07",
+      "reason": "工程分析の補完表を公式原図に復元し、工程数・記号・加工比率25%と正答ウを訂正",
+      "reviewMethod": "平成29年度運営管理第6問の公式PDF表を画像で照合。7+15+3+0+1+2=28工程、加工比率7/28と正誤の組合せを独立検算"
+    }
+  }
+}

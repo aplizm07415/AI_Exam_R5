@@ -150,7 +150,7 @@
       "goal": "図表・時間制約を含むcore・standard論点で正答率80%以上",
       "sessionSize": 20,
       "subjectWeights": { "finance": 30, "operations": 25, "law": 15, "sme": 30 },
-      "financeSplit": { "bookkeeping": 60, "primary": 25, "case4": 15 },
+      "financeSplit": { "bookkeeping": 70, "primary": 20, "case4": 10 },
       "milestones": [
         "簿記2級の総合問題で合格水準を安定させる",
         "2027年1〜2月に簿記2級を受験する",
