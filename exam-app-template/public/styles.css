@@ -212,7 +212,7 @@ select, textarea { border: 1px solid var(--line); background: #fbfcfa; }
 .choice-text { min-width: 0; }.choice-text p { margin: 0; }
 .note-wrap { margin-top: 20px; display: grid; gap: 7px; color: var(--muted); font-size: 10px; }
 .note-input { width: 100%; min-height: 90px; padding: 13px 14px; border-radius: 11px; resize: vertical; }
-.actions { margin-top: 17px; display: flex; justify-content: space-between; gap: 10px; }
+.actions { margin-top: 17px; display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 10px; }
 .feedback-quick-actions { margin: 9px 0 0; display: flex; justify-content: flex-end; gap: 9px; }
 .feedback { margin-top: 24px; padding: 19px; border-left: 4px solid; border-radius: 12px; }
 .feedback.correct { border-color: var(--teal); background: var(--ok); }

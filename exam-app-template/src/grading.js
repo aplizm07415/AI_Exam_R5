@@ -10,12 +10,17 @@ function normalizeNumber(value) {
   return normalized !== "" && Number.isFinite(Number(normalized)) ? Number(normalized) : null;
 }
 
-function gradeQuestion(question, submitted) {
+function gradeQuestion(question, submitted, { answerStatus = "answered" } = {}) {
   if (question.qualityStatus === "quarantined") throw new Error(`出題停止中の問題は採点できません: ${question.id}`);
+  if (!["answered", "unknown"].includes(answerStatus)) throw new Error("invalid_answer_status");
   let normalizedAnswer = submitted;
   let correct = false;
 
-  if (question.type === "single_choice") {
+  if (answerStatus === "unknown") {
+    // Explicitly giving up is incorrect even if a previously selected answer
+    // remains in the request. Return the explanation through normal grading.
+    normalizedAnswer = "";
+  } else if (question.type === "single_choice") {
     normalizedAnswer = String(submitted ?? "");
     correct = normalizedAnswer === String(question.answer);
   } else if (question.type === "multiple_choice") {
@@ -43,6 +48,7 @@ function gradeQuestion(question, submitted) {
     difficulty: question.difficulty,
     minimumCourse: question.minimumCourse,
     foundationCheckpoint: question.foundationCheckpoint || null,
+    answerStatus,
     correct,
     score: correct ? Number(question.points) : 0,
     maxScore: Number(question.points),

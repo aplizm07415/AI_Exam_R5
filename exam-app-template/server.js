@@ -103,7 +103,7 @@ async function handler(request, response) {
       if (question && Number(body.contentVersion ?? 1) !== Number(question.contentVersion ?? 1)) {
         return sendJson(response, 409, { error: "question_version_changed" });
       }
-      return question ? sendJson(response, 200, gradeQuestion(question, body.answer)) : sendJson(response, 404, { error: "question_not_found" });
+      return question ? sendJson(response, 200, gradeQuestion(question, body.answer, { answerStatus: body.answerStatus })) : sendJson(response, 404, { error: "question_not_found" });
     } catch (error) {
       return sendJson(response, error.message === "request_too_large" ? 413 : 400, { error: error.message });
     }

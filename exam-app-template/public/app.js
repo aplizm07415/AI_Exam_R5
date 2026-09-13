@@ -1396,6 +1396,13 @@ function renderQuestion() {
   if (attempt.status === "answering" && !attempt.activeSince && !document.hidden) attempt.activeSince = new Date().toISOString();
   const stored = activeSession.results.find((record) => record.attemptId === attempt.attemptId);
   const feedback = feedbackCache.get(attempt.attemptId);
+  if (feedback && stored) {
+    // A save may merge an earlier grade from another device after this
+    // explanation was fetched. Display the result that won that merge.
+    feedback.answerStatus = stored.answerStatus || "answered";
+    feedback.correct = stored.correct;
+    feedback.score = stored.correct ? feedback.maxScore : 0;
+  }
   if (feedback && stored && Date.parse(stored.explanationViewedAt || "") !== Date.now()) {
     stored.explanationViewedAt = new Date().toISOString();
     activeSession.lastActivityAt = stored.explanationViewedAt;
@@ -1409,18 +1416,25 @@ function renderQuestion() {
       <div id="feedback" aria-live="polite">${feedback ? feedbackMarkup(feedback, question) : stored ? storedFeedbackMarkup(stored) : ""}${stored?.assessmentEligible === false ? `<p class="muted">${stored.calculatorUsed ? "電卓を使った回答" : "解説確認から24時間未満の再回答など"}は練習として記録し、理解度の達成判定には加えません。</p>` : ""}</div>
       <label class="note-wrap"><span>自分用メモ</span><textarea class="note-input" id="questionNote" placeholder="間違えた理由、覚え方、再確認日など">${escapeHtml(state.notes[question.id] || "")}</textarea></label>
     </article>
-    <div class="actions"><button class="secondary" data-prev ${currentIndex === 0 || isGrading ? "disabled" : ""}>← 前へ</button><button class="secondary" data-flag>${state.flags[question.id] ? "★ 見直し中" : "☆ 見直す"}</button>${feedback ? `<button class="secondary archive-action" data-archive>${isArchived(question.id) ? "アーカイブを解除" : "アーカイブにする"}</button>` : ""}<button class="primary" data-grade ${feedback || isGrading ? "disabled" : ""} aria-busy="${isGrading}">${feedback ? "採点済み" : isGrading ? "採点・保存中…" : stored ? "解説を再表示" : "採点・解説"}</button>${nextSessionActionMarkup()}</div>
+    <div class="actions"><button class="secondary" data-prev ${currentIndex === 0 || isGrading ? "disabled" : ""}>← 前へ</button><button class="secondary" data-flag>${state.flags[question.id] ? "★ 見直し中" : "☆ 見直す"}</button>${feedback ? `<button class="secondary archive-action" data-archive>${isArchived(question.id) ? "アーカイブを解除" : "アーカイブにする"}</button>` : ""}<button class="secondary unknown-answer" data-unknown ${stored || feedback || isGrading ? "disabled" : ""}>わからない</button><button class="primary" data-grade ${feedback || isGrading ? "disabled" : ""} aria-busy="${isGrading}">${feedback ? "採点済み" : isGrading ? "採点・保存中…" : stored ? "解説を再表示" : "採点・解説"}</button>${nextSessionActionMarkup()}</div>
   </div><aside class="panel navigator"><h3>問題一覧・${escapeHtml(subjectLabel(question.subject))}</h3><div class="question-map">${session.map((item, index) => `<button class="map-button ${index === currentIndex ? "current" : ""} ${activeSession.results.some((record) => record.questionId === item.id) ? "done" : ""} ${state.flags[item.id] ? "flagged" : ""}" data-jump="${index}" ${isGrading ? "disabled" : ""}>${index + 1}</button>`).join("")}</div><button class="text-button" data-view="progress">学習記録を見る →</button></aside>${question.calculationRequired ? calculatorMarkup() : ""}</section>`;
 }
 
 function feedbackMarkup(result, question = session[currentIndex]) {
   const questionId = question.id;
-  const resultBanner = result.correct ? "<strong>正解</strong>" : "<strong>不正解</strong><p>正答との差を、条件と判断順序から確認します。</p>";
-  return `<div class="feedback visual-feedback ${result.correct ? "correct" : "incorrect"}"><div class="feedback-result-banner">${resultBanner}</div><div class="feedback-quick-actions"><button class="secondary archive-action" data-archive>${isArchived(questionId) ? "アーカイブを解除" : "アーカイブにする"}</button>${nextSessionActionMarkup()}</div>${guidedFeedbackExplanationMarkup(question, result)}</div>`;
+  const unknown = result.answerStatus === "unknown";
+  const correct = !unknown && result.correct;
+  const resultBanner = unknown
+    ? "<strong>わからない（不正解として記録）</strong><p>正答と判断の根拠を確認しましょう。</p>"
+    : correct ? "<strong>正解</strong>" : "<strong>不正解</strong><p>正答との差を、条件と判断順序から確認します。</p>";
+  return `<div class="feedback visual-feedback ${correct ? "correct" : "incorrect"}"><div class="feedback-result-banner">${resultBanner}</div><div class="feedback-quick-actions"><button class="secondary archive-action" data-archive>${isArchived(questionId) ? "アーカイブを解除" : "アーカイブにする"}</button>${nextSessionActionMarkup()}</div>${guidedFeedbackExplanationMarkup(question, result)}</div>`;
 }
 
 function storedFeedbackMarkup(result) {
-  return `<div class="feedback ${result.correct ? "correct" : "incorrect"}"><strong>この試行：${result.correct ? "正解" : "不正解"}</strong><p>「解説を再表示」で確認できます。採点記録は追加されません。</p></div>`;
+  const unknown = result.answerStatus === "unknown";
+  const correct = !unknown && result.correct;
+  const status = unknown ? "わからない（不正解として記録）" : correct ? "正解" : "不正解";
+  return `<div class="feedback ${correct ? "correct" : "incorrect"}"><strong>この試行：${status}</strong><p>「解説を再表示」で確認できます。採点記録は追加されません。</p></div>`;
 }
 
 function sampleExplanationSteps(sample) {
@@ -1468,7 +1482,7 @@ function removeUnavailableQuestion(trackedId, questionId) {
   }
 }
 
-async function gradeCurrent() {
+async function gradeCurrent(answerStatus = "answered") {
   const question = session[currentIndex];
   if (!question || !activeSession || gradingQuestionId) return;
   let tracked = activeSession;
@@ -1476,9 +1490,13 @@ async function gradeCurrent() {
   const trackedId = tracked.id;
   const submittedAttemptId = attempt.attemptId;
   if (feedbackCache.has(attempt.attemptId)) return;
-  const answer = attempt.selectedAnswer;
-  if (!answer) { alert("選択肢を選んでください。"); return; }
-  let alreadyGraded = tracked.results.some((record) => record.attemptId === attempt.attemptId);
+  const existingRecord = tracked.results.find((record) => record.attemptId === attempt.attemptId);
+  // A synced result is authoritative. Re-displaying its explanation must never
+  // turn an answered result into an unknown result (or the reverse).
+  const submittedAnswerStatus = existingRecord ? (existingRecord.answerStatus || "answered") : answerStatus;
+  const answer = submittedAnswerStatus === "unknown" ? "" : (existingRecord?.submittedAnswer ?? attempt.selectedAnswer);
+  if (!answer && submittedAnswerStatus !== "unknown") { alert("選択肢を選んでください。"); return; }
+  let alreadyGraded = Boolean(existingRecord);
   let contentChangeStatus = null;
   let refreshingContent = false;
   gradingQuestionId = question.id;
@@ -1486,7 +1504,7 @@ async function gradeCurrent() {
   pausePracticeAttempt();
   renderQuestion();
   try {
-    const response = await fetch("/api/grade", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ questionId: question.id, answer, contentVersion: question.contentVersion || 1 }) });
+    const response = await fetch("/api/grade", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ questionId: question.id, answer, answerStatus: submittedAnswerStatus, contentVersion: question.contentVersion || 1 }) });
     const fullResult = response.ok ? await response.json() : null;
     if (response.status === 404 || response.status === 409) {
       contentChangeStatus = response.status;
@@ -1562,8 +1580,20 @@ async function gradeCurrent() {
     if (!response.ok) throw new Error("grade_failed");
     const recorded = tracked.results.find((item) => item.attemptId === attempt.attemptId);
     if (recorded) {
-      attempt.selectedAnswer = recorded.submittedAnswer ?? attempt.selectedAnswer;
+      if (recorded.answerStatus === "unknown") {
+        attempt.selectedAnswer = "";
+        delete state.answers[question.id];
+      } else attempt.selectedAnswer = recorded.submittedAnswer ?? attempt.selectedAnswer;
       fullResult.correct = recorded.correct;
+      fullResult.answerStatus = recorded.answerStatus || "answered";
+    }
+    if (!recorded && submittedAnswerStatus === "unknown") {
+      // Keep a selected option until the unknown answer has actually been
+      // accepted; a failed request must leave the learner's draft intact.
+      attempt.selectedAnswer = "";
+      delete state.answers[question.id];
+      fullResult.answerStatus = "unknown";
+      fullResult.correct = false;
     }
     feedbackCache.set(attempt.attemptId, fullResult);
     attempt.status = "graded";
@@ -1581,6 +1611,7 @@ async function gradeCurrent() {
         foundationCheckpoint: fullResult.foundationCheckpoint || question.foundationCheckpoint || null,
         correct: fullResult.correct,
         submittedAnswer: answer,
+        answerStatus: submittedAnswerStatus,
         correctAnswer: fullResult.correctAnswer,
         contentVersion: fullResult.contentVersion || question.contentVersion || 1,
         calculatorUsed: Boolean(attempt.calculatorUsed),
@@ -2166,6 +2197,7 @@ document.addEventListener("click", (event) => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     return;
   }
+  if (event.target.closest("[data-unknown]")) return gradeCurrent("unknown");
   if (event.target.closest("[data-grade]")) return gradeCurrent();
   if (event.target.closest("[data-archive]")) {
     const id = session[currentIndex].id;

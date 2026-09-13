@@ -30,7 +30,7 @@ function harness({ storage = new Map(), progressFetch, now = "2026-09-06T03:00:0
       const question = questionsById.get(body.questionId);
       if (!question) return response({ error: "question_not_found" }, 404);
       if (Number(body.contentVersion || 1) !== Number(question.contentVersion || 1)) return response({ error: "question_version_changed" }, 409);
-      return response(gradeQuestion(question, body.answer));
+      return response(gradeQuestion(question, body.answer, { answerStatus: body.answerStatus }));
     }
     if (url === "/api/mock/grade") return response(gradeOfficialExam(officialExam, body.subjectId, body.answers));
     throw new Error(`Unexpected API: ${url}`);
