@@ -1,6 +1,6 @@
 # History preservation and sanitization
 
-This repository was prepared for private review on 2026-10-30. The source repositories were read only; their branches, files, visibility, and settings were not changed.
+This repository was initially prepared for private review on 2026-10-30 and subsequently shared publicly at the owner's request. The source repositories were read only; their branches, files, visibility, and settings were not changed.
 
 ## Preserved history
 
@@ -34,4 +34,4 @@ Issues, pull requests, review comments, release assets, and deployment environme
 
 ## Access and study materials
 
-The destination repository is private. This integration grants no third-party access and publishes no application deployment. Existing exam materials have not been cleared for public redistribution; private review status should be maintained until those rights and the remaining application limitations have been reviewed separately.
+The destination repository was initially private and was subsequently made public at the owner's request. Public visibility permits anyone to read and clone the repository. No collaborator invitations were sent and no application deployment was published. Before publication, the owner explicitly confirmed the rights or permission to publish the included question text, explanations, past-exam data, and their complete Git history. This integration adds no general redistribution license to those materials.

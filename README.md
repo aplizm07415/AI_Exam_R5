@@ -1,10 +1,10 @@
 # AI_Exam_R5
 
-Private exam-study application portfolio, bringing the R1–R4 development history together for the next stage of the project.
+Exam-study application portfolio, bringing the R1–R4 development history together for the next stage of the project.
 
 ## For the Alignerr review team
 
-This private repository brings together the development history of my personal exam-study applications, from the first quiz application to a more detailed learning and revision tool. I built these projects to support my own study needs and improved them as those needs became clearer.
+This repository brings together the development history of my personal exam-study applications, from the first quiz application to a more detailed learning and revision tool. I built these projects to support my own study needs and improved them as those needs became clearer.
 
 **Claude Code has been a consistent part of my development workflow throughout these projects. I intend to continue using Claude Code to improve this project and to build and maintain my other projects.** This statement reflects my own account of how I developed the projects. Other AI tools also appear in the historical files; Claude Code was not my only tool. Some applications use Gemini at runtime, which is separate from the coding assistant used during development.
 
@@ -40,10 +40,10 @@ npm start
 
 Open `http://127.0.0.1:4173`. Without `DATABASE_URL`, progress is stored in the browser's LocalStorage. The `.env.example` file contains configuration names and placeholders only. A fixed `APP_USER_ID` is not authentication; the historical cloud configuration is not a public multi-user deployment.
 
-The repository is private. Existing study materials have not been cleared for public redistribution. No license granting redistribution rights is added by this integration.
+The repository is shared publicly for project review at the owner's request. The owner has confirmed that they have the rights or permission to publish the included study materials, including question text, explanations, past-exam data, and their Git history. This repository adds no general redistribution license to those materials.
 
 ## Continuing development
 
 I plan to continue improving the application with Claude Code, including browser and database validation, study-data quality, coverage of missing topics, and usability improvements based on my study workflow. I also intend to keep using Claude Code across my other projects. These are plans, not claims that the work has already been completed.
 
-Prepared for private Alignerr review on 2026-10-30. No access invitation or application submission is performed by creating this repository.
+Prepared for Alignerr review on 2026-10-30, initially as a private repository and then shared publicly at the owner's request. No access invitation or application submission was sent.

@@ -29,6 +29,6 @@ These statements describe repository code and documents. They do not claim live 
 
 ## Review boundaries
 
-The repository remains private. Credentials, local authentication settings, operational backups, and machine-specific caches were excluded or redacted across every imported branch. Historical deployment endpoints and private contact identifiers were anonymized. Real credentials must be supplied separately through environment variables for any optional cloud integration. No production cloud resources were created or changed during the integration.
+The repository is shared publicly for project review at the owner's request. Credentials, local authentication settings, operational backups, and machine-specific caches were excluded or redacted across every imported branch. Historical deployment endpoints and private contact identifiers were anonymized. Real credentials must be supplied separately through environment variables for any optional cloud integration. No production cloud resources were created or changed during the integration.
 
-Study materials remain included for private review only; public redistribution rights have not been established. Historical versions may need their original build process or further maintenance. The versions coexist here as a portfolio, not as a newly merged production application.
+The owner has confirmed that they have the rights or permission to publish the included study materials and their Git history. This repository adds no general redistribution license to those materials. Historical versions may need their original build process or further maintenance. The versions coexist here as a portfolio, not as a newly merged production application.
