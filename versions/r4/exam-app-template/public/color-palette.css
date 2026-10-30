@@ -1,0 +1,63 @@
+:root {
+  --canvas: #f5f5f2;
+  --surface: #ffffff;
+  --surface-muted: #eef1ef;
+  --ink: #1e304a;
+  --ink-rgb: 30, 48, 74;
+  --muted: #5b6878;
+  --line: #d5dad9;
+  --core-blue: #4d6fa9;
+  --blue: var(--core-blue);
+  --blue-soft: #e5ebf4;
+  --mist: #a6b7b2;
+  --mist-soft: #e6eeeb;
+  --teal: #287c74;
+  --teal-soft: #e0efec;
+  --apricot: #cf8c68;
+  --apricot-soft: #f4e4da;
+  --rose: #a55568;
+  --rose-soft: #f0e2e6;
+  --vermilion: #b94732;
+  --vermilion-soft: #f4e1dd;
+  --berry: #9a4d5a;
+  --berry-soft: #efe0e4;
+  --shadow: 0 22px 70px rgba(30, 48, 74, .11);
+  --radius: 18px;
+  --sans: "DM Sans", "Noto Sans JP", sans-serif;
+}
+
+:root {
+  --primary-new: #3d7cce;
+  --dark: #051425;
+  --light: #a5b7cf;
+  --white: #ffffff;
+  --primary: #2e5c99;
+  --secondary: #2b71ab;
+  --info: #cee4ae;
+  --accent-1: #0d4e6d;
+  --accent-3: #a5b7cf;
+  --success: #2cb4ad;
+  --warning: #f5e48d;
+  --danger: #cf483e;
+
+  /* R4では参照元の色を、青基調の段階色と意味色へ割り当てる。 */
+  --r4-blue-950: #051425;
+  --r4-blue-900: #1e304a;
+  --r4-blue-800: #0d4e6d;
+  --r4-blue-700: #2e5c99;
+  --r4-blue-600: #3d7cce;
+  --r4-blue-500: #4d6fa9;
+  --r4-blue-400: #2b71ab;
+  --r4-blue-300: #a5b7cf;
+  --r4-blue-200: #cbdcf4;
+  --r4-blue-100: #e5ebf4;
+  --r4-blue-50: #f4f8fd;
+  --r4-slate-700: #46566b;
+  --r4-slate-600: #5b6878;
+  --r4-slate-300: #a6b7b2;
+  --r4-slate-200: #d5dad9;
+  --r4-success-700: #287c74;
+  --r4-success-100: #e0efec;
+  --r4-danger-700: #b94732;
+  --r4-danger-100: #f4e1dd;
+}

@@ -1,0 +1,1005 @@
+{
+  "version": 1,
+  "year": 2026,
+  "eraYear": "令和8年度",
+  "publishedBy": "一般社団法人 日本中小企業診断士協会連合会",
+  "answerPageUrl": "https://www.jf-cmca.jp/contents/010_c_/010_c_r08_shiken/R08_1ji_shiken_kaitou.html",
+  "subjects": {
+    "finance": {
+      "code": "B",
+      "label": "財務・会計",
+      "minutes": 60,
+      "pages": 21,
+      "question_url": "https://www.jf-cmca.jp/attach/test/shikenmondai/1ji2026/B1JC2026.pdf",
+      "answer_url": "https://www.jf-cmca.jp/attach/test/r08/1ji_seikai/2026B.pdf",
+      "totalPoints": 100,
+      "answers": [
+        {
+          "id": "1",
+          "number": 1,
+          "subquestion": null,
+          "answer": "エ",
+          "points": 4
+        },
+        {
+          "id": "2",
+          "number": 2,
+          "subquestion": null,
+          "answer": "ウ",
+          "points": 4
+        },
+        {
+          "id": "3",
+          "number": 3,
+          "subquestion": null,
+          "answer": "イ",
+          "points": 4
+        },
+        {
+          "id": "4",
+          "number": 4,
+          "subquestion": null,
+          "answer": "イ",
+          "points": 4
+        },
+        {
+          "id": "5",
+          "number": 5,
+          "subquestion": null,
+          "answer": "イ",
+          "points": 4
+        },
+        {
+          "id": "6",
+          "number": 6,
+          "subquestion": null,
+          "answer": "ア",
+          "points": 4
+        },
+        {
+          "id": "7",
+          "number": 7,
+          "subquestion": null,
+          "answer": "ウ",
+          "points": 4
+        },
+        {
+          "id": "8",
+          "number": 8,
+          "subquestion": null,
+          "answer": "ウ",
+          "points": 4
+        },
+        {
+          "id": "9",
+          "number": 9,
+          "subquestion": null,
+          "answer": "エ",
+          "points": 4
+        },
+        {
+          "id": "10",
+          "number": 10,
+          "subquestion": null,
+          "answer": "イ",
+          "points": 4
+        },
+        {
+          "id": "11-1",
+          "number": 11,
+          "subquestion": 1,
+          "answer": "イ",
+          "points": 4
+        },
+        {
+          "id": "11-2",
+          "number": 11,
+          "subquestion": 2,
+          "answer": "イ",
+          "points": 4
+        },
+        {
+          "id": "12",
+          "number": 12,
+          "subquestion": null,
+          "answer": "イ",
+          "points": 4
+        },
+        {
+          "id": "13",
+          "number": 13,
+          "subquestion": null,
+          "answer": "エ",
+          "points": 4
+        },
+        {
+          "id": "14",
+          "number": 14,
+          "subquestion": null,
+          "answer": "エ",
+          "points": 4
+        },
+        {
+          "id": "15",
+          "number": 15,
+          "subquestion": null,
+          "answer": "ウ",
+          "points": 4
+        },
+        {
+          "id": "16",
+          "number": 16,
+          "subquestion": null,
+          "answer": "イ",
+          "points": 4
+        },
+        {
+          "id": "17",
+          "number": 17,
+          "subquestion": null,
+          "answer": "イ",
+          "points": 4
+        },
+        {
+          "id": "18",
+          "number": 18,
+          "subquestion": null,
+          "answer": "イ",
+          "points": 4
+        },
+        {
+          "id": "19",
+          "number": 19,
+          "subquestion": null,
+          "answer": "ア",
+          "points": 4
+        },
+        {
+          "id": "20",
+          "number": 20,
+          "subquestion": null,
+          "answer": "イ",
+          "points": 4
+        },
+        {
+          "id": "21",
+          "number": 21,
+          "subquestion": null,
+          "answer": "ア",
+          "points": 4
+        },
+        {
+          "id": "22",
+          "number": 22,
+          "subquestion": null,
+          "answer": "イ",
+          "points": 4
+        },
+        {
+          "id": "23",
+          "number": 23,
+          "subquestion": null,
+          "answer": "ウ",
+          "points": 4
+        },
+        {
+          "id": "24",
+          "number": 24,
+          "subquestion": null,
+          "answer": "イ",
+          "points": 4
+        }
+      ]
+    },
+    "operations": {
+      "code": "D",
+      "label": "運営管理",
+      "minutes": 90,
+      "pages": 42,
+      "question_url": "https://www.jf-cmca.jp/attach/test/shikenmondai/1ji2026/D1JC2026.pdf",
+      "answer_url": "https://www.jf-cmca.jp/attach/test/r08/1ji_seikai/2026D.pdf",
+      "totalPoints": 100,
+      "answers": [
+        {
+          "id": "1",
+          "number": 1,
+          "subquestion": null,
+          "answer": "エ",
+          "points": 3
+        },
+        {
+          "id": "2",
+          "number": 2,
+          "subquestion": null,
+          "answer": "エ",
+          "points": 2
+        },
+        {
+          "id": "3",
+          "number": 3,
+          "subquestion": null,
+          "answer": "ウ",
+          "points": 3
+        },
+        {
+          "id": "4",
+          "number": 4,
+          "subquestion": null,
+          "answer": "ウ",
+          "points": 2
+        },
+        {
+          "id": "5",
+          "number": 5,
+          "subquestion": null,
+          "answer": "ア",
+          "points": 2
+        },
+        {
+          "id": "6",
+          "number": 6,
+          "subquestion": null,
+          "answer": "イ",
+          "points": 2
+        },
+        {
+          "id": "7",
+          "number": 7,
+          "subquestion": null,
+          "answer": "オ",
+          "points": 2
+        },
+        {
+          "id": "8",
+          "number": 8,
+          "subquestion": null,
+          "answer": "エ",
+          "points": 3
+        },
+        {
+          "id": "9",
+          "number": 9,
+          "subquestion": null,
+          "answer": "エ",
+          "points": 2
+        },
+        {
+          "id": "10",
+          "number": 10,
+          "subquestion": null,
+          "answer": "イ",
+          "points": 2
+        },
+        {
+          "id": "11",
+          "number": 11,
+          "subquestion": null,
+          "answer": "ア",
+          "points": 2
+        },
+        {
+          "id": "12",
+          "number": 12,
+          "subquestion": null,
+          "answer": "ウ",
+          "points": 3
+        },
+        {
+          "id": "13",
+          "number": 13,
+          "subquestion": null,
+          "answer": "エ",
+          "points": 2
+        },
+        {
+          "id": "14",
+          "number": 14,
+          "subquestion": null,
+          "answer": "ア",
+          "points": 2
+        },
+        {
+          "id": "15",
+          "number": 15,
+          "subquestion": null,
+          "answer": "ウ",
+          "points": 2
+        },
+        {
+          "id": "16",
+          "number": 16,
+          "subquestion": null,
+          "answer": "オ",
+          "points": 2
+        },
+        {
+          "id": "17",
+          "number": 17,
+          "subquestion": null,
+          "answer": "エ",
+          "points": 3
+        },
+        {
+          "id": "18-1",
+          "number": 18,
+          "subquestion": 1,
+          "answer": "ウ",
+          "points": 2
+        },
+        {
+          "id": "18-2",
+          "number": 18,
+          "subquestion": 2,
+          "answer": "エ",
+          "points": 2
+        },
+        {
+          "id": "19",
+          "number": 19,
+          "subquestion": null,
+          "answer": "エ",
+          "points": 2
+        },
+        {
+          "id": "20",
+          "number": 20,
+          "subquestion": null,
+          "answer": "エ",
+          "points": 3
+        },
+        {
+          "id": "21",
+          "number": 21,
+          "subquestion": null,
+          "answer": "エ",
+          "points": 2
+        },
+        {
+          "id": "22",
+          "number": 22,
+          "subquestion": null,
+          "answer": "イ",
+          "points": 2
+        },
+        {
+          "id": "23",
+          "number": 23,
+          "subquestion": null,
+          "answer": "イ",
+          "points": 2
+        },
+        {
+          "id": "24",
+          "number": 24,
+          "subquestion": null,
+          "answer": "ア",
+          "points": 3
+        },
+        {
+          "id": "25",
+          "number": 25,
+          "subquestion": null,
+          "answer": "エ",
+          "points": 2
+        },
+        {
+          "id": "26",
+          "number": 26,
+          "subquestion": null,
+          "answer": "エ",
+          "points": 2
+        },
+        {
+          "id": "27",
+          "number": 27,
+          "subquestion": null,
+          "answer": "イ",
+          "points": 3
+        },
+        {
+          "id": "28",
+          "number": 28,
+          "subquestion": null,
+          "answer": "エ",
+          "points": 2
+        },
+        {
+          "id": "29",
+          "number": 29,
+          "subquestion": null,
+          "answer": "オ",
+          "points": 2
+        },
+        {
+          "id": "30",
+          "number": 30,
+          "subquestion": null,
+          "answer": "ア",
+          "points": 2
+        },
+        {
+          "id": "31",
+          "number": 31,
+          "subquestion": null,
+          "answer": "イ",
+          "points": 2
+        },
+        {
+          "id": "32",
+          "number": 32,
+          "subquestion": null,
+          "answer": "エ",
+          "points": 3
+        },
+        {
+          "id": "33",
+          "number": 33,
+          "subquestion": null,
+          "answer": "エ",
+          "points": 2
+        },
+        {
+          "id": "34",
+          "number": 34,
+          "subquestion": null,
+          "answer": "オ",
+          "points": 3
+        },
+        {
+          "id": "35",
+          "number": 35,
+          "subquestion": null,
+          "answer": "イ",
+          "points": 2
+        },
+        {
+          "id": "36",
+          "number": 36,
+          "subquestion": null,
+          "answer": "ア",
+          "points": 2
+        },
+        {
+          "id": "37",
+          "number": 37,
+          "subquestion": null,
+          "answer": "ウ",
+          "points": 2
+        },
+        {
+          "id": "38",
+          "number": 38,
+          "subquestion": null,
+          "answer": "オ",
+          "points": 2
+        },
+        {
+          "id": "39",
+          "number": 39,
+          "subquestion": null,
+          "answer": "ウ",
+          "points": 2
+        },
+        {
+          "id": "40",
+          "number": 40,
+          "subquestion": null,
+          "answer": "ウ",
+          "points": 2
+        },
+        {
+          "id": "41",
+          "number": 41,
+          "subquestion": null,
+          "answer": "ア",
+          "points": 2
+        },
+        {
+          "id": "42",
+          "number": 42,
+          "subquestion": null,
+          "answer": "ア",
+          "points": 3
+        },
+        {
+          "id": "43",
+          "number": 43,
+          "subquestion": null,
+          "answer": "イ",
+          "points": 3
+        }
+      ]
+    },
+    "law": {
+      "code": "E",
+      "label": "経営法務",
+      "minutes": 60,
+      "pages": 26,
+      "question_url": "https://www.jf-cmca.jp/attach/test/shikenmondai/1ji2026/E1JC2026.pdf",
+      "answer_url": "https://www.jf-cmca.jp/attach/test/r08/1ji_seikai/2026E.pdf",
+      "totalPoints": 100,
+      "answers": [
+        {
+          "id": "1",
+          "number": 1,
+          "subquestion": null,
+          "answer": "ウ",
+          "points": 4
+        },
+        {
+          "id": "2",
+          "number": 2,
+          "subquestion": null,
+          "answer": "ア",
+          "points": 4
+        },
+        {
+          "id": "3",
+          "number": 3,
+          "subquestion": null,
+          "answer": "イ",
+          "points": 4
+        },
+        {
+          "id": "4",
+          "number": 4,
+          "subquestion": null,
+          "answer": "ウ",
+          "points": 4
+        },
+        {
+          "id": "5",
+          "number": 5,
+          "subquestion": null,
+          "answer": "ウ",
+          "points": 4
+        },
+        {
+          "id": "6",
+          "number": 6,
+          "subquestion": null,
+          "answer": "ウ",
+          "points": 4
+        },
+        {
+          "id": "7",
+          "number": 7,
+          "subquestion": null,
+          "answer": "ウ",
+          "points": 4
+        },
+        {
+          "id": "8",
+          "number": 8,
+          "subquestion": null,
+          "answer": "ア",
+          "points": 4
+        },
+        {
+          "id": "9",
+          "number": 9,
+          "subquestion": null,
+          "answer": "ウ",
+          "points": 4
+        },
+        {
+          "id": "10-1",
+          "number": 10,
+          "subquestion": 1,
+          "answer": "ウ",
+          "points": 4
+        },
+        {
+          "id": "10-2",
+          "number": 10,
+          "subquestion": 2,
+          "answer": "ウ",
+          "points": 4
+        },
+        {
+          "id": "11",
+          "number": 11,
+          "subquestion": null,
+          "answer": "ウ",
+          "points": 4
+        },
+        {
+          "id": "12",
+          "number": 12,
+          "subquestion": null,
+          "answer": "ア",
+          "points": 4
+        },
+        {
+          "id": "13",
+          "number": 13,
+          "subquestion": null,
+          "answer": "イ",
+          "points": 4
+        },
+        {
+          "id": "14",
+          "number": 14,
+          "subquestion": null,
+          "answer": "ウ",
+          "points": 4
+        },
+        {
+          "id": "15",
+          "number": 15,
+          "subquestion": null,
+          "answer": "ア",
+          "points": 4
+        },
+        {
+          "id": "16",
+          "number": 16,
+          "subquestion": null,
+          "answer": "ウ",
+          "points": 4
+        },
+        {
+          "id": "17",
+          "number": 17,
+          "subquestion": null,
+          "answer": "イ",
+          "points": 4
+        },
+        {
+          "id": "18",
+          "number": 18,
+          "subquestion": null,
+          "answer": "ウ",
+          "points": 4
+        },
+        {
+          "id": "19",
+          "number": 19,
+          "subquestion": null,
+          "answer": "ア",
+          "points": 4
+        },
+        {
+          "id": "20",
+          "number": 20,
+          "subquestion": null,
+          "answer": "イ",
+          "points": 4
+        },
+        {
+          "id": "21",
+          "number": 21,
+          "subquestion": null,
+          "answer": "エ",
+          "points": 4
+        },
+        {
+          "id": "22",
+          "number": 22,
+          "subquestion": null,
+          "answer": "イ",
+          "points": 4
+        },
+        {
+          "id": "23",
+          "number": 23,
+          "subquestion": null,
+          "answer": "ア",
+          "points": 4
+        },
+        {
+          "id": "24",
+          "number": 24,
+          "subquestion": null,
+          "answer": "エ",
+          "points": 4
+        }
+      ]
+    },
+    "sme": {
+      "code": "G",
+      "label": "中小企業経営・中小企業政策",
+      "minutes": 90,
+      "pages": 39,
+      "question_url": "https://www.jf-cmca.jp/attach/test/shikenmondai/1ji2026/G1JC2026.pdf",
+      "answer_url": "https://www.jf-cmca.jp/attach/test/r08/1ji_seikai/2026G.pdf",
+      "totalPoints": 100,
+      "answers": [
+        {
+          "id": "1",
+          "number": 1,
+          "subquestion": null,
+          "answer": "ウ",
+          "points": 3
+        },
+        {
+          "id": "2",
+          "number": 2,
+          "subquestion": null,
+          "answer": "オ",
+          "points": 2
+        },
+        {
+          "id": "3",
+          "number": 3,
+          "subquestion": null,
+          "answer": "ア",
+          "points": 3
+        },
+        {
+          "id": "4",
+          "number": 4,
+          "subquestion": null,
+          "answer": "イ",
+          "points": 2
+        },
+        {
+          "id": "5",
+          "number": 5,
+          "subquestion": null,
+          "answer": "イ",
+          "points": 3
+        },
+        {
+          "id": "6",
+          "number": 6,
+          "subquestion": null,
+          "answer": "ウ",
+          "points": 2
+        },
+        {
+          "id": "7",
+          "number": 7,
+          "subquestion": null,
+          "answer": "ウ",
+          "points": 3
+        },
+        {
+          "id": "8-1",
+          "number": 8,
+          "subquestion": 1,
+          "answer": "ア",
+          "points": 2
+        },
+        {
+          "id": "8-2",
+          "number": 8,
+          "subquestion": 2,
+          "answer": "ア",
+          "points": 2
+        },
+        {
+          "id": "9",
+          "number": 9,
+          "subquestion": null,
+          "answer": "イ",
+          "points": 3
+        },
+        {
+          "id": "10",
+          "number": 10,
+          "subquestion": null,
+          "answer": "ウ",
+          "points": 2
+        },
+        {
+          "id": "11",
+          "number": 11,
+          "subquestion": null,
+          "answer": "ア",
+          "points": 2
+        },
+        {
+          "id": "12",
+          "number": 12,
+          "subquestion": null,
+          "answer": "ウ",
+          "points": 2
+        },
+        {
+          "id": "13",
+          "number": 13,
+          "subquestion": null,
+          "answer": "オ",
+          "points": 2
+        },
+        {
+          "id": "14",
+          "number": 14,
+          "subquestion": null,
+          "answer": "イ",
+          "points": 3
+        },
+        {
+          "id": "15-1",
+          "number": 15,
+          "subquestion": 1,
+          "answer": "オ",
+          "points": 3
+        },
+        {
+          "id": "15-2",
+          "number": 15,
+          "subquestion": 2,
+          "answer": "ア",
+          "points": 2
+        },
+        {
+          "id": "16-1",
+          "number": 16,
+          "subquestion": 1,
+          "answer": "エ",
+          "points": 2
+        },
+        {
+          "id": "16-2",
+          "number": 16,
+          "subquestion": 2,
+          "answer": "ウ",
+          "points": 3
+        },
+        {
+          "id": "17",
+          "number": 17,
+          "subquestion": null,
+          "answer": "オ",
+          "points": 2
+        },
+        {
+          "id": "18",
+          "number": 18,
+          "subquestion": null,
+          "answer": "イ",
+          "points": 2
+        },
+        {
+          "id": "19-1",
+          "number": 19,
+          "subquestion": 1,
+          "answer": "ウ",
+          "points": 3
+        },
+        {
+          "id": "19-2",
+          "number": 19,
+          "subquestion": 2,
+          "answer": "ア",
+          "points": 2
+        },
+        {
+          "id": "20",
+          "number": 20,
+          "subquestion": null,
+          "answer": "エ",
+          "points": 2
+        },
+        {
+          "id": "21",
+          "number": 21,
+          "subquestion": null,
+          "answer": "イ",
+          "points": 2
+        },
+        {
+          "id": "22-1",
+          "number": 22,
+          "subquestion": 1,
+          "answer": "イ",
+          "points": 2
+        },
+        {
+          "id": "22-2",
+          "number": 22,
+          "subquestion": 2,
+          "answer": "エ",
+          "points": 3
+        },
+        {
+          "id": "23",
+          "number": 23,
+          "subquestion": null,
+          "answer": "ア",
+          "points": 2
+        },
+        {
+          "id": "24",
+          "number": 24,
+          "subquestion": null,
+          "answer": "ウ",
+          "points": 2
+        },
+        {
+          "id": "25",
+          "number": 25,
+          "subquestion": null,
+          "answer": "オ",
+          "points": 2
+        },
+        {
+          "id": "26",
+          "number": 26,
+          "subquestion": null,
+          "answer": "ア",
+          "points": 3
+        },
+        {
+          "id": "27-1",
+          "number": 27,
+          "subquestion": 1,
+          "answer": "エ",
+          "points": 2
+        },
+        {
+          "id": "27-2",
+          "number": 27,
+          "subquestion": 2,
+          "answer": "ウ",
+          "points": 2
+        },
+        {
+          "id": "27-3",
+          "number": 27,
+          "subquestion": 3,
+          "answer": "エ",
+          "points": 3
+        },
+        {
+          "id": "28",
+          "number": 28,
+          "subquestion": null,
+          "answer": "ウ",
+          "points": 3
+        },
+        {
+          "id": "29-1",
+          "number": 29,
+          "subquestion": 1,
+          "answer": "オ",
+          "points": 3
+        },
+        {
+          "id": "29-2",
+          "number": 29,
+          "subquestion": 2,
+          "answer": "ア",
+          "points": 2
+        },
+        {
+          "id": "30",
+          "number": 30,
+          "subquestion": null,
+          "answer": "ウ",
+          "points": 3
+        },
+        {
+          "id": "31-1",
+          "number": 31,
+          "subquestion": 1,
+          "answer": "エ",
+          "points": 2
+        },
+        {
+          "id": "31-2",
+          "number": 31,
+          "subquestion": 2,
+          "answer": "ア",
+          "points": 2
+        },
+        {
+          "id": "32-1",
+          "number": 32,
+          "subquestion": 1,
+          "answer": "ウ",
+          "points": 3
+        },
+        {
+          "id": "32-2",
+          "number": 32,
+          "subquestion": 2,
+          "answer": "ウ",
+          "points": 2
+        }
+      ]
+    }
+  }
+}

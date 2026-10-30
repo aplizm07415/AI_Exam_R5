@@ -1,0 +1,304 @@
+{
+  "reviewDate": "2026-09-05",
+  "scope": "All-question structural checks and taxonomy ID mapping; not a complete semantic audit",
+  "structuralAudit": {
+    "total": 2474,
+    "emptyExplanations": 0,
+    "missingCorrectOptions": 0,
+    "duplicateOptionTexts": 0,
+    "replacementCharacters": 0,
+    "mojibakeCandidates": 0,
+    "serializedExplanationCandidates": 0,
+    "missingThoughtFlow": 0,
+    "directAnswerSummaries": 0,
+    "answerConclusionRecaps": 0,
+    "explicitOptionJudgments": 0,
+    "standaloneCautions": 0,
+    "explanationSectionLabels": 0,
+    "unresolvedContentWarnings": 0,
+    "longExplanations": 113,
+    "samePromptGroups": 36,
+    "exactDuplicateQuestions": 0,
+    "datedQuestions": 894,
+    "calculationBySubject": {
+      "finance": 234,
+      "operations": 47,
+      "sme": 41
+    }
+  },
+  "subjects": [
+    {
+      "subject": "finance",
+      "questionCount": 493,
+      "taxonomyTopicCount": 83,
+      "coveredTopicIdCount": 65,
+      "courseCounts": {
+        "60": 182,
+        "70": 54,
+        "80": 257
+      },
+      "studyPlanItemCount": 69,
+      "itemsWithoutEligibleTopicQuestions": [
+        {
+          "text": "損益分岐点分析（CVP分析）の基本計算",
+          "depth": 0,
+          "topicId": "財務_会計:財務分析(経営分析)",
+          "topic": "財務分析(経営分析)",
+          "course": 60
+        },
+        {
+          "text": "事業部の業績評価（ROI、RI）",
+          "depth": 0,
+          "topicId": "財務_会計:原価計算および管理会計",
+          "topic": "原価計算および管理会計",
+          "course": 70
+        },
+        {
+          "text": "+（新傾向）非財務情報開示（統合報告書、ESG）",
+          "depth": 0,
+          "topicId": null,
+          "topic": null,
+          "course": 80
+        },
+        {
+          "text": "事例ⅣはPhase 2まで週1回30〜45分、Phase 3は週1回80分実施する",
+          "depth": 0,
+          "topicId": null,
+          "topic": null,
+          "course": 80
+        },
+        {
+          "text": "公式過去問で32〜75点と振れた原因を、知識・計算手順・時間・読み違いに分類する",
+          "depth": 0,
+          "topicId": null,
+          "topic": null,
+          "course": 80
+        },
+        {
+          "text": "R7、R8、TAC模試の誤答を、数値・条件・問われ方を変えた初見相当類題で解き直す",
+          "depth": 0,
+          "topicId": null,
+          "topic": null,
+          "course": 80
+        },
+        {
+          "text": "同一問題の再得点ではなく、初見相当セットで80点以上を2回確認する",
+          "depth": 0,
+          "topicId": null,
+          "topic": null,
+          "course": 80
+        }
+      ]
+    },
+    {
+      "subject": "operations",
+      "questionCount": 563,
+      "taxonomyTopicCount": 107,
+      "coveredTopicIdCount": 84,
+      "courseCounts": {
+        "60": 395,
+        "70": 47,
+        "80": 121
+      },
+      "studyPlanItemCount": 95,
+      "itemsWithoutEligibleTopicQuestions": [
+        {
+          "text": "設備保全（予防保全・事後保全）",
+          "depth": 0,
+          "topicId": "運営管理:設備管理",
+          "topic": "設備管理",
+          "course": 60
+        },
+        {
+          "text": "IEの基本（工程分析、稼働分析）",
+          "depth": 0,
+          "topicId": "運営管理:IE(インダストリアル・エンジニアリング)関連手法",
+          "topic": "IE(インダストリアル・エンジニアリング)関連手法",
+          "course": 60
+        },
+        {
+          "text": "GMROI（商品投下資本粗利益率）と交差比率の基本計算",
+          "depth": 0,
+          "topicId": "運営管理:小売業の経営分析指標",
+          "topic": "小売業の経営分析指標",
+          "course": 60
+        },
+        {
+          "text": "SCM（サプライチェーン・マネジメント）とブルウィップ効果",
+          "depth": 0,
+          "topicId": "運営管理:物流・サプライチェーンマネジメント(SCM)",
+          "topic": "物流・サプライチェーンマネジメント(SCM)",
+          "course": 70
+        },
+        {
+          "text": "令和3〜8年度を本試験時間で完走し、公式過去問の基準得点を揃える",
+          "depth": 0,
+          "topicId": null,
+          "topic": null,
+          "course": 80
+        },
+        {
+          "text": "R8の44点とTAC模試70点の差を、論点・形式・時間超過に分解する",
+          "depth": 0,
+          "topicId": null,
+          "topic": null,
+          "course": 80
+        },
+        {
+          "text": "初見相当の図表セットで80点以上を2回確認する",
+          "depth": 0,
+          "topicId": null,
+          "topic": null,
+          "course": 80
+        }
+      ]
+    },
+    {
+      "subject": "law",
+      "questionCount": 489,
+      "taxonomyTopicCount": 103,
+      "coveredTopicIdCount": 45,
+      "courseCounts": {
+        "60": 303,
+        "70": 96,
+        "80": 90
+      },
+      "studyPlanItemCount": 74,
+      "itemsWithoutEligibleTopicQuestions": [
+        {
+          "text": "著作権の基本（著作者人格権と著作財産権）",
+          "depth": 0,
+          "topicId": "経営法務:知的財産法_著作権法",
+          "topic": "知的財産法：著作権法",
+          "course": 60
+        },
+        {
+          "text": "倒産法制の概要（破産、民事再生の違い）",
+          "depth": 0,
+          "topicId": "経営法務:倒産法",
+          "topic": "倒産法",
+          "course": 60
+        },
+        {
+          "text": "独占禁止法の概要（私的独占、不当な取引制限）",
+          "depth": 0,
+          "topicId": "経営法務:消費者保護・競争法",
+          "topic": "消費者保護・競争法",
+          "course": 60
+        },
+        {
+          "text": "消費者契約法の概要",
+          "depth": 0,
+          "topicId": "経営法務:消費者保護・競争法",
+          "topic": "消費者保護・競争法",
+          "course": 60
+        },
+        {
+          "text": "著作権（権利の制限、保護期間、隣接権）",
+          "depth": 0,
+          "topicId": "経営法務:知的財産法_著作権法",
+          "topic": "知的財産法：著作権法",
+          "course": 70
+        },
+        {
+          "text": "担保物権（抵当権、質権、留置権）",
+          "depth": 0,
+          "topicId": "経営法務:民法_-_債権・物権",
+          "topic": "民法 - 債権・物権",
+          "course": 70
+        },
+        {
+          "text": "個人情報保護法",
+          "depth": 0,
+          "topicId": null,
+          "topic": null,
+          "course": 70
+        },
+        {
+          "text": "消費者契約法・特定商取引法",
+          "depth": 0,
+          "topicId": "経営法務:消費者保護・競争法関連",
+          "topic": "消費者保護・競争法関連",
+          "course": 70
+        },
+        {
+          "text": "下請代金支払遅延等防止法（下請法）",
+          "depth": 0,
+          "topicId": "経営法務:その他(下請法_プロバイダ責任制限法_国際契約)",
+          "topic": "その他(下請法、プロバイダ責任制限法、国際契約)",
+          "course": 70
+        },
+        {
+          "text": "機関設計とコーポレート・ガバナンス",
+          "depth": 0,
+          "topicId": "経営法務:会社の機関設計とコーポレート・ガバナンス",
+          "topic": "会社の機関設計とコーポレート・ガバナンス",
+          "course": 80
+        },
+        {
+          "text": "PL法（製造物責任法）",
+          "depth": 0,
+          "topicId": "経営法務:消費者保護・競争法関連",
+          "topic": "消費者保護・競争法関連",
+          "course": 80
+        },
+        {
+          "text": "+ 個人情報保護法の改正: 近年改正が頻繁で、企業のコンプライアンス上も重要性が増しているため。",
+          "depth": 0,
+          "topicId": "経営法務:その他実務関連法務",
+          "topic": "その他実務関連法務",
+          "course": 80
+        },
+        {
+          "text": "+ 電子帳簿保存法・インボイス制度: DX推進と税制改正に伴い、中小企業の実務に直結するため。",
+          "depth": 0,
+          "topicId": null,
+          "topic": null,
+          "course": 80
+        },
+        {
+          "text": "過去問の各選択肢を2027年度試験案内の法令基準日で再判定する",
+          "depth": 0,
+          "topicId": null,
+          "topic": null,
+          "course": 80
+        },
+        {
+          "text": "R8の52点とTAC模試32点の誤答を、改正・事例・複合論点・知識不足に分類する",
+          "depth": 0,
+          "topicId": null,
+          "topic": null,
+          "course": 80
+        },
+        {
+          "text": "古い正解の記憶ではなく、根拠条文と施行日を説明して80点以上を2回確認する",
+          "depth": 0,
+          "topicId": null,
+          "topic": null,
+          "course": 80
+        }
+      ]
+    },
+    {
+      "subject": "sme",
+      "questionCount": 929,
+      "taxonomyTopicCount": 95,
+      "coveredTopicIdCount": 75,
+      "courseCounts": {
+        "60": 603,
+        "70": 98,
+        "80": 228
+      },
+      "studyPlanItemCount": 119,
+      "itemsWithoutEligibleTopicQuestions": [
+        {
+          "text": "小規模企業共済制度",
+          "depth": 1,
+          "topicId": "中小企業経営_中小企業政策:各種共済・融資・補助金制度",
+          "topic": "各種共済・融資・補助金制度",
+          "course": 60
+        }
+      ]
+    }
+  ]
+}

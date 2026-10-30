@@ -1,0 +1,237 @@
+const test = require("node:test");
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
+const vm = require("node:vm");
+
+const { publicContent } = require("../src/content");
+
+test("ダッシュボード・全体確認・学習記録・実施履歴を描画できる", async () => {
+  const elements = Object.fromEntries(["#app", "#pageTitle", "#saveStatus", "#brandName", "#brandShort", "#todayLabel"].map((selector) => [selector, { innerHTML: "", textContent: "", style: { setProperty() {} } }]));
+  const storage = new Map();
+  const answeredAt = new Date().toISOString();
+  const savedResult = { questionId: "finance:test", subject: "finance", topic: "原価計算", topicId: "財務_会計:原価計算", minimumCourse: 60, difficulty: "基礎", correct: true, answeredAt };
+  storage.set("exam-kit:r4:progress", JSON.stringify({ schemaVersion: 5, answers: {}, results: { "finance:test": savedResult }, flags: {}, archived: { "finance:test": true }, notes: {}, attempts: {}, recent: [], mockResults: {}, activity: {}, sessions: [{ id: "session-test", type: "practice", label: "削除確認セッション", subject: "finance", course: 60, startedAt: answeredAt, lastActivityAt: answeredAt, questionCount: 1, results: [savedResult] }], plan: { targetScore: 60, completed: {}, autoCompleted: {} } }));
+  const document = {
+    documentElement: { style: { setProperty() {} } },
+    querySelector(selector) { return elements[selector] || null; },
+    querySelectorAll() { return []; },
+    addEventListener() {}
+  };
+  const context = vm.createContext({
+    console,
+    document,
+    window: { open() {}, scrollTo() {} },
+    localStorage: { getItem(key) { return storage.get(key) || null; }, setItem(key, value) { storage.set(key, value); } },
+    fetch: async (url) => ({
+      ok: true,
+      json: async () => url === "/api/content" ? publicContent() : url === "/api/progress" ? { configured: false, exists: false } : { configured: false }
+    }),
+    alert() {},
+    confirm() { return true; },
+    setTimeout,
+    clearTimeout,
+    setInterval,
+    clearInterval,
+    URLSearchParams,
+    Intl,
+    Date,
+    Math,
+    Map,
+    Set,
+    Promise
+  });
+  for (const moduleName of ["calculator", "assessment", "study-evidence", "learning", "progress-sync"]) {
+    vm.runInContext(fs.readFileSync(path.join(__dirname, "..", "public", `${moduleName}.js`), "utf8"), context);
+  }
+  const source = fs.readFileSync(path.join(__dirname, "..", "public", "app.js"), "utf8");
+  vm.runInContext(source, context, { filename: "public/app.js" });
+  await new Promise((resolve) => setTimeout(resolve, 30));
+
+  assert.match(elements["#app"].innerHTML, /TODAY'S MISSION/);
+  assert.match(elements["#app"].innerHTML, /FINANCE ROUTE/);
+
+  context.setView("overview");
+  assert.match(elements["#app"].innerHTML, /試験までの全体像と現在地/);
+  assert.match(elements["#app"].innerHTML, /本日の自動割当/);
+  assert.match(elements["#app"].innerHTML, /現在フェーズの予実/);
+  assert.match(elements["#app"].innerHTML, /学習スケジュール設定/);
+  assert.match(elements["#app"].innerHTML, /学習除外日/);
+
+  const scheduleAdjustment = vm.runInContext(`(() => {
+    const original = state.plan.schedule;
+    const phase = learningPhases()[0];
+    const baseline = phaseWorkload(phase).expected;
+    state.plan.schedule = normalizeSchedule({ phases: { [phase.id]: { start: "2026-08-25", end: phase.end } }, excludedDates: ["2026-09-08"] });
+    const adjustedPhase = learningPhases()[0];
+    const adjusted = phaseWorkload(adjustedPhase);
+    const chartReflectsExclusion = phaseChart(adjustedPhase).includes("除外 1日");
+    state.plan.schedule = normalizeSchedule({ ...state.plan.schedule, excludedDates: [localDateKey()] });
+    const today = phaseWorkload(currentPhase());
+    state.plan.schedule = original;
+    return { baseline, adjustedExpected: adjusted.expected, start: adjustedPhase.start, chartReflectsExclusion, todayTarget: today.adjustedTarget, todayExcluded: today.excludedToday };
+  })()`, context);
+  assert.equal(scheduleAdjustment.start, "2026-08-25");
+  assert.ok(scheduleAdjustment.adjustedExpected < scheduleAdjustment.baseline);
+  assert.equal(scheduleAdjustment.chartReflectsExclusion, true);
+  assert.equal(scheduleAdjustment.todayTarget, 0);
+  assert.equal(scheduleAdjustment.todayExcluded, true);
+
+  context.setView("progress");
+  assert.match(elements["#app"].innerHTML, /層別進捗とコース到達度/);
+  assert.match(elements["#app"].innerHTML, /60点コースのチェックポイント/);
+  assert.match(elements["#app"].innerHTML, /基礎をつなぐ/);
+  assert.match(elements["#app"].innerHTML, /60点基礎層/);
+  assert.match(elements["#app"].innerHTML, /70点追加層/);
+  assert.match(elements["#app"].innerHTML, /ロック中/);
+  assert.doesNotMatch(elements["#app"].innerHTML, /記録をリセット/);
+
+  context.setView("practice");
+  assert.match(elements["#app"].innerHTML, /除外問題を管理/);
+  context.setView("archive");
+  assert.match(elements["#app"].innerHTML, /演習対象から外した問題/);
+  assert.match(elements["#app"].innerHTML, /finance:test/);
+  assert.match(elements["#app"].innerHTML, /財務・会計/);
+  assert.match(elements["#app"].innerHTML, /運営管理/);
+  assert.match(elements["#app"].innerHTML, /演習対象に戻す/);
+
+  vm.runInContext(`begin([{ id: "finance:ui-test", sourceId: "ui-test", subject: "finance", topic: "UI確認", difficulty: "基礎", minimumCourse: 60, calculationRequired: true, options: [{ id: "ア", label: "選択肢A" }, { id: "イ", label: "選択肢B" }] }], { label: "UI確認" })`, context);
+  assert.match(elements["#app"].innerHTML, /role="checkbox"/);
+  assert.match(elements["#app"].innerHTML, /aria-label="選択肢アを除外"[^>]*>×<\/button>/);
+  assert.match(elements["#app"].innerHTML, /role="radio" tabindex="0"/);
+  assert.doesNotMatch(elements["#app"].innerHTML, /左の縦チェックは「除外」/);
+  assert.match(elements["#app"].innerHTML, /data-quit-session\s*>一旦やめる/);
+  assert.match(elements["#app"].innerHTML, /calculator is-minimized/);
+  assert.match(elements["#app"].innerHTML, /data-finish-session\s*>演習を完了してトップへ/);
+  assert.doesNotMatch(elements["#app"].innerHTML, /QUESTION MAP/);
+  assert.doesNotMatch(elements["#app"].innerHTML, /type="radio"/);
+  assert.doesNotMatch(elements["#app"].innerHTML, /data-archive/);
+
+  vm.runInContext(`currentAttempt().selectedAnswer = "イ"; currentAttempt().status = "graded"; feedbackCache.set(currentAttempt().attemptId, { correct: false, correctAnswer: "ア", explanation: "まず、条件を確認します。\\n\\n次に、式へ代入します。\\n\\n最後に、結果を確認します。出典 https://example.com/source" }); renderQuestion()`, context);
+  assert.match(elements["#app"].innerHTML, /choice[^"']*is-correct/);
+  assert.match(elements["#app"].innerHTML, /choice[^"']*is-incorrect/);
+  assert.doesNotMatch(elements["#app"].innerHTML, /正答：/);
+  assert.match(elements["#app"].innerHTML, /<a href="https:\/\/example\.com\/source" target="_blank" rel="noopener noreferrer">/);
+  assert.match(elements["#app"].innerHTML, /guided-feedback-explanation/);
+  assert.doesNotMatch(elements["#app"].innerHTML, /FINANCE MAP|READ|THINK|STEP|ORIGINAL|科目別ビュー|REVIEW/);
+  assert.match(elements["#app"].innerHTML, /解説全文/);
+  assert.match(elements["#app"].innerHTML, /<details class="original-explanation">/);
+  assert.doesNotMatch(elements["#app"].innerHTML, /クリックして表示|正答へ落とし込む/);
+  assert.match(elements["#app"].innerHTML, /feedback-quick-actions/);
+  assert.match(elements["#app"].innerHTML, /アーカイブにする/);
+  assert.match(elements["#app"].innerHTML, /data-grade disabled aria-busy="false">採点済み/);
+
+  const correctBanner = vm.runInContext(`feedbackMarkup({ correct: true, correctAnswer: "ア", explanation: "解説" }, { id: "finance:ui-test", subject: "finance", topic: "UI確認", options: [] })`, context);
+  assert.match(correctBanner, /feedback-result-banner"><strong>正解<\/strong><\/div>/);
+  assert.doesNotMatch(correctBanner, /正解です|判断の流れを確認して|CORRECT/);
+
+  const immediateSave = vm.runInContext(`(() => {
+    let calls = 0;
+    persistNow = async () => { calls += 1; };
+    queueSave({ immediate: true });
+    return calls;
+  })()`, context);
+  assert.equal(immediateSave, 1);
+
+  const allocationSums = vm.runInContext(`content.learningPhases.every((phase) => Array.from({ length: Math.ceil(phase.sessionSize * .5) + 1 }, (_, extra) => phase.sessionSize + extra).every((total) => Object.values(weightedAllocation(total, phase.subjectWeights)).reduce((sum, value) => sum + value, 0) === total))`, context);
+  assert.equal(allocationSums, true);
+
+  const cumulativePlan = vm.runInContext(`(() => {
+    const originalSessions = state.sessions;
+    const originalQuality = content.questionQuality;
+    const item = content.studyPlans.subjects.finance.courses.find((course) => course.targetScore === 70).groups.flatMap((group) => group.items).find((item) => item.evidenceType === "topic" && content.topics.some((topic) => topic.id === item.topicId && topic.courseCounts[70]));
+    const records = Array.from({ length: 7 }, (_, index) => ({ questionId: "finance:cumulative-" + index, subject: "finance", topic: item.topic, topicId: item.topicId, minimumCourse: 60, foundationCheckpoint: 1, difficulty: "基礎", correct: true, answeredAt: new Date(Date.now() - index * 1000).toISOString() }));
+    state.sessions = [0, 1].map((part) => ({ id: "cumulative-" + part, type: "practice", course: 60, startedAt: new Date().toISOString(), results: records.filter((_, index) => index % 2 === part) }));
+    content.questionQuality = { bankTotal: records.length, questions: Object.fromEntries(records.map(record => [record.questionId, { ...record, contentVersion: 1, minimumScoringVersion: 1 }])) };
+    const status = autoItemStatus("finance", 70, item);
+    state.sessions = originalSessions;
+    content.questionQuality = originalQuality;
+    return status;
+  })()`, context);
+  assert.equal(cumulativePlan.passed, true);
+
+  const archiveRule = vm.runInContext(`(() => {
+    const originalSessions = state.sessions;
+    const originalArchived = state.archived;
+    const originalResets = state.archiveResets;
+    const record = (day, correct = true) => ({ questionId: "finance:auto-test", subject: "finance", topic: "自動判定", correct, answeredAt: new Date(2026, 7, day, 12).toISOString() });
+    state.sessions = [{ id: "auto-days", results: [record(20), record(20), record(21), record(22)] }];
+    state.archived = {};
+    state.archiveResets = {};
+    const distinctDayStreak = consecutiveCorrectDayCount("finance:auto-test");
+    const archived = autoArchiveMasteredQuestion("finance:auto-test");
+    const reason = state.archived["finance:auto-test"]?.reason || null;
+    restoreArchivedQuestion("finance:auto-test");
+    const resetStreak = consecutiveCorrectDayCount("finance:auto-test");
+    state.sessions = originalSessions;
+    state.archived = originalArchived;
+    state.archiveResets = originalResets;
+    return { distinctDayStreak, archived, reason, resetStreak };
+  })()`, context);
+  assert.deepEqual(JSON.parse(JSON.stringify(archiveRule)), { distinctDayStreak: 3, archived: false, reason: null, resetStreak: 0 });
+
+  const gates = vm.runInContext(`(() => {
+    const originalSessions = state.sessions;
+    const originalResults = state.results;
+    const originalQuality = content.questionQuality;
+    const subjects = ["finance", "operations", "law", "sme"];
+    const financeOnly = Array.from({ length: 60 }, (_, index) => ({ questionId: "finance:only-" + index, subject: "finance", topic: "gate", topicId: "finance:gate", minimumCourse: 60, foundationCheckpoint: 1, difficulty: "基礎", correct: true, answeredAt: new Date(Date.now() - index * 1000).toISOString() }));
+    state.sessions = Array.from({ length: 4 }, (_, sessionIndex) => ({ id: "finance-only-" + sessionIndex, type: "practice", course: 60, startedAt: new Date().toISOString(), results: financeOnly.filter((_, index) => index % 4 === sessionIndex) }));
+    state.results = Object.fromEntries(financeOnly.map((record) => [record.questionId, record]));
+    content.questionQuality = { bankTotal: financeOnly.length, questions: Object.fromEntries(financeOnly.map(record => [record.questionId, { ...record, contentVersion: 1, minimumScoringVersion: 1 }])) };
+    const oneSubjectUnlocks = isCourseUnlocked(70);
+    const records = [];
+    const sessions = [];
+    for (const checkpoint of [1, 2, 3]) for (const subject of subjects) {
+      const subjectRecords = Array.from({ length: 20 }, (_, index) => ({ questionId: subject + ":gate-" + checkpoint + "-" + index, subject, topic: "gate", topicId: subject + ":gate", minimumCourse: 60, foundationCheckpoint: checkpoint, difficulty: "基礎", correct: true, answeredAt: new Date(Date.now() - (checkpoint * 100 + index) * 1000).toISOString() }));
+      records.push(...subjectRecords);
+      sessions.push(...[0, 1, 2].map((part) => ({ id: "gate-" + checkpoint + "-" + subject + "-" + part, type: "practice", course: 60, startedAt: new Date().toISOString(), results: subjectRecords.filter((_, index) => index % 3 === part) })));
+    }
+    state.sessions = sessions;
+    state.results = Object.fromEntries(records.map((record) => [record.questionId, record]));
+    content.questionQuality = { bankTotal: records.length, questions: Object.fromEntries(records.map(record => [record.questionId, { ...record, contentVersion: 1, minimumScoringVersion: 1 }])) };
+    const result = { oneSubjectUnlocks, foundation: foundationReadiness().passed, seventyUnlocked: isCourseUnlocked(70), eightyUnlocked: isCourseUnlocked(80), selector: courseSelector() };
+    state.sessions = originalSessions;
+    state.results = originalResults;
+    content.questionQuality = originalQuality;
+    return result;
+  })()`, context);
+  assert.equal(gates.oneSubjectUnlocks, false);
+  assert.equal(gates.foundation, true);
+  assert.equal(gates.seventyUnlocked, true);
+  assert.equal(gates.eightyUnlocked, false);
+  assert.match(gates.selector, /data-set-course="80" disabled/);
+
+  context.setView("history");
+  assert.match(elements["#app"].innerHTML, /すべての実施記録/);
+  assert.match(elements["#app"].innerHTML, /削除確認セッション/);
+  context.removeSession("session-test");
+  context.renderHistory();
+  assert.doesNotMatch(elements["#app"].innerHTML, /削除確認セッション/);
+});
+
+test("サイドバーにアーカイブタブがある", () => {
+  const html = fs.readFileSync(path.join(__dirname, "..", "public", "index.html"), "utf8");
+  assert.match(html, /data-view="archive"[^>]*><span>08<\/span>アーカイブ/);
+  assert.match(html, /data-mobile-nav-toggle[^>]*aria-expanded="false"/);
+  assert.equal((html.match(/id="brandName">R4</g) || []).length, 1);
+});
+
+test("スマホ表示は本文16px・補助14pxと44px以上の操作領域を使う", () => {
+  const css = fs.readFileSync(path.join(__dirname, "..", "public", "styles.css"), "utf8");
+  const html = fs.readFileSync(path.join(__dirname, "..", "public", "index.html"), "utf8");
+  assert.match(css, /#app :where\(p, li, td, th, label, button, input, select, textarea\) \{ font-size: 16px; \}/);
+  assert.match(css, /#app :where\(small, span, \.eyebrow\) \{ font-size: 14px; \}/);
+  assert.match(css, /\.eliminate-toggle \{ width: 44px; height: 44px;/);
+  assert.match(css, /\.quit-session \{ min-height: 44px; \}/);
+  assert.match(css, /\.calculator\.is-minimized \{ width: 76px; \}/);
+  assert.doesNotMatch(css, /(?:html|body) \{[^}]*overflow-x: hidden/);
+  assert.match(css, /html \{[^}]*min-width: 0;[^}]*overflow-x: clip;/);
+  assert.match(css, /body \{[^}]*min-width: 0;[^}]*overflow-x: clip;/);
+  assert.doesNotMatch(css, /body \{[^}]*min-width: 320px/);
+  assert.match(css, /env\(safe-area-inset-left\)/);
+  assert.match(css, /\.table-scroll \{ width: 100%; max-width: 100%;[^}]*overflow-x: auto;/);
+  assert.match(css, /\.sidebar\.is-menu-open nav \{ display: grid; \}/);
+  assert.doesNotMatch(css, /\.sidebar nav \{[^}]*overflow-x: auto/);
+  assert.match(html, /styles\.css\?v=[^"\s]+/);
+});

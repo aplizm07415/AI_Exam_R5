@@ -1,0 +1,40 @@
+{
+  "copiedAt": "2026-08-14T12:38:00+09:00",
+  "azure": {
+    "subscriptionAccount": "developer@example.com",
+    "resourceGroup": "example-resource",
+    "storageAccount": "example-resource",
+    "container": "exam-json"
+  },
+  "files": [
+    {
+      "name": "S-財務_会計-493.json",
+      "subject": "財務・会計",
+      "records": 493,
+      "bytes": 1954016,
+      "sha256": "EF122156CC2F33DB6F90C9C09D971A249D58DD0029BB8C2865536AC47520AFA3"
+    },
+    {
+      "name": "運営管理-564.json",
+      "subject": "運営管理",
+      "records": 564,
+      "bytes": 2191014,
+      "sha256": "FFB75B19A859758364AB6C226555B207355B41426C23C86DC9ABF6838044A400"
+    },
+    {
+      "name": "経営法務-500.json",
+      "subject": "経営法務",
+      "records": 489,
+      "bytes": 764742,
+      "sha256": "C785B9515972B2E8921DB0133B1E921E6456C9121382B0344CA1CD593B149850",
+      "note": "ファイル名は500だが、JSON配列の実レコード数は489"
+    },
+    {
+      "name": "中小企業経営_中小企業政策-917.json",
+      "subject": "中小企業経営・中小企業政策",
+      "records": 917,
+      "bytes": 2375606,
+      "sha256": "DC0306D20BC1BB8C101E5D31B9795CE7A0F55A0EAA984A8B7FF963301EE6ED6D"
+    }
+  ]
+}

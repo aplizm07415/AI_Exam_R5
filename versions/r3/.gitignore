@@ -1,0 +1,23 @@
+# Node.js
+node_modules/
+.vite/
+
+# Python
+__pycache__/
+.venv/
+
+# Data
+data/
+secondary_exam_runtime/
+
+# Environment variables
+.env
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+.history/
+
+.env*

@@ -1,0 +1,20 @@
+{
+  "name": "r4-diagnostic-study-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "中小企業診断士一次試験4科目を80点まで段階的に仕上げる個人学習アプリ",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "build:data": "node tools/build-r4-content.js",
+    "extract:explanations": "python3 tools/extract-serialized-explanations.py",
+    "audit:data": "node tools/audit-questions.js --markdown",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.1.0"
+  }
+}

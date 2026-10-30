@@ -1,0 +1,19 @@
+# Node.js
+node_modules/
+.vite/
+
+# Python
+__pycache__/
+.venv/
+
+# Data
+data/
+
+# Environment variables
+.env
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
