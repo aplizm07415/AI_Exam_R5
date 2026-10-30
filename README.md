@@ -1,4 +1,6 @@
-# AI Exam Prep — development portfolio
+# AI_Exam_R5
+
+Private exam-study application portfolio, bringing the R1–R4 development history together for the next stage of the project.
 
 ## For the Alignerr review team
 
